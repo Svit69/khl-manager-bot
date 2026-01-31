@@ -21,7 +21,12 @@ export class AppState{
     return this.#lastMatch;
   }
   exportState(){
-    const players=this.#teams.flatMap(t=>t.getRoster()).map(p=>({\n      id:p.identity.id,fatigueScore:p.fatigueScore,form:p.form,injuryUntilDay:p.condition.injuryUntilDay\n    }));
+    const players=this.#teams.flatMap(t=>t.getRoster()).map(p=>({
+      id:p.identity.id,
+      fatigueScore:p.fatigueScore,
+      form:p.form,
+      injuryUntilDay:p.condition.injuryUntilDay
+    }));
     return {calendarIndex:this.#calendar.index,players,stats:this.#stats.getSeasonStats(),activeTeamId:this.#activeTeamId};
   }
   importState(saved){
@@ -29,10 +34,16 @@ export class AppState{
     this.#calendar.index=saved.calendarIndex||0;
     this.#activeTeamId=saved.activeTeamId||null;
     const map=new Map((saved.players||[]).map(p=>[p.id,p]));
-    this.#teams.flatMap(t=>t.getRoster()).forEach(p=>{\n      const s=map.get(p.identity.id);\n      if(s){p.applyFatigue(s.fatigueScore-p.fatigueScore);p.applyFormDelta(s.form-p.form)}\n    });
+    this.#teams.flatMap(t=>t.getRoster()).forEach(p=>{
+      const s=map.get(p.identity.id);
+      if(s){p.applyFatigue(s.fatigueScore-p.fatigueScore);p.applyFormDelta(s.form-p.form)}
+    });
     this.#stats.importStats(saved.stats);
   }
   #applyFatigue(teams,delta){
-    teams.flatMap(t=>t.getRoster()).forEach(p=>{\n      p.applyFatigue(delta);\n      p.applyFormDelta(Math.random()*0.02-0.01);\n    });
+    teams.flatMap(t=>t.getRoster()).forEach(p=>{
+      p.applyFatigue(delta);
+      p.applyFormDelta(Math.random()*0.02-0.01);
+    });
   }
 }
