@@ -11,4 +11,5 @@ export class UserStore{
   }
   loadSave(){return JSON.parse(localStorage.getItem(SAVE_KEY)||"null")}
   saveState(state){localStorage.setItem(SAVE_KEY,JSON.stringify(state))}
+  clearSave(){localStorage.removeItem(SAVE_KEY)}
 }

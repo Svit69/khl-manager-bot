@@ -31,6 +31,10 @@
     const disabled=isLocked?"disabled":"";const label=isLocked?"Выбрать команду":"Дальше";
     this.#calEl.innerHTML=`<h2>Календарь • День ${day}</h2><div class="row"><div>${text}</div><button id="playBtn" class="btn" ${disabled}>${label}</button></div>`;
   }
+  renderResetButton(){
+    const html=`<div class="row reset-row"><button id="resetBtn" class="btn secondary">Новая игра</button></div>`;
+    this.#calEl.insertAdjacentHTML("beforeend",html);
+  }
   renderMatch(match,stats){
     if(match===null){this.#matchEl.innerHTML=`<h2>Матч</h2><div class="list">Сегодня отдых</div>`;return;}
     if(!match){this.#matchEl.innerHTML=`<h2>Матч</h2><div class="list">Сезон завершён</div>`;return;}

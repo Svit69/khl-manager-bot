@@ -23,6 +23,7 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:12px}
 .modal-card{background:var(--card);border:1px solid #1c3e63;border-radius:12px;padding:12px;width:min(360px,100%)}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+.reset-row{justify-content:flex-end;margin-top:8px}
 @media (orientation:landscape){
   .main{grid-template-columns:1fr 1fr 1fr}
   .header h1{font-size:16px}

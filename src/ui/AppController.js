@@ -14,12 +14,14 @@ export class AppController{
     if(this.#state.activeTeam){
       this.#renderer.renderTeam(this.#state.activeTeam);
       this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,false);
+      this.#renderer.renderResetButton();
       this.#renderer.renderMatch(this.#state.lastMatch,this.#state.seasonStats);
       this.#renderer.renderMyTeamRoster(this.#state.activeTeam);
       return;
     }
     this.#renderer.renderTeamSelection(this.#teams,this.#state.activeTeamId);
     this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,true);
+    this.#renderer.renderResetButton();
     this.#renderer.renderMatch(this.#state.lastMatch,this.#state.seasonStats);
     if(this.#pendingTeamId){
       const team=this.#teams.find(t=>t.id===this.#pendingTeamId);
@@ -35,7 +37,12 @@ export class AppController{
       this.#userStore.saveState(this.#state.exportState());this.#renderScreen();return;
     }
     if(action==="cancel-team"){this.#pendingTeamId=null;this.#renderScreen();return;}
+    if(e.target?.id==="resetBtn"){this.#resetGame();return;}
     if(e.target?.id!=="playBtn"||this.#calendar.isFinished()||!this.#state.activeTeamId)return;
     this.#state.playDay();this.#userStore.saveState(this.#state.exportState());this.#renderScreen();
+  }
+  #resetGame(){
+    this.#userStore.clearSave();
+    window.location.reload();
   }
 }
