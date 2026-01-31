@@ -1,11 +1,12 @@
 ﻿import { createTeams } from "./data/seed.js";
+import { teamsData } from "./data/teams.js";
 import { SeasonCalendar } from "./calendar/SeasonCalendar.js";
 import { UserStore } from "./storage/UserStore.js";
 import { Renderer } from "./ui/Renderer.js";
 import { AppState } from "./state/AppState.js";
 const userStore=new UserStore();
 const user=userStore.loadUser();
-const teams=createTeams(["СКА","Ак Барс","ЦСКА","Авангард"]);
+const teams=createTeams(teamsData);
 const calendar=new SeasonCalendar(teams);
 const state=new AppState(teams,calendar);
 state.importState(userStore.loadSave());

@@ -9,7 +9,8 @@
   renderUser(user){this.#userEl.textContent=`ID: ${user.id}`}
   renderTeam(team){
     const lines=team.lines.map(l=>`<div>${l.players.map(p=>p.name).join(" | ")}</div>`).join("");
-    this.#teamEl.innerHTML=`<h2>${team.name}</h2><div class="list">${lines}</div>`;
+    const header=`<div class="row"><img class="logo" src="${team.logoUrl}" alt="${team.name}"/><div><div>${team.name}</div><div class="muted">${team.city}, ${team.country} • ${team.shortName}</div></div></div>`;
+    this.#teamEl.innerHTML=`<h2>Команда</h2>${header}<div class="list">${lines}</div>`;
   }
   renderCalendar(day,info){
     const text=info?.match?`${info.match.home.name} — ${info.match.away.name}`:"День отдыха";
