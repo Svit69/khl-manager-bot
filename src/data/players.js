@@ -87,6 +87,28 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:215,seasonsPlayed:5,reputation:100},
     affiliation:{contractId:"b1c2d3e4-f5a6-4b7c-8d9e-0f1a2b3c4d5e"}
+  },
+  {
+    id:"d0e1f2a3-b4c5-6d7e-8f9a-0b1c2d3e4f5a",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    lineIndex:2,
+    position:PlayerPosition.RW,
+    identity:{
+      firstName:"Рид",
+      lastName:"Буше",
+      displayName:"Рид Буше",
+      birthDate:"1993-09-08",
+      nationality:"US",
+      isGoalie:false,
+      photoUrl:"./player-photo/boucher.png",
+      primaryPosition:PlayerPosition.RW,
+      secondaryPositions:[PlayerPosition.LW]
+    },
+    attributes:{shot:89,speed:75,physical:76,defense:70,skill:87},
+    potential:{potential:84,growthRate:1.0,peakAge:30,declineRate:0.8},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:320,seasonsPlayed:6,reputation:90},
+    affiliation:{contractId:"d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position)=>playerProfiles

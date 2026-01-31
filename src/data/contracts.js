@@ -75,5 +75,12 @@
     teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
     season:"2026/2027",
     salaryRub:15000000
+  },
+  {
+    id:"d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a",
+    playerId:"d0e1f2a3-b4c5-6d7e-8f9a-0b1c2d3e4f5a",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    season:"2025/2026",
+    salaryRub:90000000
   }
 ];
