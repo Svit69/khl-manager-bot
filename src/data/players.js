@@ -43,6 +43,28 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:568,seasonsPlayed:13,reputation:87},
     affiliation:{contractId:"d1f4a2c8-5b6d-4e12-9c2a-7f1b2c3d4e5f"}
+  },
+  {
+    id:"b7c8d9e0-1f2a-4b3c-9d4e-5f6a7b8c9d0e",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    lineIndex:1,
+    position:PlayerPosition.DEF,
+    identity:{
+      firstName:"Никита",
+      lastName:"Трямкин",
+      displayName:"Никита Трямкин",
+      birthDate:"1994-08-30",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/tryamkin.png",
+      primaryPosition:PlayerPosition.DEF,
+      secondaryPositions:[]
+    },
+    attributes:{shot:78,speed:74,physical:87,defense:84,skill:78},
+    potential:{potential:80,growthRate:0.9,peakAge:29,declineRate:0.9},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:663,seasonsPlayed:13,reputation:100},
+    affiliation:{contractId:"a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position)=>playerProfiles
