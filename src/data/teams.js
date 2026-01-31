@@ -1,17 +1,18 @@
-﻿import { generateUuid } from "../utils/uuid.js";
-const buildTeam=(name,shortName,city,country,logoFile)=>({
-  id:generateUuid(),
-  name,
-  shortName,
-  city,
-  country,
-  logoUrl:`./khl-logo/${logoFile}`,
-  isPlayable:true,
-  createdAt:new Date().toISOString()
-});
+﻿const buildTeam=(id,name,shortName,city,country,logoFile)=>(
+  {
+    id,
+    name,
+    shortName,
+    city,
+    country,
+    logoUrl:`./khl-logo/${logoFile}`,
+    isPlayable:true,
+    createdAt:"2026-01-31T00:00:00.000Z"
+  }
+);
 export const teamsData=[
-  buildTeam("Авангард","AVG","Омск","RU","avangard.png"),
-  buildTeam("Автомобилист","AVT","Екатеринбург","RU","avtomobilist.png"),
-  buildTeam("Салават Юлаев","SYU","Уфа","RU","salavat-yulaev.png"),
-  buildTeam("Трактор","TRK","Челябинск","RU","traktor.png")
+  buildTeam("d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d","Авангард","AVG","Омск","RU","avangard.png"),
+  buildTeam("a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a","Автомобилист","AVT","Екатеринбург","RU","avtomobilist.png"),
+  buildTeam("3a2d2d4a-7b2b-4a2f-8a5c-8e8e8f9e0c0b","Салават Юлаев","SYU","Уфа","RU","salavat-yulaev.png"),
+  buildTeam("4c9c3c3a-8f7a-4f5e-9c9a-6d6b6a5e4f3d","Трактор","TRK","Челябинск","RU","traktor.png")
 ];
