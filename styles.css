@@ -19,7 +19,8 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
 .team-card{display:flex;align-items:center;gap:8px;padding:8px;border-radius:10px;border:1px solid #1c3e63;background:#0f2743;color:var(--text);cursor:pointer}
 .team-card img{width:40px;height:40px;object-fit:contain}
 .roster-grid{display:grid;grid-template-columns:1fr;gap:6px}
-.player-card{background:#0f2743;border:1px solid #1c3e63;border-radius:8px;padding:6px;font-size:12px}
+.player-card{display:flex;gap:8px;align-items:center;background:#0f2743;border:1px solid #1c3e63;border-radius:8px;padding:6px;font-size:12px}
+.player-photo{width:42px;height:42px;border-radius:6px;object-fit:cover;border:1px solid #1c3e63}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:12px}
 .modal-card{background:var(--card);border:1px solid #1c3e63;border-radius:12px;padding:12px;width:min(360px,100%)}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}

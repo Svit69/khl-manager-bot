@@ -1,4 +1,4 @@
-﻿const CACHE_NAME="khl-manager-v5";
+﻿const CACHE_NAME="khl-manager-v6";
 const ASSETS=[
   "./",
   "./index.html",
@@ -12,7 +12,8 @@ const ASSETS=[
   "./khl-logo/traktor.png",
   "./player-photo/da-costa.png",
   "./player-photo/golyshev.png",
-  "./player-photo/tryamkin.png"
+  "./player-photo/tryamkin.png",
+  "./player-photo/placeholder.png"
 ];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS)))});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==CACHE_NAME).map(x=>caches.delete(x))))) });
