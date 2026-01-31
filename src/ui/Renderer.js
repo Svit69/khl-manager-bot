@@ -12,9 +12,15 @@
     const header=`<div class="row"><img class="logo" src="${team.logoUrl}" alt="${team.name}"/><div><div>${team.name}</div><div class="muted">${team.city}, ${team.country} • ${team.shortName}</div></div></div>`;
     this.#teamEl.innerHTML=`<h2>Команда</h2>${header}<div class="list">${lines}</div>`;
   }
-  renderCalendar(day,info){
-    const text=info?.match?`${info.match.home.name} — ${info.match.away.name}`:"День отдыха";
-    this.#calEl.innerHTML=`<h2>Календарь • День ${day}</h2><div class="row"><div>${text}</div><button id="playBtn" class="btn">Дальше</button></div>`;
+  renderTeamSelection(teams,activeTeamId){
+    const buttons=teams.map(t=>`<button class="btn" data-team-id="${t.id}">${t.name}</button>`).join("");
+    const note=activeTeamId?"Выбрана команда":"Выберите команду";
+    this.#teamEl.innerHTML=`<h2>${note}</h2><div class="list">${buttons}</div>`;
+  }
+  renderCalendar(day,info,isLocked){
+    const text=isLocked?"Сначала выберите команду":(info?.match?`${info.match.home.name} — ${info.match.away.name}`:"День отдыха");
+    const disabled=isLocked?"disabled":"";const label=isLocked?"Выбрать команду":"Дальше";
+    this.#calEl.innerHTML=`<h2>Календарь • День ${day}</h2><div class="row"><div>${text}</div><button id="playBtn" class="btn" ${disabled}>${label}</button></div>`;
   }
   renderMatch(match,stats){
     if(match===null){this.#matchEl.innerHTML=`<h2>Матч</h2><div class="list">Сегодня отдых</div>`;return;}

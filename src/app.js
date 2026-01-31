@@ -12,16 +12,25 @@ const state=new AppState(teams,calendar);
 state.importState(userStore.loadSave());
 const renderer=new Renderer();
 renderer.renderUser(user);
-renderer.renderTeam(teams[0]);
 const render=()=>{
   const dayInfo=calendar.getCurrent();
-  renderer.renderCalendar(calendar.currentDay,dayInfo);
+  if(state.activeTeam)renderer.renderTeam(state.activeTeam);
+  else renderer.renderTeamSelection(teams,state.activeTeamId);
+  renderer.renderCalendar(calendar.currentDay,dayInfo,!state.activeTeamId);
   renderer.renderMatch(state.lastMatch, state.seasonStats);
 };
 render();
 document.addEventListener("click",e=>{
+  const teamId=e.target?.dataset?.teamId;
+  if(teamId){
+    state.setActiveTeamId(teamId);
+    userStore.saveState(state.exportState());
+    render();
+    return;
+  }
   if(e.target?.id!=="playBtn")return;
   if(calendar.isFinished())return;
+  if(!state.activeTeamId)return;
   state.playDay();
   userStore.saveState(state.exportState());
   render();

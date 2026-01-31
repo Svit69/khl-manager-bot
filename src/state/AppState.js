@@ -1,12 +1,15 @@
 ﻿import { MatchSimulator } from "../sim/MatchSimulator.js";
 import { StatsTracker } from "../stats/StatsTracker.js";
 export class AppState{
-  #teams;#calendar;#stats=new StatsTracker();#sim=new MatchSimulator();#lastMatch=null;
+  #teams;#calendar;#stats=new StatsTracker();#sim=new MatchSimulator();#lastMatch=null;#activeTeamId=null;
   constructor(teams,calendar){this.#teams=teams;this.#calendar=calendar}
   get teams(){return this.#teams}
   get calendar(){return this.#calendar}
   get lastMatch(){return this.#lastMatch}
   get seasonStats(){return this.#stats.getSeasonStats()}
+  get activeTeamId(){return this.#activeTeamId}
+  get activeTeam(){return this.#teams.find(t=>t.id===this.#activeTeamId)||null}
+  setActiveTeamId(teamId){this.#activeTeamId=teamId}
   playDay(){
     const day=this.#calendar.getCurrent();
     if(!day)return null;
@@ -19,11 +22,12 @@ export class AppState{
   }
   exportState(){
     const players=this.#teams.flatMap(t=>t.getRoster()).map(p=>({name:p.name,fatigue:p.fatigue,form:p.form}));
-    return {calendarIndex:this.#calendar.index,players,stats:this.#stats.getSeasonStats()};
+    return {calendarIndex:this.#calendar.index,players,stats:this.#stats.getSeasonStats(),activeTeamId:this.#activeTeamId};
   }
   importState(saved){
     if(!saved)return;
     this.#calendar.index=saved.calendarIndex||0;
+    this.#activeTeamId=saved.activeTeamId||null;
     const map=new Map((saved.players||[]).map(p=>[p.name,p]));
     this.#teams.flatMap(t=>t.getRoster()).forEach(p=>{const s=map.get(p.name);if(s){p.fatigue=s.fatigue;p.form=s.form}});
     this.#stats.importStats(saved.stats);
