@@ -1,15 +1,26 @@
 ﻿export class Player{
-  #name;#attrs;#fatigue;#form;
-  constructor(name,attrs){
+  #identity;#attributes;#potential;#condition;#career;#affiliation;#seasonStats;
+  constructor(identity,attributes,potential,condition,career,affiliation,seasonStats){
     if(new.target===Player)throw new Error("Нельзя создавать Player напрямую");
-    this.#name=name;this.#attrs=attrs;this.#fatigue=0;this.#form=1;
+    this.#identity=identity;this.#attributes=attributes;this.#potential=potential;this.#condition=condition;
+    this.#career=career;this.#affiliation=affiliation;this.#seasonStats=seasonStats;
   }
-  get name(){return this.#name}
-  get attrs(){return this.#attrs}
-  get fatigue(){return this.#fatigue}
-  get form(){return this.#form}
-  set fatigue(value){this.#fatigue=Math.max(0,Math.min(4,value))}
-  set form(value){this.#form=Math.max(0.95,Math.min(1.05,value))}
-  get ovr(){return Math.round(Object.values(this.#attrs).reduce((a,b)=>a+b,0)/Object.keys(this.#attrs).length)}
-  getEfficiency(){return this.ovr*this.#form*(1-0.08*this.#fatigue)}
+  get identity(){return this.#identity}
+  get attributes(){return this.#attributes}
+  get potential(){return this.#potential}
+  get condition(){return this.#condition}
+  get career(){return this.#career}
+  get affiliation(){return this.#affiliation}
+  get seasonStats(){return this.#seasonStats}
+  get name(){return this.#identity.displayName}
+  get ovr(){return this.#attributes.ovr}
+  get form(){return this.#condition.form}
+  get fatigueScore(){return this.#condition.fatigueScore}
+  get fatigueStatus(){return this.#condition.fatigueStatus}
+  getEfficiency(){
+    const fatigueLevel=this.#condition.fatigueScore/25;
+    return this.ovr*this.form*(1-0.08*fatigueLevel);
+  }
+  applyFatigue(deltaScore){this.#condition.applyFatigue(deltaScore)}
+  applyFormDelta(delta){this.#condition.applyFormDelta(delta)}
 }

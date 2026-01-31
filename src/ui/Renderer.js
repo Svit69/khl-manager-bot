@@ -19,7 +19,7 @@
   }
   renderMyTeamRoster(team){
     const players=team.lines.flatMap(l=>l.players);
-    const cards=players.map(p=>`<div class="player-card"><div>${p.name}</div><div class="muted">OVR ${p.ovr} • Форма ${p.form.toFixed(2)} • Усталость ${p.fatigue}</div></div>`).join("");
+    const cards=players.map(p=>`<div class="player-card"><div>${p.name}</div><div class="muted">OVR ${p.ovr} • Форма ${p.form.toFixed(2)} • Усталость ${p.fatigueStatus} (${p.fatigueScore})</div></div>`).join("");
     this.#matchEl.innerHTML=`<h2>Состав</h2><div class="roster-grid">${cards}</div>`;
   }
   renderConfirmSelection(team){
