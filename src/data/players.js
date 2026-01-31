@@ -65,6 +65,28 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:663,seasonsPlayed:13,reputation:100},
     affiliation:{contractId:"a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d"}
+  },
+  {
+    id:"c9d0e1f2-3a4b-5c6d-7e8f-9a0b1c2d3e4f",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    lineIndex:2,
+    position:PlayerPosition.DEF,
+    identity:{
+      firstName:"Ярослав",
+      lastName:"Бусыгин",
+      displayName:"Ярослав Бусыгин",
+      birthDate:"2003-02-14",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/busygin.png",
+      primaryPosition:PlayerPosition.DEF,
+      secondaryPositions:[]
+    },
+    attributes:{shot:79,speed:72,physical:84,defense:80,skill:80},
+    potential:{potential:85,growthRate:1.0,peakAge:27,declineRate:0.8},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:215,seasonsPlayed:5,reputation:100},
+    affiliation:{contractId:"b1c2d3e4-f5a6-4b7c-8d9e-0f1a2b3c4d5e"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position)=>playerProfiles
