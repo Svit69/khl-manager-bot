@@ -9,11 +9,20 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
 .panel{background:rgba(16,42,69,.88);border:1px solid #1c3e63;border-radius:10px;padding:10px;min-height:120px}
 .panel h2{font-size:14px;color:var(--accent);margin-bottom:6px}
 .btn{background:var(--accent);border:none;padding:8px 10px;border-radius:8px;font-weight:700;cursor:pointer}
+.btn.secondary{background:#1c3e63;color:var(--text)}
 .row{display:flex;justify-content:space-between;gap:8px;align-items:center}
 .list{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted)}
 .event{color:var(--text)}
 .logo{width:44px;height:44px;object-fit:contain}
 .muted{font-size:12px;color:var(--muted)}
+.team-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.team-card{display:flex;align-items:center;gap:8px;padding:8px;border-radius:10px;border:1px solid #1c3e63;background:#0f2743;color:var(--text);cursor:pointer}
+.team-card img{width:40px;height:40px;object-fit:contain}
+.roster-grid{display:grid;grid-template-columns:1fr;gap:6px}
+.player-card{background:#0f2743;border:1px solid #1c3e63;border-radius:8px;padding:6px;font-size:12px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:12px}
+.modal-card{background:var(--card);border:1px solid #1c3e63;border-radius:12px;padding:12px;width:min(360px,100%)}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
 @media (orientation:landscape){
   .main{grid-template-columns:1fr 1fr 1fr}
   .header h1{font-size:16px}

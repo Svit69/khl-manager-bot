@@ -10,12 +10,21 @@
   renderTeam(team){
     const lines=team.lines.map(l=>`<div>${l.players.map(p=>p.name).join(" | ")}</div>`).join("");
     const header=`<div class="row"><img class="logo" src="${team.logoUrl}" alt="${team.name}"/><div><div>${team.name}</div><div class="muted">${team.city}, ${team.country} • ${team.shortName}</div></div></div>`;
-    this.#teamEl.innerHTML=`<h2>Команда</h2>${header}<div class="list">${lines}</div>`;
+    this.#teamEl.innerHTML=`<h2>Моя команда</h2>${header}<div class="list">${lines}</div>`;
   }
   renderTeamSelection(teams,activeTeamId){
-    const buttons=teams.map(t=>`<button class="btn" data-team-id="${t.id}">${t.name}</button>`).join("");
+    const cards=teams.map(t=>`<button class="team-card" data-team-id="${t.id}"><img src="${t.logoUrl}" alt="${t.name}"/><span>${t.name}</span></button>`).join("");
     const note=activeTeamId?"Выбрана команда":"Выберите команду";
-    this.#teamEl.innerHTML=`<h2>${note}</h2><div class="list">${buttons}</div>`;
+    this.#teamEl.innerHTML=`<h2>${note}</h2><div class="team-grid">${cards}</div>`;
+  }
+  renderMyTeamRoster(team){
+    const players=team.lines.flatMap(l=>l.players);
+    const cards=players.map(p=>`<div class="player-card"><div>${p.name}</div><div class="muted">OVR ${p.ovr} • Форма ${p.form.toFixed(2)} • Усталость ${p.fatigue}</div></div>`).join("");
+    this.#matchEl.innerHTML=`<h2>Состав</h2><div class="roster-grid">${cards}</div>`;
+  }
+  renderConfirmSelection(team){
+    const modal=`<div class="modal"><div class="modal-card"><div class="row"><img class="logo" src="${team.logoUrl}" alt="${team.name}"/><div><div>${team.name}</div><div class="muted">${team.city}, ${team.country}</div></div></div><div class="modal-actions"><button class="btn" data-action="confirm-team">Подтвердить</button><button class="btn secondary" data-action="cancel-team">Отмена</button></div></div></div>`;
+    this.#teamEl.insertAdjacentHTML("beforeend",modal);
   }
   renderCalendar(day,info,isLocked){
     const text=isLocked?"Сначала выберите команду":(info?.match?`${info.match.home.name} — ${info.match.away.name}`:"День отдыха");
