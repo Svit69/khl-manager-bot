@@ -153,6 +153,28 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:607,seasonsPlayed:12,reputation:100},
     affiliation:{contractId:"f9a0b1c2-d3e4-4f5a-8b9c-0d1e2f3a4b5c"}
+  },
+  {
+    id:"a3b4c5d6-e7f8-9a0b-1c2d-3e4f5a6b7c8d",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    lineIndex:3,
+    position:PlayerPosition.RW,
+    identity:{
+      firstName:"Максим",
+      lastName:"Денежкин",
+      displayName:"Максим Денежкин",
+      birthDate:"2000-12-10",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/denezhkin.png",
+      primaryPosition:PlayerPosition.RW,
+      secondaryPositions:[PlayerPosition.CTR]
+    },
+    attributes:{shot:76,speed:80,physical:74,defense:74,skill:74},
+    potential:{potential:80,growthRate:0.7,peakAge:26,declineRate:0.7},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:117,seasonsPlayed:7,reputation:100},
+    affiliation:{contractId:"b0c1d2e3-f4a5-4b6c-8d9e-0f1a2b3c4d5e"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position)=>playerProfiles
