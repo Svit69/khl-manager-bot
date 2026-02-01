@@ -175,6 +175,28 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:117,seasonsPlayed:7,reputation:100},
     affiliation:{contractId:"b0c1d2e3-f4a5-4b6c-8d9e-0f1a2b3c4d5e"}
+  },
+  {
+    id:"b4c5d6e7-f8a9-0b1c-2d3e-4f5a6b7c8d9e",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    lineIndex:3,
+    position:PlayerPosition.CTR,
+    identity:{
+      firstName:"Артем",
+      lastName:"Каштанов",
+      displayName:"Артем Каштанов",
+      birthDate:"2004-12-09",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/kashtanov.png",
+      primaryPosition:PlayerPosition.CTR,
+      secondaryPositions:[PlayerPosition.RW]
+    },
+    attributes:{shot:73,speed:75,physical:76,defense:74,skill:70},
+    potential:{potential:77,growthRate:0.6,peakAge:27,declineRate:0.7},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:114,seasonsPlayed:3,reputation:100},
+    affiliation:{contractId:"c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position)=>playerProfiles
