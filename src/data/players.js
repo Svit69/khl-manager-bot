@@ -109,6 +109,28 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:320,seasonsPlayed:6,reputation:90},
     affiliation:{contractId:"d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a"}
+  },
+  {
+    id:"e1f2a3b4-c5d6-7e8f-9a0b-1c2d3e4f5a6b",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    lineIndex:2,
+    position:PlayerPosition.CTR,
+    identity:{
+      firstName:"Роман",
+      lastName:"Горбунов",
+      displayName:"Роман Горбунов",
+      birthDate:"1996-11-14",
+      nationality:"BY",
+      isGoalie:false,
+      photoUrl:"./player-photo/gorbunov.png",
+      primaryPosition:PlayerPosition.CTR,
+      secondaryPositions:[PlayerPosition.RW]
+    },
+    attributes:{shot:77,speed:79,physical:73,defense:75,skill:81},
+    potential:{potential:82,growthRate:1.0,peakAge:27,declineRate:0.6},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:311,seasonsPlayed:6,reputation:100},
+    affiliation:{contractId:"e7f8a9b0-c1d2-4e3f-8a9b-0c1d2e3f4a5b"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position)=>playerProfiles

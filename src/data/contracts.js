@@ -82,5 +82,26 @@
     teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
     season:"2025/2026",
     salaryRub:90000000
+  },
+  {
+    id:"e7f8a9b0-c1d2-4e3f-8a9b-0c1d2e3f4a5b",
+    playerId:"e1f2a3b4-c5d6-7e8f-9a0b-1c2d3e4f5a6b",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    season:"2025/2026",
+    salaryRub:55000000
+  },
+  {
+    id:"f8a9b0c1-d2e3-4f5a-8b9c-0d1e2f3a4b5c",
+    playerId:"e1f2a3b4-c5d6-7e8f-9a0b-1c2d3e4f5a6b",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    season:"2026/2027",
+    salaryRub:55000000
+  },
+  {
+    id:"a9b0c1d2-e3f4-4a5b-8c9d-0e1f2a3b4c5d",
+    playerId:"e1f2a3b4-c5d6-7e8f-9a0b-1c2d3e4f5a6b",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    season:"2027/2028",
+    salaryRub:55000000
   }
 ];
