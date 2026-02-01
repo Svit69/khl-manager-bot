@@ -197,6 +197,28 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:114,seasonsPlayed:3,reputation:100},
     affiliation:{contractId:"c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f"}
+  },
+  {
+    id:"c5d6e7f8-a9b0-1c2d-3e4f-5a6b7c8d9e0f",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    lineIndex:3,
+    position:PlayerPosition.RW,
+    identity:{
+      firstName:"Семен",
+      lastName:"Кизимов",
+      displayName:"Семен Кизимов",
+      birthDate:"2000-01-19",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/kizimov.png",
+      primaryPosition:PlayerPosition.RW,
+      secondaryPositions:[]
+    },
+    attributes:{shot:71,speed:77,physical:74,defense:76,skill:73},
+    potential:{potential:78,growthRate:0.4,peakAge:29,declineRate:0.3},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:117,seasonsPlayed:5,reputation:100},
+    affiliation:{contractId:"d2e3f4a5-b6c7-4d8e-9f0a-1b2c3d4e5f6a"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position)=>playerProfiles
