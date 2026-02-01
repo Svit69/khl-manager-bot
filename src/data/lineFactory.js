@@ -8,6 +8,8 @@ export const createLine=(teamInfo,index,weight,seasonId)=>{
   return new Line([
     createSkater(teamInfo,`${base} Ц`,`Ц${index}`,PlayerPosition.CTR,seasonId,withProfile(teamInfo,index,PlayerPosition.CTR)),
     createSkater(teamInfo,`${base} ЛК`,`ЛК${index}`,PlayerPosition.LW,seasonId,withProfile(teamInfo,index,PlayerPosition.LW)),
-    createSkater(teamInfo,`${base} ПК`,`ПК${index}`,PlayerPosition.RW,seasonId,withProfile(teamInfo,index,PlayerPosition.RW))
+    createSkater(teamInfo,`${base} ПК`,`ПК${index}`,PlayerPosition.RW,seasonId,withProfile(teamInfo,index,PlayerPosition.RW)),
+    createSkater(teamInfo,`${base} З1`,`З1${index}`,PlayerPosition.DEF,seasonId,withProfile(teamInfo,index,PlayerPosition.DEF)),
+    createSkater(teamInfo,`${base} З2`,`З2${index}`,PlayerPosition.DEF,seasonId,withProfile(teamInfo,index,PlayerPosition.DEF))
   ],weight);
 };
