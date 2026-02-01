@@ -49,6 +49,7 @@ export const playerProfiles=[
     teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
     lineIndex:1,
     position:PlayerPosition.DEF,
+    roleIndex:1,
     identity:{
       firstName:"Никита",
       lastName:"Трямкин",
@@ -71,6 +72,7 @@ export const playerProfiles=[
     teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
     lineIndex:2,
     position:PlayerPosition.DEF,
+    roleIndex:1,
     identity:{
       firstName:"Ярослав",
       lastName:"Бусыгин",
@@ -221,5 +223,5 @@ export const playerProfiles=[
     affiliation:{contractId:"d2e3f4a5-b6c7-4d8e-9f0a-1b2c3d4e5f6a"}
   }
 ];
-export const findPlayerProfile=(teamId,lineIndex,position)=>playerProfiles
-  .find(p=>p.teamId===teamId&&p.lineIndex===lineIndex&&p.position===position);
+export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles
+  .find(p=>p.teamId===teamId&&p.lineIndex===lineIndex&&p.position===position&&(roleIndex===null||p.roleIndex===roleIndex));
