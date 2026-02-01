@@ -131,6 +131,28 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:311,seasonsPlayed:6,reputation:100},
     affiliation:{contractId:"e7f8a9b0-c1d2-4e3f-8a9b-0c1d2e3f4a5b"}
+  },
+  {
+    id:"f2a3b4c5-d6e7-8f9a-0b1c-2d3e4f5a6b7c",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    lineIndex:2,
+    position:PlayerPosition.CTR,
+    identity:{
+      firstName:"Алексей",
+      lastName:"Бывальцев",
+      displayName:"Алексей Бывальцев",
+      birthDate:"1994-02-20",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/byvaltsev.png",
+      primaryPosition:PlayerPosition.CTR,
+      secondaryPositions:[]
+    },
+    attributes:{shot:73,speed:74,physical:76,defense:76,skill:77},
+    potential:{potential:78,growthRate:0.5,peakAge:28,declineRate:0.6},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:607,seasonsPlayed:12,reputation:100},
+    affiliation:{contractId:"f9a0b1c2-d3e4-4f5a-8b9c-0d1e2f3a4b5c"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position)=>playerProfiles
