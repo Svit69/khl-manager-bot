@@ -355,6 +355,29 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:6,seasonsPlayed:2,reputation:100},
     affiliation:{contractId:"a1c2e3f4-b5d6-4e7f-8a9b-0c1d2e3f4a5b"}
+  },
+  {
+    id:"d9e0f1a2-b3c4-4d5e-9f0a-1b2c3d4e5f6a",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    lineIndex:3,
+    position:PlayerPosition.DEF,
+    roleIndex:1,
+    identity:{
+      firstName:"Джесси",
+      lastName:"Блэкер",
+      displayName:"Джесси Блэкер",
+      birthDate:"1991-04-19",
+      nationality:"KZ",
+      isGoalie:false,
+      photoUrl:"./player-photo/blacker.png",
+      primaryPosition:PlayerPosition.DEF,
+      secondaryPositions:[]
+    },
+    attributes:{shot:72,speed:76,physical:77,defense:80,skill:80},
+    potential:{potential:82,growthRate:0.6,peakAge:30,declineRate:0.7},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:444,seasonsPlayed:9,reputation:100},
+    affiliation:{contractId:"c3e4f5a6-b7d8-4e9f-0a1b-2c3d4e5f6a7b"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles
