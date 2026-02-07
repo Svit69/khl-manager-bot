@@ -445,6 +445,29 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:428,seasonsPlayed:11,reputation:100},
     affiliation:{contractId:"b3c4d5e6-f7a8-4b9c-0d1e-2f3a4b5c6d7e"}
+  },
+  {
+    id:"c4d5e6f7-a8b9-4c0d-1e2f-3a4b5c6d7e8f",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    lineIndex:1,
+    position:PlayerPosition.DEF,
+    roleIndex:1,
+    identity:{
+      firstName:"Дамир",
+      lastName:"Шарипзянов",
+      displayName:"Дамир Шарипзянов",
+      birthDate:"1996-02-17",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/sharipzyanov.png",
+      primaryPosition:PlayerPosition.DEF,
+      secondaryPositions:[]
+    },
+    attributes:{shot:83,speed:78,physical:84,defense:85,skill:80},
+    potential:{potential:84,growthRate:0.8,peakAge:30,declineRate:0.9},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:512,seasonsPlayed:9,reputation:100},
+    affiliation:{contractId:"d5e6f7a8-b9c0-4d1e-2f3a-4b5c6d7e8f9a"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles
