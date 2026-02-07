@@ -514,6 +514,29 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:303,seasonsPlayed:6,reputation:100},
     affiliation:{contractId:"b0c1d2e3-f4a5-4b6c-7d8e-9f0a1b2c3d4e"}
+  },
+  {
+    id:"c1d2e3f4-a5b6-4c7d-8e9f-1a2b3c4d5e6f",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    lineIndex:2,
+    position:PlayerPosition.DEF,
+    roleIndex:2,
+    identity:{
+      firstName:"Артем",
+      lastName:"Блажиевский",
+      displayName:"Артем Блажиевский",
+      birthDate:"1994-03-20",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/blazhiyevsky.png",
+      primaryPosition:PlayerPosition.DEF,
+      secondaryPositions:[]
+    },
+    attributes:{shot:73,speed:79,physical:88,defense:82,skill:73},
+    potential:{potential:81,growthRate:0.7,peakAge:30,declineRate:0.7},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:535,seasonsPlayed:12,reputation:100},
+    affiliation:{contractId:"d2e3f4a5-b6c7-4d8e-9f0a-1b2c3d4e5f6a"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles
