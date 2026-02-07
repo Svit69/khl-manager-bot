@@ -1,58 +1,39 @@
 ﻿import { generateUuid } from "../utils/uuid.js";
+import { ContractType, contractTypeLabel } from "./ContractType.js";
 const parseSeasonStart=season=>Number((season||"0/0").split("/")[0])||0;
-const formatNextSeason=season=>{
-  const start=parseSeasonStart(season);
-  return `${start+1}/${start+2}`;
-};
-const formatContractEndDate=season=>{
-  const endYear=Number((season||"0/0").split("/")[1])||0;
-  return endYear?`31.05.${endYear}`:"—";
-};
+const formatNextSeason=season=>{const start=parseSeasonStart(season);return `${start+1}/${start+2}`;};
+const formatContractEndDate=season=>{const endYear=Number((season||"0/0").split("/")[1])||0;return endYear?`31.05.${endYear}`:"—";};
 const calculateAge=birthDate=>{
-  const now=new Date();
-  const birth=new Date(birthDate);
-  let age=now.getUTCFullYear()-birth.getUTCFullYear();
-  const hasBirthdayPassed=(now.getUTCMonth()>birth.getUTCMonth())||
-    (now.getUTCMonth()===birth.getUTCMonth()&&now.getUTCDate()>=birth.getUTCDate());
+  const now=new Date(),birth=new Date(birthDate);let age=now.getUTCFullYear()-birth.getUTCFullYear();
+  const hasBirthdayPassed=(now.getUTCMonth()>birth.getUTCMonth())||(now.getUTCMonth()===birth.getUTCMonth()&&now.getUTCDate()>=birth.getUTCDate());
   return hasBirthdayPassed?age:age-1;
 };
+const normalizeType=type=>Object.values(ContractType).includes(type)?type:ContractType.ONE_WAY;
+const normalizeContract=contract=>({...contract,type:normalizeType(contract.type)});
 export class ContractService{
   #contracts;
-  constructor(contracts){this.#contracts=(contracts||[]).map(c=>({...c}))}
-  importContracts(contracts){this.#contracts=(contracts||[]).map(c=>({...c}))}
+  constructor(contracts){this.#contracts=(contracts||[]).map(normalizeContract)}
+  importContracts(contracts){this.#contracts=(contracts||[]).map(normalizeContract)}
   exportContracts(){return this.#contracts.map(c=>({...c}))}
-  getContractsForPlayer(playerId){
-    return this.#contracts.filter(c=>c.playerId===playerId).sort((a,b)=>parseSeasonStart(a.season)-parseSeasonStart(b.season));
-  }
+  getContractsForPlayer(playerId){return this.#contracts.filter(c=>c.playerId===playerId).sort((a,b)=>parseSeasonStart(a.season)-parseSeasonStart(b.season));}
   getTeamContractRows(team){
     return team.getRoster().map(player=>{
       const contracts=this.getContractsForPlayer(player.identity.id);
       const lastContract=contracts[contracts.length-1]||null;
       return {
-        playerId:player.identity.id,
-        displayName:player.name,
-        age:calculateAge(player.identity.birthDate),
-        ovr:player.ovr,
+        playerId:player.identity.id,displayName:player.name,age:calculateAge(player.identity.birthDate),ovr:player.ovr,
         seasonStats:{games:player.seasonStats.games,goals:player.seasonStats.goals,assists:player.seasonStats.assists},
-        contractEndDate:formatContractEndDate(lastContract?.season),
-        contracts
+        contractEndDate:formatContractEndDate(lastContract?.season),contracts
       };
     }).sort((a,b)=>a.displayName.localeCompare(b.displayName,"ru"));
   }
+  getContractTypeLabel(type){return contractTypeLabel[normalizeType(type)]}
   extendContract(player,mode){
-    const contracts=this.getContractsForPlayer(player.identity.id);
-    const lastContract=contracts[contracts.length-1];
-    if(!lastContract)return null;
-    const salaryMultiplier=mode==="raise"?1.1:1;
+    const contracts=this.getContractsForPlayer(player.identity.id);const lastContract=contracts[contracts.length-1];if(!lastContract)return null;
     const nextContract={
-      id:generateUuid(),
-      playerId:player.identity.id,
-      teamId:player.affiliation.teamId,
-      season:formatNextSeason(lastContract.season),
-      salaryRub:Math.round(lastContract.salaryRub*salaryMultiplier)
+      id:generateUuid(),playerId:player.identity.id,teamId:player.affiliation.teamId,season:formatNextSeason(lastContract.season),
+      salaryRub:Math.round(lastContract.salaryRub*(mode==="raise"?1.1:1)),type:lastContract.type
     };
-    this.#contracts.push(nextContract);
-    player.affiliation.contractId=nextContract.id;
-    return nextContract;
+    this.#contracts.push(nextContract);player.affiliation.contractId=nextContract.id;return nextContract;
   }
 }

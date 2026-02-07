@@ -1,7 +1,8 @@
-﻿export class ContractTabRenderer{
+﻿const typeLabel=type=>({"one-way":"односторонний","two-way":"двухсторонний","three-way":"трехсторонний"}[type]||"односторонний");
+export class ContractTabRenderer{
   render(rows,selectedPlayerId){
     const content=rows.map(row=>{
-      const salaries=row.contracts.map(c=>`${c.season}: ${Math.round(c.salaryRub/1000000)} млн`).join(" • ")||"нет контракта";
+      const salaries=row.contracts.map(c=>`${c.season}: ${Math.round(c.salaryRub/1000000)} млн (${typeLabel(c.type)})`).join(" • ")||"нет контракта";
       const stats=`${row.seasonStats.games}И ${row.seasonStats.goals}Г ${row.seasonStats.assists}П`;
       const details=`До ${row.contractEndDate} • Возраст ${row.age} • OVR ${row.ovr} • ${stats}`;
       const negotiation=selectedPlayerId===row.playerId?this.#renderNegotiation(row.playerId):"";
