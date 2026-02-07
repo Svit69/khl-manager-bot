@@ -378,6 +378,29 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:444,seasonsPlayed:9,reputation:100},
     affiliation:{contractId:"c3e4f5a6-b7d8-4e9f-0a1b-2c3d4e5f6a7b"}
+  },
+  {
+    id:"e0f1a2b3-c4d5-4e6f-9a0b-1c2d3e4f5a6b",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    lineIndex:4,
+    position:PlayerPosition.DEF,
+    roleIndex:1,
+    identity:{
+      firstName:"Даниил",
+      lastName:"Малоросиянов",
+      displayName:"Даниил Малоросиянов",
+      birthDate:"2005-09-08",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/malorosiyanov.png",
+      primaryPosition:PlayerPosition.DEF,
+      secondaryPositions:[]
+    },
+    attributes:{shot:63,speed:74,physical:72,defense:70,skill:60},
+    potential:{potential:77,growthRate:0.6,peakAge:27,declineRate:0.7},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:85,seasonsPlayed:3,reputation:100},
+    affiliation:{contractId:"e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles

@@ -246,6 +246,14 @@
     season:"2026/2027",
     salaryRub:46000000,
     type:"one-way"
+  },
+  {
+    id:"e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b",
+    playerId:"e0f1a2b3-c4d5-4e6f-9a0b-1c2d3e4f5a6b",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    season:"2025/2026",
+    salaryRub:500000,
+    type:"two-way"
   }
 ];
 
