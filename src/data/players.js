@@ -289,6 +289,28 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:512,seasonsPlayed:12,reputation:100},
     affiliation:{contractId:"d7e8f9a0-b1c2-4d3e-5f6a-7b8c9d0e1f2a"}
+  },
+  {
+    id:"f9a0b1c2-d3e4-5f6a-7b8c-9d0e1f2a3b4c",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    lineIndex:4,
+    position:PlayerPosition.CTR,
+    identity:{
+      firstName:"Данил",
+      lastName:"Романцев",
+      displayName:"Данил Романцев",
+      birthDate:"1993-06-05",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/romantsev.png",
+      primaryPosition:PlayerPosition.CTR,
+      secondaryPositions:[]
+    },
+    attributes:{shot:67,speed:74,physical:83,defense:78,skill:73},
+    potential:{potential:75,growthRate:0.4,peakAge:30,declineRate:0.5},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:561,seasonsPlayed:12,reputation:100},
+    affiliation:{contractId:"a0b1c2d3-e4f5-4a6b-7c8d-9e0f1a2b3c4d"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles
