@@ -401,6 +401,28 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:85,seasonsPlayed:3,reputation:100},
     affiliation:{contractId:"e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b"}
+  },
+  {
+    id:"f1a2b3c4-d5e6-4f7a-8b9c-0d1e2f3a4b5c",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    lineIndex:1,
+    position:PlayerPosition.RW,
+    identity:{
+      firstName:"Брукс",
+      lastName:"Мэйсек",
+      displayName:"Брукс Мэйсек",
+      birthDate:"1992-05-15",
+      nationality:"DE",
+      isGoalie:false,
+      photoUrl:"./player-photo/macek.png",
+      primaryPosition:PlayerPosition.RW,
+      secondaryPositions:[PlayerPosition.CTR]
+    },
+    attributes:{shot:79,speed:80,physical:76,defense:70,skill:79},
+    potential:{potential:79,growthRate:0.8,peakAge:30,declineRate:0.8},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:393,seasonsPlayed:7,reputation:100},
+    affiliation:{contractId:"f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles
