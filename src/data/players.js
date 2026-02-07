@@ -221,6 +221,29 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:117,seasonsPlayed:5,reputation:100},
     affiliation:{contractId:"d2e3f4a5-b6c7-4d8e-9f0a-1b2c3d4e5f6a"}
+  },
+  {
+    id:"d6e7f8a9-b0c1-2d3e-4f5a-6b7c8d9e0f1a",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    lineIndex:1,
+    position:PlayerPosition.DEF,
+    roleIndex:2,
+    identity:{
+      firstName:"Максим",
+      lastName:"Осипов",
+      displayName:"Максим Осипов",
+      birthDate:"1993-08-31",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/osipov.png",
+      primaryPosition:PlayerPosition.DEF,
+      secondaryPositions:[]
+    },
+    attributes:{shot:70,speed:71,physical:84,defense:86,skill:66},
+    potential:{potential:77,growthRate:0.4,peakAge:28,declineRate:0.8},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:594,seasonsPlayed:13,reputation:100},
+    affiliation:{contractId:"e3f4a5b6-c7d8-4e9f-0a1b-2c3d4e5f6a7b"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles
