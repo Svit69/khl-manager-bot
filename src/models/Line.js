@@ -1,7 +1,16 @@
-﻿export class Line{
-  #players;#weight;
-  constructor(players,weight){this.#players=players;this.#weight=weight}
+﻿import { adjustedOvrForPosition } from "../utils/positionFit.js";
+export class Line{
+  #players;#weight;#positions;
+  constructor(players,weight,positions=[]){this.#players=players;this.#weight=weight;this.#positions=positions}
   get players(){return this.#players}
   get weight(){return this.#weight}
-  getStrength(){return this.#players.reduce((a,p)=>a+p.getEfficiency(),0)/this.#players.length*this.#weight}
+  get positions(){return this.#positions}
+  getStrength(){
+    const values=this.#players.map((player,index)=>{
+      const adjusted=adjustedOvrForPosition(player,this.#positions[index]);
+      const ratio=player.ovr>0?adjusted/player.ovr:1;
+      return player.getEfficiency()*ratio;
+    });
+    return values.reduce((a,b)=>a+b,0)/this.#players.length*this.#weight;
+  }
 }
