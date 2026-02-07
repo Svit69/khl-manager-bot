@@ -244,6 +244,28 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:594,seasonsPlayed:13,reputation:100},
     affiliation:{contractId:"e3f4a5b6-c7d8-4e9f-0a1b-2c3d4e5f6a7b"}
+  },
+  {
+    id:"f7a8b9c0-d1e2-3f4a-5b6c-7d8e9f0a1b2c",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    lineIndex:3,
+    position:PlayerPosition.CTR,
+    identity:{
+      firstName:"Александр",
+      lastName:"Шаров",
+      displayName:"Александр Шаров",
+      birthDate:"1995-11-05",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/sharov.png",
+      primaryPosition:PlayerPosition.CTR,
+      secondaryPositions:[PlayerPosition.RW]
+    },
+    attributes:{shot:76,speed:78,physical:76,defense:77,skill:77},
+    potential:{potential:79,growthRate:0.4,peakAge:27,declineRate:0.7},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:570,seasonsPlayed:10,reputation:100},
+    affiliation:{contractId:"a4b5c6d7-e8f9-4a0b-1c2d-3e4f5a6b7c8d"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles
