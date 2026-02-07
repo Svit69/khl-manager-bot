@@ -536,7 +536,7 @@ export const playerProfiles=[
     potential:{potential:81,growthRate:0.7,peakAge:30,declineRate:0.7},
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:535,seasonsPlayed:12,reputation:100},
-    affiliation:{contractId:"d2e3f4a5-b6c7-4d8e-9f0a-1b2c3d4e5f6a"}
+    affiliation:{contractId:"c3d4e5f6-a7b8-4c9d-1e2f-3a4b5c6d7e8f"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles
