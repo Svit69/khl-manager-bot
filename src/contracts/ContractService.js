@@ -2,7 +2,7 @@
 import { ContractType, contractTypeLabel } from "./ContractType.js";
 const parseSeasonStart=season=>Number((season||"0/0").split("/")[0])||0;
 const formatNextSeason=season=>{const start=parseSeasonStart(season);return `${start+1}/${start+2}`;};
-const formatContractEndDate=season=>{const endYear=Number((season||"0/0").split("/")[1])||0;return endYear?`31.05.${endYear}`:"—";};
+const formatContractEndDate=season=>{const endYear=Number((season||"0/0").split("/")[1])||0;return endYear?`31.05.${endYear}`:null;};
 const calculateAge=birthDate=>{
   const now=new Date(),birth=new Date(birthDate);let age=now.getUTCFullYear()-birth.getUTCFullYear();
   const hasBirthdayPassed=(now.getUTCMonth()>birth.getUTCMonth())||(now.getUTCMonth()===birth.getUTCMonth()&&now.getUTCDate()>=birth.getUTCDate());
@@ -33,14 +33,13 @@ export class ContractService{
         const linked=this.#contracts.find(c=>c.id===player.affiliation.contractId);
         if(linked)contracts=this.getContractsForPlayer(linked.playerId);
       }
-      if(!contracts.length)return null;
       const lastContract=contracts[contracts.length-1]||null;
       return {
         playerId,displayName:player.name,age:calculateAge(player.identity.birthDate),ovr:player.ovr,
         seasonStats:{games:player.seasonStats.games,goals:player.seasonStats.goals,assists:player.seasonStats.assists},
         contractEndDate:formatContractEndDate(lastContract?.season),contracts
       };
-    }).filter(Boolean).sort((a,b)=>a.displayName.localeCompare(b.displayName,"ru"));
+    }).sort((a,b)=>a.displayName.localeCompare(b.displayName,"ru"));
   }
   getContractTypeLabel(type){return contractTypeLabel[normalizeType(type)]}
   extendContract(player,mode){
