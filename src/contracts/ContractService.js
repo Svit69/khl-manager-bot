@@ -9,15 +9,18 @@ const calculateAge=birthDate=>{
   return hasBirthdayPassed?age:age-1;
 };
 const normalizeType=type=>Object.values(ContractType).includes(type)?type:ContractType.ONE_WAY;
-const normalizeContract=contract=>({...contract,type:normalizeType(contract.type)});
+const normalizeContract=contract=>{
+  if(!contract||!contract.id||!contract.season||(!contract.playerId&&!contract.teamId))return null;
+  return {...contract,type:normalizeType(contract.type)};
+};
 export class ContractService{
   #contracts;#baseContracts;
   constructor(contracts){
-    this.#baseContracts=(contracts||[]).map(normalizeContract);
+    this.#baseContracts=(contracts||[]).map(normalizeContract).filter(Boolean);
     this.#contracts=this.#baseContracts.map(c=>({...c}));
   }
   importContracts(contracts){
-    const saved=(contracts||[]).map(normalizeContract);
+    const saved=(contracts||[]).map(normalizeContract).filter(Boolean);
     if(!saved.length){this.#contracts=this.#baseContracts.map(c=>({...c}));return;}
     const merged=new Map(this.#baseContracts.map(c=>[c.id,c]));
     saved.forEach(c=>merged.set(c.id,c));
@@ -31,7 +34,10 @@ export class ContractService{
       let contracts=this.getContractsForPlayer(playerId);
       if(!contracts.length&&player.affiliation.contractId){
         const linked=this.#contracts.find(c=>c.id===player.affiliation.contractId);
-        if(linked)contracts=this.getContractsForPlayer(linked.playerId);
+        if(linked){
+          contracts=linked.playerId?this.getContractsForPlayer(linked.playerId):[linked];
+          if(!contracts.length)contracts=[linked];
+        }
       }
       const lastContract=contracts[contracts.length-1]||null;
       return {
