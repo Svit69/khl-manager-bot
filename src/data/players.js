@@ -537,6 +537,29 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:535,seasonsPlayed:12,reputation:100},
     affiliation:{contractId:"c3d4e5f6-a7b8-4c9d-1e2f-3a4b5c6d7e8f"}
+  },
+  {
+    id:"f3a4b5c6-d7e8-4f9a-0b1c-2d3e4f5a6b7c",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    lineIndex:3,
+    position:PlayerPosition.DEF,
+    roleIndex:1,
+    identity:{
+      firstName:"Вячеслав",
+      lastName:"Войнов",
+      displayName:"Вячеслав Войнов",
+      birthDate:"1990-01-15",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/voynov.png",
+      primaryPosition:PlayerPosition.DEF,
+      secondaryPositions:[]
+    },
+    attributes:{shot:75,speed:74,physical:82,defense:81,skill:78},
+    potential:{potential:79,growthRate:0.7,peakAge:28,declineRate:0.4},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:402,seasonsPlayed:9,reputation:100},
+    affiliation:{contractId:"d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8b"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles
