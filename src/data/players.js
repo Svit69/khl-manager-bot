@@ -225,3 +225,4 @@ export const playerProfiles=[
 ];
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles
   .find(p=>p.teamId===teamId&&p.lineIndex===lineIndex&&p.position===position&&(roleIndex===null||p.roleIndex===roleIndex));
+export const getTeamProfiles=teamId=>playerProfiles.filter(p=>p.teamId===teamId);

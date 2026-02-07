@@ -18,7 +18,7 @@
     this.#teamEl.innerHTML=`<h2>${note}</h2><div class="team-grid">${cards}</div>`;
   }
   renderMyTeamRoster(team){
-    const players=team.lines.flatMap(l=>l.players);
+    const players=team.getRoster();
     const cards=players.map(p=>{
       const photo=p.identity.photoUrl||"./player-photo/placeholder.png";
       const main=p.identity.primaryPosition||"";
