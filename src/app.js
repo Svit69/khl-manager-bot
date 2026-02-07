@@ -1,5 +1,6 @@
 ﻿import { createTeams } from "./data/seed.js";
 import { teamsData } from "./data/teams.js";
+import { playerContracts } from "./data/contracts.js";
 import { SeasonCalendar } from "./calendar/SeasonCalendar.js";
 import { UserStore } from "./storage/UserStore.js";
 import { Renderer } from "./ui/Renderer.js";
@@ -8,7 +9,7 @@ import { AppController } from "./ui/AppController.js";
 const userStore=new UserStore();
 const teams=createTeams(teamsData);
 const calendar=new SeasonCalendar(teams);
-const state=new AppState(teams,calendar);
+const state=new AppState(teams,calendar,playerContracts);
 state.importState(userStore.loadSave());
 const renderer=new Renderer();
 const controller=new AppController(state,calendar,teams,renderer,userStore);

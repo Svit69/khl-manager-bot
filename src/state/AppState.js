@@ -1,8 +1,10 @@
 ﻿import { MatchSimulator } from "../sim/MatchSimulator.js";
 import { StatsTracker } from "../stats/StatsTracker.js";
+import { ContractService } from "../contracts/ContractService.js";
 export class AppState{
-  #teams;#calendar;#stats=new StatsTracker();#sim=new MatchSimulator();#lastMatch=null;#activeTeamId=null;
-  constructor(teams,calendar){this.#teams=teams;this.#calendar=calendar}
+  #teams;#calendar;#stats=new StatsTracker();#sim=new MatchSimulator();#contracts;
+  #lastMatch=null;#activeTeamId=null;
+  constructor(teams,calendar,contracts){this.#teams=teams;this.#calendar=calendar;this.#contracts=new ContractService(contracts)}
   get teams(){return this.#teams}
   get calendar(){return this.#calendar}
   get lastMatch(){return this.#lastMatch}
@@ -10,40 +12,30 @@ export class AppState{
   get activeTeamId(){return this.#activeTeamId}
   get activeTeam(){return this.#teams.find(t=>t.id===this.#activeTeamId)||null}
   setActiveTeamId(teamId){this.#activeTeamId=teamId}
+  getActiveTeamContractRows(){return this.activeTeam?this.#contracts.getTeamContractRows(this.activeTeam):[]}
+  extendActiveTeamPlayerContract(playerId,mode){
+    const player=this.activeTeam?.getRoster().find(p=>p.identity.id===playerId);
+    return player?this.#contracts.extendContract(player,mode):null;
+  }
   playDay(){
     const day=this.#calendar.getCurrent();
     if(!day)return null;
     if(!day.match){this.#lastMatch=null;this.#applyFatigue(this.#teams,-8);this.#calendar.advanceDay();return null;}
     this.#lastMatch=this.#sim.simulateMatch(day.match.home,day.match.away);
-    this.#stats.recordMatch(this.#lastMatch);
-    this.#applyFatigue([day.match.home,day.match.away],12);
-    this.#calendar.advanceDay();
+    this.#stats.recordMatch(this.#lastMatch);this.#applyFatigue([day.match.home,day.match.away],12);this.#calendar.advanceDay();
     return this.#lastMatch;
   }
   exportState(){
-    const players=this.#teams.flatMap(t=>t.getRoster()).map(p=>({
-      id:p.identity.id,
-      fatigueScore:p.fatigueScore,
-      form:p.form,
-      injuryUntilDay:p.condition.injuryUntilDay
-    }));
-    return {calendarIndex:this.#calendar.index,players,stats:this.#stats.getSeasonStats(),activeTeamId:this.#activeTeamId};
+    const players=this.#teams.flatMap(t=>t.getRoster()).map(p=>({id:p.identity.id,fatigueScore:p.fatigueScore,form:p.form,injuryUntilDay:p.condition.injuryUntilDay}));
+    return {calendarIndex:this.#calendar.index,players,stats:this.#stats.getSeasonStats(),activeTeamId:this.#activeTeamId,contracts:this.#contracts.exportContracts()};
   }
   importState(saved){
     if(!saved)return;
-    this.#calendar.index=saved.calendarIndex||0;
-    this.#activeTeamId=saved.activeTeamId||null;
+    this.#calendar.index=saved.calendarIndex||0;this.#activeTeamId=saved.activeTeamId||null;
     const map=new Map((saved.players||[]).map(p=>[p.id,p]));
-    this.#teams.flatMap(t=>t.getRoster()).forEach(p=>{
-      const s=map.get(p.identity.id);
-      if(s){p.applyFatigue(s.fatigueScore-p.fatigueScore);p.applyFormDelta(s.form-p.form)}
-    });
+    this.#teams.flatMap(t=>t.getRoster()).forEach(p=>{const s=map.get(p.identity.id);if(s){p.applyFatigue(s.fatigueScore-p.fatigueScore);p.applyFormDelta(s.form-p.form)}});
+    if(saved.contracts)this.#contracts.importContracts(saved.contracts);
     this.#stats.importStats(saved.stats);
   }
-  #applyFatigue(teams,delta){
-    teams.flatMap(t=>t.getRoster()).forEach(p=>{
-      p.applyFatigue(delta);
-      p.applyFormDelta(Math.random()*0.02-0.01);
-    });
-  }
+  #applyFatigue(teams,delta){teams.flatMap(t=>t.getRoster()).forEach(p=>{p.applyFatigue(delta);p.applyFormDelta(Math.random()*0.02-0.01)})}
 }
