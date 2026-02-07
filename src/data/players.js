@@ -333,6 +333,28 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:301,seasonsPlayed:8,reputation:100},
     affiliation:{contractId:"f0a1b2c3-d4e5-4f6a-7b8c-9d0e1f2a3b4c"}
+  },
+  {
+    id:"c8d9e0f1-a2b3-4c5d-8e9f-0a1b2c3d4e5f",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    lineIndex:4,
+    position:PlayerPosition.LW,
+    identity:{
+      firstName:"Дмитрий",
+      lastName:"Исаев",
+      displayName:"Дмитрий Исаев",
+      birthDate:"2007-06-26",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/isayev.png",
+      primaryPosition:PlayerPosition.LW,
+      secondaryPositions:[]
+    },
+    attributes:{shot:66,speed:70,physical:63,defense:61,skill:69},
+    potential:{potential:82,growthRate:0.6,peakAge:27,declineRate:0.7},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:6,seasonsPlayed:2,reputation:100},
+    affiliation:{contractId:"a1c2e3f4-b5d6-4e7f-8a9b-0c1d2e3f4a5b"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles
