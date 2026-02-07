@@ -150,10 +150,10 @@ export const playerProfiles=[
       primaryPosition:PlayerPosition.CTR,
       secondaryPositions:[]
     },
-    attributes:{shot:73,speed:74,physical:76,defense:76,skill:77},
-    potential:{potential:78,growthRate:0.5,peakAge:28,declineRate:0.6},
+    attributes:{shot:70,speed:75,physical:76,defense:76,skill:75},
+    potential:{potential:76,growthRate:0.4,peakAge:25,declineRate:0.5},
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
-    career:{khlGamesPlayed:607,seasonsPlayed:12,reputation:100},
+    career:{khlGamesPlayed:608,seasonsPlayed:12,reputation:100},
     affiliation:{contractId:"f9a0b1c2-d3e4-4f5a-8b9c-0d1e2f3a4b5c"}
   },
   {
