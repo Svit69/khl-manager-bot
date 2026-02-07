@@ -311,6 +311,28 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:561,seasonsPlayed:12,reputation:100},
     affiliation:{contractId:"a0b1c2d3-e4f5-4a6b-7c8d-9e0f1a2b3c4d"}
+  },
+  {
+    id:"b1c2d3e4-f5a6-7b8c-9d0e-1f2a3b4c5d6e",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    lineIndex:4,
+    position:PlayerPosition.RW,
+    identity:{
+      firstName:"Никита",
+      lastName:"Шашков",
+      displayName:"Никита Шашков",
+      birthDate:"1999-03-26",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/shahkov.png",
+      primaryPosition:PlayerPosition.RW,
+      secondaryPositions:[PlayerPosition.CTR]
+    },
+    attributes:{shot:72,speed:77,physical:81,defense:74,skill:75},
+    potential:{potential:76,growthRate:0.7,peakAge:27,declineRate:0.6},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:301,seasonsPlayed:8,reputation:100},
+    affiliation:{contractId:"f0a1b2c3-d4e5-4f6a-7b8c-9d0e1f2a3b4c"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles
