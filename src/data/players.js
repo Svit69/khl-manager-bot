@@ -266,6 +266,29 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:570,seasonsPlayed:10,reputation:100},
     affiliation:{contractId:"a4b5c6d7-e8f9-4a0b-1c2d-3e4f5a6b7c8d"}
+  },
+  {
+    id:"e8f9a0b1-c2d3-4e5f-6a7b-8c9d0e1f2a3b",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    lineIndex:2,
+    position:PlayerPosition.DEF,
+    roleIndex:2,
+    identity:{
+      firstName:"Кирилл",
+      lastName:"Воробьев",
+      displayName:"Кирилл Воробьев",
+      birthDate:"1995-02-11",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/vorobyev.png",
+      primaryPosition:PlayerPosition.DEF,
+      secondaryPositions:[]
+    },
+    attributes:{shot:63,speed:70,physical:87,defense:84,skill:67},
+    potential:{potential:77,growthRate:0.6,peakAge:27,declineRate:0.5},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:512,seasonsPlayed:12,reputation:100},
+    affiliation:{contractId:"d7e8f9a0-b1c2-4d3e-5f6a-7b8c9d0e1f2a"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles
