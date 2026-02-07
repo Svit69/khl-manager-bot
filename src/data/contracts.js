@@ -310,6 +310,14 @@
     season:"2029/2030",
     salaryRub:70000000,
     type:"one-way"
+  },
+  {
+    id:"f8a9b0c1-d2e3-4f4a-5b6c-7d8e9f0a1b2c",
+    playerId:"e7f8a9b0-c1d2-4e3f-5a6b-7c8d9e0f1a2b",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2025/2026",
+    salaryRub:40000000,
+    type:"one-way"
   }
 ];
 

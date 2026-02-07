@@ -468,6 +468,29 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:512,seasonsPlayed:9,reputation:100},
     affiliation:{contractId:"d5e6f7a8-b9c0-4d1e-2f3a-4b5c6d7e8f9a"}
+  },
+  {
+    id:"e7f8a9b0-c1d2-4e3f-5a6b-7c8d9e0f1a2b",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    lineIndex:1,
+    position:PlayerPosition.DEF,
+    roleIndex:2,
+    identity:{
+      firstName:"Максим",
+      lastName:"Лажуа",
+      displayName:"Максим Лажуа",
+      birthDate:"1997-11-05",
+      nationality:"CA",
+      isGoalie:false,
+      photoUrl:"./player-photo/lajoie.png",
+      primaryPosition:PlayerPosition.DEF,
+      secondaryPositions:[]
+    },
+    attributes:{shot:77,speed:80,physical:83,defense:83,skill:77},
+    potential:{potential:82,growthRate:0.8,peakAge:28,declineRate:0.9},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:52,seasonsPlayed:1,reputation:100},
+    affiliation:{contractId:"f8a9b0c1-d2e3-4f4a-5b6c-7d8e9f0a1b2c"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles
