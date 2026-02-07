@@ -3,7 +3,7 @@
     const content=rows.map(row=>{
       const salaries=row.contracts.map(c=>`${c.season}: ${Math.round(c.salaryRub/1000000)} млн`).join(" • ")||"нет контракта";
       const stats=`${row.seasonStats.games}И ${row.seasonStats.goals}Г ${row.seasonStats.assists}П`;
-      const details=`До ${row.contractEndSeason} • Возраст ${row.age} • OVR ${row.ovr} • ${stats}`;
+      const details=`До ${row.contractEndDate} • Возраст ${row.age} • OVR ${row.ovr} • ${stats}`;
       const negotiation=selectedPlayerId===row.playerId?this.#renderNegotiation(row.playerId):"";
       return `<div class="contract-card"><button class="contract-row" data-action="open-negotiation" data-player-id="${row.playerId}"><span>${row.displayName}</span><span class="muted">${details}</span><span class="muted">${salaries}</span></button>${negotiation}</div>`;
     }).join("");

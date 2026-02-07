@@ -4,6 +4,10 @@ const formatNextSeason=season=>{
   const start=parseSeasonStart(season);
   return `${start+1}/${start+2}`;
 };
+const formatContractEndDate=season=>{
+  const endYear=Number((season||"0/0").split("/")[1])||0;
+  return endYear?`31.05.${endYear}`:"—";
+};
 const calculateAge=birthDate=>{
   const now=new Date();
   const birth=new Date(birthDate);
@@ -30,7 +34,7 @@ export class ContractService{
         age:calculateAge(player.identity.birthDate),
         ovr:player.ovr,
         seasonStats:{games:player.seasonStats.games,goals:player.seasonStats.goals,assists:player.seasonStats.assists},
-        contractEndSeason:lastContract?.season||"—",
+        contractEndDate:formatContractEndDate(lastContract?.season),
         contracts
       };
     }).sort((a,b)=>a.displayName.localeCompare(b.displayName,"ru"));
