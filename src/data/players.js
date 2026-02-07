@@ -491,6 +491,29 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:52,seasonsPlayed:1,reputation:100},
     affiliation:{contractId:"f8a9b0c1-d2e3-4f4a-5b6c-7d8e9f0a1b2c"}
+  },
+  {
+    id:"a9b0c1d2-e3f4-4a5b-6c7d-8e9f0a1b2c3d",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    lineIndex:2,
+    position:PlayerPosition.DEF,
+    roleIndex:1,
+    identity:{
+      firstName:"Семен",
+      lastName:"Чистяков",
+      displayName:"Семен Чистяков",
+      birthDate:"2001-08-07",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/chistyakov.png",
+      primaryPosition:PlayerPosition.DEF,
+      secondaryPositions:[]
+    },
+    attributes:{shot:78,speed:79,physical:82,defense:84,skill:81},
+    potential:{potential:85,growthRate:0.8,peakAge:27,declineRate:0.9},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:303,seasonsPlayed:6,reputation:100},
+    affiliation:{contractId:"b0c1d2e3-f4a5-4b6c-7d8e-9f0a1b2c3d4e"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles
