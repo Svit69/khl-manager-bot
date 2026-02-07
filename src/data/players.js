@@ -423,6 +423,28 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:393,seasonsPlayed:7,reputation:100},
     affiliation:{contractId:"f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c"}
+  },
+  {
+    id:"a2b3c4d5-e6f7-4a8b-9c0d-1e2f3a4b5c6d",
+    teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
+    lineIndex:4,
+    position:PlayerPosition.RW,
+    identity:{
+      firstName:"Степан",
+      lastName:"Хрипунов",
+      displayName:"Степан Хрипунов",
+      birthDate:"1995-06-24",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/khripunov.png",
+      primaryPosition:PlayerPosition.RW,
+      secondaryPositions:[PlayerPosition.LW]
+    },
+    attributes:{shot:71,speed:76,physical:76,defense:70,skill:74},
+    potential:{potential:75,growthRate:0.4,peakAge:29,declineRate:0.8},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:428,seasonsPlayed:11,reputation:100},
+    affiliation:{contractId:"b3c4d5e6-f7a8-4b9c-0d1e-2f3a4b5c6d7e"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles
