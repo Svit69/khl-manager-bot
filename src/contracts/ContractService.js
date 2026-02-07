@@ -11,17 +11,31 @@ const calculateAge=birthDate=>{
 const normalizeType=type=>Object.values(ContractType).includes(type)?type:ContractType.ONE_WAY;
 const normalizeContract=contract=>({...contract,type:normalizeType(contract.type)});
 export class ContractService{
-  #contracts;
-  constructor(contracts){this.#contracts=(contracts||[]).map(normalizeContract)}
-  importContracts(contracts){this.#contracts=(contracts||[]).map(normalizeContract)}
+  #contracts;#baseContracts;
+  constructor(contracts){
+    this.#baseContracts=(contracts||[]).map(normalizeContract);
+    this.#contracts=this.#baseContracts.map(c=>({...c}));
+  }
+  importContracts(contracts){
+    const saved=(contracts||[]).map(normalizeContract);
+    if(!saved.length){this.#contracts=this.#baseContracts.map(c=>({...c}));return;}
+    const merged=new Map(this.#baseContracts.map(c=>[c.id,c]));
+    saved.forEach(c=>merged.set(c.id,c));
+    this.#contracts=[...merged.values()];
+  }
   exportContracts(){return this.#contracts.map(c=>({...c}))}
   getContractsForPlayer(playerId){return this.#contracts.filter(c=>c.playerId===playerId).sort((a,b)=>parseSeasonStart(a.season)-parseSeasonStart(b.season));}
   getTeamContractRows(team){
     return team.getRoster().map(player=>{
-      const contracts=this.getContractsForPlayer(player.identity.id);
+      const playerId=player.identity.id;
+      let contracts=this.getContractsForPlayer(playerId);
+      if(!contracts.length&&player.affiliation.contractId){
+        const linked=this.#contracts.find(c=>c.id===player.affiliation.contractId);
+        if(linked)contracts=this.getContractsForPlayer(linked.playerId);
+      }
       const lastContract=contracts[contracts.length-1]||null;
       return {
-        playerId:player.identity.id,displayName:player.name,age:calculateAge(player.identity.birthDate),ovr:player.ovr,
+        playerId,displayName:player.name,age:calculateAge(player.identity.birthDate),ovr:player.ovr,
         seasonStats:{games:player.seasonStats.games,goals:player.seasonStats.goals,assists:player.seasonStats.assists},
         contractEndDate:formatContractEndDate(lastContract?.season),contracts
       };
