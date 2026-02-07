@@ -33,13 +33,14 @@ export class ContractService{
         const linked=this.#contracts.find(c=>c.id===player.affiliation.contractId);
         if(linked)contracts=this.getContractsForPlayer(linked.playerId);
       }
+      if(!contracts.length)return null;
       const lastContract=contracts[contracts.length-1]||null;
       return {
         playerId,displayName:player.name,age:calculateAge(player.identity.birthDate),ovr:player.ovr,
         seasonStats:{games:player.seasonStats.games,goals:player.seasonStats.goals,assists:player.seasonStats.assists},
         contractEndDate:formatContractEndDate(lastContract?.season),contracts
       };
-    }).sort((a,b)=>a.displayName.localeCompare(b.displayName,"ru"));
+    }).filter(Boolean).sort((a,b)=>a.displayName.localeCompare(b.displayName,"ru"));
   }
   getContractTypeLabel(type){return contractTypeLabel[normalizeType(type)]}
   extendContract(player,mode){
