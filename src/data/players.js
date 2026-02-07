@@ -560,6 +560,75 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:402,seasonsPlayed:9,reputation:100},
     affiliation:{contractId:"d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8b"}
+  },
+  {
+    id:"a5b6c7d8-e9f0-4a1b-8c2d-3e4f5a6b7c8d",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    lineIndex:3,
+    position:PlayerPosition.DEF,
+    roleIndex:2,
+    identity:{
+      firstName:"Джозеф",
+      lastName:"Чеккони",
+      displayName:"Джозеф Чеккони",
+      birthDate:"1997-05-23",
+      nationality:"US",
+      isGoalie:false,
+      photoUrl:"./player-photo/cecconi.png",
+      primaryPosition:PlayerPosition.DEF,
+      secondaryPositions:[]
+    },
+    attributes:{shot:60,speed:65,physical:81,defense:83,skill:73},
+    potential:{potential:78,growthRate:0.7,peakAge:28,declineRate:0.6},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:40,seasonsPlayed:1,reputation:100},
+    affiliation:{contractId:"e5f6a7b8-c9d0-4e1f-8a2b-3c4d5e6f7a8b"}
+  },
+  {
+    id:"b6c7d8e9-f0a1-4b2c-9d3e-4f5a6b7c8d9e",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    lineIndex:4,
+    position:PlayerPosition.DEF,
+    roleIndex:1,
+    identity:{
+      firstName:"Марсель",
+      lastName:"Ибрагимов",
+      displayName:"Марсель Ибрагимов",
+      birthDate:"1997-08-04",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/ibragimov.png",
+      primaryPosition:PlayerPosition.DEF,
+      secondaryPositions:[]
+    },
+    attributes:{shot:61,speed:63,physical:80,defense:77,skill:65},
+    potential:{potential:76,growthRate:0.6,peakAge:28,declineRate:0.6},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:170,seasonsPlayed:8,reputation:100},
+    affiliation:{contractId:"f6a7b8c9-d0e1-4f2a-9b3c-4d5e6f7a8b9c"}
+  },
+  {
+    id:"c7d8e9f0-a1b2-4c3d-8e4f-5a6b7c8d9e0f",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    lineIndex:4,
+    position:PlayerPosition.DEF,
+    roleIndex:2,
+    identity:{
+      firstName:"Михаил",
+      lastName:"Гуляев",
+      displayName:"Михаил Гуляев",
+      birthDate:"2005-04-26",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/gulyayev.png",
+      primaryPosition:PlayerPosition.DEF,
+      secondaryPositions:[]
+    },
+    attributes:{shot:65,speed:74,physical:76,defense:78,skill:75},
+    potential:{potential:84,growthRate:0.8,peakAge:27,declineRate:0.8},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:184,seasonsPlayed:4,reputation:100},
+    affiliation:{contractId:"a7b8c9d0-e1f2-4a3b-8c4d-5e6f7a8b9c0d"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles
