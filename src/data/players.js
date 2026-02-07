@@ -125,8 +125,8 @@ export const playerProfiles=[
       nationality:"BY",
       isGoalie:false,
       photoUrl:"./player-photo/gorbunov.png",
-      primaryPosition:PlayerPosition.CTR,
-      secondaryPositions:[PlayerPosition.RW]
+      primaryPosition:PlayerPosition.LW,
+      secondaryPositions:[PlayerPosition.CTR,PlayerPosition.RW]
     },
     attributes:{shot:77,speed:79,physical:73,defense:75,skill:81},
     potential:{potential:82,growthRate:1.0,peakAge:27,declineRate:0.6},
@@ -213,8 +213,8 @@ export const playerProfiles=[
       nationality:"RU",
       isGoalie:false,
       photoUrl:"./player-photo/kizimov.png",
-      primaryPosition:PlayerPosition.RW,
-      secondaryPositions:[]
+      primaryPosition:PlayerPosition.LW,
+      secondaryPositions:[PlayerPosition.RW]
     },
     attributes:{shot:71,speed:77,physical:74,defense:76,skill:73},
     potential:{potential:78,growthRate:0.4,peakAge:29,declineRate:0.3},
@@ -325,8 +325,8 @@ export const playerProfiles=[
       nationality:"RU",
       isGoalie:false,
       photoUrl:"./player-photo/shahkov.png",
-      primaryPosition:PlayerPosition.RW,
-      secondaryPositions:[PlayerPosition.CTR]
+      primaryPosition:PlayerPosition.LW,
+      secondaryPositions:[PlayerPosition.CTR,PlayerPosition.RW]
     },
     attributes:{shot:72,speed:77,physical:81,defense:74,skill:75},
     potential:{potential:76,growthRate:0.7,peakAge:27,declineRate:0.6},
