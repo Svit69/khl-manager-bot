@@ -14,7 +14,7 @@ export class AppState{
   setActiveTeamId(teamId){this.#activeTeamId=teamId}
   getActiveTeamContractRows(){return this.activeTeam?this.#contracts.getTeamContractRows(this.activeTeam):[]}
   extendActiveTeamPlayerContract(playerId,mode){
-    const player=this.activeTeam?.getRoster().find(p=>(p.identity?.id||p.affiliation?.playerId)===playerId);
+    const player=this.activeTeam?.getRoster().find(p=>p.id===playerId);
     return player?this.#contracts.extendContract(player,mode):null;
   }
   playDay(){
@@ -26,23 +26,14 @@ export class AppState{
     return this.#lastMatch;
   }
   exportState(){
-    const players=this.#teams.flatMap(t=>t.getRoster()).map(p=>({
-      id:p.identity?.id||p.affiliation?.playerId,
-      fatigueScore:p.fatigueScore,
-      form:p.form,
-      injuryUntilDay:p.condition.injuryUntilDay
-    }));
+    const players=this.#teams.flatMap(t=>t.getRoster()).map(p=>({id:p.id,fatigueScore:p.fatigueScore,form:p.form,injuryUntilDay:p.condition.injuryUntilDay}));
     return {calendarIndex:this.#calendar.index,players,stats:this.#stats.getSeasonStats(),activeTeamId:this.#activeTeamId,contracts:this.#contracts.exportContracts()};
   }
   importState(saved){
     if(!saved)return;
     this.#calendar.index=saved.calendarIndex||0;this.#activeTeamId=saved.activeTeamId||null;
     const map=new Map((saved.players||[]).map(p=>[p.id,p]));
-    this.#teams.flatMap(t=>t.getRoster()).forEach(p=>{
-      const key=p.identity?.id||p.affiliation?.playerId;
-      const s=map.get(key);
-      if(s){p.applyFatigue(s.fatigueScore-p.fatigueScore);p.applyFormDelta(s.form-p.form)}
-    });
+    this.#teams.flatMap(t=>t.getRoster()).forEach(p=>{const s=map.get(p.id);if(s){p.applyFatigue(s.fatigueScore-p.fatigueScore);p.applyFormDelta(s.form-p.form)}});
     if(saved.contracts)this.#contracts.importContracts(saved.contracts);
     this.#stats.importStats(saved.stats);
   }

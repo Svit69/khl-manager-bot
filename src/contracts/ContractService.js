@@ -48,7 +48,7 @@ export class ContractService{
   }
   getTeamContractRows(team){
     return team.getRoster().map(player=>{
-      const playerId=player.identity?.id||player.affiliation?.playerId||null;
+      const playerId=player.id||null;
       if(!playerId){
         return {
           playerId:null,displayName:player.name,age:calculateAge(player.identity.birthDate),ovr:player.ovr,
@@ -81,7 +81,7 @@ export class ContractService{
   }
   getContractTypeLabel(type){return contractTypeLabel[normalizeType(type)]}
   extendContract(player,mode){
-    const playerId=player.identity?.id||player.affiliation?.playerId;
+    const playerId=player.id;
     const contracts=this.getContractsForPlayer(playerId);const lastContract=contracts[contracts.length-1];if(!lastContract)return null;
     const nextContract={
       id:generateUuid(),playerId,teamId:player.affiliation.teamId,season:formatNextSeason(lastContract.season),

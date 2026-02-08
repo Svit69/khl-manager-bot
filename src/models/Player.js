@@ -6,6 +6,7 @@
     this.#career=career;this.#affiliation=affiliation;this.#seasonStats=seasonStats;
   }
   get identity(){return this.#identity}
+  get id(){return this.#identity.id}
   get attributes(){return this.#attributes}
   get potential(){return this.#potential}
   get condition(){return this.#condition}
