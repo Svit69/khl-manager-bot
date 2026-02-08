@@ -1,4 +1,4 @@
-const CACHE_NAME="khl-manager-v30";
+const CACHE_NAME="khl-manager-v31";
 const ASSETS=[
   "./",
   "./index.html",
@@ -42,6 +42,9 @@ const ASSETS=[
   "./player-photo/poturalski.png",
   "./player-photo/mcleod.png",
   "./player-photo/rashevsky.png",
+  "./player-photo/prokhorkin.png",
+  "./player-photo/ponomaryov.png",
+  "./player-photo/yakupov.png",
   "./player-photo/placeholder.png"
 ];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS)))});

@@ -717,6 +717,72 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:307,seasonsPlayed:6,reputation:90},
     affiliation:{contractId:"e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5c"}
+  },
+  {
+    id:"b2c3d4e5-f6a7-4b8c-9d9e-0f1a2b3c4d5e",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    lineIndex:3,
+    position:PlayerPosition.CTR,
+    identity:{
+      firstName:"Николай",
+      lastName:"Прохоркин",
+      displayName:"Николай Прохоркин",
+      birthDate:"1993-09-17",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/prokhorkin.png",
+      primaryPosition:PlayerPosition.CTR,
+      secondaryPositions:[]
+    },
+    attributes:{shot:78,speed:79,physical:82,defense:72,skill:76},
+    potential:{potential:80,growthRate:0.7,peakAge:30,declineRate:0.7},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:555,seasonsPlayed:15,reputation:100},
+    affiliation:{contractId:"a2b3c4d5-e6f7-4a8b-9c9d-0e1f2a3b4c5d"}
+  },
+  {
+    id:"c3d4e5f6-a7b8-4c9d-8e0f-1a2b3c4d5e6f",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    lineIndex:3,
+    position:PlayerPosition.CTR,
+    identity:{
+      firstName:"Василий",
+      lastName:"Пономарев",
+      displayName:"Василий Пономарев",
+      birthDate:"2002-03-13",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/ponomaryov.png",
+      primaryPosition:PlayerPosition.CTR,
+      secondaryPositions:[]
+    },
+    attributes:{shot:76,speed:83,physical:72,defense:71,skill:74},
+    potential:{potential:81,growthRate:0.7,peakAge:27,declineRate:0.7},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:53,seasonsPlayed:2,reputation:100},
+    affiliation:{contractId:"b3c4d5e6-f7a8-4b9c-8d0e-1f2a3b4c5d6e"}
+  },
+  {
+    id:"d4e5f6a7-b8c9-4d0e-8f1a-2b3c4d5e6f7a",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    lineIndex:4,
+    position:PlayerPosition.RW,
+    identity:{
+      firstName:"Наиль",
+      lastName:"Якупов",
+      displayName:"Наиль Якупов",
+      birthDate:"1993-10-06",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/yakupov.png",
+      primaryPosition:PlayerPosition.RW,
+      secondaryPositions:[PlayerPosition.LW]
+    },
+    attributes:{shot:79,speed:76,physical:75,defense:71,skill:84},
+    potential:{potential:80,growthRate:0.6,peakAge:31,declineRate:0.8},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:343,seasonsPlayed:9,reputation:100},
+    affiliation:{contractId:"e4f5a6b7-c8d9-4e0f-8a1b-2c3d4e5f6a7b"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles

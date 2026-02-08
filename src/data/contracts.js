@@ -438,6 +438,62 @@
     season:"2026/2027",
     salaryRub:65000000,
     type:"one-way"
+  },
+  {
+    id:"a2b3c4d5-e6f7-4a8b-9c9d-0e1f2a3b4c5d",
+    playerId:"b2c3d4e5-f6a7-4b8c-9d9e-0f1a2b3c4d5e",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2025/2026",
+    salaryRub:35000000,
+    type:"one-way"
+  },
+  {
+    id:"b3c4d5e6-f7a8-4b9c-9d0e-1f2a3b4c5d6e",
+    playerId:"b2c3d4e5-f6a7-4b8c-9d9e-0f1a2b3c4d5e",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2026/2027",
+    salaryRub:35000000,
+    type:"one-way"
+  },
+  {
+    id:"b3c4d5e6-f7a8-4b9c-8d0e-1f2a3b4c5d6e",
+    playerId:"c3d4e5f6-a7b8-4c9d-8e0f-1a2b3c4d5e6f",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2025/2026",
+    salaryRub:50000000,
+    type:"one-way"
+  },
+  {
+    id:"c4d5e6f7-a8b9-4c0d-8e1f-2a3b4c5d6e7f",
+    playerId:"c3d4e5f6-a7b8-4c9d-8e0f-1a2b3c4d5e6f",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2026/2027",
+    salaryRub:55000000,
+    type:"one-way"
+  },
+  {
+    id:"d5e6f7a8-b9c0-4d1e-8f2a-3b4c5d6e7f8a",
+    playerId:"c3d4e5f6-a7b8-4c9d-8e0f-1a2b3c4d5e6f",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2027/2028",
+    salaryRub:60000000,
+    type:"one-way"
+  },
+  {
+    id:"e4f5a6b7-c8d9-4e0f-8a1b-2c3d4e5f6a7b",
+    playerId:"d4e5f6a7-b8c9-4d0e-8f1a-2b3c4d5e6f7a",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2025/2026",
+    salaryRub:7000000,
+    type:"one-way"
+  },
+  {
+    id:"f5a6b7c8-d9e0-4f1a-8b2c-3d4e5f6a7b8c",
+    playerId:"d4e5f6a7-b8c9-4d0e-8f1a-2b3c4d5e6f7a",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2026/2027",
+    salaryRub:35000000,
+    type:"one-way"
   }
 ];
 
