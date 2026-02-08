@@ -24,7 +24,7 @@ export class Renderer{
     }).join("");
     this.#matchEl.innerHTML=`<h2>Состав</h2><div class="roster-grid">${cards}</div>`;
   }
-  renderContracts(rows){this.#matchEl.innerHTML=this.#contractTab.render(rows)}
+  renderContracts(rows,negotiation){this.#matchEl.innerHTML=this.#contractTab.render(rows,negotiation)}
   renderConfirmSelection(team){
     const modal=`<div class="modal"><div class="modal-card"><div class="row"><img class="logo" src="${team.logoUrl}" alt="${team.name}"/><div><div>${team.name}</div><div class="muted">${team.city}, ${team.country}</div></div></div><div class="modal-actions"><button class="btn" data-action="confirm-team">Подтвердить</button><button class="btn secondary" data-action="cancel-team">Отмена</button></div></div></div>`;
     this.#teamEl.insertAdjacentHTML("beforeend",modal);

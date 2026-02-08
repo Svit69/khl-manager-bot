@@ -13,6 +13,14 @@ export class AppState{
   get activeTeam(){return this.#teams.find(t=>t.id===this.#activeTeamId)||null}
   setActiveTeamId(teamId){this.#activeTeamId=teamId}
   getActiveTeamContractRows(){return this.activeTeam?this.#contracts.getTeamContractRows(this.activeTeam):[]}
+  getActiveTeamNegotiationPreview(playerId,offer){
+    const player=this.activeTeam?.getRoster().find(p=>p.id===playerId);
+    return player?this.#contracts.getRenewalPreview(this.activeTeam,player,offer):null;
+  }
+  submitActiveTeamNegotiation(playerId,offer){
+    const player=this.activeTeam?.getRoster().find(p=>p.id===playerId);
+    return player?this.#contracts.submitRenewalOffer(this.activeTeam,player,offer):null;
+  }
   extendActiveTeamPlayerContract(playerId,mode){
     const player=this.activeTeam?.getRoster().find(p=>p.id===playerId);
     return player?this.#contracts.extendContract(player,mode):null;
