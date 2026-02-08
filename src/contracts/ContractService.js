@@ -24,7 +24,19 @@ export class ContractService{
     const saved=(contracts||[]).map(normalizeContract).filter(Boolean);
     if(!saved.length){this.#contracts=this.#baseContracts.map(c=>({...c}));return;}
     const merged=new Map(this.#baseContracts.map(c=>[c.id,c]));
-    saved.forEach(c=>merged.set(c.id,c));
+    saved.forEach(c=>{
+      const base=merged.get(c.id);
+      if(base){
+        merged.set(c.id,{
+          ...base,
+          ...c,
+          playerId:c.playerId||base.playerId,
+          teamId:c.teamId||base.teamId
+        });
+      }else{
+        merged.set(c.id,c);
+      }
+    });
     this.#contracts=[...merged.values()];
   }
   exportContracts(){return this.#contracts.map(c=>({...c}))}
