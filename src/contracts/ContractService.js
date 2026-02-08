@@ -39,6 +39,8 @@ export class ContractService{
       if(!playerId){
         return {
           playerId:null,displayName:player.name,age:calculateAge(player.identity.birthDate),ovr:player.ovr,
+          position:player.identity?.primaryPosition||"",
+          fatigueStatus:player.fatigueStatus||"",
           seasonStats:{games:player.seasonStats.games,goals:player.seasonStats.goals,assists:player.seasonStats.assists},
           contractEndDate:null,contracts:[]
         };
@@ -57,6 +59,8 @@ export class ContractService{
       },null);
       return {
         playerId,displayName:player.name,age:calculateAge(player.identity.birthDate),ovr:player.ovr,
+        position:player.identity?.primaryPosition||"",
+        fatigueStatus:player.fatigueStatus||"",
         seasonStats:{games:player.seasonStats.games,goals:player.seasonStats.goals,assists:player.seasonStats.assists},
         contractEndDate:formatContractEndDate(lastContract?.season),contracts
       };

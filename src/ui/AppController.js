@@ -1,4 +1,4 @@
-export class AppController{
+﻿export class AppController{
   #state;#calendar;#teams;#renderer;#userStore;#pendingTeamId=null;#activeTab="roster";
   constructor(state,calendar,teams,renderer,userStore){
     this.#state=state;this.#calendar=calendar;this.#teams=teams;this.#renderer=renderer;this.#userStore=userStore;
@@ -9,7 +9,8 @@ export class AppController{
     if(this.#state.activeTeam){
       this.#renderer.renderTeam(this.#state.activeTeam,this.#activeTab);this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,false);
       this.#renderer.renderResetButton();
-      this.#renderer.renderMyTeamRoster(this.#state.activeTeam);
+      if(this.#activeTab==="contracts")this.#renderer.renderContracts(this.#state.getActiveTeamContractRows());
+      else this.#renderer.renderMyTeamRoster(this.#state.activeTeam);
       return;
     }
     this.#renderer.renderTeamSelection(this.#teams,this.#state.activeTeamId);this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,true);
