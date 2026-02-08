@@ -783,6 +783,94 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:343,seasonsPlayed:9,reputation:100},
     affiliation:{contractId:"e4f5a6b7-c8d9-4e0f-8a1b-2c3d4e5f6a7b"}
+  },
+  {
+    id:"e5f6a7b8-c9d0-4e1f-8a2b-3c4d5e6f7a8c",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    lineIndex:3,
+    position:PlayerPosition.RW,
+    identity:{
+      firstName:"Александр",
+      lastName:"Волков",
+      displayName:"Александр Волков",
+      birthDate:"1997-08-02",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/volkov.png",
+      primaryPosition:PlayerPosition.RW,
+      secondaryPositions:[PlayerPosition.LW]
+    },
+    attributes:{shot:75,speed:72,physical:83,defense:77,skill:75},
+    potential:{potential:81,growthRate:0.6,peakAge:27,declineRate:0.7},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:252,seasonsPlayed:5,reputation:100},
+    affiliation:{contractId:"f6a7b8c9-d0e1-4f2a-8b3c-4d5e6f7a8b9d"}
+  },
+  {
+    id:"f6a7b8c9-d0e1-4f2a-8b3c-4d5e6f7a8b9e",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    lineIndex:4,
+    position:PlayerPosition.LW,
+    identity:{
+      firstName:"Джованни",
+      lastName:"Фьоре",
+      displayName:"Джованни Фьоре",
+      birthDate:"1996-08-13",
+      nationality:"CA",
+      isGoalie:false,
+      photoUrl:"./player-photo/fiore.png",
+      primaryPosition:PlayerPosition.LW,
+      secondaryPositions:[PlayerPosition.RW]
+    },
+    attributes:{shot:74,speed:74,physical:83,defense:78,skill:70},
+    potential:{potential:77,growthRate:0.5,peakAge:27,declineRate:0.7},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:171,seasonsPlayed:3,reputation:100},
+    affiliation:{contractId:"a7b8c9d0-e1f2-4a3b-8c4d-5e6f7a8b9c0e"}
+  },
+  {
+    id:"a7b8c9d0-e1f2-4a3b-8c4d-5e6f7a8b9c0f",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    lineIndex:4,
+    position:PlayerPosition.LW,
+    identity:{
+      firstName:"Михаил",
+      lastName:"Котляревский",
+      displayName:"Михаил Котляревский",
+      birthDate:"1997-04-26",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/kotlyarevsky.png",
+      primaryPosition:PlayerPosition.LW,
+      secondaryPositions:[]
+    },
+    attributes:{shot:69,speed:83,physical:83,defense:77,skill:67},
+    potential:{potential:76,growthRate:0.5,peakAge:28,declineRate:0.5},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:297,seasonsPlayed:9,reputation:100},
+    affiliation:{contractId:"b8c9d0e1-f2a3-4b5c-8d6e-7f8a9b0c1d2f"}
+  },
+  {
+    id:"b8c9d0e1-f2a3-4b5c-8d6e-7f8a9b0c1d30",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    lineIndex:4,
+    position:PlayerPosition.RW,
+    identity:{
+      firstName:"Игорь",
+      lastName:"Мартынов",
+      displayName:"Игорь Мартынов",
+      birthDate:"1999-01-19",
+      nationality:"BY",
+      isGoalie:false,
+      photoUrl:"./player-photo/martynov.png",
+      primaryPosition:PlayerPosition.RW,
+      secondaryPositions:[PlayerPosition.LW]
+    },
+    attributes:{shot:66,speed:77,physical:74,defense:78,skill:67},
+    potential:{potential:75,growthRate:0.5,peakAge:27,declineRate:0.5},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:320,seasonsPlayed:7,reputation:100},
+    affiliation:{contractId:"c9d0e1f2-a3b4-4c5d-8e7f-9a0b1c2d3e50"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles
