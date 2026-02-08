@@ -1,6 +1,7 @@
 ﻿import { generateUuid } from "../utils/uuid.js";
 import { ContractType, contractTypeLabel } from "./ContractType.js";
 const parseSeasonStart=season=>Number((season||"0/0").split("/")[0])||0;
+const parseSeasonEnd=season=>Number((season||"0/0").split("/")[1])||0;
 const formatNextSeason=season=>{const start=parseSeasonStart(season);return `${start+1}/${start+2}`;};
 const formatContractEndDate=season=>{const endYear=Number((season||"0/0").split("/")[1])||0;return endYear?`31.05.${endYear}`:null;};
 const calculateAge=birthDate=>{
@@ -27,7 +28,11 @@ export class ContractService{
     this.#contracts=[...merged.values()];
   }
   exportContracts(){return this.#contracts.map(c=>({...c}))}
-  getContractsForPlayer(playerId){return this.#contracts.filter(c=>c.playerId===playerId).sort((a,b)=>parseSeasonStart(a.season)-parseSeasonStart(b.season));}
+  getContractsForPlayer(playerId){
+    return this.#contracts
+      .filter(c=>c.playerId===playerId)
+      .sort((a,b)=>parseSeasonEnd(a.season)-parseSeasonEnd(b.season));
+  }
   getTeamContractRows(team){
     return team.getRoster().map(player=>{
       const playerId=player.identity.id;
@@ -39,7 +44,10 @@ export class ContractService{
           if(!contracts.length)contracts=[linked];
         }
       }
-      const lastContract=contracts[contracts.length-1]||null;
+      const lastContract=contracts.reduce((latest,current)=>{
+        if(!latest)return current;
+        return parseSeasonEnd(current.season)>=parseSeasonEnd(latest.season)?current:latest;
+      },null);
       return {
         playerId,displayName:player.name,age:calculateAge(player.identity.birthDate),ovr:player.ovr,
         seasonStats:{games:player.seasonStats.games,goals:player.seasonStats.goals,assists:player.seasonStats.assists},
