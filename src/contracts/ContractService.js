@@ -30,8 +30,9 @@ export class ContractService{
         merged.set(c.id,{
           ...base,
           ...c,
-          playerId:c.playerId||base.playerId,
-          teamId:c.teamId||base.teamId
+          playerId:base.playerId,
+          teamId:base.teamId,
+          season:base.season
         });
       }else{
         merged.set(c.id,c);
