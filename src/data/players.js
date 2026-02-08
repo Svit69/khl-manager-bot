@@ -871,6 +871,50 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:320,seasonsPlayed:7,reputation:100},
     affiliation:{contractId:"c9d0e1f2-a3b4-4c5d-8e7f-9a0b1c2d3e50"}
+  },
+  {
+    id:"c0d1e2f3-a4b5-4c6d-8e7f-9a0b1c2d3e40",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    lineIndex:3,
+    position:PlayerPosition.CTR,
+    identity:{
+      firstName:"Иван",
+      lastName:"Игумнов",
+      displayName:"Иван Игумнов",
+      birthDate:"1996-06-29",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/igumnov.png",
+      primaryPosition:PlayerPosition.CTR,
+      secondaryPositions:[PlayerPosition.RW]
+    },
+    attributes:{shot:62,speed:75,physical:76,defense:80,skill:64},
+    potential:{potential:74,growthRate:0.3,peakAge:27,declineRate:0.5},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:492,seasonsPlayed:11,reputation:100},
+    affiliation:{contractId:"d1e2f3a4-b5c6-4d7e-8f9a-0b1c2d3e4f60"}
+  },
+  {
+    id:"d1e2f3a4-b5c6-4d7e-8f9a-0b1c2d3e4f70",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    lineIndex:4,
+    position:PlayerPosition.CTR,
+    identity:{
+      firstName:"Павел",
+      lastName:"Леука",
+      displayName:"Павел Леука",
+      birthDate:"2003-05-15",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/leuka.png",
+      primaryPosition:PlayerPosition.CTR,
+      secondaryPositions:[]
+    },
+    attributes:{shot:64,speed:74,physical:70,defense:61,skill:62},
+    potential:{potential:75,growthRate:0.3,peakAge:27,declineRate:0.5},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:16,seasonsPlayed:2,reputation:100},
+    affiliation:{contractId:"e2f3a4b5-c6d7-4e8f-8a9b-0c1d2e3f4a80"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles
