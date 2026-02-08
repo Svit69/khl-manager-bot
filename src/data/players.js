@@ -629,6 +629,94 @@ export const playerProfiles=[
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:184,seasonsPlayed:4,reputation:100},
     affiliation:{contractId:"a7b8c9d0-e1f2-4a3b-8c4d-5e6f7a8b9c0d"}
+  },
+  {
+    id:"d8e9f0a1-b2c3-4d4e-9f5a-6b7c8d9e0f1a",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    lineIndex:1,
+    position:PlayerPosition.LW,
+    identity:{
+      firstName:"Константин",
+      lastName:"Окулов",
+      displayName:"Константин Окулов",
+      birthDate:"1995-02-18",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/okulov.png",
+      primaryPosition:PlayerPosition.LW,
+      secondaryPositions:[]
+    },
+    attributes:{shot:79,speed:80,physical:79,defense:76,skill:87},
+    potential:{potential:83,growthRate:0.8,peakAge:30,declineRate:0.8},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:582,seasonsPlayed:13,reputation:100},
+    affiliation:{contractId:"b8c9d0e1-f2a3-4b5c-8d6e-7f8a9b0c1d2e"}
+  },
+  {
+    id:"e9f0a1b2-c3d4-4e5f-8a6b-7c8d9e0f1a2b",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    lineIndex:1,
+    position:PlayerPosition.CTR,
+    identity:{
+      firstName:"Эндрю",
+      lastName:"Потуральски",
+      displayName:"Эндрю Потуральски",
+      birthDate:"1994-01-14",
+      nationality:"US",
+      isGoalie:false,
+      photoUrl:"./player-photo/poturalski.png",
+      primaryPosition:PlayerPosition.CTR,
+      secondaryPositions:[PlayerPosition.RW]
+    },
+    attributes:{shot:78,speed:82,physical:75,defense:74,skill:85},
+    potential:{potential:82,growthRate:0.7,peakAge:28,declineRate:0.7},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:52,seasonsPlayed:1,reputation:100},
+    affiliation:{contractId:"c9d0e1f2-a3b4-4c5d-8e7f-9a0b1c2d3e4f"}
+  },
+  {
+    id:"f0a1b2c3-d4e5-4f6a-8b7c-9d0e1f2a3b4d",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    lineIndex:2,
+    position:PlayerPosition.CTR,
+    identity:{
+      firstName:"Майкл",
+      lastName:"Маклауд",
+      displayName:"Майкл Маклауд",
+      birthDate:"1998-02-03",
+      nationality:"CA",
+      isGoalie:false,
+      photoUrl:"./player-photo/mcleod.png",
+      primaryPosition:PlayerPosition.CTR,
+      secondaryPositions:[]
+    },
+    attributes:{shot:77,speed:81,physical:77,defense:77,skill:80},
+    potential:{potential:84,growthRate:0.7,peakAge:27,declineRate:0.7},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:74,seasonsPlayed:2,reputation:90},
+    affiliation:{contractId:"d0e1f2a3-b4c5-4d6e-8f7a-0b1c2d3e4f5a"}
+  },
+  {
+    id:"a1b2c3d4-e5f6-4a7b-8c8d-9e0f1a2b3c4d",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    lineIndex:2,
+    position:PlayerPosition.RW,
+    identity:{
+      firstName:"Дмитрий",
+      lastName:"Рашевский",
+      displayName:"Дмитрий Рашевский",
+      birthDate:"2000-10-09",
+      nationality:"RU",
+      isGoalie:false,
+      photoUrl:"./player-photo/rashevsky.png",
+      primaryPosition:PlayerPosition.RW,
+      secondaryPositions:[]
+    },
+    attributes:{shot:81,speed:82,physical:74,defense:71,skill:78},
+    potential:{potential:82,growthRate:0.6,peakAge:27,declineRate:0.7},
+    condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
+    career:{khlGamesPlayed:307,seasonsPlayed:6,reputation:90},
+    affiliation:{contractId:"e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5c"}
   }
 ];
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>playerProfiles
