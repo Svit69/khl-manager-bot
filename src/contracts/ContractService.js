@@ -35,7 +35,14 @@ export class ContractService{
   }
   getTeamContractRows(team){
     return team.getRoster().map(player=>{
-      const playerId=player.identity.id;
+      const playerId=player.identity?.id||player.affiliation?.playerId||null;
+      if(!playerId){
+        return {
+          playerId:null,displayName:player.name,age:calculateAge(player.identity.birthDate),ovr:player.ovr,
+          seasonStats:{games:player.seasonStats.games,goals:player.seasonStats.goals,assists:player.seasonStats.assists},
+          contractEndDate:null,contracts:[]
+        };
+      }
       let contracts=this.getContractsForPlayer(playerId);
       if(!contracts.length&&player.affiliation.contractId){
         const linked=this.#contracts.find(c=>c.id===player.affiliation.contractId);
@@ -57,9 +64,10 @@ export class ContractService{
   }
   getContractTypeLabel(type){return contractTypeLabel[normalizeType(type)]}
   extendContract(player,mode){
-    const contracts=this.getContractsForPlayer(player.identity.id);const lastContract=contracts[contracts.length-1];if(!lastContract)return null;
+    const playerId=player.identity?.id||player.affiliation?.playerId;
+    const contracts=this.getContractsForPlayer(playerId);const lastContract=contracts[contracts.length-1];if(!lastContract)return null;
     const nextContract={
-      id:generateUuid(),playerId:player.identity.id,teamId:player.affiliation.teamId,season:formatNextSeason(lastContract.season),
+      id:generateUuid(),playerId,teamId:player.affiliation.teamId,season:formatNextSeason(lastContract.season),
       salaryRub:Math.round(lastContract.salaryRub*(mode==="raise"?1.1:1)),type:lastContract.type
     };
     this.#contracts.push(nextContract);player.affiliation.contractId=nextContract.id;return nextContract;
