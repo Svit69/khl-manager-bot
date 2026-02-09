@@ -3,8 +3,12 @@
     const content=rows.map(row=>{
       const contractInfo=row.contractEndDate?`До ${row.contractEndDate}`:"Контракт не найден";
       const status=this.#formatStatus(row.age,row.khlGamesPlayed);
-      const details=`${row.position} • OVR ${row.ovr} • Возраст ${row.age} • Статус ${status} • ${contractInfo}`;
-      const controls=`<div class=\"row\"><button class=\"btn secondary\" data-action=\"open-negotiation\" data-player-id=\"${row.playerId}\">Продлить</button></div>`;
+      const lockSuffix=row.isRenewalLocked?` • ${row.renewalLockReason}`:"";
+      const details=`${row.position} • OVR ${row.ovr} • Возраст ${row.age} • Статус ${status} • ${contractInfo}${lockSuffix}`;
+      const isLocked=Boolean(row.isRenewalLocked);
+      const buttonLabel=isLocked?"Продлено":"Продлить";
+      const disabledAttr=isLocked?"disabled":"";
+      const controls=`<div class=\"row\"><button class=\"btn secondary\" ${disabledAttr} data-action=\"open-negotiation\" data-player-id=\"${row.playerId}\">${buttonLabel}</button></div>`;
       const negotiationPanel=(negotiation && negotiation.playerId===row.playerId)
         ? this.#renderNegotiationPanel(negotiation)
         : "";
@@ -20,21 +24,24 @@
     const offerLine=`Предложение: ${offer.years} г. • ${Math.round(offer.salaryRub/1000000)} млн`;
     const reaction=`Ожидаемая реакция: ${preview.state.emoji} ${preview.state.label} (~${preview.state.chance}%)`;
     const outcome=negotiation.outcome?`<div class=\"muted\">Ответ: ${negotiation.outcome}</div>`:"";
+    const lockNotice=preview.isRenewalLocked?`<div class=\"muted\">${preview.renewalLockReason}</div>`:"";
     const yearsButtons=[1,2,3,4].map(y=>`<button class=\"btn secondary\" data-action=\"set-offer-years\" data-player-id=\"${preview.playerId}\" data-years=\"${y}\">${y} г.</button>`).join("");
     const salaryButtons=[0.8,0.9,1,1.1,1.2].map(m=>{
       const label=`${Math.round(m*100)}%`;
       return `<button class=\"btn secondary\" data-action=\"set-offer-salary\" data-player-id=\"${preview.playerId}\" data-multiplier=\"${m}\">${label}</button>`;
     }).join("");
+    const submitDisabled=preview.isRenewalLocked?"disabled":"";
     return `<div class=\"negotiation-panel\">
       <div class=\"muted\">Отношение к клубу: ${preview.state.emoji} ${preview.state.label}</div>
       ${reasons}
       <div class=\"muted\">${offerLine}</div>
       <div class=\"muted\">Рынок: ${Math.round(market/1000000)} млн</div>
       <div class=\"muted\">${reaction}</div>
+      ${lockNotice}
       <div class=\"row\">${yearsButtons}</div>
       <div class=\"row\">${salaryButtons}</div>
       <div class=\"row\">
-        <button class=\"btn\" data-action=\"submit-offer\" data-player-id=\"${preview.playerId}\">Отправить оффер</button>
+        <button class=\"btn\" ${submitDisabled} data-action=\"submit-offer\" data-player-id=\"${preview.playerId}\">Отправить оффер</button>
         <button class=\"btn secondary\" data-action=\"close-negotiation\" data-player-id=\"${preview.playerId}\">Закрыть</button>
       </div>
       ${outcome}

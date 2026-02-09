@@ -90,9 +90,10 @@ const willingnessState=w=>{
   return {label:"Не хочет",emoji:"🔴",chance:clamp(Math.round(w*0.5),5,60)};
 };
 export class ContractService{
-  #contracts;#baseContracts;
+  #contracts;#baseContracts;#baseContractIds;
   constructor(contracts){
     this.#baseContracts=(contracts||[]).map(normalizeContract).filter(Boolean);
+    this.#baseContractIds=new Set(this.#baseContracts.map(c=>c.id));
     this.#contracts=this.#baseContracts.map(c=>({...c}));
   }
   importContracts(contracts){
@@ -116,6 +117,13 @@ export class ContractService{
     this.#contracts=[...merged.values()];
   }
   exportContracts(){return this.#contracts.map(c=>({...c}))}
+  isRenewalLocked(playerId){
+    return this.#contracts.some(c=>c.playerId===playerId && !this.#baseContractIds.has(c.id));
+  }
+  getRenewalLockReason(playerId){
+    if(!this.isRenewalLocked(playerId))return null;
+    return "Контракт уже продлен в этом сезоне";
+  }
   getContractsForPlayer(playerId){
     return this.#contracts
       .filter(c=>c.playerId===playerId)
@@ -145,12 +153,14 @@ export class ContractService{
         if(!latest)return current;
         return parseSeasonEnd(current.season)>=parseSeasonEnd(latest.season)?current:latest;
       },null);
+      const isRenewalLocked=this.isRenewalLocked(playerId);
       return {
         playerId,displayName:player.name,age:calculateAge(player.identity.birthDate),ovr:player.ovr,
         position:player.identity?.primaryPosition||"",
         khlGamesPlayed:player.career?.khlGamesPlayed||0,
         seasonStats:{games:player.seasonStats.games,goals:player.seasonStats.goals,assists:player.seasonStats.assists},
-        contractEndDate:formatContractEndDate(lastContract?.season),contracts
+        contractEndDate:formatContractEndDate(lastContract?.season),contracts,
+        isRenewalLocked,renewalLockReason:isRenewalLocked?this.getRenewalLockReason(playerId):null
       };
     }).sort((a,b)=>a.displayName.localeCompare(b.displayName,"ru"));
   }
@@ -177,6 +187,7 @@ export class ContractService{
     }
     willingness=clamp(Math.round(willingness),0,100);
     const state=willingnessState(willingness);
+    const isRenewalLocked=this.isRenewalLocked(player.id);
     return {
       playerId:player.id,
       offer:{years,salaryRub:offerSalary},
@@ -184,11 +195,16 @@ export class ContractService{
       willingness,
       state,
       ufaStatus,
-      reasons
+      reasons,
+      isRenewalLocked,
+      renewalLockReason:isRenewalLocked?this.getRenewalLockReason(player.id):null
     };
   }
   submitRenewalOffer(team,player,offer){
     const preview=this.getRenewalPreview(team,player,offer);
+    if(preview.isRenewalLocked){
+      return {decision:"locked",preview};
+    }
     const {willingness,ufaStatus}=preview;
     let decision="counter";
     if(ufaStatus==="NSA" && willingness<50)decision="reject";
@@ -224,6 +240,7 @@ export class ContractService{
   }
   extendContract(player,mode){
     const playerId=player.id;
+    if(this.isRenewalLocked(playerId))return null;
     const contracts=this.getContractsForPlayer(playerId);const lastContract=contracts[contracts.length-1];if(!lastContract)return null;
     const nextContract={
       id:generateUuid(),playerId,teamId:player.affiliation.teamId,season:formatNextSeason(lastContract.season),

@@ -72,9 +72,12 @@
       const offer=this.#offerByPlayerId.get(playerId);
       const result=this.#state.submitActiveTeamNegotiation(playerId,offer);
       if(result){
-        const label=result.decision==="accept"?"✅ Согласен":(result.decision==="counter"?"🟡 Просит больше":"❌ Отказывается");
+        const label=result.decision==="accept"?"✅ Согласен":(result.decision==="counter"?"🟡 Просит больше":(result.decision==="locked"?"⛔ Контракт уже продлен":"❌ Отказывается"));
         this.#outcomeByPlayerId.set(playerId,label);
         this.#userStore.saveState(this.#state.exportState());
+        if(result.decision==="accept"||result.decision==="locked"){
+          this.#selectedNegotiationPlayerId=null;
+        }
       }
       this.#renderScreen();
       return;
