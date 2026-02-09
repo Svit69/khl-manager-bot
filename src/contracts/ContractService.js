@@ -1,5 +1,6 @@
 ﻿import { generateUuid } from "../utils/uuid.js";
 import { ContractType, contractTypeLabel } from "./ContractType.js";
+import { getTermMod, getTermPreference, termPreferenceLabel } from "./TermPreference.js";
 const parseSeasonStart=season=>Number((season||"0/0").split("/")[0])||0;
 const parseSeasonEnd=season=>Number((season||"0/0").split("/")[1])||0;
 const formatNextSeason=season=>{const start=parseSeasonStart(season);return `${start+1}/${start+2}`;};
@@ -183,8 +184,12 @@ export class ContractService{
     if(ufaStatus==="OSA"){
       willingness+=10;
       reasons.push({text:"ОСА — более высокая терпимость",value:10});
-      willingness=Math.max(willingness,30);
     }
+    const {termPreference}=getTermPreference({age,declineRate:player.potential?.declineRate,ufaStatus});
+    const termMod=getTermMod(years,termPreference);
+    willingness+=termMod;
+    reasons.push({text:`Срок ${years} г. • Предпочтение: ${termPreferenceLabel(termPreference)}`,value:termMod});
+    if(ufaStatus==="OSA")willingness=Math.max(willingness,30);
     willingness=clamp(Math.round(willingness),0,100);
     const state=willingnessState(willingness);
     const isRenewalLocked=this.isRenewalLocked(player.id);
@@ -196,6 +201,7 @@ export class ContractService{
       state,
       ufaStatus,
       reasons,
+      termPreference,
       isRenewalLocked,
       renewalLockReason:isRenewalLocked?this.getRenewalLockReason(player.id):null
     };
