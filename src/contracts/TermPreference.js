@@ -1,6 +1,6 @@
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 const normalizePreference=p=>((p==="short"||p==="neutral"||p==="long")?p:"neutral");
-export const getTermPreference=({age,declineRate,ufaStatus})=>{
+export const getTermPreference=({age,declineRate,ufaStatus,fatigueScore,isInjured})=>{
   let score=0;
   if(age<=23)score-=10;
   else if(age<=27)score+=0;
@@ -15,6 +15,13 @@ export const getTermPreference=({age,declineRate,ufaStatus})=>{
 
   if(ufaStatus==="NSA")score-=5;
   if(ufaStatus==="OSA")score+=5;
+
+  const fatigue=Number(fatigueScore);
+  if(isInjured)score+=10;
+  if(Number.isFinite(fatigue)){
+    if(fatigue>=90)score+=10;
+    else if(fatigue>=80)score+=5;
+  }
 
   const termPreference=(score<=-5)?"short":((score>=5)?"long":"neutral");
   return {termScore:clamp(score,-50,50),termPreference};
@@ -36,4 +43,3 @@ export const termPreferenceLabel=termPreference=>{
   if(pref==="long")return "длинный";
   return "нейтральный";
 };
-

@@ -16,6 +16,11 @@ const normalizeContract=contract=>{
   return {...contract,type:normalizeType(contract.type)};
 };
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+const isDomesticNationality=n=>{
+  const s=String(n||"").trim().toLowerCase();
+  return s==="россия"||s==="ru"||s==="rus"||s==="russia";
+};
+const isLegioner=player=>!isDomesticNationality(player?.identity?.nationality);
 const getUfaStatus=(age,khlGamesPlayed)=>{
   if(age>=29)return "NSA";
   if(age>=28 && (khlGamesPlayed||0)>=250)return "NSA";
@@ -50,10 +55,12 @@ const roleFitScore=(player,team,reasons)=>{
   }
   return score;
 };
-const teamPerformanceScore=(reasons)=>{
-  const score=0;
-  reasons.push({text:"Командные результаты нейтральны",value:0});
-  return score;
+const teamPerformanceScore=(context,reasons)=>{
+  const rank=context?.teamRank??null;
+  if(rank===null){reasons.push({text:"Нет данных по таблице",value:0});return 0;}
+  if(rank<=8){reasons.push({text:`Команда в топ-8 (место ${rank})`,value:8});return 8;}
+  reasons.push({text:`Команда вне топ-8 (место ${rank})`,value:-8});
+  return -8;
 };
 const personalPerformanceScore=(player,reasons)=>{
   const games=player.seasonStats?.games||0;
@@ -166,17 +173,25 @@ export class ContractService{
     }).sort((a,b)=>a.displayName.localeCompare(b.displayName,"ru"));
   }
   getContractTypeLabel(type){return contractTypeLabel[normalizeType(type)]}
-  getRenewalPreview(team,player,offer){
+  getRenewalPreview(team,player,offer,context=null){
     const contracts=this.getContractsForPlayer(player.id);
     const lastContract=contracts[contracts.length-1]||null;
-    const marketSalary=estimateMarketSalary(player,lastContract);
+    let marketSalary=estimateMarketSalary(player,lastContract);
     const years=clamp(offer?.years||1,1,4);
     const offerSalary=offer?.salaryRub||marketSalary;
     const reasons=[];
     let willingness=50;
     willingness+=roleFitScore(player,team,reasons);
-    willingness+=teamPerformanceScore(reasons);
+    willingness+=teamPerformanceScore(context,reasons);
     willingness+=personalPerformanceScore(player,reasons);
+    const teamOutsideTop8=Boolean(context?.teamRank) && context.teamRank>8;
+    if(teamOutsideTop8 && isLegioner(player)){
+      marketSalary=Math.round(marketSalary*1.1);
+      reasons.push({text:"Легионер вне топ-8 — ожидание +10% к рынку",value:0});
+      const shortTermBias=(years<=2)?5:((years>=3)?-5:0);
+      willingness+=shortTermBias;
+      reasons.push({text:"Легионер вне топ-8 — предпочитает короткий срок",value:shortTermBias});
+    }
     willingness+=salarySatisfactionScore(offerSalary,marketSalary,reasons);
     const age=calculateAge(player.identity.birthDate);
     willingness+=ageMotivationScore(age,reasons);
@@ -185,7 +200,8 @@ export class ContractService{
       willingness+=10;
       reasons.push({text:"ОСА — более высокая терпимость",value:10});
     }
-    const {termPreference}=getTermPreference({age,declineRate:player.potential?.declineRate,ufaStatus});
+    const isInjured=player.condition?.fatigueStatus==="injured"||Boolean(player.condition?.injuryUntilDay);
+    const {termPreference}=getTermPreference({age,declineRate:player.potential?.declineRate,ufaStatus,fatigueScore:player.fatigueScore,isInjured});
     const termMod=getTermMod(years,termPreference);
     willingness+=termMod;
     reasons.push({text:`Срок ${years} г. • Предпочтение: ${termPreferenceLabel(termPreference)}`,value:termMod});
@@ -206,8 +222,8 @@ export class ContractService{
       renewalLockReason:isRenewalLocked?this.getRenewalLockReason(player.id):null
     };
   }
-  submitRenewalOffer(team,player,offer){
-    const preview=this.getRenewalPreview(team,player,offer);
+  submitRenewalOffer(team,player,offer,context=null){
+    const preview=this.getRenewalPreview(team,player,offer,context);
     if(preview.isRenewalLocked){
       return {decision:"locked",preview};
     }
