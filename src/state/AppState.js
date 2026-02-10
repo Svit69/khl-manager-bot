@@ -52,6 +52,8 @@ export class AppState{
   #buildNegotiationContext(team){
     const rank=this.#standings.getRank(team.id,this.#teams);
     const teamsCount=this.#teams.length;
-    return {teamRank:rank,teamsCount,isInTop8:rank!==null && rank<=8};
+    const teamStats=this.#standings.getTeamStats(team.id);
+    const teamGamesPlayed=teamStats?.gp||0;
+    return {teamRank:rank,teamsCount,teamGamesPlayed,isInTop8:rank!==null && rank<=8};
   }
 }

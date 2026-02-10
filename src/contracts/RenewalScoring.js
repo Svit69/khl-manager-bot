@@ -1,5 +1,7 @@
 import { getTermMod, getTermPreference, termPreferenceLabel } from "./TermPreference.js";
 import { calculateAge, clamp } from "./SeasonUtils.js";
+const MIN_GAMES_FOR_ROLE_EVAL=5;
+const MIN_TEAM_GAMES_FOR_PERFORMANCE=5;
 const isDomesticNationality=n=>{
   const s=String(n||"").trim().toLowerCase();
   return s==="россия"||s==="ru"||s==="rus"||s==="russia";
@@ -16,6 +18,11 @@ const getLineInfo=(team,player)=>{
   return {lineIndex:null,slotPosition:null};
 };
 const roleFitScore=(player,team,reasons)=>{
+  const playerGames=player.seasonStats?.games||0;
+  if(playerGames<MIN_GAMES_FOR_ROLE_EVAL){
+    reasons.push({text:`Недостаточно матчей для оценки роли (нужно ${MIN_GAMES_FOR_ROLE_EVAL})`,value:0});
+    return 0;
+  }
   let score=0;
   const expected=player.expectedLineIndex||null;
   const {lineIndex,slotPosition}=getLineInfo(team,player);
@@ -31,6 +38,11 @@ const roleFitScore=(player,team,reasons)=>{
   return score;
 };
 const teamPerformanceScore=(context,reasons)=>{
+  const teamGamesPlayed=context?.teamGamesPlayed??0;
+  if(teamGamesPlayed<MIN_TEAM_GAMES_FOR_PERFORMANCE){
+    reasons.push({text:`Недостаточно командных матчей для оценки таблицы (нужно ${MIN_TEAM_GAMES_FOR_PERFORMANCE})`,value:0});
+    return 0;
+  }
   const rank=context?.teamRank??null;
   if(rank===null){reasons.push({text:"Нет данных по таблице",value:0});return 0;}
   if(rank<=8){reasons.push({text:`Команда в топ-8 (место ${rank})`,value:8});return 8;}

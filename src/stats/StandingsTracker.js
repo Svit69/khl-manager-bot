@@ -28,6 +28,10 @@ export class StandingsTracker{
     });
     return rows;
   }
+  getTeamStats(teamId){
+    const row=this.#table.get(teamId);
+    return row?{...row}:null;
+  }
   #ensure(teamId){
     if(!this.#table.has(teamId))this.#table.set(teamId,{gp:0,w:0,l:0,pts:0,gf:0,ga:0});
     return this.#table.get(teamId);
@@ -41,4 +45,3 @@ export class StandingsTracker{
     w.w++;w.pts+=2;l.l++;
   }
 }
-
