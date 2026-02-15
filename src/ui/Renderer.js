@@ -1,4 +1,5 @@
-﻿import { ContractTabRenderer } from "./ContractTabRenderer.js";
+import { ContractTabRenderer } from "./ContractTabRenderer.js";
+import { calculateAge } from "../contracts/SeasonUtils.js";
 export class Renderer{
   #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();
   constructor(){
@@ -26,8 +27,24 @@ export class Renderer{
   }
   renderContracts(rows,negotiation){this.#matchEl.innerHTML=this.#contractTab.render(rows,negotiation)}
   renderConfirmSelection(team){
-    const modal=`<div class="modal"><div class="modal-card"><div class="row"><img class="logo" src="${team.logoUrl}" alt="${team.name}"/><div><div>${team.name}</div><div class="muted">${team.city}, ${team.country}</div></div></div><div class="modal-actions"><button class="btn" data-action="confirm-team">Подтвердить</button><button class="btn secondary" data-action="cancel-team">Отмена</button></div></div></div>`;
+    const modal=`<div class="modal"><div class="modal-card"><div class="row"><img class="logo" src="${team.logoUrl}" alt="${team.name}"/><div><div>${team.name}</div><div class="muted">${team.city}, ${team.country}</div></div></div><div class="modal-actions"><button class="btn" data-action="confirm-team">Обычная игра</button><button class="btn" data-action="start-fantasy-draft">Фэнтези драфт</button><button class="btn secondary" data-action="cancel-team">Отмена</button></div></div></div>`;
     this.#teamEl.insertAdjacentHTML("beforeend",modal);
+  }
+  renderFantasyDraft(draft,team){
+    const header=`<div class="row"><img class="logo" src="${team.logoUrl}" alt="${team.name}"/><div><div>Фэнтези драфт — ${team.name}</div><div class="muted">Раунд ${draft.currentRound}/20 • Пик ${draft.currentPickInRound}/${draft.teams.length}</div></div></div>`;
+    const teamRows=draft.teams.map(item=>`<div class="muted">${item.name}: ${item.pickedCount}/20</div>`).join("");
+    const sortControls=`<div class="row"><button class="btn secondary" data-action="draft-sort" data-sort="ovr">OVR</button><button class="btn secondary" data-action="draft-sort" data-sort="position">Позиция</button><button class="btn secondary" data-action="draft-sort" data-sort="age">Возраст</button></div>`;
+    const filterControls=`<div class="row"><button class="btn secondary" data-action="draft-filter" data-position="ALL">Все</button><button class="btn secondary" data-action="draft-filter" data-position="ЦТР">ЦТР</button><button class="btn secondary" data-action="draft-filter" data-position="ЛНП">ЛНП</button><button class="btn secondary" data-action="draft-filter" data-position="ПНП">ПНП</button><button class="btn secondary" data-action="draft-filter" data-position="ЗАЩ">ЗАЩ</button></div>`;
+    const canPick=draft.isUserTurn && !draft.isComplete;
+    const playerCards=draft.availablePlayers.map(player=>{
+      const age=calculateAge(player.identity.birthDate);
+      const position=player.identity?.primaryPosition||"";
+      const action=canPick?`<button class="btn" data-action="draft-pick" data-player-id="${player.id}">Задрафтовать</button>`:"";
+      return `<div class="player-card"><img class="player-photo" src="${player.identity.photoUrl||"./player-photo/placeholder.png"}" alt="${player.name}"/><div><div>${player.name}</div><div class="muted">${position} • OVR ${player.ovr} • Возраст ${age}</div>${action}</div></div>`;
+    }).join("");
+    const status=draft.isComplete?"Драфт завершен":(draft.isUserTurn?`Ваш пик: ${draft.currentTeamName}`:`Пикает: ${draft.currentTeamName}`);
+    this.#teamEl.innerHTML=`<h2>Режим драфта</h2>${header}<div class="list">${teamRows}</div><div class="row"><div class="muted">${status}</div><button class="btn secondary" data-action="draft-cancel">Отмена</button></div>`;
+    this.#matchEl.innerHTML=`<h2>Пул игроков</h2>${sortControls}${filterControls}<div class="roster-grid">${playerCards||"<div class=\"muted\">Нет игроков</div>"}</div>`;
   }
   renderCalendar(day,info,isLocked){
     const text=isLocked?"Сначала выберите команду":(info?.match?`${info.match.home.name} — ${info.match.away.name}`:"День отдыха");
@@ -47,3 +64,4 @@ export class Renderer{
     return `<div class="tab-row"><button class="${rosterClass}" data-tab="roster">Состав</button><button class="${contractClass}" data-tab="contracts">Контракты</button></div>`;
   }
 }
+

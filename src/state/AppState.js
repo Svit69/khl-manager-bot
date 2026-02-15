@@ -2,6 +2,7 @@
 import { StatsTracker } from "../stats/StatsTracker.js";
 import { ContractService } from "../contracts/ContractService.js";
 import { StandingsTracker } from "../stats/StandingsTracker.js";
+import { buildCompetitiveLines } from "../data/lineupBuilder.js";
 export class AppState{
   #teams;#calendar;#stats=new StatsTracker();#standings=new StandingsTracker();#sim=new MatchSimulator();#contracts;
   #lastMatch=null;#activeTeamId=null;
@@ -13,6 +14,7 @@ export class AppState{
   get activeTeamId(){return this.#activeTeamId}
   get activeTeam(){return this.#teams.find(t=>t.id===this.#activeTeamId)||null}
   setActiveTeamId(teamId){this.#activeTeamId=teamId}
+  getAllPlayers(){return this.#teams.flatMap(team=>team.getRoster())}
   getActiveTeamContractRows(){return this.activeTeam?this.#contracts.getTeamContractRows(this.activeTeam):[]}
   getActiveTeamNegotiationPreview(playerId,offer){
     const player=this.activeTeam?.getRoster().find(p=>p.id===playerId);
@@ -47,6 +49,19 @@ export class AppState{
     if(saved.contracts)this.#contracts.importContracts(saved.contracts);
     if(saved.standings)this.#standings.importSnapshot(saved.standings);
     this.#stats.importStats(saved.stats);
+  }
+  applyFantasyDraft(assignmentsByTeamId){
+    this.#teams.forEach(team=>{
+      const picked=[...(assignmentsByTeamId?.[team.id]||[])];
+      picked.forEach(player=>{player.affiliation.teamId=team.id});
+      const lineup=buildCompetitiveLines(picked);
+      team.lines.splice(0,team.lines.length,...lineup.lines);
+      team.reservePlayers.splice(0,team.reservePlayers.length,...lineup.reservePlayers);
+    });
+    this.#calendar.index=0;
+    this.#lastMatch=null;
+    this.#stats.importStats([]);
+    this.#standings.importSnapshot([]);
   }
   #applyFatigue(teams,delta){teams.flatMap(t=>t.getRoster()).forEach(p=>{p.applyFatigue(delta);p.applyFormDelta(Math.random()*0.02-0.01)})}
   #buildNegotiationContext(team){

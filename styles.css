@@ -10,7 +10,7 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
 .panel h2{font-size:14px;color:var(--accent);margin-bottom:6px}
 .btn{background:var(--accent);border:none;padding:8px 10px;border-radius:8px;font-weight:700;cursor:pointer}
 .btn.secondary{background:#1c3e63;color:var(--text)}
-.row{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
 .list{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted)}
 .event{color:var(--text)}
 .logo{width:44px;height:44px;object-fit:contain}
