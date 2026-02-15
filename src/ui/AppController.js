@@ -6,30 +6,43 @@ export class AppController{
   constructor(state,calendar,teams,renderer,userStore){
     this.#state=state;this.#calendar=calendar;this.#teams=teams;this.#renderer=renderer;this.#userStore=userStore;
   }
-  initialize(){this.#renderer.renderUser(this.#userStore.loadUser());this.#renderScreen();document.addEventListener("click",e=>this.#handleClick(e));}
+  initialize(){
+    this.#renderer.renderUser(this.#userStore.loadUser());
+    this.#renderScreen();
+    document.addEventListener("click",event=>this.#handleClick(event));
+  }
   #renderScreen(){
     const dayInfo=this.#calendar.getCurrent();
     if(this.#state.activeTeam){
-      this.#renderer.renderTeam(this.#state.activeTeam,this.#activeTab);this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,false);
+      this.#renderer.renderTeam(this.#state.activeTeam,this.#activeTab);
+      this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,false);
       this.#renderer.renderResetButton();
       if(this.#activeTab==="contracts"){
-        const negotiation=this.#buildNegotiationState();
-        this.#renderer.renderContracts(this.#state.getActiveTeamContractRows(),negotiation);
-      } else {
+        this.#renderer.renderContracts(this.#state.getActiveTeamContractRows(),this.#buildNegotiationState());
+      }else{
         this.#renderer.renderMyTeamRoster(this.#state.activeTeam);
       }
       return;
     }
     if(this.#draftState){
       const selectedTeam=this.#teams.find(team=>team.id===this.#draftState.selectedTeamId);
-      if(selectedTeam)this.#renderer.renderFantasyDraft(this.#draftState.service.getView(this.#draftState.sortBy,this.#draftState.filterPosition),selectedTeam);
+      if(selectedTeam){
+        const draftView=this.#draftState.service.getView(this.#draftState.sortBy,this.#draftState.filterPosition);
+        draftView.selectedPlayerId=this.#draftState.selectedPlayerId;
+        this.#renderer.renderFantasyDraft(draftView,selectedTeam);
+      }
       this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,true);
       this.#renderer.renderResetButton();
       return;
     }
-    this.#renderer.renderTeamSelection(this.#teams,this.#state.activeTeamId);this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,true);
-    this.#renderer.renderResetButton();this.#renderer.renderMatch(this.#state.lastMatch,this.#state.seasonStats);
-    if(this.#pendingTeamId){const team=this.#teams.find(t=>t.id===this.#pendingTeamId);if(team)this.#renderer.renderConfirmSelection(team);}
+    this.#renderer.renderTeamSelection(this.#teams,this.#state.activeTeamId);
+    this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,true);
+    this.#renderer.renderResetButton();
+    this.#renderer.renderMatch(this.#state.lastMatch,this.#state.seasonStats);
+    if(this.#pendingTeamId){
+      const team=this.#teams.find(item=>item.id===this.#pendingTeamId);
+      if(team)this.#renderer.renderConfirmSelection(team);
+    }
   }
   #buildNegotiationState(){
     if(!this.#selectedNegotiationPlayerId)return null;
@@ -40,10 +53,12 @@ export class AppController{
     this.#offerByPlayerId.set(this.#selectedNegotiationPlayerId,preview.offer);
     return {playerId:this.#selectedNegotiationPlayerId,preview,offer:preview.offer,outcome};
   }
-  #handleClick(e){
-    const clickable=e.target?.closest?.("[data-team-id],[data-tab],[data-action],#resetBtn,#playBtn");
-    const teamId=clickable?.dataset?.teamId;if(teamId){this.#pendingTeamId=teamId;this.#renderScreen();return;}
-    const tab=clickable?.dataset?.tab;if(tab){this.#activeTab=tab;this.#renderScreen();return;}
+  #handleClick(event){
+    const clickable=event.target?.closest?.("[data-team-id],[data-tab],[data-action],#resetBtn,#playBtn");
+    const teamId=clickable?.dataset?.teamId;
+    if(teamId){this.#pendingTeamId=teamId;this.#renderScreen();return;}
+    const tab=clickable?.dataset?.tab;
+    if(tab){this.#activeTab=tab;this.#renderScreen();return;}
     const action=clickable?.dataset?.action;
     if(action==="open-negotiation"){
       this.#selectedNegotiationPlayerId=clickable.dataset.playerId;
@@ -70,7 +85,7 @@ export class AppController{
       const preview=this.#state.getActiveTeamNegotiationPreview(playerId,this.#offerByPlayerId.get(playerId));
       if(preview){
         const salaryRub=Math.round(preview.marketSalary*multiplier);
-        const current=this.#offerByPlayerId.get(playerId)||{years:1,salaryRub:salaryRub};
+        const current=this.#offerByPlayerId.get(playerId)||{years:1,salaryRub};
         this.#offerByPlayerId.set(playerId,{...current,salaryRub});
       }
       this.#renderScreen();
@@ -103,12 +118,22 @@ export class AppController{
     }
     if(action==="draft-filter" && this.#draftState){
       this.#draftState.filterPosition=clickable.dataset.position||"ALL";
+      this.#draftState.selectedPlayerId=null;
       this.#renderScreen();
       return;
     }
-    if(action==="draft-pick" && this.#draftState){
-      const picked=this.#draftState.service.pickPlayer(clickable.dataset.playerId);
+    if(action==="draft-select" && this.#draftState){
+      const playerId=clickable.dataset.playerId;
+      this.#draftState.selectedPlayerId=this.#draftState.selectedPlayerId===playerId?null:playerId;
+      this.#renderScreen();
+      return;
+    }
+    if(action==="draft-confirm-pick" && this.#draftState){
+      const selectedPlayerId=this.#draftState.selectedPlayerId;
+      if(!selectedPlayerId || !this.#draftState.service.hasAvailablePlayer(selectedPlayerId))return;
+      const picked=this.#draftState.service.pickPlayer(selectedPlayerId);
       if(picked){
+        this.#draftState.selectedPlayerId=null;
         this.#draftState.service.autoPickUntilUserTurn();
         this.#completeDraftIfReady();
       }
@@ -121,16 +146,24 @@ export class AppController{
       this.#renderScreen();
       return;
     }
-    if(action==="confirm-team" && this.#pendingTeamId){this.#state.setActiveTeamId(this.#pendingTeamId);this.#pendingTeamId=null;this.#userStore.saveState(this.#state.exportState());this.#renderScreen();return;}
+    if(action==="confirm-team" && this.#pendingTeamId){
+      this.#state.setActiveTeamId(this.#pendingTeamId);
+      this.#pendingTeamId=null;
+      this.#userStore.saveState(this.#state.exportState());
+      this.#renderScreen();
+      return;
+    }
     if(action==="cancel-team"){this.#pendingTeamId=null;this.#renderScreen();return;}
     if(clickable?.id==="resetBtn"){this.#resetGame();return;}
     if(clickable?.id!=="playBtn"||this.#calendar.isFinished()||!this.#state.activeTeamId)return;
-    this.#state.playDay();this.#userStore.saveState(this.#state.exportState());this.#renderScreen();
+    this.#state.playDay();
+    this.#userStore.saveState(this.#state.exportState());
+    this.#renderScreen();
   }
   #startFantasyDraft(selectedTeamId){
     const allPlayers=this.#state.getAllPlayers();
     const service=new FantasyDraftService(this.#teams,allPlayers,selectedTeamId,20);
-    this.#draftState={service,selectedTeamId,sortBy:"ovr",filterPosition:"ALL"};
+    this.#draftState={service,selectedTeamId,sortBy:"ovr",filterPosition:"ALL",selectedPlayerId:null};
     this.#pendingTeamId=null;
     service.autoPickUntilUserTurn();
     this.#completeDraftIfReady();

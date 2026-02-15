@@ -1,5 +1,9 @@
 import { ContractTabRenderer } from "./ContractTabRenderer.js";
 import { calculateAge } from "../contracts/SeasonUtils.js";
+const renderDraftPositionBlock=(label,players)=>{
+  const names=(players||[]).map(player=>player.name).join(", ");
+  return `<div class="draft-pos"><div class="muted">${label} (${players.length})</div><div>${names||"—"}</div></div>`;
+};
 export class Renderer{
   #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();
   constructor(){
@@ -8,20 +12,20 @@ export class Renderer{
   }
   renderUser(user){this.#userEl.textContent=`ID: ${user.id}`}
   renderTeam(team,activeTab){
-    const lines=team.lines.map(l=>`<div>${l.players.map(p=>p.name).join(" | ")}</div>`).join("");
+    const lines=team.lines.map(line=>`<div>${line.players.map(player=>player.name).join(" | ")}</div>`).join("");
     const header=`<div class="row"><img class="logo" src="${team.logoUrl}" alt="${team.name}"/><div><div>${team.name}</div><div class="muted">${team.city}, ${team.country} • ${team.shortName}</div></div></div>`;
     this.#teamEl.innerHTML=`<h2>Моя команда</h2>${header}${this.#renderTabs(activeTab)}<div class="list">${lines}</div>`;
   }
   renderTeamSelection(teams,activeTeamId){
-    const cards=teams.map(t=>`<button class="team-card" data-team-id="${t.id}"><img src="${t.logoUrl}" alt="${t.name}"/><span>${t.name}</span></button>`).join("");
+    const cards=teams.map(team=>`<button class="team-card" data-team-id="${team.id}"><img src="${team.logoUrl}" alt="${team.name}"/><span>${team.name}</span></button>`).join("");
     this.#teamEl.innerHTML=`<h2>${activeTeamId?"Выбрана команда":"Выберите команду"}</h2><div class="team-grid">${cards}</div>`;
   }
   renderMyTeamRoster(team){
-    const cards=team.getRoster().map(p=>{
-      const photo=p.identity.photoUrl||"./player-photo/placeholder.png";
-      const secondary=(p.identity.secondaryPositions||[]).join(", ");
-      const position=secondary?`${p.identity.primaryPosition} (${secondary})`:p.identity.primaryPosition;
-      return `<div class="player-card"><img class="player-photo" src="${photo}" alt="${p.name}"/><div><div>${p.name}</div><div class="muted">Позиция ${position} • OVR ${p.ovr}</div><div class="muted">Форма ${p.form.toFixed(2)} • Усталость ${p.fatigueStatus} (${p.fatigueScore})</div></div></div>`;
+    const cards=team.getRoster().map(player=>{
+      const photo=player.identity.photoUrl||"./player-photo/placeholder.png";
+      const secondary=(player.identity.secondaryPositions||[]).join(", ");
+      const position=secondary?`${player.identity.primaryPosition} (${secondary})`:player.identity.primaryPosition;
+      return `<div class="player-card"><img class="player-photo" src="${photo}" alt="${player.name}"/><div><div>${player.name}</div><div class="muted">Позиция ${position} • OVR ${player.ovr}</div><div class="muted">Форма ${player.form.toFixed(2)} • Усталость ${player.fatigueStatus} (${player.fatigueScore})</div></div></div>`;
     }).join("");
     this.#matchEl.innerHTML=`<h2>Состав</h2><div class="roster-grid">${cards}</div>`;
   }
@@ -31,20 +35,31 @@ export class Renderer{
     this.#teamEl.insertAdjacentHTML("beforeend",modal);
   }
   renderFantasyDraft(draft,team){
-    const header=`<div class="row"><img class="logo" src="${team.logoUrl}" alt="${team.name}"/><div><div>Фэнтези драфт — ${team.name}</div><div class="muted">Раунд ${draft.currentRound}/20 • Пик ${draft.currentPickInRound}/${draft.teams.length}</div></div></div>`;
+    const selectedPlayer=draft.availablePlayers.find(player=>player.id===draft.selectedPlayerId)||null;
+    const draftHeader=`<div class="row"><img class="logo" src="${team.logoUrl}" alt="${team.name}"/><div><div>Фэнтези драфт — ${team.name}</div><div class="muted">Раунд ${draft.currentRound}/20 • Пик ${draft.currentPickInRound}/${draft.teams.length} • Общий #${draft.pickNumber}/${draft.totalPicks}</div></div></div>`;
     const teamRows=draft.teams.map(item=>`<div class="muted">${item.name}: ${item.pickedCount}/20</div>`).join("");
+    const userRoster=draft.userRosterByPosition||{CTR:[],LW:[],RW:[],DEF:[],G:[]};
+    const rosterPanel=[
+      renderDraftPositionBlock("ЦТР",userRoster.CTR||[]),
+      renderDraftPositionBlock("ЛНП",userRoster.LW||[]),
+      renderDraftPositionBlock("ПНП",userRoster.RW||[]),
+      renderDraftPositionBlock("ЗАЩ",userRoster.DEF||[]),
+      renderDraftPositionBlock("ВРТ",userRoster.G||[])
+    ].join("");
+    const status=draft.isComplete?"Драфт завершен":(draft.isUserTurn?`Ваш пик: ${draft.currentTeamName}`:`Пикает: ${draft.currentTeamName}`);
+    const confirmText=selectedPlayer?`Задрафтовать: ${selectedPlayer.name}`:"Выберите игрока";
+    const confirmDisabled=(!draft.isUserTurn||draft.isComplete||!selectedPlayer)?"disabled":"";
+    this.#teamEl.innerHTML=`<h2>Режим драфта</h2>${draftHeader}<div class="list">${teamRows}</div><div class="draft-panel">${rosterPanel}</div><div class="row"><div class="muted">${status}</div><button class="btn secondary" data-action="draft-cancel">Отмена</button></div>`;
     const sortControls=`<div class="row"><button class="btn secondary" data-action="draft-sort" data-sort="ovr">OVR</button><button class="btn secondary" data-action="draft-sort" data-sort="position">Позиция</button><button class="btn secondary" data-action="draft-sort" data-sort="age">Возраст</button></div>`;
     const filterControls=`<div class="row"><button class="btn secondary" data-action="draft-filter" data-position="ALL">Все</button><button class="btn secondary" data-action="draft-filter" data-position="ЦТР">ЦТР</button><button class="btn secondary" data-action="draft-filter" data-position="ЛНП">ЛНП</button><button class="btn secondary" data-action="draft-filter" data-position="ПНП">ПНП</button><button class="btn secondary" data-action="draft-filter" data-position="ЗАЩ">ЗАЩ</button></div>`;
-    const canPick=draft.isUserTurn && !draft.isComplete;
-    const playerCards=draft.availablePlayers.map(player=>{
+    const actionBar=`<div class="draft-action row"><div class="muted">Выбрано: ${selectedPlayer?`${selectedPlayer.name} • ${selectedPlayer.identity.primaryPosition} • OVR ${selectedPlayer.ovr}`:"—"}</div><button class="btn" ${confirmDisabled} data-action="draft-confirm-pick">${confirmText}</button></div>`;
+    const cards=draft.availablePlayers.map(player=>{
       const age=calculateAge(player.identity.birthDate);
       const position=player.identity?.primaryPosition||"";
-      const action=canPick?`<button class="btn" data-action="draft-pick" data-player-id="${player.id}">Задрафтовать</button>`:"";
-      return `<div class="player-card"><img class="player-photo" src="${player.identity.photoUrl||"./player-photo/placeholder.png"}" alt="${player.name}"/><div><div>${player.name}</div><div class="muted">${position} • OVR ${player.ovr} • Возраст ${age}</div>${action}</div></div>`;
+      const selectedClass=player.id===draft.selectedPlayerId?" selected":"";
+      return `<button class="player-card player-card-button${selectedClass}" data-action="draft-select" data-player-id="${player.id}"><img class="player-photo" src="${player.identity.photoUrl||"./player-photo/placeholder.png"}" alt="${player.name}"/><div><div>${player.name}</div><div class="muted">${position} • OVR ${player.ovr} • Возраст ${age}</div></div></button>`;
     }).join("");
-    const status=draft.isComplete?"Драфт завершен":(draft.isUserTurn?`Ваш пик: ${draft.currentTeamName}`:`Пикает: ${draft.currentTeamName}`);
-    this.#teamEl.innerHTML=`<h2>Режим драфта</h2>${header}<div class="list">${teamRows}</div><div class="row"><div class="muted">${status}</div><button class="btn secondary" data-action="draft-cancel">Отмена</button></div>`;
-    this.#matchEl.innerHTML=`<h2>Пул игроков</h2>${sortControls}${filterControls}<div class="roster-grid">${playerCards||"<div class=\"muted\">Нет игроков</div>"}</div>`;
+    this.#matchEl.innerHTML=`<h2>Пул игроков</h2>${sortControls}${filterControls}${actionBar}<div class="roster-grid">${cards||"<div class=\"muted\">Нет игроков</div>"}</div>`;
   }
   renderCalendar(day,info,isLocked){
     const text=isLocked?"Сначала выберите команду":(info?.match?`${info.match.home.name} — ${info.match.away.name}`:"День отдыха");

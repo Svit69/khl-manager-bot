@@ -31,6 +31,22 @@ export class FantasyDraftService{
   isUserTurn(){
     return this.getCurrentTeam()?.id===this.#userTeamId;
   }
+  hasAvailablePlayer(playerId){
+    return this.#availablePlayers.some(player=>player.id===playerId);
+  }
+  getUserRosterByPosition(){
+    const picked=[...(this.#pickedByTeamId.get(this.#userTeamId)||[])];
+    const byPosition={CTR:[],LW:[],RW:[],DEF:[],G:[]};
+    picked.forEach(player=>{
+      const position=player.identity?.primaryPosition||"";
+      if(position==="ЦТР")byPosition.CTR.push(player);
+      else if(position==="ЛНП")byPosition.LW.push(player);
+      else if(position==="ПНП")byPosition.RW.push(player);
+      else if(position==="ЗАЩ")byPosition.DEF.push(player);
+      else if(position==="ВРТ")byPosition.G.push(player);
+    });
+    return byPosition;
+  }
   getView(sortBy=DEFAULT_SORT,filterPosition=POSITION_ALL){
     const filtered=this.#availablePlayers.filter(player=>{
       if(filterPosition===POSITION_ALL)return true;
@@ -50,6 +66,7 @@ export class FantasyDraftService{
       sortBy,
       filterPosition,
       availablePlayers:sorted,
+      userRosterByPosition:this.getUserRosterByPosition(),
       teams:this.#teams.map(team=>({
         id:team.id,
         name:team.name,
@@ -83,4 +100,3 @@ export class FantasyDraftService{
     return result;
   }
 }
-
