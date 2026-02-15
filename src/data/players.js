@@ -2027,7 +2027,7 @@ export const playerProfiles=[
       primaryPosition:PlayerPosition.CTR,
       secondaryPositions:[PlayerPosition.RW]
     },
-    attributes:{shot:83,speed:80,physical:77,defense:73,skill:83},
+    attributes:{shot:84,speed:80,physical:78,defense:73,skill:85},
     potential:{potential:85,growthRate:0.5,peakAge:27,declineRate:0.2},
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:151,seasonsPlayed:4,reputation:100},
@@ -2341,7 +2341,7 @@ export const playerProfiles=[
       primaryPosition:PlayerPosition.LW,
       secondaryPositions:[]
     },
-    attributes:{shot:82,speed:78,physical:74,defense:66,skill:86},
+    attributes:{shot:83,speed:78,physical:74,defense:67,skill:90},
     potential:{potential:84,growthRate:0.2,peakAge:30,declineRate:0.2},
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:432,seasonsPlayed:11,reputation:100},
