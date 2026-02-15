@@ -6,6 +6,9 @@ export class Line{
   get weight(){return this.#weight}
   get positions(){return this.#positions}
   getStrength(){
+    if(this.#players.length===0){
+      return 0;
+    }
     const values=this.#players.map((player,index)=>{
       const adjusted=adjustedOvrForPosition(player,this.#positions[index]);
       const ratio=player.ovr>0?adjusted/player.ovr:1;
