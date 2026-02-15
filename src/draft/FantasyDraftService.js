@@ -27,7 +27,38 @@ export class FantasyDraftService{
     this.#teams.forEach(team=>this.#pickedByTeamId.set(team.id,[]));
     this.#draftOrder=this.#buildDraftOrder();
   }
+  static fromSnapshot(teams,players,snapshot){
+    if(!snapshot)return null;
+    const service=new FantasyDraftService(teams,players,snapshot.userTeamId,snapshot.rounds);
+    const playersById=new Map(players.map(player=>[player.id,player]));
+    const readPlayers=ids=>(ids||[]).map(id=>playersById.get(id)).filter(Boolean);
+    service.#draftId=snapshot.draftId||service.#draftId;
+    service.#pickIndex=Math.max(0,Number(snapshot.pickIndex)||0);
+    service.#availablePlayers=readPlayers(snapshot.availablePlayerIds);
+    service.#pickLog=[...(snapshot.pickLog||[])];
+    service.#pickedByTeamId.clear();
+    service.#teams.forEach(team=>{
+      const pickedIds=snapshot.pickedPlayerIdsByTeamId?.[team.id]||[];
+      service.#pickedByTeamId.set(team.id,readPlayers(pickedIds));
+    });
+    return service;
+  }
   get draftId(){return this.#draftId}
+  toSnapshot(){
+    const pickedPlayerIdsByTeamId={};
+    this.#teams.forEach(team=>{
+      pickedPlayerIdsByTeamId[team.id]=(this.#pickedByTeamId.get(team.id)||[]).map(player=>player.id);
+    });
+    return {
+      draftId:this.#draftId,
+      rounds:this.#rounds,
+      userTeamId:this.#userTeamId,
+      pickIndex:this.#pickIndex,
+      availablePlayerIds:this.#availablePlayers.map(player=>player.id),
+      pickedPlayerIdsByTeamId,
+      pickLog:[...this.#pickLog]
+    };
+  }
   get isComplete(){
     return this.#pickIndex>=this.#rounds*this.#teams.length||this.#availablePlayers.length===0;
   }
@@ -132,4 +163,3 @@ export class FantasyDraftService{
     return order;
   }
 }
-

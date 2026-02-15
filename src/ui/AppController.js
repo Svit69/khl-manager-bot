@@ -8,6 +8,7 @@ export class AppController{
   }
   initialize(){
     this.#renderer.renderUser(this.#userStore.loadUser());
+    this.#restoreDraftState();
     this.#renderScreen();
     document.addEventListener("click",event=>this.#handleClick(event));
   }
@@ -113,18 +114,21 @@ export class AppController{
     }
     if(action==="draft-sort" && this.#draftState){
       this.#draftState.sortBy=clickable.dataset.sort||"ovr";
+      this.#persistDraftState();
       this.#renderScreen();
       return;
     }
     if(action==="draft-filter" && this.#draftState){
       this.#draftState.filterPosition=clickable.dataset.position||"ALL";
       this.#draftState.selectedPlayerId=null;
+      this.#persistDraftState();
       this.#renderScreen();
       return;
     }
     if(action==="draft-select" && this.#draftState){
       const playerId=clickable.dataset.playerId;
       this.#draftState.selectedPlayerId=this.#draftState.selectedPlayerId===playerId?null:playerId;
+      this.#persistDraftState();
       this.#renderScreen();
       return;
     }
@@ -136,6 +140,7 @@ export class AppController{
         this.#draftState.selectedPlayerId=null;
         this.#draftState.service.autoPickUntilUserTurn();
         this.#completeDraftIfReady();
+        this.#persistDraftState();
       }
       this.#renderScreen();
       return;
@@ -143,6 +148,7 @@ export class AppController{
     if(action==="draft-cancel" && this.#draftState){
       this.#draftState=null;
       this.#pendingTeamId=null;
+      this.#userStore.clearDraft();
       this.#renderScreen();
       return;
     }
@@ -167,6 +173,7 @@ export class AppController{
     this.#pendingTeamId=null;
     service.autoPickUntilUserTurn();
     this.#completeDraftIfReady();
+    this.#persistDraftState();
   }
   #completeDraftIfReady(){
     if(!this.#draftState?.service.isComplete)return;
@@ -175,7 +182,35 @@ export class AppController{
     this.#state.setActiveTeamId(this.#draftState.selectedTeamId);
     this.#draftState=null;
     this.#userStore.saveState(this.#state.exportState());
+    this.#userStore.clearDraft();
+  }
+  #restoreDraftState(){
+    if(this.#state.activeTeamId)return;
+    const saved=this.#userStore.loadDraft();
+    if(!saved)return;
+    const selectedTeam=this.#teams.find(team=>team.id===saved.selectedTeamId);
+    if(!selectedTeam){this.#userStore.clearDraft();return;}
+    const allPlayers=this.#state.getAllPlayers();
+    const service=FantasyDraftService.fromSnapshot(this.#teams,allPlayers,saved.service);
+    if(!service){this.#userStore.clearDraft();return;}
+    this.#draftState={
+      service,
+      selectedTeamId:saved.selectedTeamId,
+      sortBy:saved.sortBy||"ovr",
+      filterPosition:saved.filterPosition||"ALL",
+      selectedPlayerId:saved.selectedPlayerId||null
+    };
+    this.#completeDraftIfReady();
+  }
+  #persistDraftState(){
+    if(!this.#draftState){this.#userStore.clearDraft();return;}
+    this.#userStore.saveDraft({
+      selectedTeamId:this.#draftState.selectedTeamId,
+      sortBy:this.#draftState.sortBy,
+      filterPosition:this.#draftState.filterPosition,
+      selectedPlayerId:this.#draftState.selectedPlayerId,
+      service:this.#draftState.service.toSnapshot()
+    });
   }
   #resetGame(){this.#userStore.clearSave();window.location.reload()}
 }
-
