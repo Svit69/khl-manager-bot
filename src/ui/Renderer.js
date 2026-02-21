@@ -15,6 +15,16 @@ const renderDraftPositionBlock=(label,players)=>{
   const names=(players||[]).map(player=>player.name).join(", ");
   return `<div class="draft-pos"><div class="muted">${label} (${players.length})</div><div>${names||"—"}</div></div>`;
 };
+const getSurname=player=>player.identity?.lastName||String(player.name||"").trim().split(/\s+/).slice(-1)[0]||player.name;
+const getNationCode=nationality=>{
+  const code=String(nationality||"").trim().toUpperCase();
+  return code||"N/A";
+};
+const renderRosterCard=player=>{
+  const photo=player.identity.photoUrl||"./player-photo/placeholder.png";
+  const surname=getSurname(player);
+  return `<article class="hockey-card"><img class="hockey-card-bg" src="./card/card_background.svg" alt="" aria-hidden="true"/><img class="hockey-card-photo" src="${photo}" alt="${player.name}"/><div class="hockey-card-bottom"><div class="hockey-card-name">${surname}</div><div class="hockey-card-meta">${player.identity.primaryPosition} • OVR ${player.ovr}</div></div></article>`;
+};
 export class Renderer{
   #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();
   constructor(){
@@ -25,22 +35,17 @@ export class Renderer{
   }
   renderUser(user){this.#userEl.textContent=`ID: ${user.id}`}
   renderTeam(team,activeTab){
-    const lines=team.lines.map(line=>`<div>${line.players.map(player=>player.name).join(" | ")}</div>`).join("");
+    const cards=team.getRoster().map(player=>renderRosterCard(player)).join("");
     const header=`<div class="row"><img class="logo" src="${team.logoUrl}" alt="${team.name}"/><div><div>${team.name}</div><div class="muted">${team.city}, ${team.country} • ${team.shortName}</div></div></div>`;
-    this.#teamEl.innerHTML=`<h2>Моя команда</h2>${header}${this.#renderTabs(activeTab)}<div class="list">${lines}</div>`;
+    this.#teamEl.innerHTML=`<h2>Моя команда</h2>${header}${this.#renderTabs(activeTab)}<div class="list roster-grid roster-grid-cards">${cards}</div>`;
   }
   renderTeamSelection(teams,activeTeamId){
     const cards=teams.map(team=>`<button class="team-card" data-team-id="${team.id}"><img src="${team.logoUrl}" alt="${team.name}"/><span>${team.name}</span></button>`).join("");
     this.#teamEl.innerHTML=`<h2>${activeTeamId?"Выбрана команда":"Выберите команду"}</h2><div class="team-grid">${cards}</div>`;
   }
   renderMyTeamRoster(team){
-    const cards=team.getRoster().map(player=>{
-      const photo=player.identity.photoUrl||"./player-photo/placeholder.png";
-      const secondary=(player.identity.secondaryPositions||[]).join(", ");
-      const position=secondary?`${player.identity.primaryPosition} (${secondary})`:player.identity.primaryPosition;
-      return `<div class="player-card"><img class="player-photo" src="${photo}" alt="${player.name}"/><div><div>${player.name}</div><div class="muted">Позиция ${position} • OVR ${player.ovr}</div><div class="muted">Форма ${player.form.toFixed(2)} • Усталость ${player.fatigueStatus} (${player.fatigueScore})</div></div></div>`;
-    }).join("");
-    this.#matchEl.innerHTML=`<h2>Состав</h2><div class="roster-grid">${cards}</div>`;
+    const cards=team.getRoster().map(player=>renderRosterCard(player)).join("");
+    this.#matchEl.innerHTML=`<h2>Состав</h2><div class="roster-grid roster-grid-cards">${cards}</div>`;
   }
   renderContracts(rows,negotiation){this.#matchEl.innerHTML=this.#contractTab.render(rows,negotiation)}
   renderConfirmSelection(team){
