@@ -35,7 +35,10 @@ export class ContractService{
     });
     this.#contracts=[...merged.values()];
   }
-  exportContracts(){return this.#contracts.map(c=>({...c}))}
+  exportContracts(){
+    // Persist only contracts created during gameplay to keep localStorage payload small.
+    return this.#contracts.filter(c=>!this.#baseContractIds.has(c.id)).map(c=>({...c}));
+  }
   isRenewalLocked(playerId){
     return this.#contracts.some(c=>c.playerId===playerId && !this.#baseContractIds.has(c.id));
   }
