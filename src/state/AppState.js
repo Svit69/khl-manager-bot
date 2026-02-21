@@ -39,11 +39,13 @@ export class AppState{
   }
   exportState(){
     const players=this.#teams.flatMap(t=>t.getRoster()).map(p=>({id:p.id,fatigueScore:p.fatigueScore,form:p.form,injuryUntilDay:p.condition.injuryUntilDay}));
-    return {calendarIndex:this.#calendar.index,players,stats:this.#stats.getSeasonStats(),activeTeamId:this.#activeTeamId,contracts:this.#contracts.exportContracts(),standings:this.#standings.getSnapshot()};
+    const rosters=this.#teams.map(team=>({teamId:team.id,playerIds:team.getRoster().map(player=>player.id)}));
+    return {calendarIndex:this.#calendar.index,players,stats:this.#stats.getSeasonStats(),activeTeamId:this.#activeTeamId,contracts:this.#contracts.exportContracts(),standings:this.#standings.getSnapshot(),rosters};
   }
   importState(saved){
     if(!saved)return;
     this.#calendar.index=saved.calendarIndex||0;this.#activeTeamId=saved.activeTeamId||null;
+    if(saved.rosters)this.#importRosters(saved.rosters);
     const map=new Map((saved.players||[]).map(p=>[p.id,p]));
     this.#teams.flatMap(t=>t.getRoster()).forEach(p=>{const s=map.get(p.id);if(s){p.applyFatigue(s.fatigueScore-p.fatigueScore);p.applyFormDelta(s.form-p.form)}});
     if(saved.contracts)this.#contracts.importContracts(saved.contracts);
@@ -62,6 +64,18 @@ export class AppState{
     this.#lastMatch=null;
     this.#stats.importStats([]);
     this.#standings.importSnapshot([]);
+  }
+  #importRosters(rosters){
+    const playersById=new Map(this.#teams.flatMap(team=>team.getRoster()).map(player=>[player.id,player]));
+    (rosters||[]).forEach(item=>{
+      const team=this.#teams.find(entry=>entry.id===item.teamId);
+      if(!team)return;
+      const picked=(item.playerIds||[]).map(playerId=>playersById.get(playerId)).filter(Boolean);
+      picked.forEach(player=>{player.affiliation.teamId=team.id});
+      const lineup=buildCompetitiveLines(picked);
+      team.lines.splice(0,team.lines.length,...lineup.lines);
+      team.reservePlayers.splice(0,team.reservePlayers.length,...lineup.reservePlayers);
+    });
   }
   #applyFatigue(teams,delta){teams.flatMap(t=>t.getRoster()).forEach(p=>{p.applyFatigue(delta);p.applyFormDelta(Math.random()*0.02-0.01)})}
   #buildNegotiationContext(team){

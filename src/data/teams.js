@@ -11,6 +11,7 @@
   }
 );
 export const teamsData=[
+  buildTeam("9f3f9b9a-6c57-49c6-a64d-2fa6e376a7b1","Ак Барс","AKB","Казань","RU","ak-bars.png"),
   buildTeam("d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d","Авангард","AVG","Омск","RU","avangard.png"),
   buildTeam("a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a","Автомобилист","AVT","Екатеринбург","RU","avtomobilist.png"),
   buildTeam("3a2d2d4a-7b2b-4a2f-8a5c-8e8e8f9e0c0b","Салават Юлаев","SYU","Уфа","RU","salavat-yulaev.png"),
