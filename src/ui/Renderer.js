@@ -20,10 +20,25 @@ const getNationCode=nationality=>{
   const code=String(nationality||"").trim().toUpperCase();
   return code||"N/A";
 };
+const getNationFlag=nationality=>{
+  const code=String(nationality||"").trim().toUpperCase();
+  if(code==="RU"||code==="RUS")return "🇷🇺";
+  if(code==="CA"||code==="CAN")return "🇨🇦";
+  if(code==="US"||code==="USA")return "🇺🇸";
+  if(code==="FR")return "🇫🇷";
+  if(code==="BY")return "🇧🇾";
+  if(code==="DE")return "🇩🇪";
+  if(code==="KZ")return "🇰🇿";
+  if(code==="SE")return "🇸🇪";
+  return "🏳️";
+};
 const renderRosterCard=player=>{
   const photo=player.identity.photoUrl||"./player-photo/placeholder.png";
-  const surname=getSurname(player);
-  return `<article class="hockey-card"><div class="hockey-card-layers"><img class="hockey-card-bg" src="./card/card_background.svg" alt="" aria-hidden="true"/><img class="hockey-card-photo" src="${photo}" alt="${player.name}"/><img class="hockey-card-front" src="./card/card_front.svg" alt="" aria-hidden="true"/></div><div class="hockey-card-bottom"><div class="hockey-card-name">${surname}</div><div class="hockey-card-meta">${player.identity.primaryPosition} • OVR ${player.ovr}</div></div></article>`;
+  const surname=getSurname(player).toUpperCase();
+  const age=calculateAge(player.identity.birthDate);
+  const nationCode=getNationCode(player.identity.nationality);
+  const nationFlag=getNationFlag(player.identity.nationality);
+  return `<article class="hockey-card"><div class="hockey-card-layers"><img class="hockey-card-bg" src="./card/card_background.svg" alt="" aria-hidden="true"/><img class="hockey-card-photo" src="${photo}" alt="${player.name}"/><img class="hockey-card-front" src="./card/card_front.svg" alt="" aria-hidden="true"/></div><div class="hockey-card-top"><span class="hockey-card-ovr">${player.ovr}</span><span class="hockey-card-pos">${player.identity.primaryPosition}</span></div><div class="hockey-card-name-band">${surname}</div><div class="hockey-card-meta-row"><span>${age} ЛЕТ</span><span>${nationFlag} ${nationCode}</span></div></article>`;
 };
 export class Renderer{
   #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();
