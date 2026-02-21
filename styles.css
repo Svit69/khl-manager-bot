@@ -51,7 +51,9 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   width:100%;
   height:100%;
   object-fit:cover;
+  display:block;
 }
+.hockey-card-bg{z-index:1}
 .hockey-card-photo{
   position:absolute;
   inset:0;
@@ -59,12 +61,15 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   height:100%;
   object-fit:cover;
   object-position:center top;
+  z-index:2;
+  display:block;
 }
+.hockey-card-front{z-index:3}
 .hockey-card-top,.hockey-card-bottom{
   position:absolute;
   left:10px;
   right:10px;
-  z-index:3;
+  z-index:4;
 }
 .hockey-card-top{
   top:10px;

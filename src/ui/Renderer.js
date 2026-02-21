@@ -23,7 +23,7 @@ const getNationCode=nationality=>{
 const renderRosterCard=player=>{
   const photo=player.identity.photoUrl||"./player-photo/placeholder.png";
   const surname=getSurname(player);
-  return `<article class="hockey-card"><img class="hockey-card-bg" src="./card/card_background.svg" alt="" aria-hidden="true"/><img class="hockey-card-photo" src="${photo}" alt="${player.name}"/><div class="hockey-card-bottom"><div class="hockey-card-name">${surname}</div><div class="hockey-card-meta">${player.identity.primaryPosition} • OVR ${player.ovr}</div></div></article>`;
+  return `<article class="hockey-card"><img class="hockey-card-bg" src="./card/card_background.svg" alt="" aria-hidden="true"/><img class="hockey-card-photo" src="${photo}" alt="${player.name}"/><img class="hockey-card-front" src="./card/card_front.svg" alt="" aria-hidden="true"/><div class="hockey-card-bottom"><div class="hockey-card-name">${surname}</div><div class="hockey-card-meta">${player.identity.primaryPosition} • OVR ${player.ovr}</div></div></article>`;
 };
 export class Renderer{
   #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();
