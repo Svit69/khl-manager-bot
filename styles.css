@@ -38,12 +38,18 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
 .player-photo{width:42px;height:42px;border-radius:6px;object-fit:cover;border:1px solid #1c3e63}
 .hockey-card{
   position:relative;
+  display:block;
+  isolation:isolate;
   width:100%;
   max-width:210px;
   aspect-ratio:3/4.2;
   margin:0 auto;
   overflow:hidden;
   border-radius:12px;
+}
+.hockey-card-layers{
+  position:absolute;
+  inset:0;
 }
 .hockey-card-bg,.hockey-card-front{
   position:absolute;
@@ -52,6 +58,7 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   height:100%;
   object-fit:cover;
   display:block;
+  pointer-events:none;
 }
 .hockey-card-bg{z-index:1}
 .hockey-card-photo{
@@ -63,6 +70,7 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   object-position:center top;
   z-index:2;
   display:block;
+  pointer-events:none;
 }
 .hockey-card-front{z-index:3}
 .hockey-card-top,.hockey-card-bottom{
