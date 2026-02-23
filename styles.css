@@ -732,13 +732,15 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   gap:6px;
   min-width:0;
   font-size:12px;
+  flex-wrap:wrap;
 }
 .sim-log-side.home{justify-content:flex-end;text-align:right}
 .sim-log-side.away{justify-content:flex-start;text-align:left}
 .sim-log-side span:not(.sim-log-chip){
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+  word-break:break-word;
   min-width:0;
 }
 .sim-log-time{
