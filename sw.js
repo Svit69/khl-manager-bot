@@ -1,4 +1,4 @@
-﻿const CACHE_NAME="khl-manager-v46";
+﻿const CACHE_NAME="khl-manager-v47";
 const ASSETS=[
   "./",
   "./index.html",
@@ -121,6 +121,21 @@ const ASSETS=[
   "./player-photo/khabarov.png",
   "./player-photo/yakovlev.png",
   "./khl-logo/ak-bars.png",
+  "./flags/icon-belarus.png",
+  "./flags/icon-canada.png",
+  "./flags/icon-china.png",
+  "./flags/icon-croatia.png",
+  "./flags/icon-czech.png",
+  "./flags/icon-finland.png",
+  "./flags/icon-france.png",
+  "./flags/icon-germany.png",
+  "./flags/icon-kazakhstan.png",
+  "./flags/icon-netherlands.png",
+  "./flags/icon-russia.png",
+  "./flags/icon-slovakia.png",
+  "./flags/icon-slovenia.png",
+  "./flags/icon-sweden.png",
+  "./flags/icon-usa.png",
   "./player-photo/alistrov.png",
   "./player-photo/barabanov.png",
   "./player-photo/brovkin.png",

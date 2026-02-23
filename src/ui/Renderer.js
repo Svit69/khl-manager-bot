@@ -1,15 +1,32 @@
 ﻿import { ContractTabRenderer } from "./ContractTabRenderer.js";
 import { calculateAge } from "../contracts/SeasonUtils.js";
+const NATION_FLAG_ASSET_BY_CODE=Object.freeze({
+  RU:"./flags/icon-russia.png",RUS:"./flags/icon-russia.png",
+  CA:"./flags/icon-canada.png",CAN:"./flags/icon-canada.png",
+  US:"./flags/icon-usa.png",USA:"./flags/icon-usa.png",
+  FR:"./flags/icon-france.png",
+  BY:"./flags/icon-belarus.png",
+  DE:"./flags/icon-germany.png",
+  KZ:"./flags/icon-kazakhstan.png",
+  SE:"./flags/icon-sweden.png",SWE:"./flags/icon-sweden.png",
+  CZ:"./flags/icon-czech.png",CZE:"./flags/icon-czech.png",
+  FI:"./flags/icon-finland.png",FIN:"./flags/icon-finland.png",
+  SK:"./flags/icon-slovakia.png",SVK:"./flags/icon-slovakia.png",
+  SI:"./flags/icon-slovenia.png",SVN:"./flags/icon-slovenia.png",
+  NL:"./flags/icon-netherlands.png",NED:"./flags/icon-netherlands.png",
+  HR:"./flags/icon-croatia.png",CRO:"./flags/icon-croatia.png",
+  CN:"./flags/icon-china.png",CHN:"./flags/icon-china.png"
+});
+const getNationFlagAsset=nationality=>NATION_FLAG_ASSET_BY_CODE[String(nationality||"").trim().toUpperCase()]||"";
+const renderNationFlagIcon=(nationality,altText,className="nation-flag-icon")=>{
+  const src=getNationFlagAsset(nationality);
+  return src
+    ? `<img class="${className}" src="${src}" alt="${altText||""}"/>`
+    : `<span class="${className} nation-flag-fallback" aria-hidden="true">🏳️</span>`;
+};
 const getNationBadge=nationality=>{
-  const code=String(nationality||"").trim().toUpperCase();
-  if(code==="RU"||code==="RUS")return "🇷🇺 RU";
-  if(code==="CA"||code==="CAN")return "🇨🇦 CA";
-  if(code==="US"||code==="USA")return "🇺🇸 US";
-  if(code==="FR")return "🇫🇷 FR";
-  if(code==="BY")return "🇧🇾 BY";
-  if(code==="DE")return "🇩🇪 DE";
-  if(code==="KZ")return "🇰🇿 KZ";
-  return `🏳️ ${code||"N/A"}`;
+  const code=String(nationality||"").trim().toUpperCase()||"N/A";
+  return `<span class="nation-badge-inline">${renderNationFlagIcon(code,`Флаг ${code}`,"nation-flag-inline")}<span>${code}</span></span>`;
 };
 const renderDraftPositionBlock=(label,players)=>{
   const names=(players||[]).map(player=>player.name).join(", ");
@@ -45,15 +62,7 @@ const getNationCode=nationality=>{
 };
 const getNationFlag=nationality=>{
   const code=String(nationality||"").trim().toUpperCase();
-  if(code==="RU"||code==="RUS")return "🇷🇺";
-  if(code==="CA"||code==="CAN")return "🇨🇦";
-  if(code==="US"||code==="USA")return "🇺🇸";
-  if(code==="FR")return "🇫🇷";
-  if(code==="BY")return "🇧🇾";
-  if(code==="DE")return "🇩🇪";
-  if(code==="KZ")return "🇰🇿";
-  if(code==="SE")return "🇸🇪";
-  return "🏳️";
+  return renderNationFlagIcon(code,`Флаг ${code||"N/A"}`,"nation-flag-card");
 };
 const renderRosterCard=(player,extraClass="")=>{
   const photo=player.identity.photoUrl||"./player-photo/placeholder.png";
