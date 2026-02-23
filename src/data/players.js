@@ -1424,7 +1424,7 @@ export const playerProfiles=[
       primaryPosition:PlayerPosition.CTR,
       secondaryPositions:[PlayerPosition.LW]
     },
-    attributes:{shot:70,speed:80,physical:66,defense:63,skill:77},
+    attributes:{shot:73,speed:82,physical:67,defense:65,skill:80},
     potential:{potential:78,growthRate:0.3,peakAge:27,declineRate:0.6},
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:242,seasonsPlayed:7,reputation:100},
@@ -1446,7 +1446,7 @@ export const playerProfiles=[
       primaryPosition:PlayerPosition.LW,
       secondaryPositions:[]
     },
-    attributes:{shot:80,speed:66,physical:79,defense:60,skill:83},
+    attributes:{shot:82,speed:70,physical:79,defense:60,skill:84},
     potential:{potential:81,growthRate:0.3,peakAge:29,declineRate:0.3},
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:209,seasonsPlayed:4,reputation:100},
@@ -1671,7 +1671,7 @@ export const playerProfiles=[
       primaryPosition:PlayerPosition.CTR,
       secondaryPositions:[PlayerPosition.RW]
     },
-    attributes:{shot:81,speed:68,physical:60,defense:60,skill:84},
+    attributes:{shot:82,speed:70,physical:63,defense:65,skill:87},
     potential:{potential:79,growthRate:0.2,peakAge:25,declineRate:0.3},
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:272,seasonsPlayed:7,reputation:60},
@@ -1761,7 +1761,7 @@ export const playerProfiles=[
       primaryPosition:PlayerPosition.RW,
       secondaryPositions:[PlayerPosition.LW]
     },
-    attributes:{shot:82,speed:73,physical:70,defense:61,skill:88},
+    attributes:{shot:84,speed:76,physical:70,defense:62,skill:90},
     potential:{potential:84,growthRate:0.3,peakAge:30,declineRate:0.3},
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:93,seasonsPlayed:2,reputation:100},
@@ -1917,7 +1917,7 @@ export const playerProfiles=[
       primaryPosition:PlayerPosition.RW,
       secondaryPositions:[]
     },
-    attributes:{shot:77,speed:75,physical:70,defense:72,skill:77},
+    attributes:{shot:78,speed:76,physical:71,defense:72,skill:81},
     potential:{potential:79,growthRate:0.3,peakAge:27,declineRate:0.3},
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:200,seasonsPlayed:4,reputation:100},
@@ -2296,7 +2296,7 @@ export const playerProfiles=[
       primaryPosition:PlayerPosition.RW,
       secondaryPositions:[]
     },
-    attributes:{shot:77,speed:82,physical:74,defense:70,skill:80},
+    attributes:{shot:78,speed:83,physical:74,defense:71,skill:84},
     potential:{potential:82,growthRate:0.3,peakAge:27,declineRate:0.3},
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:150,seasonsPlayed:3,reputation:100},
@@ -2341,7 +2341,7 @@ export const playerProfiles=[
       primaryPosition:PlayerPosition.LW,
       secondaryPositions:[]
     },
-    attributes:{shot:83,speed:78,physical:74,defense:67,skill:90},
+    attributes:{shot:83,speed:78,physical:74,defense:68,skill:89},
     potential:{potential:84,growthRate:0.2,peakAge:30,declineRate:0.2},
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:432,seasonsPlayed:11,reputation:100},
@@ -2363,7 +2363,7 @@ export const playerProfiles=[
       primaryPosition:PlayerPosition.RW,
       secondaryPositions:[PlayerPosition.LW]
     },
-    attributes:{shot:77,speed:81,physical:65,defense:60,skill:80},
+    attributes:{shot:77,speed:81,physical:65,defense:62,skill:83},
     potential:{potential:78,growthRate:0.2,peakAge:28,declineRate:0.4},
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:389,seasonsPlayed:8,reputation:90},
@@ -2475,7 +2475,7 @@ export const playerProfiles=[
       primaryPosition:PlayerPosition.LW,
       secondaryPositions:[PlayerPosition.RW]
     },
-    attributes:{shot:77,speed:79,physical:72,defense:67,skill:81},
+    attributes:{shot:78,speed:83,physical:73,defense:70,skill:82},
     potential:{potential:80,growthRate:0.3,peakAge:28,declineRate:0.5},
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:384,seasonsPlayed:9,reputation:100},
