@@ -7,6 +7,7 @@ export class AppController{
   #dragRosterSlot=null;
   #matchPlayback=null;
   #matchPlaybackTimer=null;
+  #calendarPanelTab="standings";
   constructor(state,calendar,teams,renderer,userStore){
     this.#state=state;this.#calendar=calendar;this.#teams=teams;this.#renderer=renderer;this.#userStore=userStore;
   }
@@ -24,7 +25,11 @@ export class AppController{
     const dayInfo=this.#state.activeTeam?this.#state.getVisibleCalendarDay():this.#calendar.getCurrent();
     if(this.#state.activeTeam){
       this.#renderer.renderTeam(this.#state.activeTeam,this.#activeTab,this.#activeRosterUnit);
-      this.#renderer.renderCalendar(dayInfo?.day||this.#calendar.currentDay,dayInfo,false);
+      this.#renderer.renderCalendar(dayInfo?.day||this.#calendar.currentDay,dayInfo,false,{
+        tab:this.#calendarPanelTab,
+        standings:this.#state.getStandingsTable(),
+        scorers:this.#state.getTopScorers(10)
+      });
       this.#renderer.renderResetButton();
       if(this.#activeTab==="contracts"){
         this.#renderer.renderContracts(this.#state.getActiveTeamContractRows(),this.#buildNegotiationState());
@@ -41,12 +46,20 @@ export class AppController{
         draftView.selectedPlayerId=this.#draftState.selectedPlayerId;
         this.#renderer.renderFantasyDraft(draftView,selectedTeam);
       }
-      this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,true);
+      this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,true,{
+        tab:this.#calendarPanelTab,
+        standings:this.#state.getStandingsTable(),
+        scorers:this.#state.getTopScorers(10)
+      });
       this.#renderer.renderResetButton();
       return;
     }
     this.#renderer.renderTeamSelection(this.#teams,this.#state.activeTeamId);
-    this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,true);
+    this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,true,{
+      tab:this.#calendarPanelTab,
+      standings:this.#state.getStandingsTable(),
+      scorers:this.#state.getTopScorers(10)
+    });
     this.#renderer.renderResetButton();
     this.#renderer.renderMatch(this.#state.lastMatch,this.#state.seasonStats);
     if(this.#pendingTeamId){
@@ -69,6 +82,11 @@ export class AppController{
     if(teamId){this.#pendingTeamId=teamId;this.#renderScreen();return;}
     const tab=clickable?.dataset?.tab;
     if(tab){this.#activeTab=tab;this.#renderScreen();return;}
+    if(action==="calendar-tab"){
+      this.#calendarPanelTab=clickable.dataset.value||"standings";
+      this.#renderScreen();
+      return;
+    }
     const action=clickable?.dataset?.action;
     if(action==="sim-skip" && this.#matchPlayback){
       this.#matchPlayback.currentSecond=this.#matchPlayback.match.summary?.durationSeconds||3600;

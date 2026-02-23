@@ -11,6 +11,8 @@ export class AppState{
   get calendar(){return this.#calendar}
   get lastMatch(){return this.#lastMatch}
   get seasonStats(){return this.#stats.getSeasonStats()}
+  getStandingsTable(){return this.#standings.getTable(this.#teams)}
+  getTopScorers(limit=10){return this.#stats.getSeasonStats().slice(0,limit)}
   get activeTeamId(){return this.#activeTeamId}
   get activeTeam(){return this.#teams.find(t=>t.id===this.#activeTeamId)||null}
   setActiveTeamId(teamId){this.#activeTeamId=teamId}

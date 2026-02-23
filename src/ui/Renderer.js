@@ -214,9 +214,17 @@ export class Renderer{
     this.#teamEl.innerHTML=`<div class="draft-screen"><div class="draft-top">${draftHeader}<div class="draft-order-strip">${orderPreview}</div></div><div class="draft-layout"><section class="draft-left"><div class="draft-card"><div class="draft-card-head"><h2>Доступные игроки</h2><div class="muted">${draft.availablePlayers.length} в пуле</div></div><div class="draft-toolbar"><div><div class="muted">Сортировка</div>${sortControls}</div><div><div class="muted">Фильтр по позиции</div>${filterControls}</div></div>${actionBar}<div class="draft-list">${cards||"<div class=\"muted\">Нет игроков</div>"}</div></div></section><aside class="draft-right"><div class="draft-card"><div class="draft-card-head"><h2>Просмотр игрока</h2><div class="muted">MVP поля: имя • позиция • OVR • возраст • нация</div></div>${previewCard}</div><div class="draft-card"><div class="draft-card-head"><h2>Ваш драфт-борд</h2><div class="muted">${team.name}</div></div>${renderDraftNeedsGrid(userRoster)}<div class="draft-panel">${rosterPanel}</div></div><div class="draft-card"><div class="draft-card-head"><h2>Команды</h2><div class="muted">20 раундов • змейка</div></div><div class="draft-team-list">${teamRows}</div></div><div class="draft-card"><div class="draft-card-head"><h2>Последние пики</h2><div class="muted">Live log</div></div><div class="draft-recent-list">${recentPicks}</div></div></aside></div></div>`;
     this.#matchEl.innerHTML="";
   }
-  renderCalendar(day,info,isLocked){
+  renderCalendar(day,info,isLocked,panelData={}){
     const text=isLocked?"Сначала выберите команду":(info?.match?`${info.match.home.name} — ${info.match.away.name}`:"День отдыха");
-    this.#calEl.innerHTML=`<h2>Календарь • День ${day}</h2><div class="row"><div>${text}</div><button id="playBtn" class="btn" ${isLocked?"disabled":""}>${isLocked?"Выбрать команду":"Дальше"}</button></div>`;
+    const activeTab=panelData?.tab||"standings";
+    const standings=(panelData?.standings||[]).map((row,index)=>`<div class="calendar-table-row"><span>${index+1}</span><span>${row.shortName||row.name}</span><span>${row.gp||0}</span><span>${row.w||0}</span><span>${row.otl||0}</span><span>${row.l||0}</span><span>${row.pts||0}</span></div>`).join("")||`<div class="muted">Нет данных</div>`;
+    const scorers=(panelData?.scorers||[]).map((row,index)=>`<div class="calendar-scorer-row"><span>${index+1}</span><span>${row.name}</span><span>${row.team||"—"}</span><span>${row.points||((row.goals||0)+(row.assists||0))}</span><span>${row.goals||0}</span><span>${row.assists||0}</span></div>`).join("")||`<div class="muted">Нет данных</div>`;
+    const tabButtons=`<div class="calendar-tabs"><button class="calendar-tab-btn${activeTab==="standings"?" active":""}" data-action="calendar-tab" data-value="standings">Таблица</button><button class="calendar-tab-btn${activeTab==="scorers"?" active":""}" data-action="calendar-tab" data-value="scorers">Бомбардиры</button></div>`;
+    const tableHeader=activeTab==="standings"
+      ? `<div class="calendar-table-header"><span>#</span><span>Команда</span><span>И</span><span>В</span><span>ПО</span><span>П</span><span>О</span></div>`
+      : `<div class="calendar-scorer-header"><span>#</span><span>Игрок</span><span>Команда</span><span>О</span><span>Г</span><span>П</span></div>`;
+    const tableBody=activeTab==="standings"?standings:scorers;
+    this.#calEl.innerHTML=`<h2>Календарь • День ${day}</h2><div class="row"><div>${text}</div><button id="playBtn" class="btn" ${isLocked?"disabled":""}>${isLocked?"Выбрать команду":"Дальше"}</button></div>${tabButtons}<div class="calendar-panel-list">${tableHeader}<div class="calendar-panel-scroll">${tableBody}</div></div>`;
   }
   renderResetButton(){this.#calEl.insertAdjacentHTML("beforeend","<div class=\"row reset-row\"><button id=\"resetBtn\" class=\"btn secondary\">Новая игра</button></div>")}
   renderMatchSimulationPopup(playback){

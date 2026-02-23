@@ -7,13 +7,14 @@ export class StandingsTracker{
     this.#ensure(homeId);this.#ensure(awayId);
     this.#applyGame(homeId,homeGoals,awayGoals);
     this.#applyGame(awayId,awayGoals,homeGoals);
-    if(homeGoals>awayGoals)this.#applyWinLoss(homeId,awayId);
-    else if(awayGoals>homeGoals)this.#applyWinLoss(awayId,homeId);
+    const wentToOvertime=Boolean(match?.summary?.wentToOvertime);
+    if(homeGoals>awayGoals)this.#applyWinLoss(homeId,awayId,wentToOvertime);
+    else if(awayGoals>homeGoals)this.#applyWinLoss(awayId,homeId,wentToOvertime);
   }
   getSnapshot(){return [...this.#table.entries()].map(([teamId,s])=>({teamId,...s}))}
   importSnapshot(list){
     this.#table.clear();
-    (list||[]).forEach(r=>{if(r?.teamId)this.#table.set(r.teamId,{gp:r.gp||0,w:r.w||0,l:r.l||0,pts:r.pts||0,gf:r.gf||0,ga:r.ga||0});});
+    (list||[]).forEach(r=>{if(r?.teamId)this.#table.set(r.teamId,{gp:r.gp||0,w:r.w||0,l:r.l||0,otl:r.otl||0,pts:r.pts||0,gf:r.gf||0,ga:r.ga||0});});
   }
   getRank(teamId,teams){
     const ordered=this.getTable(teams);
@@ -33,15 +34,17 @@ export class StandingsTracker{
     return row?{...row}:null;
   }
   #ensure(teamId){
-    if(!this.#table.has(teamId))this.#table.set(teamId,{gp:0,w:0,l:0,pts:0,gf:0,ga:0});
+    if(!this.#table.has(teamId))this.#table.set(teamId,{gp:0,w:0,l:0,otl:0,pts:0,gf:0,ga:0});
     return this.#table.get(teamId);
   }
   #applyGame(teamId,gf,ga){
     const s=this.#table.get(teamId);
     s.gp++;s.gf+=gf;s.ga+=ga;
   }
-  #applyWinLoss(winnerId,loserId){
+  #applyWinLoss(winnerId,loserId,wentToOvertime=false){
     const w=this.#table.get(winnerId),l=this.#table.get(loserId);
-    w.w++;w.pts+=2;l.l++;
+    w.w++;w.pts+=2;
+    if(wentToOvertime){l.otl++;l.pts+=1;}
+    else{l.l++;}
   }
 }
