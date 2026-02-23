@@ -261,6 +261,13 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
 }
 .hockey-card--reserve .hockey-card-photo{filter:grayscale(.1)}
 .draft-panel{display:grid;grid-template-columns:1fr;gap:6px;margin:8px 0}
+.draft-pool-panel{
+  margin-top:12px;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid #1c3e63;
+  background:rgba(16,42,69,.55);
+}
 .draft-pos{background:#0f2743;border:1px solid #1c3e63;border-radius:8px;padding:6px}
 .draft-action{position:sticky;top:0;z-index:2;background:#102a45;border:1px solid #1c3e63;border-radius:8px;padding:8px;margin:8px 0}
 .contract-grid{display:flex;flex-direction:column;gap:8px}
