@@ -811,18 +811,36 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   padding:6px 8px;
   font-size:12px;
 }
+.calendar-schedule-header,.calendar-schedule-row{
+  display:grid;
+  grid-template-columns:56px minmax(120px,1fr) 72px;
+  gap:6px;
+  align-items:center;
+  padding:6px 8px;
+  font-size:12px;
+}
 .calendar-table-header,.calendar-scorer-header{
   background:rgba(255,255,255,.04);
   color:#b7c9e5;
   font-weight:700;
   border-bottom:1px solid rgba(255,255,255,.06);
 }
-.calendar-table-row:nth-child(odd),.calendar-scorer-row:nth-child(odd){background:rgba(255,255,255,.02)}
-.calendar-table-row span,.calendar-scorer-row span{
+.calendar-schedule-header{
+  background:rgba(255,255,255,.04);
+  color:#b7c9e5;
+  font-weight:700;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.calendar-table-row:nth-child(odd),.calendar-scorer-row:nth-child(odd),.calendar-schedule-row:nth-child(odd){background:rgba(255,255,255,.02)}
+.calendar-table-row span,.calendar-scorer-row span,.calendar-schedule-row span{
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
 }
+.calendar-schedule-row.current{background:rgba(83,142,255,.14)}
+.calendar-schedule-row.mine{box-shadow:inset 2px 0 0 #6be7ff}
+.calendar-schedule-row .day{color:#b7c9e5}
+.calendar-schedule-row .res{text-align:right;font-weight:700}
 .calendar-panel-scroll::-webkit-scrollbar{width:10px}
 .calendar-panel-scroll::-webkit-scrollbar-track{background:rgba(10,17,30,.7)}
 .calendar-panel-scroll::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(111,212,255,.8),rgba(83,142,255,.75));border-radius:999px;border:2px solid rgba(10,17,30,.6)}
@@ -870,4 +888,5 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   .sim-log-side.home,.sim-log-side.away{justify-content:flex-start;text-align:left}
   .calendar-table-header,.calendar-table-row{grid-template-columns:24px minmax(72px,1fr) 24px 24px 28px 24px 24px;font-size:11px}
   .calendar-scorer-header,.calendar-scorer-row{grid-template-columns:24px minmax(90px,1.4fr) minmax(60px,1fr) 24px 24px 24px;font-size:11px}
+  .calendar-schedule-header,.calendar-schedule-row{grid-template-columns:46px minmax(90px,1fr) 58px;font-size:11px}
 }

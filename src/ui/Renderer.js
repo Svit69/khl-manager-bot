@@ -219,11 +219,18 @@ export class Renderer{
     const activeTab=panelData?.tab||"standings";
     const standings=(panelData?.standings||[]).map((row,index)=>`<div class="calendar-table-row"><span>${index+1}</span><span>${row.shortName||row.name}</span><span>${row.gp||0}</span><span>${row.w||0}</span><span>${row.otl||0}</span><span>${row.l||0}</span><span>${row.pts||0}</span></div>`).join("")||`<div class="muted">Нет данных</div>`;
     const scorers=(panelData?.scorers||[]).map((row,index)=>`<div class="calendar-scorer-row"><span>${index+1}</span><span>${row.name}</span><span>${row.team||"—"}</span><span>${row.points||((row.goals||0)+(row.assists||0))}</span><span>${row.goals||0}</span><span>${row.assists||0}</span></div>`).join("")||`<div class="muted">Нет данных</div>`;
-    const tabButtons=`<div class="calendar-tabs"><button class="calendar-tab-btn${activeTab==="standings"?" active":""}" data-action="calendar-tab" data-value="standings">Таблица</button><button class="calendar-tab-btn${activeTab==="scorers"?" active":""}" data-action="calendar-tab" data-value="scorers">Бомбардиры</button></div>`;
+    const scheduleRows=(panelData?.schedule||[]).map(row=>{
+      if(row.isRestDay)return `<div class="calendar-schedule-row${row.isCurrent?" current":""}"><span class="day">Д${row.day}</span><span class="teams">${row.isCurrent?"День отдыха (текущий)":"День отдыха"}</span><span class="res">${row.isPlayed?"✓":"—"}</span></div>`;
+      const result=row.result?`${row.result.homeGoals}:${row.result.awayGoals}${row.result.wentToOvertime?" ОТ":""}`:(row.isPlayed?"—":"vs");
+      return `<div class="calendar-schedule-row${row.isCurrent?" current":""}${row.isMyMatch?" mine":""}"><span class="day">Д${row.day}</span><span class="teams">${row.home?.shortName||row.home?.name} — ${row.away?.shortName||row.away?.name}</span><span class="res">${result}</span></div>`;
+    }).join("")||`<div class="muted">Нет матчей</div>`;
+    const tabButtons=`<div class="calendar-tabs"><button class="calendar-tab-btn${activeTab==="standings"?" active":""}" data-action="calendar-tab" data-value="standings">Таблица</button><button class="calendar-tab-btn${activeTab==="scorers"?" active":""}" data-action="calendar-tab" data-value="scorers">Бомбардиры</button><button class="calendar-tab-btn${activeTab==="schedule"?" active":""}" data-action="calendar-tab" data-value="schedule">Расписание</button></div>`;
     const tableHeader=activeTab==="standings"
       ? `<div class="calendar-table-header"><span>#</span><span>Команда</span><span>И</span><span>В</span><span>ПО</span><span>П</span><span>О</span></div>`
-      : `<div class="calendar-scorer-header"><span>#</span><span>Игрок</span><span>Команда</span><span>О</span><span>Г</span><span>П</span></div>`;
-    const tableBody=activeTab==="standings"?standings:scorers;
+      : activeTab==="scorers"
+        ? `<div class="calendar-scorer-header"><span>#</span><span>Игрок</span><span>Команда</span><span>О</span><span>Г</span><span>П</span></div>`
+        : `<div class="calendar-schedule-header"><span>День</span><span>Матч</span><span>Счет</span></div>`;
+    const tableBody=activeTab==="standings"?standings:(activeTab==="scorers"?scorers:scheduleRows);
     this.#calEl.innerHTML=`<h2>Календарь • День ${day}</h2><div class="row"><div>${text}</div><button id="playBtn" class="btn" ${isLocked?"disabled":""}>${isLocked?"Выбрать команду":"Дальше"}</button></div>${tabButtons}<div class="calendar-panel-list">${tableHeader}<div class="calendar-panel-scroll">${tableBody}</div></div>`;
   }
   renderResetButton(){this.#calEl.insertAdjacentHTML("beforeend","<div class=\"row reset-row\"><button id=\"resetBtn\" class=\"btn secondary\">Новая игра</button></div>")}

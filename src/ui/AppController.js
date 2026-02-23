@@ -28,7 +28,8 @@ export class AppController{
       this.#renderer.renderCalendar(dayInfo?.day||this.#calendar.currentDay,dayInfo,false,{
         tab:this.#calendarPanelTab,
         standings:this.#state.getStandingsTable(),
-        scorers:this.#state.getTopScorers(10)
+        scorers:this.#state.getTopScorers(10),
+        schedule:this.#state.getCalendarScheduleRows()
       });
       this.#renderer.renderResetButton();
       if(this.#activeTab==="contracts"){
@@ -49,7 +50,8 @@ export class AppController{
       this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,true,{
         tab:this.#calendarPanelTab,
         standings:this.#state.getStandingsTable(),
-        scorers:this.#state.getTopScorers(10)
+        scorers:this.#state.getTopScorers(10),
+        schedule:this.#state.getCalendarScheduleRows()
       });
       this.#renderer.renderResetButton();
       return;
@@ -58,7 +60,8 @@ export class AppController{
     this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,true,{
       tab:this.#calendarPanelTab,
       standings:this.#state.getStandingsTable(),
-      scorers:this.#state.getTopScorers(10)
+      scorers:this.#state.getTopScorers(10),
+      schedule:this.#state.getCalendarScheduleRows()
     });
     this.#renderer.renderResetButton();
     this.#renderer.renderMatch(this.#state.lastMatch,this.#state.seasonStats);
