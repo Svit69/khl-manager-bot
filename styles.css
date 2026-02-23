@@ -103,12 +103,11 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
 .hockey-card-name-band{
   left:0;
   right:0;
-  bottom:56px;
+  bottom:48px;
   height:46px;
   display:flex;
   align-items:center;
   justify-content:center;
-  background:rgba(28,28,30,.95);
   font-weight:800;
   font-size:16px;
   letter-spacing:.6px;
@@ -116,9 +115,9 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   color:#f5f7ff;
 }
 .hockey-card-meta-row{
-  left:18px;
-  right:18px;
-  bottom:20px;
+  left:20px;
+  right:20px;
+  bottom:38px;
   display:flex;
   justify-content:space-between;
   align-items:center;
