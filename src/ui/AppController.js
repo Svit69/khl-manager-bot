@@ -5,6 +5,8 @@ export class AppController{
   #activeRosterUnit="1";
   #draftState=null;
   #dragRosterSlot=null;
+  #matchPlayback=null;
+  #matchPlaybackTimer=null;
   constructor(state,calendar,teams,renderer,userStore){
     this.#state=state;this.#calendar=calendar;this.#teams=teams;this.#renderer=renderer;this.#userStore=userStore;
   }
@@ -29,6 +31,7 @@ export class AppController{
       }else{
         this.#renderer.renderMyTeamRoster(this.#state.activeTeam);
       }
+      if(this.#matchPlayback)this.#renderer.renderMatchSimulationPopup(this.#matchPlayback);
       return;
     }
     if(this.#draftState){
@@ -67,6 +70,20 @@ export class AppController{
     const tab=clickable?.dataset?.tab;
     if(tab){this.#activeTab=tab;this.#renderScreen();return;}
     const action=clickable?.dataset?.action;
+    if(action==="sim-skip" && this.#matchPlayback){
+      this.#matchPlayback.currentSecond=3600;
+      this.#matchPlayback.visibleEvents=[...(this.#matchPlayback.match.events||[])];
+      this.#matchPlayback.isFinished=true;
+      this.#stopMatchPlaybackTimer();
+      this.#renderScreen();
+      return;
+    }
+    if(action==="sim-close" && this.#matchPlayback){
+      this.#stopMatchPlaybackTimer();
+      this.#matchPlayback=null;
+      this.#renderScreen();
+      return;
+    }
     if(action==="open-negotiation"){
       this.#selectedNegotiationPlayerId=clickable.dataset.playerId;
       this.#outcomeByPlayerId.delete(this.#selectedNegotiationPlayerId);
@@ -173,8 +190,11 @@ export class AppController{
     if(action==="cancel-team"){this.#pendingTeamId=null;this.#renderScreen();return;}
     if(clickable?.id==="resetBtn"){this.#resetGame();return;}
     if(clickable?.id!=="playBtn"||this.#calendar.isFinished()||!this.#state.activeTeamId)return;
+    if(this.#matchPlayback)return;
+    const day=this.#calendar.getCurrent();
     this.#state.playDay();
     this.#userStore.saveState(this.#state.exportState());
+    if(day?.match && this.#state.lastMatch)this.#startMatchPlayback(this.#state.lastMatch);
     this.#renderScreen();
   }
   #startFantasyDraft(selectedTeamId){
@@ -222,6 +242,37 @@ export class AppController{
       selectedPlayerId:this.#draftState.selectedPlayerId,
       service:this.#draftState.service.toSnapshot()
     });
+  }
+  #startMatchPlayback(match){
+    this.#stopMatchPlaybackTimer();
+    this.#matchPlayback={
+      match,
+      currentSecond:0,
+      visibleEvents:[],
+      eventIndex:0,
+      isFinished:false
+    };
+    this.#matchPlaybackTimer=setInterval(()=>this.#tickMatchPlayback(),120);
+  }
+  #tickMatchPlayback(){
+    if(!this.#matchPlayback)return;
+    this.#matchPlayback.currentSecond=Math.min(3600,this.#matchPlayback.currentSecond+20);
+    const events=this.#matchPlayback.match.events||[];
+    while(this.#matchPlayback.eventIndex<events.length && (events[this.#matchPlayback.eventIndex].gameSecond??0)<=this.#matchPlayback.currentSecond){
+      this.#matchPlayback.visibleEvents.push(events[this.#matchPlayback.eventIndex]);
+      this.#matchPlayback.eventIndex++;
+    }
+    if(this.#matchPlayback.currentSecond>=3600){
+      this.#matchPlayback.isFinished=true;
+      this.#stopMatchPlaybackTimer();
+    }
+    this.#renderScreen();
+  }
+  #stopMatchPlaybackTimer(){
+    if(this.#matchPlaybackTimer){
+      clearInterval(this.#matchPlaybackTimer);
+      this.#matchPlaybackTimer=null;
+    }
   }
   #handleDragStart(event){
     if(!this.#state.activeTeam || this.#activeTab!=="roster")return;
