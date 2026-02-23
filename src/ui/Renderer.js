@@ -223,9 +223,11 @@ export class Renderer{
     if(!playback)return;
     const fmtClock=seconds=>{
       const safe=Math.max(0,Number(seconds)||0);
-      const period=Math.min(3,Math.floor(safe/1200)+1);
-      const inPeriod=safe%1200;
-      const down=1200-inPeriod;
+      const isOt=safe>=3600;
+      const period=isOt?4:Math.min(3,Math.floor(safe/1200)+1);
+      const periodLen=isOt?300:1200;
+      const inPeriod=isOt?(safe-3600):(safe%1200);
+      const down=Math.max(0,periodLen-inPeriod);
       const mm=String(Math.floor(down/60)).padStart(2,"0");
       const ss=String(down%60).padStart(2,"0");
       return {period,label:`${mm}:${ss}`};
@@ -237,18 +239,35 @@ export class Renderer{
       if(event.teamId===playback.match.away.id)acc.away++;
       return acc;
     },{home:0,away:0});
-    const timeline=(playback.visibleEvents||[]).map(event=>{
+    const visibleEvents=playback.visibleEvents||[];
+    const duration=playback.match.summary?.durationSeconds||3600;
+    const progressRatio=duration>0?Math.min(1,playback.currentSecond/duration):0;
+    const visibleHomePens=visibleEvents.filter(event=>event.type==="penalty"&&event.teamId===playback.match.home.id).length;
+    const visibleAwayPens=visibleEvents.filter(event=>event.type==="penalty"&&event.teamId===playback.match.away.id).length;
+    const finalHomeShots=Number(playback.match.summary?.home?.shots)||0;
+    const finalAwayShots=Number(playback.match.summary?.away?.shots)||0;
+    const homeVisibleGoals=visibleEvents.filter(event=>event.type==="goal"&&event.teamId===playback.match.home.id).length;
+    const awayVisibleGoals=visibleEvents.filter(event=>event.type==="goal"&&event.teamId===playback.match.away.id).length;
+    const homeShots=Math.min(finalHomeShots,Math.max(homeVisibleGoals,Math.round(finalHomeShots*Math.pow(progressRatio,0.92))));
+    const awayShots=Math.min(finalAwayShots,Math.max(awayVisibleGoals,Math.round(finalAwayShots*Math.pow(progressRatio,0.92))));
+    const timeline=(visibleEvents).map(event=>{
+      const isHome=event.teamId===playback.match.home.id;
+      let text="";
+      let tagClass="sim-log-chip";
       if(event.type==="goal"){
-        const assists=(event.assists||[]).length?` • Передачи: ${(event.assists||[]).join(", ")}`:"";
-        return `<div class="sim-event sim-event-goal"><div class="sim-event-time">P${event.period} ${event.periodClock}</div><div class="sim-event-body"><span class="sim-event-tag">ГОЛ</span><span>${event.team}: ${event.scorer?.name||event.scorer}${assists}</span></div></div>`;
+        const scorer=event.scorer?.name||event.scorer;
+        const assists=(event.assists||[]).length?` (${(event.assists||[]).join(", ")})`:"";
+        const strength=event.strength?` [${event.strength}]`:"";
+        text=`${scorer}${assists}${strength}`;
+        tagClass+=" goal";
+      }else{
+        text=`Удаление: ${event.player?.name||event.player} (${event.penaltyMinutes||2} мин)`;
+        tagClass+=" penalty";
       }
-      return `<div class="sim-event sim-event-penalty"><div class="sim-event-time">P${event.period} ${event.periodClock}</div><div class="sim-event-body"><span class="sim-event-tag">УДАЛ.</span><span>${event.team}: ${event.player?.name||event.player} (${event.penaltyMinutes||2} мин)</span></div></div>`;
+      return `<div class="sim-log-row"><div class="sim-log-side home">${isHome?`<span class="${tagClass}">${event.type==="goal"?"ГОЛ":"УДАЛ."}</span><span>${text}</span>`:""}</div><div class="sim-log-time">P${event.period} ${event.periodClock}</div><div class="sim-log-side away">${!isHome?`<span>${text}</span><span class="${tagClass}">${event.type==="goal"?"ГОЛ":"УДАЛ."}</span>`:""}</div></div>`;
     }).join("");
-    const homeShots=playback.match.summary?.home?.shots??"-";
-    const awayShots=playback.match.summary?.away?.shots??"-";
-    const homePens=playback.match.summary?.home?.penalties??0;
-    const awayPens=playback.match.summary?.away?.penalties??0;
-    this.#teamEl.insertAdjacentHTML("beforeend",`<div class="modal sim-modal"><div class="sim-modal-card"><div class="sim-scoreboard"><div class="sim-team sim-team-home"><img class="sim-team-logo" src="${playback.match.home.logoUrl}" alt="${playback.match.home.name}"/><div class="sim-team-name">${playback.match.home.name}</div><div class="sim-team-score">${score.home}</div></div><div class="sim-center"><div class="sim-period">Период ${clock.period}/3</div><div class="sim-clock">${clock.label}</div><div class="sim-progress"><span style="width:${Math.min(100,Math.round((playback.currentSecond/3600)*100))}%"></span></div><div class="sim-center-actions">${playback.isFinished?`<button class="btn" data-action="sim-close">Закрыть</button>`:`<button class="btn secondary" data-action="sim-skip">Пропустить симуляцию</button>`}</div></div><div class="sim-team sim-team-away"><img class="sim-team-logo" src="${playback.match.away.logoUrl}" alt="${playback.match.away.name}"/><div class="sim-team-name">${playback.match.away.name}</div><div class="sim-team-score">${score.away}</div></div></div><div class="sim-stats-row"><div>Броски: <strong>${homeShots}</strong></div><div>Удаления: <strong>${homePens}</strong></div><div>Броски: <strong>${awayShots}</strong></div><div>Удаления: <strong>${awayPens}</strong></div></div><div class="sim-timeline">${timeline||'<div class="muted">Симуляция идет...</div>'}</div></div></div>`);
+    const periodsLabel=clock.period===4?"ОТ 3×3":"Период";
+    this.#teamEl.insertAdjacentHTML("beforeend",`<div class="modal sim-modal"><div class="sim-modal-card"><div class="sim-scoreboard"><div class="sim-team sim-team-home"><img class="sim-team-logo" src="${playback.match.home.logoUrl}" alt="${playback.match.home.name}"/><div class="sim-team-name">${playback.match.home.name}</div><div class="sim-team-score">${score.home}</div></div><div class="sim-center"><div class="sim-period">${periodsLabel} ${clock.period===4?"":" "+clock.period+"/3"}</div><div class="sim-clock">${clock.label}</div><div class="sim-progress"><span style="width:${Math.min(100,Math.round(progressRatio*100))}%"></span></div><div class="sim-center-actions">${playback.isFinished?`<button class="btn" data-action="sim-close">Закрыть</button>`:`<button class="btn secondary" data-action="sim-skip">Пропустить симуляцию</button>`}</div></div><div class="sim-team sim-team-away"><img class="sim-team-logo" src="${playback.match.away.logoUrl}" alt="${playback.match.away.name}"/><div class="sim-team-name">${playback.match.away.name}</div><div class="sim-team-score">${score.away}</div></div></div><div class="sim-stats-row"><div>Броски: <strong>${homeShots}</strong></div><div>Удаления: <strong>${visibleHomePens}</strong></div><div>Броски: <strong>${awayShots}</strong></div><div>Удаления: <strong>${visibleAwayPens}</strong></div></div><div class="sim-timeline">${timeline||'<div class="muted">Симуляция идет...</div>'}</div></div></div>`);
   }
   renderMatch(match,stats){
     if(match===null){this.#matchEl.innerHTML=`<h2>Матч</h2><div class="list">Сегодня отдых</div>`;return;}

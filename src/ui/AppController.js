@@ -71,7 +71,7 @@ export class AppController{
     if(tab){this.#activeTab=tab;this.#renderScreen();return;}
     const action=clickable?.dataset?.action;
     if(action==="sim-skip" && this.#matchPlayback){
-      this.#matchPlayback.currentSecond=3600;
+      this.#matchPlayback.currentSecond=this.#matchPlayback.match.summary?.durationSeconds||3600;
       this.#matchPlayback.visibleEvents=[...(this.#matchPlayback.match.events||[])];
       this.#matchPlayback.isFinished=true;
       this.#stopMatchPlaybackTimer();
@@ -256,13 +256,14 @@ export class AppController{
   }
   #tickMatchPlayback(){
     if(!this.#matchPlayback)return;
-    this.#matchPlayback.currentSecond=Math.min(3600,this.#matchPlayback.currentSecond+20);
+    const duration=this.#matchPlayback.match.summary?.durationSeconds||3600;
+    this.#matchPlayback.currentSecond=Math.min(duration,this.#matchPlayback.currentSecond+20);
     const events=this.#matchPlayback.match.events||[];
     while(this.#matchPlayback.eventIndex<events.length && (events[this.#matchPlayback.eventIndex].gameSecond??0)<=this.#matchPlayback.currentSecond){
       this.#matchPlayback.visibleEvents.push(events[this.#matchPlayback.eventIndex]);
       this.#matchPlayback.eventIndex++;
     }
-    if(this.#matchPlayback.currentSecond>=3600){
+    if(this.#matchPlayback.currentSecond>=duration){
       this.#matchPlayback.isFinished=true;
       this.#stopMatchPlaybackTimer();
     }

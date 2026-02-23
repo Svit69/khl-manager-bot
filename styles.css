@@ -651,26 +651,45 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   overflow:auto;
   padding-right:4px;
 }
-.sim-event{
+.sim-log-row{
   display:grid;
-  grid-template-columns:92px 1fr;
+  grid-template-columns:minmax(0,1fr) 98px minmax(0,1fr);
   gap:8px;
-  align-items:start;
+  align-items:center;
   background:rgba(10,19,34,.72);
   border:1px solid rgba(255,255,255,.06);
   border-radius:10px;
-  padding:8px;
+  padding:7px 8px;
 }
-.sim-event-time{font-size:11px;color:var(--muted);font-weight:700}
-.sim-event-body{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;font-size:12px}
-.sim-event-tag{
+.sim-log-side{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+  font-size:12px;
+}
+.sim-log-side.home{justify-content:flex-end;text-align:right}
+.sim-log-side.away{justify-content:flex-start;text-align:left}
+.sim-log-side span:last-child{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.sim-log-time{
+  text-align:center;
+  font-size:11px;
+  color:var(--muted);
+  font-weight:800;
+}
+.sim-log-chip{
   display:inline-flex;align-items:center;justify-content:center;
   min-width:44px;padding:2px 6px;border-radius:999px;
   font-size:10px;font-weight:800;letter-spacing:.4px;
   background:#1a2d47;color:#dceaff;
+  flex:0 0 auto;
 }
-.sim-event-goal .sim-event-tag{background:rgba(77,209,255,.18);color:#84ecff;border:1px solid rgba(77,209,255,.24)}
-.sim-event-penalty .sim-event-tag{background:rgba(255,177,90,.16);color:#ffc98d;border:1px solid rgba(255,177,90,.22)}
+.sim-log-chip.goal{background:rgba(77,209,255,.18);color:#84ecff;border:1px solid rgba(77,209,255,.24)}
+.sim-log-chip.penalty{background:rgba(255,177,90,.16);color:#ffc98d;border:1px solid rgba(255,177,90,.22)}
 .sim-timeline::-webkit-scrollbar{width:10px}
 .sim-timeline::-webkit-scrollbar-track{background:rgba(10,17,30,.7);border-radius:999px}
 .sim-timeline::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(111,212,255,.8),rgba(83,142,255,.75));border-radius:999px;border:2px solid rgba(10,17,30,.6)}
@@ -703,5 +722,7 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   .sim-scoreboard{grid-template-columns:1fr}
   .sim-center{min-width:0}
   .sim-stats-row{grid-template-columns:1fr 1fr}
-  .sim-event{grid-template-columns:1fr}
+  .sim-log-row{grid-template-columns:1fr}
+  .sim-log-time{order:-1}
+  .sim-log-side.home,.sim-log-side.away{justify-content:flex-start;text-align:left}
 }
