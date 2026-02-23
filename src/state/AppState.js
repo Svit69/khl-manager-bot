@@ -28,6 +28,9 @@ export class AppState{
     const player=this.activeTeam?.getRoster().find(p=>p.id===playerId);
     return player?this.#contracts.extendContract(player,mode):null;
   }
+  swapActiveTeamRosterSlots(source,target){
+    return this.activeTeam?this.activeTeam.swapRosterSlots(source,target):false;
+  }
   playDay(){
     const day=this.#calendar.getCurrent();
     if(!day)return null;
@@ -72,10 +75,27 @@ export class AppState{
       if(!team)return;
       const picked=(item.playerIds||[]).map(playerId=>playersById.get(playerId)).filter(Boolean);
       picked.forEach(player=>{player.affiliation.teamId=team.id});
-      const lineup=buildCompetitiveLines(picked);
-      team.lines.splice(0,team.lines.length,...lineup.lines);
-      team.reservePlayers.splice(0,team.reservePlayers.length,...lineup.reservePlayers);
+      if(!this.#applySavedRosterOrder(team,picked)){
+        const lineup=buildCompetitiveLines(picked);
+        team.lines.splice(0,team.lines.length,...lineup.lines);
+        team.reservePlayers.splice(0,team.reservePlayers.length,...lineup.reservePlayers);
+      }
     });
+  }
+  #applySavedRosterOrder(team,picked){
+    if(!team||!Array.isArray(picked)||picked.length===0)return false;
+    const lineSizes=team.lines.map(line=>line.players.length);
+    const requiredSkaters=lineSizes.reduce((sum,size)=>sum+size,0);
+    if(picked.length<requiredSkaters)return false;
+    let cursor=0;
+    team.lines.forEach((line,lineIndex)=>{
+      const nextPlayers=picked.slice(cursor,cursor+lineSizes[lineIndex]);
+      if(nextPlayers.length!==lineSizes[lineIndex])return;
+      line.players.splice(0,line.players.length,...nextPlayers);
+      cursor+=lineSizes[lineIndex];
+    });
+    team.reservePlayers.splice(0,team.reservePlayers.length,...picked.slice(cursor));
+    return true;
   }
   #applyFatigue(teams,delta){teams.flatMap(t=>t.getRoster()).forEach(p=>{p.applyFatigue(delta);p.applyFormDelta(Math.random()*0.02-0.01)})}
   #buildNegotiationContext(team){

@@ -4,6 +4,7 @@ export class AppController{
   #selectedNegotiationPlayerId=null;#offerByPlayerId=new Map();#outcomeByPlayerId=new Map();
   #activeRosterUnit="1";
   #draftState=null;
+  #dragRosterSlot=null;
   constructor(state,calendar,teams,renderer,userStore){
     this.#state=state;this.#calendar=calendar;this.#teams=teams;this.#renderer=renderer;this.#userStore=userStore;
   }
@@ -12,6 +13,10 @@ export class AppController{
     this.#restoreDraftState();
     this.#renderScreen();
     document.addEventListener("click",event=>this.#handleClick(event));
+    document.addEventListener("dragstart",event=>this.#handleDragStart(event));
+    document.addEventListener("dragover",event=>this.#handleDragOver(event));
+    document.addEventListener("drop",event=>this.#handleDrop(event));
+    document.addEventListener("dragend",event=>{this.#dragRosterSlot=null;event.target?.classList?.remove?.("is-dragging");});
   }
   #renderScreen(){
     const dayInfo=this.#calendar.getCurrent();
@@ -217,6 +222,53 @@ export class AppController{
       selectedPlayerId:this.#draftState.selectedPlayerId,
       service:this.#draftState.service.toSnapshot()
     });
+  }
+  #handleDragStart(event){
+    if(!this.#state.activeTeam || this.#activeTab!=="roster")return;
+    const draggable=event.target?.closest?.("[data-roster-slot='1']");
+    if(!draggable)return;
+    const slot=this.#readRosterSlotDataset(draggable.dataset);
+    if(!slot)return;
+    this.#dragRosterSlot=slot;
+    if(event.dataTransfer){
+      event.dataTransfer.effectAllowed="move";
+      event.dataTransfer.setData("text/plain",JSON.stringify(slot));
+    }
+    draggable.classList.add("is-dragging");
+  }
+  #handleDragOver(event){
+    if(!this.#dragRosterSlot)return;
+    const target=event.target?.closest?.("[data-roster-slot='1']");
+    if(!target)return;
+    event.preventDefault();
+    if(event.dataTransfer)event.dataTransfer.dropEffect="move";
+  }
+  #handleDrop(event){
+    if(!this.#dragRosterSlot || !this.#state.activeTeam || this.#activeTab!=="roster")return;
+    const targetEl=event.target?.closest?.("[data-roster-slot='1']");
+    if(!targetEl)return;
+    event.preventDefault();
+    const targetSlot=this.#readRosterSlotDataset(targetEl.dataset);
+    if(!targetSlot)return;
+    const moved=this.#state.swapActiveTeamRosterSlots(this.#dragRosterSlot,targetSlot);
+    this.#dragRosterSlot=null;
+    if(!moved)return;
+    this.#userStore.saveState(this.#state.exportState());
+    this.#renderScreen();
+  }
+  #readRosterSlotDataset(dataset){
+    if(!dataset?.rosterKind)return null;
+    if(dataset.rosterKind==="reserve"){
+      const index=Number(dataset.reserveIndex);
+      return Number.isInteger(index)?{kind:"reserve",index}:null;
+    }
+    if(dataset.rosterKind==="line"){
+      const lineIndex=Number(dataset.lineIndex);
+      const slotIndex=Number(dataset.slotIndex);
+      if(!Number.isInteger(lineIndex)||!Number.isInteger(slotIndex))return null;
+      return {kind:"line",lineIndex,slotIndex};
+    }
+    return null;
   }
   #resetGame(){this.#userStore.clearSave();window.location.reload()}
 }

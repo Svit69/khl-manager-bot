@@ -72,6 +72,22 @@ const renderRosterCard=(player,extraClass="")=>{
   const nationFlag=getNationFlag(player.identity.nationality);
   return `<article class="hockey-card${extraClass?` ${extraClass}`:""}"><div class="hockey-card-layers"><img class="hockey-card-bg" src="./card/card_background.svg" alt="" aria-hidden="true"/><img class="hockey-card-photo" src="${photo}" alt="${player.name}"/><img class="hockey-card-front" src="./card/card_front.svg" alt="" aria-hidden="true"/></div><div class="hockey-card-top"><span class="hockey-card-ovr">${player.ovr}</span><span class="hockey-card-pos">${player.identity.primaryPosition}</span></div><div class="hockey-card-name-band">${surname}</div><div class="hockey-card-meta-row"><span>${age} ЛЕТ</span><span>${nationFlag} ${nationCode}</span></div></article>`;
 };
+const renderRosterSlotCard=(player,slot,extraClass="")=>{
+  const attrs=[
+    `class="roster-slot-card"`,
+    `data-roster-slot="1"`,
+    `data-roster-kind="${slot.kind}"`,
+    `data-player-id="${player.id}"`,
+    `draggable="true"`
+  ];
+  if(slot.kind==="line"){
+    attrs.push(`data-line-index="${slot.lineIndex}"`);
+    attrs.push(`data-slot-index="${slot.slotIndex}"`);
+  }else{
+    attrs.push(`data-reserve-index="${slot.index}"`);
+  }
+  return `<div ${attrs.join(" ")}>${renderRosterCard(player,extraClass)}</div>`;
+};
 const getRosterUnitPlayers=(team,unitKey)=>{
   if(String(unitKey)==="G"){
     return team.getRoster().filter(player=>player.identity?.primaryPosition==="ВРТ");
@@ -79,24 +95,35 @@ const getRosterUnitPlayers=(team,unitKey)=>{
   const lineIndex=Math.max(1,Math.min(4,Number(unitKey)||1))-1;
   return [...(team.lines?.[lineIndex]?.players||[])];
 };
+const getRosterUnitSlotDescriptors=(team,unitKey)=>{
+  if(String(unitKey)==="G"){
+    return (team.reservePlayers||[])
+      .map((player,index)=>({player,slot:{kind:"reserve",index}}))
+      .filter(item=>item.player.identity?.primaryPosition==="ВРТ");
+  }
+  const lineIndex=Math.max(1,Math.min(4,Number(unitKey)||1))-1;
+  const line=team.lines?.[lineIndex];
+  return (line?.players||[]).map((player,slotIndex)=>({player,slot:{kind:"line",lineIndex,slotIndex}}));
+};
 const renderRosterUnitButtons=activeUnit=>{
   const units=["1","2","3","4","G"];
   const labels={1:"1",2:"2",3:"3",4:"4",G:"В"};
   return `<div class="line-unit-buttons">${units.map(unit=>`<button class="line-unit-btn${String(activeUnit||"1")===unit?" active":""}" data-action="select-roster-unit" data-unit="${unit}">${labels[unit]}</button>`).join("")}</div>`;
 };
-const renderRosterUnitCards=players=>{
-  if(!players.length)return `<div class="line-empty">??? ???????</div>`;
-  const forwards=players.filter(player=>["ЛНП","ЦТР","ПНП"].includes(player.identity?.primaryPosition));
-  const defenders=players.filter(player=>player.identity?.primaryPosition==="ЗАЩ");
-  const others=players.filter(player=>!forwards.includes(player)&&!defenders.includes(player));
+const renderRosterUnitCards=(team,unitKey)=>{
+  const items=getRosterUnitSlotDescriptors(team,unitKey);
+  if(!items.length)return `<div class="line-empty">Состав пуст</div>`;
+  const forwards=items.filter(item=>["ЛНП","ЦТР","ПНП"].includes(item.player.identity?.primaryPosition));
+  const defenders=items.filter(item=>item.player.identity?.primaryPosition==="ЗАЩ");
+  const others=items.filter(item=>!forwards.includes(item)&&!defenders.includes(item));
   const ordered=[...forwards,...defenders,...others];
-  const top=ordered.slice(0,3).map(renderRosterCard).join("");
-  const bottom=ordered.slice(3).map(renderRosterCard).join("");
+  const top=ordered.slice(0,3).map(item=>renderRosterSlotCard(item.player,item.slot)).join("");
+  const bottom=ordered.slice(3).map(item=>renderRosterSlotCard(item.player,item.slot)).join("");
   return `<div class="line-card-layout"><div class="line-card-row line-card-row-top">${top}</div><div class="line-card-row line-card-row-bottom">${bottom}</div></div>`;
 };
 const renderReserveStrip=players=>{
   if(!players?.length)return `<div class="team-reserve-empty">Запасных нет</div>`;
-  return `<div class="team-reserve-strip">${players.map(player=>renderRosterCard(player,"hockey-card--reserve")).join("")}</div>`;
+  return `<div class="team-reserve-strip">${players.map((player,index)=>renderRosterSlotCard(player,{kind:"reserve",index},"hockey-card--reserve")).join("")}</div>`;
 };
 const renderTeamSidebar=(team,activeTab)=>`<aside class="team-sidebar"><img class="team-sidebar-logo" src="${team.logoUrl}" alt="${team.name}"/><div class="team-sidebar-nav"><button class="team-nav-link${activeTab==="roster"?" active":""}" data-tab="roster">Состав</button><button class="team-nav-link${activeTab==="contracts"?" active":""}" data-tab="contracts">Контракты</button></div></aside>`;
 export class Renderer{
@@ -109,9 +136,8 @@ export class Renderer{
   }
   renderUser(user){this.#userEl.textContent=`ID: ${user.id}`}
   renderTeam(team,activeTab,activeRosterUnit="1"){
-    const unitPlayers=getRosterUnitPlayers(team,activeRosterUnit);
     const rosterView=activeTab==="roster"
-      ? `<div class="line-view-panel">${renderRosterUnitButtons(activeRosterUnit)}${renderRosterUnitCards(unitPlayers)}</div>`
+      ? `<div class="line-view-panel">${renderRosterUnitButtons(activeRosterUnit)}${renderRosterUnitCards(team,activeRosterUnit)}</div>`
       : `<div class="muted">Переключитесь на вкладку «Состав»</div>`;
     const sidebar=renderTeamSidebar(team,activeTab);
     const reserve=activeTab==="roster"?`<div class="team-reserve-wrap">${renderReserveStrip(team.reservePlayers||[])}</div>`:"";
