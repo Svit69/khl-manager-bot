@@ -593,57 +593,121 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
 .negotiation-panel{border-top:1px solid #1c3e63;padding:8px;display:flex;flex-direction:column;gap:6px}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:12px}
 .modal-card{background:var(--card);border:1px solid #1c3e63;border-radius:12px;padding:12px;width:min(360px,100%)}
-.sim-modal{background:rgba(2,7,16,.68);backdrop-filter:blur(6px)}
+.sim-modal{background:rgba(2,7,16,.74);backdrop-filter:blur(8px)}
 .sim-modal-card{
   width:min(980px,96vw);
   max-height:92vh;
   background:
-    radial-gradient(60% 110% at 10% 10%, rgba(82,132,255,.10), transparent 60%),
-    linear-gradient(140deg,#071023,#0d1830 55%,#122342);
-  border:1px solid rgba(130,190,255,.16);
-  border-radius:16px;
+    radial-gradient(70% 120% at 8% 12%, rgba(53,110,255,.18), transparent 60%),
+    radial-gradient(70% 100% at 88% 16%, rgba(0,214,255,.12), transparent 58%),
+    linear-gradient(180deg,#031146,#071b7e 45%, #0a2b9c 100%);
+  border:1px solid rgba(145,201,255,.18);
+  border-radius:18px;
   padding:12px;
   display:grid;
   gap:10px;
 }
-.sim-scoreboard{
+.sim-top-head{
   display:grid;
   grid-template-columns:1fr auto 1fr;
-  gap:12px;
+  gap:16px;
   align-items:center;
+  color:#eaf2ff;
 }
-.sim-team{
+.sim-top-team{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+.sim-top-team-right{justify-content:flex-end}
+.sim-top-team-name{
+  font-size:22px;
+  font-weight:700;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.sim-team-logo{width:42px;height:42px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,.22))}
+.sim-top-center{
   display:grid;
   justify-items:center;
-  align-items:center;
-  gap:4px;
-  background:rgba(10,19,34,.72);
-  border:1px solid rgba(255,255,255,.07);
-  border-radius:12px;
+  gap:2px;
+  min-width:200px;
+}
+.sim-top-score{
+  font-size:46px;
+  line-height:1;
+  font-weight:900;
+  color:#57e3ff;
+  text-shadow:0 0 18px rgba(87,227,255,.18);
+}
+.sim-period{font-size:12px;color:#b9c9ff;letter-spacing:.4px}
+.sim-clock{font-size:22px;font-weight:800;letter-spacing:1px;color:#f3f7ff}
+.sim-stage{
+  display:grid;
+  grid-template-columns:160px 1fr 160px;
+  gap:12px;
+  align-items:stretch;
+}
+.sim-side-panel{
+  display:grid;
+  gap:14px;
+  align-content:center;
   padding:10px 8px;
 }
-.sim-team-logo{width:48px;height:48px;object-fit:contain}
-.sim-team-name{font-weight:700;text-align:center}
-.sim-team-score{font-size:36px;font-weight:900;line-height:1;color:#f4fbff}
-.sim-center{display:grid;justify-items:center;gap:6px;min-width:220px}
-.sim-period{font-size:12px;color:var(--muted)}
-.sim-clock{font-size:28px;font-weight:900;letter-spacing:1px}
+.sim-side-panel-right{text-align:right}
+.sim-side-stat{
+  display:grid;
+  gap:2px;
+  color:#e9f3ff;
+}
+.sim-side-label{
+  font-size:12px;
+  color:#6be7ff;
+  text-transform:uppercase;
+  letter-spacing:.7px;
+}
+.sim-side-value{
+  font-size:58px;
+  line-height:.95;
+  font-weight:300;
+  color:#f5fbff;
+}
+.sim-board{
+  position:relative;
+  min-height:460px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(8,20,96,.28);
+  overflow:hidden;
+  display:grid;
+  grid-template-rows:auto auto 1fr auto;
+  padding:12px;
+}
+.sim-board-overlay{
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.02) 0%, rgba(255,255,255,0) 30%),
+    radial-gradient(80% 100% at 50% 30%, rgba(160,120,255,.08), transparent 70%);
+  pointer-events:none;
+}
+.sim-timeline-header{
+  position:relative;
+  z-index:1;
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  color:#d9e7ff;
+  font-size:12px;
+  margin:4px 0 8px;
+}
 .sim-progress{width:100%;height:6px;background:#14253c;border-radius:999px;overflow:hidden}
 .sim-progress span{display:block;height:100%;background:linear-gradient(90deg,#5dd7ff,#6effaf)}
+.sim-progress-eafc{position:relative;z-index:1;background:rgba(13,28,92,.5);margin-top:2px}
 .sim-center-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-.sim-stats-row{
-  display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:8px;
-  font-size:12px;
-}
-.sim-stats-row>div{
-  background:rgba(10,19,34,.72);
-  border:1px solid rgba(255,255,255,.06);
-  border-radius:10px;
-  padding:8px;
-  text-align:center;
-}
+.sim-center-actions-eafc{position:relative;z-index:1;padding-top:8px}
 .sim-timeline{
   display:grid;
   gap:6px;
@@ -651,13 +715,14 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   overflow:auto;
   padding-right:4px;
 }
+.sim-timeline-eafc{position:relative;z-index:1;align-content:start}
 .sim-log-row{
   display:grid;
   grid-template-columns:minmax(0,1fr) 98px minmax(0,1fr);
   gap:8px;
   align-items:center;
-  background:rgba(10,19,34,.72);
-  border:1px solid rgba(255,255,255,.06);
+  background:rgba(9,16,58,.40);
+  border:1px solid rgba(255,255,255,.04);
   border-radius:10px;
   padding:7px 8px;
 }
@@ -677,8 +742,8 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
 }
 .sim-log-time{
   text-align:center;
-  font-size:11px;
-  color:var(--muted);
+  font-size:12px;
+  color:#c0d0ff;
   font-weight:800;
 }
 .sim-log-chip{
@@ -688,8 +753,8 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   background:#1a2d47;color:#dceaff;
   flex:0 0 auto;
 }
-.sim-log-chip.goal{background:rgba(77,209,255,.18);color:#84ecff;border:1px solid rgba(77,209,255,.24)}
-.sim-log-chip.penalty{background:rgba(255,177,90,.16);color:#ffc98d;border:1px solid rgba(255,177,90,.22)}
+.sim-log-chip.goal{background:rgba(77,209,255,.16);color:#9aedff;border:1px solid rgba(77,209,255,.2)}
+.sim-log-chip.penalty{background:rgba(255,177,90,.14);color:#ffd39f;border:1px solid rgba(255,177,90,.18)}
 .sim-timeline::-webkit-scrollbar{width:10px}
 .sim-timeline::-webkit-scrollbar-track{background:rgba(10,17,30,.7);border-radius:999px}
 .sim-timeline::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(111,212,255,.8),rgba(83,142,255,.75));border-radius:999px;border:2px solid rgba(10,17,30,.6)}
@@ -720,8 +785,20 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   .draft-needs-grid{grid-template-columns:1fr}
   .draft-action{position:static}
   .sim-scoreboard{grid-template-columns:1fr}
-  .sim-center{min-width:0}
-  .sim-stats-row{grid-template-columns:1fr 1fr}
+  .sim-top-head{grid-template-columns:1fr}
+  .sim-top-team,.sim-top-team-right{justify-content:center}
+  .sim-top-team-name{font-size:16px}
+  .sim-top-score{font-size:34px}
+  .sim-stage{grid-template-columns:1fr}
+  .sim-side-panel,.sim-side-panel-right{
+    grid-template-columns:repeat(3,1fr);
+    display:grid;
+    text-align:center;
+    gap:8px;
+    padding:0;
+  }
+  .sim-side-value{font-size:34px}
+  .sim-board{min-height:380px;padding:10px}
   .sim-log-row{grid-template-columns:1fr}
   .sim-log-time{order:-1}
   .sim-log-side.home,.sim-log-side.away{justify-content:flex-start;text-align:left}
