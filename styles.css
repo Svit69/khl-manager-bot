@@ -62,11 +62,11 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
 .hockey-card-bg{z-index:1}
 .hockey-card-photo{
   position:absolute;
-  top:48px;
+  top:30px;
   left:50%;
   transform:translateX(-50%);
-  width:126px;
-  height:126px;
+  width:156px;
+  height:156px;
   object-fit:cover;
   object-position:center 15%;
   z-index:2;
