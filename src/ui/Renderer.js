@@ -15,6 +15,29 @@ const renderDraftPositionBlock=(label,players)=>{
   const names=(players||[]).map(player=>player.name).join(", ");
   return `<div class="draft-pos"><div class="muted">${label} (${players.length})</div><div>${names||"—"}</div></div>`;
 };
+const getDraftTargetByPosition=position=>{
+  if(position==="CTR")return 4;
+  if(position==="LW")return 4;
+  if(position==="RW")return 4;
+  if(position==="DEF")return 6;
+  if(position==="G")return 2;
+  return 0;
+};
+const renderDraftNeedsGrid=userRoster=>{
+  const items=[
+    {key:"CTR",label:"ЦТР"},
+    {key:"LW",label:"ЛНП"},
+    {key:"RW",label:"ПНП"},
+    {key:"DEF",label:"ЗАЩ"},
+    {key:"G",label:"ВРТ"}
+  ];
+  return `<div class="draft-needs-grid">${items.map(item=>{
+    const current=(userRoster[item.key]||[]).length;
+    const target=getDraftTargetByPosition(item.key);
+    const ratio=target>0?Math.min(1,current/target):0;
+    return `<div class="draft-need-card"><div class="draft-need-head"><span>${item.label}</span><span>${current}/${target}</span></div><div class="draft-need-bar"><span style="width:${Math.round(ratio*100)}%"></span></div></div>`;
+  }).join("")}</div>`;
+};
 const getSurname=player=>player.identity?.lastName||String(player.name||"").trim().split(/\s+/).slice(-1)[0]||player.name;
 const getNationCode=nationality=>{
   const code=String(nationality||"").trim().toUpperCase();
@@ -100,10 +123,19 @@ export class Renderer{
   }
   renderFantasyDraft(draft,team){
     const selectedPlayer=draft.availablePlayers.find(player=>player.id===draft.selectedPlayerId)||null;
-    const draftHeader=`<div class="row"><img class="logo" src="${team.logoUrl}" alt="${team.name}"/><div><div>Фэнтези драфт — ${team.name}</div><div class="muted">Раунд ${draft.currentRound}/20 • Пик ${draft.currentPickInRound}/${draft.teams.length} • Общий #${draft.pickNumber}/${draft.totalPicks}</div></div></div>`;
-    const teamRows=draft.teams.map(item=>`<div class="muted">${item.name}: ${item.pickedCount}/20</div>`).join("");
-    const flow=draft.flow.map(item=>`<div class="muted">${item.isDone?"✅":(item.isCurrent?"▶":"○")} ${item.step}</div>`).join("");
-    const orderPreview=draft.upcomingOrder.map(item=>`<div class="muted">R${item.round}.${item.pick} — ${draft.teams.find(teamItem=>teamItem.id===item.teamId)?.name||item.teamId}</div>`).join("");
+    const previewPlayer=selectedPlayer||draft.availablePlayers[0]||null;
+    const totalProgress=draft.totalPicks>0?Math.min(100,Math.round((Math.max(0,draft.pickNumber-1)/draft.totalPicks)*100)):0;
+    const draftHeader=`<div class="draft-header-shell"><div class="draft-header-main"><img class="logo" src="${team.logoUrl}" alt="${team.name}"/><div><div class="draft-header-title">Фэнтези драфт • ${team.name}</div><div class="muted">Раунд ${draft.currentRound}/20 • Пик ${draft.currentPickInRound}/${draft.teams.length} • Общий #${draft.pickNumber}/${draft.totalPicks}</div></div></div><div class="draft-header-side"><div class="muted">Текущий пик</div><div class="draft-current-team">${draft.currentTeamName||"—"}</div><div class="draft-progress"><span style="width:${totalProgress}%"></span></div></div></div>`;
+    const teamRows=draft.teams.map(item=>{
+      const isCurrent=item.id===draft.currentTeamId;
+      const isUser=item.id===team.id;
+      return `<div class="draft-team-row${isCurrent?" current":""}${isUser?" user":""}"><span class="draft-team-name">${item.name}</span><span class="draft-team-count">${item.pickedCount}/20</span></div>`;
+    }).join("");
+    const orderPreview=draft.upcomingOrder.map(item=>{
+      const pickTeam=draft.teams.find(teamItem=>teamItem.id===item.teamId);
+      const isCurrent=item.round===draft.currentRound && item.pick===draft.currentPickInRound;
+      return `<div class="draft-order-chip${isCurrent?" active":""}"><div class="draft-order-chip-meta">R${item.round} • #${item.pick}</div><div class="draft-order-chip-name">${pickTeam?.name||item.teamId}</div></div>`;
+    }).join("");
     const userRoster=draft.userRosterByPosition||{CTR:[],LW:[],RW:[],DEF:[],G:[]};
     const rosterPanel=[
       renderDraftPositionBlock("ЦТР",userRoster.CTR||[]),
@@ -115,16 +147,36 @@ export class Renderer{
     const status=draft.isComplete?"Драфт завершен":(draft.isUserTurn?`Ваш пик: ${draft.currentTeamName}`:`Пикает: ${draft.currentTeamName}`);
     const confirmText=selectedPlayer?`Задрафтовать: ${selectedPlayer.name}`:"Выберите игрока";
     const confirmDisabled=(!draft.isUserTurn||draft.isComplete||!selectedPlayer)?"disabled":"";
-    const sortControls=`<div class="row"><button class="btn secondary" data-action="draft-sort" data-sort="ovr">OVR</button><button class="btn secondary" data-action="draft-sort" data-sort="position">Позиция</button><button class="btn secondary" data-action="draft-sort" data-sort="age">Возраст</button></div>`;
-    const filterControls=`<div class="row"><button class="btn secondary" data-action="draft-filter" data-position="ALL">Все</button><button class="btn secondary" data-action="draft-filter" data-position="ЦТР">ЦТР</button><button class="btn secondary" data-action="draft-filter" data-position="ЛНП">ЛНП</button><button class="btn secondary" data-action="draft-filter" data-position="ПНП">ПНП</button><button class="btn secondary" data-action="draft-filter" data-position="ЗАЩ">ЗАЩ</button></div>`;
-    const actionBar=`<div class="draft-action row"><div class="muted">Выбрано: ${selectedPlayer?`${selectedPlayer.name} • ${selectedPlayer.identity.primaryPosition} • OVR ${selectedPlayer.ovr} • ${getNationBadge(selectedPlayer.identity.nationality)}`:"—"}</div><button class="btn" ${confirmDisabled} data-action="draft-confirm-pick">${confirmText}</button></div>`;
+    const sortControls=`<div class="draft-toolbar-group">${[
+      {id:"ovr",label:"OVR"},
+      {id:"position",label:"Позиция"},
+      {id:"age",label:"Возраст"}
+    ].map(item=>`<button class="chip-btn${draft.sortBy===item.id?" active":""}" data-action="draft-sort" data-sort="${item.id}">${item.label}</button>`).join("")}</div>`;
+    const filterControls=`<div class="draft-toolbar-group">${[
+      {id:"ALL",label:"Все"},
+      {id:"ЦТР",label:"ЦТР"},
+      {id:"ЛНП",label:"ЛНП"},
+      {id:"ПНП",label:"ПНП"},
+      {id:"ЗАЩ",label:"ЗАЩ"},
+      {id:"ВРТ",label:"ВРТ"}
+    ].map(item=>`<button class="chip-btn${draft.filterPosition===item.id?" active":""}" data-action="draft-filter" data-position="${item.id}">${item.label}</button>`).join("")}</div>`;
+    const actionBar=`<div class="draft-action"><div class="draft-action-text"><div class="muted">Статус</div><div>${status}</div><div class="muted">Выбрано: ${selectedPlayer?`${selectedPlayer.name} • ${selectedPlayer.identity.primaryPosition} • OVR ${selectedPlayer.ovr}`:"—"}</div></div><div class="draft-action-buttons"><button class="btn secondary" data-action="draft-cancel">Отмена</button><button class="btn" ${confirmDisabled} data-action="draft-confirm-pick">${confirmText}</button></div></div>`;
     const cards=draft.availablePlayers.map(player=>{
       const age=calculateAge(player.identity.birthDate);
       const selectedClass=player.id===draft.selectedPlayerId?" selected":"";
       const nation=getNationBadge(player.identity.nationality);
-      return `<button class="player-card player-card-button${selectedClass}" data-action="draft-select" data-player-id="${player.id}"><img class="player-photo" src="${player.identity.photoUrl||"./player-photo/placeholder.png"}" alt="${player.name}"/><div><div>${player.name}</div><div class="muted">${player.identity.primaryPosition} • OVR ${player.ovr} • Возраст ${age}</div><div class="muted">${nation}</div></div></button>`;
+      return `<button class="draft-list-row${selectedClass}" data-action="draft-select" data-player-id="${player.id}"><div class="draft-list-row-pos">${player.identity.primaryPosition||"—"}</div><img class="player-photo" src="${player.identity.photoUrl||"./player-photo/placeholder.png"}" alt="${player.name}"/><div class="draft-list-row-main"><div class="draft-list-row-name">${player.name}</div><div class="draft-list-row-meta">${nation}</div></div><div class="draft-list-row-stat"><span class="draft-list-row-stat-label">OVR</span><strong>${player.ovr}</strong></div><div class="draft-list-row-stat"><span class="draft-list-row-stat-label">Возраст</span><strong>${age}</strong></div></button>`;
     }).join("");
-    this.#teamEl.innerHTML=`<h2>Режим драфта</h2>${draftHeader}<div class="list">${teamRows}</div><div class="draft-panel">${rosterPanel}</div><div class="draft-panel"><div class="muted">Core flow</div>${flow}</div><div class="draft-panel"><div class="muted">Draft order (ближайшие пики)</div>${orderPreview}</div><div class="row"><div class="muted">${status}</div><button class="btn secondary" data-action="draft-cancel">Отмена</button></div><div class="draft-pool-panel"><h2>Пул игроков</h2>${sortControls}${filterControls}${actionBar}<div class="roster-grid">${cards||"<div class=\"muted\">Нет игроков</div>"}</div></div>`;
+    const recentPicks=(draft.pickLog||[]).slice(-5).reverse().map(item=>`<div class="draft-recent-row"><span>#${item.pickNumber}</span><span>${item.teamName}</span><span>${item.playerName}</span></div>`).join("")||`<div class="muted">Пиков пока нет</div>`;
+    const attrs=previewPlayer?.attributes?.attributesJson||{};
+    const attrRows=Object.entries(attrs).filter(([,value])=>typeof value==="number").slice(0,5).map(([key,value])=>{
+      const labels={shot:"Бросок",speed:"Скорость",physical:"Силовая",defense:"Оборона",skill:"Техника",reflexes:"Рефлексы",positioning:"Позиция",glove:"Ловушка",blocker:"Блин",reboundControl:"Подбор"};
+      const pct=Math.max(0,Math.min(100,Number(value)||0));
+      return `<div class="draft-attr-row"><span>${labels[key]||key}</span><div class="draft-attr-bar"><span style="width:${pct}%"></span></div><strong>${value}</strong></div>`;
+    }).join("");
+    const previewAge=previewPlayer?calculateAge(previewPlayer.identity.birthDate):null;
+    const previewCard=previewPlayer?`<div class="draft-preview-head"><img class="draft-preview-photo" src="${previewPlayer.identity.photoUrl||"./player-photo/placeholder.png"}" alt="${previewPlayer.name}"/><div class="draft-preview-title"><div class="draft-preview-ovr">${previewPlayer.ovr}</div><div class="draft-preview-name">${previewPlayer.name}</div><div class="draft-preview-meta">${previewPlayer.identity.primaryPosition} • ${previewAge} лет • ${getNationBadge(previewPlayer.identity.nationality)}</div></div></div><div class="draft-preview-attrs">${attrRows||'<div class="muted">Атрибуты недоступны</div>'}</div>`:`<div class="muted">Игрок не выбран</div>`;
+    this.#teamEl.innerHTML=`<div class="draft-screen"><div class="draft-top">${draftHeader}<div class="draft-order-strip">${orderPreview}</div></div><div class="draft-layout"><section class="draft-left"><div class="draft-card"><div class="draft-card-head"><h2>Доступные игроки</h2><div class="muted">${draft.availablePlayers.length} в пуле</div></div><div class="draft-toolbar"><div><div class="muted">Сортировка</div>${sortControls}</div><div><div class="muted">Фильтр по позиции</div>${filterControls}</div></div>${actionBar}<div class="draft-list">${cards||"<div class=\"muted\">Нет игроков</div>"}</div></div></section><aside class="draft-right"><div class="draft-card"><div class="draft-card-head"><h2>Просмотр игрока</h2><div class="muted">MVP поля: имя • позиция • OVR • возраст • нация</div></div>${previewCard}</div><div class="draft-card"><div class="draft-card-head"><h2>Ваш драфт-борд</h2><div class="muted">${team.name}</div></div>${renderDraftNeedsGrid(userRoster)}<div class="draft-panel">${rosterPanel}</div></div><div class="draft-card"><div class="draft-card-head"><h2>Команды</h2><div class="muted">20 раундов • змейка</div></div><div class="draft-team-list">${teamRows}</div></div><div class="draft-card"><div class="draft-card-head"><h2>Последние пики</h2><div class="muted">Live log</div></div><div class="draft-recent-list">${recentPicks}</div></div></aside></div></div>`;
     this.#matchEl.innerHTML="";
   }
   renderCalendar(day,info,isLocked){
