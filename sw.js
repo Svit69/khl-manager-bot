@@ -1,4 +1,4 @@
-﻿const CACHE_NAME="khl-manager-v56";
+﻿const CACHE_NAME="khl-manager-v57";
 const ASSETS=[
   "./",
   "./index.html",

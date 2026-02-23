@@ -82,12 +82,12 @@ export class AppController{
     if(teamId){this.#pendingTeamId=teamId;this.#renderScreen();return;}
     const tab=clickable?.dataset?.tab;
     if(tab){this.#activeTab=tab;this.#renderScreen();return;}
+    const action=clickable?.dataset?.action;
     if(action==="calendar-tab"){
       this.#calendarPanelTab=clickable.dataset.value||"standings";
       this.#renderScreen();
       return;
     }
-    const action=clickable?.dataset?.action;
     if(action==="sim-skip" && this.#matchPlayback){
       this.#matchPlayback.currentSecond=this.#matchPlayback.match.summary?.durationSeconds||3600;
       this.#matchPlayback.visibleEvents=[...(this.#matchPlayback.match.events||[])];
