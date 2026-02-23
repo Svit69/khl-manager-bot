@@ -21,10 +21,10 @@ export class AppController{
     document.addEventListener("dragend",event=>{this.#dragRosterSlot=null;event.target?.classList?.remove?.("is-dragging");});
   }
   #renderScreen(){
-    const dayInfo=this.#calendar.getCurrent();
+    const dayInfo=this.#state.activeTeam?this.#state.getVisibleCalendarDay():this.#calendar.getCurrent();
     if(this.#state.activeTeam){
       this.#renderer.renderTeam(this.#state.activeTeam,this.#activeTab,this.#activeRosterUnit);
-      this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,false);
+      this.#renderer.renderCalendar(dayInfo?.day||this.#calendar.currentDay,dayInfo,false);
       this.#renderer.renderResetButton();
       if(this.#activeTab==="contracts"){
         this.#renderer.renderContracts(this.#state.getActiveTeamContractRows(),this.#buildNegotiationState());
@@ -191,8 +191,8 @@ export class AppController{
     if(clickable?.id==="resetBtn"){this.#resetGame();return;}
     if(clickable?.id!=="playBtn"||this.#calendar.isFinished()||!this.#state.activeTeamId)return;
     if(this.#matchPlayback)return;
-    const day=this.#calendar.getCurrent();
-    this.#state.playDay();
+    const day=this.#state.activeTeam?this.#state.getVisibleCalendarDay():this.#calendar.getCurrent();
+    this.#state.activeTeam?this.#state.playDayForActiveTeam():this.#state.playDay();
     this.#userStore.saveState(this.#state.exportState());
     if(day?.match && this.#state.lastMatch)this.#startMatchPlayback(this.#state.lastMatch);
     this.#renderScreen();

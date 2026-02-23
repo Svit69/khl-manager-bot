@@ -14,6 +14,9 @@ export class AppState{
   get activeTeamId(){return this.#activeTeamId}
   get activeTeam(){return this.#teams.find(t=>t.id===this.#activeTeamId)||null}
   setActiveTeamId(teamId){this.#activeTeamId=teamId}
+  getVisibleCalendarDay(){
+    return this.#activeTeamId?this.#calendar.getCurrentForTeam(this.#activeTeamId):this.#calendar.getCurrent();
+  }
   getAllPlayers(){return this.#teams.flatMap(team=>team.getRoster())}
   getActiveTeamContractRows(){return this.activeTeam?this.#contracts.getTeamContractRows(this.activeTeam):[]}
   getActiveTeamNegotiationPreview(playerId,offer){
@@ -39,6 +42,30 @@ export class AppState{
     this.#standings.recordMatch(this.#lastMatch);
     this.#stats.recordMatch(this.#lastMatch);this.#applyFatigue([day.match.home,day.match.away],12);this.#calendar.advanceDay();
     return this.#lastMatch;
+  }
+  playDayForActiveTeam(){
+    if(!this.#activeTeamId)return this.playDay();
+    while(true){
+      const day=this.#calendar.getCurrent();
+      if(!day)return null;
+      if(!day.match){
+        this.#lastMatch=null;
+        this.#applyFatigue(this.#teams,-8);
+        this.#calendar.advanceDay();
+        return null;
+      }
+      const isActiveMatch=day.match.home?.id===this.#activeTeamId || day.match.away?.id===this.#activeTeamId;
+      const simulated=this.#sim.simulateMatch(day.match.home,day.match.away);
+      this.#standings.recordMatch(simulated);
+      this.#stats.recordMatch(simulated);
+      this.#applyFatigue([day.match.home,day.match.away],12);
+      this.#calendar.advanceDay();
+      if(isActiveMatch){
+        this.#lastMatch=simulated;
+        return simulated;
+      }
+      // Чужой матч симулируем фоном и идем дальше до события пользователя.
+    }
   }
   exportState(){
     const players=this.#teams.flatMap(t=>t.getRoster()).map(p=>({id:p.id,fatigueScore:p.fatigueScore,form:p.form,injuryUntilDay:p.condition.injuryUntilDay}));

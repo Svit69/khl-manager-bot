@@ -5,6 +5,15 @@
   set index(value){this.#index=Math.max(0,Math.min(this.#days.length,value))}
   get currentDay(){return this.#index+1}
   getCurrent(){return this.#days[this.#index]||null}
+  getCurrentForTeam(teamId){
+    if(!teamId)return this.getCurrent();
+    for(let i=this.#index;i<this.#days.length;i++){
+      const day=this.#days[i];
+      if(!day?.match)return day;
+      if(day.match.home?.id===teamId||day.match.away?.id===teamId)return day;
+    }
+    return null;
+  }
   advanceDay(){if(this.#index<this.#days.length)this.#index++}
   isFinished(){return this.#index>=this.#days.length}
   #buildSchedule(teams){
