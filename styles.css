@@ -171,6 +171,93 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   justify-content:center;
   color:var(--muted);
 }
+.team-screen{
+  min-height:680px;
+  border-radius:14px;
+  padding:18px 18px 12px;
+  display:grid;
+  grid-template-columns:180px 1fr;
+  gap:20px;
+  background:
+    radial-gradient(80% 120% at 70% 20%, rgba(80,96,180,.18), transparent 60%),
+    radial-gradient(60% 80% at 20% 10%, rgba(255,255,255,.05), transparent 50%),
+    linear-gradient(115deg, #03060f 0%, #020813 45%, #07143a 100%);
+  border:1px solid rgba(255,255,255,.06);
+  overflow:hidden;
+}
+.team-sidebar{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:18px;
+  padding-top:6px;
+}
+.team-sidebar-logo{
+  width:86px;
+  height:86px;
+  object-fit:contain;
+  filter:drop-shadow(0 4px 10px rgba(0,0,0,.35));
+}
+.team-sidebar-nav{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:34px;
+}
+.team-nav-link{
+  background:none;
+  border:none;
+  color:#ffffff;
+  opacity:.72;
+  font-weight:700;
+  font-size:18px;
+  text-align:left;
+  cursor:pointer;
+  padding:2px 0;
+}
+.team-nav-link.active{opacity:1}
+.team-screen-main{
+  display:grid;
+  grid-template-rows:auto auto 1fr;
+  gap:14px;
+  min-width:0;
+}
+.team-screen-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  min-height:28px;
+}
+.team-screen-title{
+  font-size:20px;
+  font-weight:800;
+  color:#fff;
+}
+.team-reserve-wrap{
+  margin-top:8px;
+  padding-top:8px;
+}
+.team-reserve-strip{
+  display:flex;
+  gap:12px;
+  overflow-x:auto;
+  padding:4px 2px 8px;
+  scrollbar-width:thin;
+}
+.team-reserve-empty{
+  min-height:92px;
+  display:flex;
+  align-items:center;
+  color:rgba(255,255,255,.6);
+}
+.hockey-card--reserve{
+  opacity:.42;
+  transform:scale(.84);
+  transform-origin:top left;
+  margin-right:-28px;
+  filter:saturate(.8);
+}
+.hockey-card--reserve .hockey-card-photo{filter:grayscale(.1)}
 .draft-panel{display:grid;grid-template-columns:1fr;gap:6px;margin:8px 0}
 .draft-pos{background:#0f2743;border:1px solid #1c3e63;border-radius:8px;padding:6px}
 .draft-action{position:sticky;top:0;z-index:2;background:#102a45;border:1px solid #1c3e63;border-radius:8px;padding:8px;margin:8px 0}
@@ -187,7 +274,13 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   .header h1{font-size:16px}
 }
 @media (max-width:720px){
+  .team-screen{grid-template-columns:1fr;min-height:auto}
+  .team-sidebar{flex-direction:row;align-items:center;justify-content:space-between}
+  .team-sidebar-nav{margin-top:0;flex-direction:row;gap:14px}
+  .team-sidebar-logo{width:58px;height:58px}
+  .team-screen-main{grid-template-rows:auto auto auto}
   .line-view-panel{grid-template-columns:1fr}
   .line-unit-buttons{flex-direction:row;gap:10px;padding-top:0}
   .line-card-row{gap:10px}
+  .hockey-card--reserve{transform:scale(.72);margin-right:-52px}
 }
