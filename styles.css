@@ -92,11 +92,12 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   color:#f5f7ff;
 }
 .hockey-card-ovr,.hockey-card-pos{
-  font-size:17px;
   font-weight:800;
   line-height:1;
   color:#f5f7ff;
 }
+.hockey-card-ovr{font-size:20px}
+.hockey-card-pos{font-size:18px}
 .hockey-card-name-band{
   left:0;
   right:0;
