@@ -181,7 +181,7 @@
     teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
     season:"2027/2028",
     salaryRub:60000000,
-    type:"one-way"
+    type:"two-way"
   },
   {
     id:"d7e8f9a0-b1c2-4d3e-5f6a-7b8c9d0e1f2a",
@@ -189,7 +189,7 @@
     teamId:"a4b4f445-2c38-41c5-a2d2-3aee8a0f5d2a",
     season:"2025/2026",
     salaryRub:35000000,
-    type:"one-way"
+    type:"two-way"
   },
   {
     id:"e9f0a1b2-c3d4-4e5f-6a7b-8c9d0e1f2a3b",
