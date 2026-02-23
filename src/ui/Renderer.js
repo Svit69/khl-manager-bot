@@ -1,4 +1,4 @@
-import { ContractTabRenderer } from "./ContractTabRenderer.js";
+﻿import { ContractTabRenderer } from "./ContractTabRenderer.js";
 import { calculateAge } from "../contracts/SeasonUtils.js";
 const getNationBadge=nationality=>{
   const code=String(nationality||"").trim().toUpperCase();
@@ -115,7 +115,6 @@ export class Renderer{
     const status=draft.isComplete?"Драфт завершен":(draft.isUserTurn?`Ваш пик: ${draft.currentTeamName}`:`Пикает: ${draft.currentTeamName}`);
     const confirmText=selectedPlayer?`Задрафтовать: ${selectedPlayer.name}`:"Выберите игрока";
     const confirmDisabled=(!draft.isUserTurn||draft.isComplete||!selectedPlayer)?"disabled":"";
-    this.#teamEl.innerHTML=`<h2>Режим драфта</h2>${draftHeader}<div class="list">${teamRows}</div><div class="draft-panel">${rosterPanel}</div><div class="draft-panel"><div class="muted">Core flow</div>${flow}</div><div class="draft-panel"><div class="muted">Draft order (ближайшие пики)</div>${orderPreview}</div><div class="row"><div class="muted">${status}</div><button class="btn secondary" data-action="draft-cancel">Отмена</button></div><div class="draft-pool-panel"><h2>Пул игроков</h2>${sortControls}${filterControls}${actionBar}<div class="roster-grid">${cards||"<div class=\"muted\">Нет игроков</div>"}</div></div>`;
     const sortControls=`<div class="row"><button class="btn secondary" data-action="draft-sort" data-sort="ovr">OVR</button><button class="btn secondary" data-action="draft-sort" data-sort="position">Позиция</button><button class="btn secondary" data-action="draft-sort" data-sort="age">Возраст</button></div>`;
     const filterControls=`<div class="row"><button class="btn secondary" data-action="draft-filter" data-position="ALL">Все</button><button class="btn secondary" data-action="draft-filter" data-position="ЦТР">ЦТР</button><button class="btn secondary" data-action="draft-filter" data-position="ЛНП">ЛНП</button><button class="btn secondary" data-action="draft-filter" data-position="ПНП">ПНП</button><button class="btn secondary" data-action="draft-filter" data-position="ЗАЩ">ЗАЩ</button></div>`;
     const actionBar=`<div class="draft-action row"><div class="muted">Выбрано: ${selectedPlayer?`${selectedPlayer.name} • ${selectedPlayer.identity.primaryPosition} • OVR ${selectedPlayer.ovr} • ${getNationBadge(selectedPlayer.identity.nationality)}`:"—"}</div><button class="btn" ${confirmDisabled} data-action="draft-confirm-pick">${confirmText}</button></div>`;
@@ -125,6 +124,7 @@ export class Renderer{
       const nation=getNationBadge(player.identity.nationality);
       return `<button class="player-card player-card-button${selectedClass}" data-action="draft-select" data-player-id="${player.id}"><img class="player-photo" src="${player.identity.photoUrl||"./player-photo/placeholder.png"}" alt="${player.name}"/><div><div>${player.name}</div><div class="muted">${player.identity.primaryPosition} • OVR ${player.ovr} • Возраст ${age}</div><div class="muted">${nation}</div></div></button>`;
     }).join("");
+    this.#teamEl.innerHTML=`<h2>Режим драфта</h2>${draftHeader}<div class="list">${teamRows}</div><div class="draft-panel">${rosterPanel}</div><div class="draft-panel"><div class="muted">Core flow</div>${flow}</div><div class="draft-panel"><div class="muted">Draft order (ближайшие пики)</div>${orderPreview}</div><div class="row"><div class="muted">${status}</div><button class="btn secondary" data-action="draft-cancel">Отмена</button></div><div class="draft-pool-panel"><h2>Пул игроков</h2>${sortControls}${filterControls}${actionBar}<div class="roster-grid">${cards||"<div class=\"muted\">Нет игроков</div>"}</div></div>`;
     this.#matchEl.innerHTML="";
   }
   renderCalendar(day,info,isLocked){
