@@ -290,9 +290,9 @@ export class MatchSimulator {
     const periodLength = inOt ? OT_SECONDS : PERIOD_SECONDS;
     const minuteAbsolute = Math.floor(gameSecond / 60) + 1;
     const secondInMinute = periodSecond % 60;
-    const down = Math.max(0, periodLength - periodSecond);
-    const mm = String(Math.floor(down / 60)).padStart(2, "0");
-    const ss = String(down % 60).padStart(2, "0");
+    const elapsed = Math.max(0, periodSecond);
+    const mm = String(Math.floor(elapsed / 60)).padStart(2, "0");
+    const ss = String(elapsed % 60).padStart(2, "0");
     return {
       ...data,
       gameSecond,
