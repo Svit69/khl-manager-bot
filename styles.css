@@ -8,6 +8,8 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
 .main{display:grid;gap:10px;grid-template-columns:1fr}
 .panel{background:rgba(16,42,69,.88);border:1px solid #1c3e63;border-radius:10px;padding:10px;min-height:120px}
 .panel h2{font-size:14px;color:var(--accent);margin-bottom:6px}
+#teamPanel{min-width:0}
+#matchPanel{display:none}
 .btn{background:var(--accent);border:none;padding:8px 10px;border-radius:8px;font-weight:700;cursor:pointer}
 .btn.secondary{background:#1c3e63;color:var(--text)}
 .row{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
@@ -270,7 +272,7 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
 .reset-row{justify-content:flex-end;margin-top:8px}
 @media (orientation:landscape){
-  .main{grid-template-columns:1fr 1fr 1fr}
+  .main{grid-template-columns:minmax(0,2.2fr) minmax(320px,1fr)}
   .header h1{font-size:16px}
 }
 @media (max-width:720px){
