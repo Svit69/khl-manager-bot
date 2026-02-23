@@ -2,6 +2,7 @@ import { FantasyDraftService } from "../draft/FantasyDraftService.js";
 export class AppController{
   #state;#calendar;#teams;#renderer;#userStore;#pendingTeamId=null;#activeTab="roster";
   #selectedNegotiationPlayerId=null;#offerByPlayerId=new Map();#outcomeByPlayerId=new Map();
+  #activeRosterUnit="1";
   #draftState=null;
   constructor(state,calendar,teams,renderer,userStore){
     this.#state=state;this.#calendar=calendar;this.#teams=teams;this.#renderer=renderer;this.#userStore=userStore;
@@ -15,7 +16,7 @@ export class AppController{
   #renderScreen(){
     const dayInfo=this.#calendar.getCurrent();
     if(this.#state.activeTeam){
-      this.#renderer.renderTeam(this.#state.activeTeam,this.#activeTab);
+      this.#renderer.renderTeam(this.#state.activeTeam,this.#activeTab,this.#activeRosterUnit);
       this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,false);
       this.#renderer.renderResetButton();
       if(this.#activeTab==="contracts"){
@@ -64,6 +65,11 @@ export class AppController{
     if(action==="open-negotiation"){
       this.#selectedNegotiationPlayerId=clickable.dataset.playerId;
       this.#outcomeByPlayerId.delete(this.#selectedNegotiationPlayerId);
+      this.#renderScreen();
+      return;
+    }
+    if(action==="select-roster-unit"){
+      this.#activeRosterUnit=clickable.dataset.unit||"1";
       this.#renderScreen();
       return;
     }

@@ -40,6 +40,28 @@ const renderRosterCard=player=>{
   const nationFlag=getNationFlag(player.identity.nationality);
   return `<article class="hockey-card"><div class="hockey-card-layers"><img class="hockey-card-bg" src="./card/card_background.svg" alt="" aria-hidden="true"/><img class="hockey-card-photo" src="${photo}" alt="${player.name}"/><img class="hockey-card-front" src="./card/card_front.svg" alt="" aria-hidden="true"/></div><div class="hockey-card-top"><span class="hockey-card-ovr">${player.ovr}</span><span class="hockey-card-pos">${player.identity.primaryPosition}</span></div><div class="hockey-card-name-band">${surname}</div><div class="hockey-card-meta-row"><span>${age} ЛЕТ</span><span>${nationFlag} ${nationCode}</span></div></article>`;
 };
+const getRosterUnitPlayers=(team,unitKey)=>{
+  if(String(unitKey)==="G"){
+    return team.getRoster().filter(player=>player.identity?.primaryPosition==="ВРТ");
+  }
+  const lineIndex=Math.max(1,Math.min(4,Number(unitKey)||1))-1;
+  return [...(team.lines?.[lineIndex]?.players||[])];
+};
+const renderRosterUnitButtons=activeUnit=>{
+  const units=["1","2","3","4","G"];
+  const labels={1:"1",2:"2",3:"3",4:"4",G:"В"};
+  return `<div class="line-unit-buttons">${units.map(unit=>`<button class="line-unit-btn${String(activeUnit||"1")===unit?" active":""}" data-action="select-roster-unit" data-unit="${unit}">${labels[unit]}</button>`).join("")}</div>`;
+};
+const renderRosterUnitCards=players=>{
+  if(!players.length)return `<div class="line-empty">Нет игроков</div>`;
+  const forwards=players.filter(player=>["ЛНП","ЦТР","ПНП"].includes(player.identity?.primaryPosition));
+  const defenders=players.filter(player=>player.identity?.primaryPosition==="ЗАЩ");
+  const others=players.filter(player=>!forwards.includes(player)&&!defenders.includes(player));
+  const ordered=[...forwards,...defenders,...others];
+  const top=ordered.slice(0,3).map(renderRosterCard).join("");
+  const bottom=ordered.slice(3).map(renderRosterCard).join("");
+  return `<div class="line-card-layout"><div class="line-card-row line-card-row-top">${top}</div><div class="line-card-row line-card-row-bottom">${bottom}</div></div>`;
+};
 export class Renderer{
   #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();
   constructor(){
@@ -49,10 +71,13 @@ export class Renderer{
     this.#userEl=document.getElementById("userBadge");
   }
   renderUser(user){this.#userEl.textContent=`ID: ${user.id}`}
-  renderTeam(team,activeTab){
-    const cards=team.getRoster().map(player=>renderRosterCard(player)).join("");
+  renderTeam(team,activeTab,activeRosterUnit="1"){
+    const unitPlayers=getRosterUnitPlayers(team,activeRosterUnit);
+    const cards=activeTab==="roster"
+      ? `<div class="line-view-panel">${renderRosterUnitButtons(activeRosterUnit)}${renderRosterUnitCards(unitPlayers)}</div>`
+      : `<div class="muted">Contracts tab selected</div>`;
     const header=`<div class="row"><img class="logo" src="${team.logoUrl}" alt="${team.name}"/><div><div>${team.name}</div><div class="muted">${team.city}, ${team.country} • ${team.shortName}</div></div></div>`;
-    this.#teamEl.innerHTML=`<h2>Моя команда</h2>${header}${this.#renderTabs(activeTab)}<div class="list roster-grid roster-grid-cards">${cards}</div>`;
+    this.#teamEl.innerHTML=`<h2>Моя команда</h2>${header}${this.#renderTabs(activeTab)}<div class="list">${cards}</div>`;
   }
   renderTeamSelection(teams,activeTeamId){
     const cards=teams.map(team=>`<button class="team-card" data-team-id="${team.id}"><img src="${team.logoUrl}" alt="${team.name}"/><span>${team.name}</span></button>`).join("");
