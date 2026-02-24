@@ -16,6 +16,7 @@ const FLOW_STAGE = Object.freeze({
 });
 
 const compareByOvr = (a, b) => b.ovr - a.ovr || a.name.localeCompare(b.name, "ru");
+const rand = (min, max) => min + Math.random() * (max - min);
 const compareByPosition = (a, b) => {
   const posA = a.identity?.primaryPosition || "";
   const posB = b.identity?.primaryPosition || "";
