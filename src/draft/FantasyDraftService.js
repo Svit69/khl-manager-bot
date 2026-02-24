@@ -229,8 +229,8 @@ export class FantasyDraftService {
   }
 
   #getDraftPhase(round) {
-    if (round <= 4) return "early";
-    if (round <= 14) return "mid";
+    if (round <= 8) return "early";
+    if (round <= 15) return "mid";
     return "late";
   }
 
@@ -258,22 +258,23 @@ export class FantasyDraftService {
     const needRatio = targetCount > 0 ? deficit / targetCount : 0;
     const overfillPenalty = (targetCount > 0 && currentCount >= targetCount) ? (currentCount - targetCount + 1) : 0;
     const strategyBonus = this.#scoreAgePotentialByArchetype({ age, potential, ovr, archetype: context.archetype, phase: context.phase });
+    const tinyRandom = rand(-1.1, 1.1);
 
     let score = 0;
     if (context.phase === "early") {
-      score += ovr * 1.35;
+      score += ovr * 1.48;
       score += needRatio * 10;
       score += needUrgency * 8;
       if (currentCount === 0 && deficit > 0) score += 4;
-      score += strategyBonus * 0.45;
+      score += strategyBonus * 0.28;
       if (context.totalDeficit > 0 && overfillPenalty > 0) score -= 6 * overfillPenalty;
       if (context.round >= 3 && context.totalDeficit >= context.remainingTeamPicks && deficit === 0) score -= 8;
     } else if (context.phase === "mid") {
-      score += ovr * 0.95;
+      score += ovr * 1.02;
       score += needRatio * 22;
       score += needUrgency * 20;
       score += picksPressure * 8 * (deficit > 0 ? 1 : -0.6);
-      score += strategyBonus * 0.7;
+      score += strategyBonus * 0.52;
       if (context.totalDeficit > 0 && deficit === 0) score -= 10 + 8 * picksPressure;
       if (overfillPenalty > 0) score -= 14 * overfillPenalty;
     } else {
@@ -281,7 +282,7 @@ export class FantasyDraftService {
       score += needRatio * 18;
       score += needUrgency * 26;
       score += picksPressure * 14 * (deficit > 0 ? 1 : -0.8);
-      score += strategyBonus * 0.85;
+      score += strategyBonus * 0.72;
       if (context.totalDeficit > 0 && deficit === 0) score -= 12 + 14 * picksPressure;
       if (overfillPenalty > 0) score -= 16 * overfillPenalty;
     }
@@ -291,30 +292,31 @@ export class FantasyDraftService {
       if (context.phase !== "early" && deficit > 0 && picksPressure > 0.6) score += 8;
     }
 
-    return score;
+    // Small noise prevents deterministic drafts but is too small to overturn clear BPA gaps.
+    return score + tinyRandom;
   }
 
   #scoreAgePotentialByArchetype({ age, potential, ovr, archetype, phase }) {
-    const youthValue = Math.max(0, 26 - age);
+    const youthValue = Math.max(0, 25 - age);
     const primeValue = Math.max(0, 8 - Math.abs(28 - age));
-    const potentialGap = Math.max(-5, Math.min(20, potential - ovr));
+    const potentialGap = Math.max(-4, Math.min(12, potential - ovr));
 
     if (archetype === "youth") {
-      if (phase === "early") return youthValue * 1.4 + potentialGap * 1.5 + ovr * 0.12;
-      if (phase === "mid") return youthValue * 1.8 + potentialGap * 1.9 + ovr * 0.08;
-      return youthValue * 2.0 + potentialGap * 2.1 + ovr * 0.04;
+      if (phase === "early") return youthValue * 0.95 + potentialGap * 0.95 + ovr * 0.08;
+      if (phase === "mid") return youthValue * 1.25 + potentialGap * 1.25 + ovr * 0.06;
+      return youthValue * 1.55 + potentialGap * 1.45 + ovr * 0.03;
     }
 
     if (archetype === "win-now") {
       const agePenalty = age > 33 ? (age - 33) * 1.5 : 0;
       if (phase === "early") return primeValue * 1.2 + ovr * 0.18 - agePenalty;
-      if (phase === "mid") return primeValue * 1.5 + ovr * 0.12 + potentialGap * 0.4 - agePenalty;
-      return primeValue * 1.0 + ovr * 0.08 + potentialGap * 0.3 - agePenalty;
+      if (phase === "mid") return primeValue * 1.4 + ovr * 0.12 + potentialGap * 0.28 - agePenalty;
+      return primeValue * 0.9 + ovr * 0.08 + potentialGap * 0.22 - agePenalty;
     }
 
-    if (phase === "early") return primeValue * 1.0 + potentialGap * 0.9 + ovr * 0.1;
-    if (phase === "mid") return primeValue * 1.1 + potentialGap * 1.1 + Math.max(0, 28 - age) * 0.4;
-    return primeValue * 0.7 + potentialGap * 1.2 + Math.max(0, 27 - age) * 0.7;
+    if (phase === "early") return primeValue * 0.95 + potentialGap * 0.65 + ovr * 0.08;
+    if (phase === "mid") return primeValue * 1.0 + potentialGap * 0.85 + Math.max(0, 28 - age) * 0.25;
+    return primeValue * 0.65 + potentialGap * 1.0 + Math.max(0, 27 - age) * 0.45;
   }
 
   #mapPlayerPositionKey(position) {
