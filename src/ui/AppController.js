@@ -17,6 +17,7 @@ export class AppController{
     this.#restoreDraftState();
     this.#renderScreen();
     document.addEventListener("click",event=>this.#handleClick(event));
+    document.addEventListener("change",event=>this.#handleChange(event));
     document.addEventListener("dragstart",event=>this.#handleDragStart(event));
     document.addEventListener("dragover",event=>this.#handleDragOver(event));
     document.addEventListener("drop",event=>this.#handleDrop(event));
@@ -72,6 +73,17 @@ export class AppController{
       const team=this.#teams.find(item=>item.id===this.#pendingTeamId);
       if(team)this.#renderer.renderConfirmSelection(team);
     }
+  }
+  #handleChange(event){
+    const changed=event.target?.closest?.("[data-action]");
+    const action=changed?.dataset?.action;
+    if(action!=="trade-select-team")return;
+    const teamId=changed.value||"";
+    this.#tradeTeamId=teamId||null;
+    this.#tradeGivePlayerIds.clear();
+    this.#tradeReceivePlayerIds.clear();
+    this.#tradeMessage="";
+    this.#renderScreen();
   }
   #buildNegotiationState(){
     if(!this.#selectedNegotiationPlayerId)return null;
@@ -136,15 +148,6 @@ export class AppController{
     if(action==="open-negotiation"){
       this.#selectedNegotiationPlayerId=clickable.dataset.playerId;
       this.#outcomeByPlayerId.delete(this.#selectedNegotiationPlayerId);
-      this.#renderScreen();
-      return;
-    }
-    if(action==="trade-select-team"){
-      const teamId=clickable.value||"";
-      this.#tradeTeamId=teamId||null;
-      this.#tradeGivePlayerIds.clear();
-      this.#tradeReceivePlayerIds.clear();
-      this.#tradeMessage="";
       this.#renderScreen();
       return;
     }

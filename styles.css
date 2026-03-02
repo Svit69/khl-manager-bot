@@ -909,3 +909,4 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
 .trade-summary-row{display:flex;justify-content:space-between;gap:8px;font-size:13px}
 .trade-actions{display:flex;gap:10px;justify-content:flex-end}
 .trade-message{padding:8px 10px;border-radius:8px;background:rgba(17,34,58,.7);border:1px solid rgba(94,152,215,.36)}
+#teamTabContent{margin-top:10px}

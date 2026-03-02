@@ -142,18 +142,30 @@ export class Renderer{
       : `<div class="muted">Переключитесь на вкладку «Состав»</div>`;
     const sidebar=renderTeamSidebar(team,activeTab);
     const reserve=activeTab==="roster"?`<div class="team-reserve-wrap">${renderReserveStrip(team.reservePlayers||[])}</div>`:"";
-    this.#teamEl.innerHTML=`<div class="team-screen">${sidebar}<div class="team-screen-main"><div class="team-screen-header"><div class="team-screen-title">${team.name}</div><div class="muted">${team.city}, ${team.shortName}</div></div>${rosterView}${reserve}</div></div>`;
+    this.#teamEl.innerHTML=`<div class="team-screen">${sidebar}<div class="team-screen-main"><div class="team-screen-header"><div class="team-screen-title">${team.name}</div><div class="muted">${team.city}, ${team.shortName}</div></div>${rosterView}${reserve}<div id="teamTabContent"></div></div></div>`;
   }
   renderTeamSelection(teams,activeTeamId){
     const cards=teams.map(team=>`<button class="team-card" data-team-id="${team.id}"><img src="${team.logoUrl}" alt="${team.name}"/><span>${team.name}</span></button>`).join("");
     this.#teamEl.innerHTML=`<h2>${activeTeamId?"Выбрана команда":"Выберите команду"}</h2><div class="team-grid">${cards}</div>`;
   }
   renderMyTeamRoster(team){
-    const cards=team.getRoster().map(player=>renderRosterCard(player)).join("");
-    this.#matchEl.innerHTML=`<h2>Состав</h2><div class="roster-grid roster-grid-cards">${cards}</div>`;
+    const container=document.getElementById("teamTabContent");
+    if(container)container.innerHTML="";
+    else{
+      const cards=team.getRoster().map(player=>renderRosterCard(player)).join("");
+      this.#matchEl.innerHTML=`<h2>Состав</h2><div class="roster-grid roster-grid-cards">${cards}</div>`;
+    }
   }
-  renderContracts(rows,negotiation){this.#matchEl.innerHTML=this.#contractTab.render(rows,negotiation)}
-  renderTrades(view){this.#matchEl.innerHTML=this.#tradeTab.render(view)}
+  renderContracts(rows,negotiation){
+    const container=document.getElementById("teamTabContent");
+    if(container){container.innerHTML=this.#contractTab.render(rows,negotiation);return;}
+    this.#matchEl.innerHTML=this.#contractTab.render(rows,negotiation);
+  }
+  renderTrades(view){
+    const container=document.getElementById("teamTabContent");
+    if(container){container.innerHTML=this.#tradeTab.render(view);return;}
+    this.#matchEl.innerHTML=this.#tradeTab.render(view);
+  }
   renderConfirmSelection(team){
     const modal=`<div class="modal"><div class="modal-card"><div class="row"><img class="logo" src="${team.logoUrl}" alt="${team.name}"/><div><div>${team.name}</div><div class="muted">${team.city}, ${team.country}</div></div></div><div class="modal-actions"><button class="btn" data-action="confirm-team">Обычная игра</button><button class="btn" data-action="start-fantasy-draft">Фэнтези драфт</button><button class="btn secondary" data-action="cancel-team">Отмена</button></div></div></div>`;
     this.#teamEl.insertAdjacentHTML("beforeend",modal);
