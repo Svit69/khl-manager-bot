@@ -5,6 +5,7 @@ const OT_SECONDS = 5 * 60;
 const PERIOD_SECONDS = 20 * 60;
 const PENALTY_MINUTES = 2;
 const SHOT_BIN_SECONDS = 10;
+const BASE_SKATERS = 5;
 
 const rand = (min, max) => min + Math.random() * (max - min);
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -17,18 +18,13 @@ export class MatchSimulator {
 
     const homePenalties = this.#buildPenaltyEvents(homeContext, false);
     const awayPenalties = this.#buildPenaltyEvents(awayContext, false);
-    const penaltyWindows = {
-      home: homePenalties.map((e) => ({ start: e.gameSecond, end: e.gameSecond + e.penaltyMinutes * 60 })),
-      away: awayPenalties.map((e) => ({ start: e.gameSecond, end: e.gameSecond + e.penaltyMinutes * 60 }))
-    };
-
     const baseHomeXg = this.#estimateExpectedGoals(homeContext, awayContext, true);
     const baseAwayXg = this.#estimateExpectedGoals(awayContext, homeContext, false);
     const homeXgReg = baseHomeXg + awayPenalties.length * 0.16;
     const awayXgReg = baseAwayXg + homePenalties.length * 0.16;
 
-    let homeGoals = this.#buildGoalEvents(homeContext, awayContext, poissonSample(clamp(homeXgReg, 0.8, 6.8)), penaltyWindows.away, false);
-    let awayGoals = this.#buildGoalEvents(awayContext, homeContext, poissonSample(clamp(awayXgReg, 0.8, 6.8)), penaltyWindows.home, false);
+    let homeGoals = this.#buildGoalEvents(homeContext, awayContext, poissonSample(clamp(homeXgReg, 0.8, 6.8)), awayPenalties, homePenalties, false);
+    let awayGoals = this.#buildGoalEvents(awayContext, homeContext, poissonSample(clamp(awayXgReg, 0.8, 6.8)), homePenalties, awayPenalties, false);
 
     let wentToOvertime = false;
     if (homeGoals.length === awayGoals.length) {
@@ -129,6 +125,7 @@ export class MatchSimulator {
       if (!player) continue;
       const gameSecond = isOvertime ? (REGULATION_SECONDS + Math.floor(rand(0, OT_SECONDS))) : this.#randomRegulationSecond();
       events.push(this.#formatEvent({
+        penaltyId: `${teamContext.team.id}-${isOvertime ? "ot" : "reg"}-${i}-${Math.floor(rand(1000, 9999))}`,
         type: "penalty",
         gameSecond,
         team: teamContext.team,
@@ -140,16 +137,34 @@ export class MatchSimulator {
     return events;
   }
 
-  #buildGoalEvents(teamContext, opponentContext, goalsTarget, opponentPenaltyWindows, isOvertime) {
+  #buildGoalEvents(teamContext, opponentContext, goalsTarget, opponentPenalties, ownPenalties, isOvertime) {
+    const releasedPenaltyIds = new Set();
+    const candidateSeconds = Array.from({ length: goalsTarget }, () => (isOvertime
+      ? (REGULATION_SECONDS + this.#pickWeightedSecond(OT_SECONDS, (sec) => this.#goalSecondWeight(teamContext, opponentContext, REGULATION_SECONDS + sec, opponentPenalties, ownPenalties, releasedPenaltyIds, true)))
+      : this.#pickWeightedSecond(REGULATION_SECONDS, (sec) => this.#goalSecondWeight(teamContext, opponentContext, sec, opponentPenalties, ownPenalties, releasedPenaltyIds, false))
+    )).sort((a, b) => a - b);
+
     const events = [];
-    for (let i = 0; i < goalsTarget; i++) {
-      const gameSecond = isOvertime
-        ? (REGULATION_SECONDS + this.#pickWeightedSecond(OT_SECONDS, (sec) => this.#goalSecondWeight(teamContext, opponentContext, REGULATION_SECONDS + sec, opponentPenaltyWindows, true)))
-        : this.#pickWeightedSecond(REGULATION_SECONDS, (sec) => this.#goalSecondWeight(teamContext, opponentContext, sec, opponentPenaltyWindows, false));
+    for (const gameSecond of candidateSeconds) {
+      const ownActivePenalties = this.#getActivePenalties(ownPenalties, gameSecond);
+      const opponentActivePenalties = this.#getActivePenalties(opponentPenalties, gameSecond, releasedPenaltyIds);
+      const ownSkaters = this.#getSkatersOnIce(ownActivePenalties.length);
+      const opponentSkaters = this.#getSkatersOnIce(opponentActivePenalties.length);
+      const blockedPlayerIds = new Set(ownActivePenalties.map((penalty) => penalty.player?.id).filter(Boolean));
+
       const line = this.#pickScoringLine(teamContext.lines, teamContext.iceTimeByLine, opponentContext, isOvertime);
-      const play = this.#pickScoringPlay(line, isOvertime);
+      const play = this.#pickScoringPlay(line, isOvertime, blockedPlayerIds);
       if (!play.scorer) continue;
-      const isPowerPlay = this.#isPenaltyActiveAt(opponentPenaltyWindows, gameSecond);
+      if (blockedPlayerIds.has(play.scorer.id)) continue;
+      const isPowerPlay = ownSkaters > opponentSkaters;
+      const isShortHanded = ownSkaters < opponentSkaters;
+
+      if (isPowerPlay && opponentActivePenalties.length) {
+        const penaltyToRelease = [...opponentActivePenalties]
+          .sort((a, b) => a.gameSecond - b.gameSecond)[0];
+        if (penaltyToRelease?.penaltyId) releasedPenaltyIds.add(penaltyToRelease.penaltyId);
+      }
+
       events.push(this.#formatEvent({
         type: "goal",
         gameSecond,
@@ -157,7 +172,7 @@ export class MatchSimulator {
         scorer: play.scorer,
         assists: play.assists.map((p) => p.name),
         assist: play.assists[0]?.name || null,
-        strength: isOvertime ? "OT" : (isPowerPlay ? "PP" : "EV"),
+        strength: isOvertime ? "OT" : (isPowerPlay ? "PP" : (isShortHanded ? "SH" : "EV")),
         isOvertime,
         description: play.assists.length ? `Гол: ${play.scorer.name} (${play.assists.map((p) => p.name).join(", ")})` : `Гол: ${play.scorer.name}`
       }));
@@ -177,9 +192,9 @@ export class MatchSimulator {
 
     if (!hasOtGoal) {
       // Fallback to a decisive late OT goal to avoid unresolved ties in current standings logic.
-      return { teamId: scoringContext.team.id, event: this.#buildGoalEvents(scoringContext, defendingContext, 1, [], true)[0] };
+      return { teamId: scoringContext.team.id, event: this.#buildGoalEvents(scoringContext, defendingContext, 1, [], [], true)[0] };
     }
-    return { teamId: scoringContext.team.id, event: this.#buildGoalEvents(scoringContext, defendingContext, 1, [], true)[0] };
+    return { teamId: scoringContext.team.id, event: this.#buildGoalEvents(scoringContext, defendingContext, 1, [], [], true)[0] };
   }
 
   #overtimeAttackRating(teamContext) {
@@ -199,13 +214,15 @@ export class MatchSimulator {
     });
   }
 
-  #goalSecondWeight(teamContext, opponentContext, gameSecond, opponentPenaltyWindows, isOvertime) {
+  #goalSecondWeight(teamContext, opponentContext, gameSecond, opponentPenalties, ownPenalties, releasedPenaltyIds, isOvertime) {
     const sharesByLineIndex = new Map((teamContext.iceTimeByLine || []).map((x) => [x.lineIndex, x.share]));
     const avgShare = teamContext.lines.length ? sum(teamContext.lines.map((l) => sharesByLineIndex.get(l.lineIndex) || l.weight || 0.5)) / teamContext.lines.length : 0.25;
     const matchup = clamp((this.#averageLineOffense(teamContext.lines) - this.#averageLineDefense(opponentContext.lines)) / 120, -0.12, 0.22);
-    const ppBoost = this.#isPenaltyActiveAt(opponentPenaltyWindows, gameSecond) ? 1.9 : 1;
+    const ownSkaters = this.#getSkatersOnIce(this.#getActivePenalties(ownPenalties, gameSecond).length);
+    const oppSkaters = this.#getSkatersOnIce(this.#getActivePenalties(opponentPenalties, gameSecond, releasedPenaltyIds).length);
+    const manpowerBoost = this.#manpowerMultiplier(ownSkaters, oppSkaters);
     const periodBias = isOvertime ? 1.2 : this.#regulationPeriodBias(gameSecond);
-    return Math.max(0.05, (avgShare || 0.25) * (1 + matchup) * ppBoost * periodBias);
+    return Math.max(0.05, (avgShare || 0.25) * (1 + matchup) * manpowerBoost * periodBias);
   }
 
   #regulationPeriodBias(gameSecond) {
@@ -216,8 +233,26 @@ export class MatchSimulator {
     return rand(0.95, 1.18);
   }
 
-  #isPenaltyActiveAt(windows, second) {
-    return (windows || []).some((w) => second >= w.start && second < w.end);
+  #getActivePenalties(penalties, second, releasedPenaltyIds = new Set()) {
+    return (penalties || []).filter((penalty) => {
+      if (!penalty?.penaltyId || releasedPenaltyIds.has(penalty.penaltyId)) return false;
+      const end = penalty.gameSecond + (penalty.penaltyMinutes || PENALTY_MINUTES) * 60;
+      return second >= penalty.gameSecond && second < end;
+    });
+  }
+
+  #getSkatersOnIce(activePenaltyCount) {
+    const activeMinors = Math.max(0, Number(activePenaltyCount) || 0);
+    return Math.max(3, BASE_SKATERS - Math.min(2, activeMinors));
+  }
+
+  #manpowerMultiplier(ownSkaters, oppSkaters) {
+    const diff = ownSkaters - oppSkaters;
+    if (diff >= 2) return 2.35; // 5v3
+    if (diff === 1) return 1.7; // 5v4 or 4v3
+    if (diff === -1) return 0.62; // 4v5
+    if (diff <= -2) return 0.38; // 3v5
+    return 1;
   }
 
   #averageLineOffense(lines) {
@@ -251,8 +286,8 @@ export class MatchSimulator {
     return this.#pickWeighted(players, weights);
   }
 
-  #pickScoringPlay(line, isOvertime) {
-    const skaters = line?.skaters || [];
+  #pickScoringPlay(line, isOvertime, blockedPlayerIds = new Set()) {
+    const skaters = (line?.skaters || []).filter((player) => !blockedPlayerIds.has(player.id));
     const scorer = this.#pickWeighted(skaters, skaters.map((player) => {
       const attrs = player.attributes?.attributesJson || {};
       const otFactor = isOvertime ? ((attrs.speed || 60) * 0.12 + (attrs.skill || 60) * 0.08) : 0;
