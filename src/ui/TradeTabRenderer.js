@@ -3,7 +3,7 @@ import { calculateAge } from "../contracts/SeasonUtils.js";
 const renderPlayerPickRow = (side, player, selectedIds) => {
   const age = calculateAge(player.identity?.birthDate);
   const selected = selectedIds.has(player.id);
-  return `<button class="trade-player-row${selected ? " selected" : ""}" data-action="trade-toggle-${side}" data-player-id="${player.id}"><span class="name">${player.name}</span><span>${player.identity?.primaryPosition || "—"}</span><span>OVR ${player.ovr}</span><span>${age} лет</span></button>`;
+  return `<button class="trade-player-row${selected ? " selected" : ""}" data-action="trade-toggle-${side}" data-player-id="${player.id}"><span class="name">${player.name}</span><span class="pos">${player.identity?.primaryPosition || "—"}</span><span class="ovr">OVR ${player.ovr}</span><span class="age">${age} лет</span></button>`;
 };
 
 const renderSelectedSummary = (items) => {
@@ -29,14 +29,17 @@ export class TradeTabRenderer {
     const indicator = evaluation?.indicator ? `${evaluation.indicator.icon} ${evaluation.indicator.text}` : "—";
     const decision = evaluation?.decision?.label || "Соберите предложение для оценки";
     const submitDisabled = !selectedTeam || !evaluation?.isValid ? "disabled" : "";
-
     const giveCount = evaluation?.givePlayers?.length || 0;
     const receiveCount = evaluation?.receivePlayers?.length || 0;
     const acceptance = evaluation?.decision?.accepted ? "🟢 Да" : "🔴 Нет";
-    const acceptanceHint = evaluation?.acceptanceHint || "Соберите предложение для оценки";
+    const acceptanceHint = evaluation?.acceptanceHint || "Добавьте игроков и соберите пакет";
+
     return `<div class="trade-screen">
       <div class="trade-head">
-        <h2>Обмены</h2>
+        <div class="trade-head-main">
+          <h2>Трансферный центр</h2>
+          <div class="trade-head-meta">Соберите пакет и оцените баланс до отправки предложения</div>
+        </div>
         <label class="trade-team-select">Обмен с:
           <select data-action="trade-select-team">
             <option value="">Выберите команду</option>
@@ -46,17 +49,19 @@ export class TradeTabRenderer {
       </div>
       ${selectedTeam ? `<div class="trade-grid">
         <section class="trade-col">
-          <h3>Вы отдаёте</h3>
+          <div class="trade-col-head"><h3>Вы отдаёте</h3><span class="trade-pill">${giveSelectedIds.size} выбрано</span></div>
+          <div class="trade-list-header"><span>Игрок</span><span>Поз.</span><span>Рейт.</span><span>Возраст</span></div>
           <div class="trade-list">${giveCandidates.map((player) => renderPlayerPickRow("give", player, giveSelectedIds)).join("") || `<div class="muted">Нет игроков</div>`}</div>
         </section>
         <section class="trade-col">
-          <h3>Вы получаете</h3>
+          <div class="trade-col-head"><h3>Вы получаете</h3><span class="trade-pill">${receiveSelectedIds.size} выбрано</span></div>
+          <div class="trade-list-header"><span>Игрок</span><span>Поз.</span><span>Рейт.</span><span>Возраст</span></div>
           <div class="trade-list">${receiveCandidates.map((player) => renderPlayerPickRow("receive", player, receiveSelectedIds)).join("") || `<div class="muted">Нет игроков</div>`}</div>
         </section>
       </div>` : `<div class="muted">Выберите команду для переговоров.</div>`}
       <div class="trade-eval-card">
         <div class="trade-kpi-row">
-          <div class="trade-kpi"><span>В пакете</span><strong>${giveCount} → ${receiveCount}</strong></div>
+          <div class="trade-kpi"><span>Пакет</span><strong>${giveCount} → ${receiveCount}</strong></div>
           <div class="trade-kpi"><span>ИИ примет</span><strong>${acceptance}</strong></div>
           <div class="trade-kpi"><span>Подсказка</span><strong>${acceptanceHint}</strong></div>
         </div>

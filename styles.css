@@ -922,11 +922,14 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   gap:12px;
   flex-wrap:wrap;
 }
+.trade-head-main{display:grid;gap:4px}
+.trade-head-meta{color:#9db8e6;font-size:12px;letter-spacing:.2px}
 .trade-head h2{
   margin:0;
   font-size:22px;
   font-weight:900;
   letter-spacing:.2px;
+  text-transform:uppercase;
 }
 .trade-team-select{
   display:flex;
@@ -960,11 +963,36 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   min-width:0;
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.03);
 }
+.trade-col-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
 .trade-col h3{
-  margin:0 0 10px 0;
+  margin:0;
   font-size:19px;
   font-weight:900;
   letter-spacing:.2px;
+}
+.trade-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:4px 10px;
+  border-radius:999px;
+  background:rgba(92,158,255,.18);
+  border:1px solid rgba(124,192,255,.35);
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  color:#c7e6ff;
+}
+.trade-list-header{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 64px 82px 68px;
+  gap:8px;
+  align-items:center;
+  padding:0 12px 6px;
+  font-size:11px;
+  letter-spacing:.35px;
+  text-transform:uppercase;
+  color:#8faacb;
 }
 .trade-list{
   max-height:320px;
@@ -993,13 +1021,18 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   text-align:left;
   min-width:0;
   transition:border-color .15s ease,background .15s ease,transform .15s ease;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.02);
 }
-.trade-player-row span{white-space:nowrap}
+.trade-player-row span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .trade-player-row .name{
   font-weight:800;
   white-space:normal;
   overflow-wrap:anywhere;
   line-height:1.1;
+}
+.trade-player-row .pos,.trade-player-row .ovr,.trade-player-row .age{
+  font-size:12px;
+  color:#d7e7ff;
 }
 .trade-player-row:hover{
   border-color:rgba(143,199,255,.66);
@@ -1019,9 +1052,18 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   display:grid;
   gap:10px;
   min-width:0;
+  box-shadow:0 14px 30px rgba(0,0,0,.25);
 }
 .trade-kpi-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.trade-kpi{background:rgba(255,255,255,.04);border:1px solid rgba(158,179,225,.2);border-radius:9px;padding:7px 8px;display:grid;gap:3px;min-width:0}
+.trade-kpi{
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  border:1px solid rgba(158,179,225,.2);
+  border-radius:10px;
+  padding:8px 10px;
+  display:grid;
+  gap:3px;
+  min-width:0
+}
 .trade-kpi span{font-size:12px;color:#a8bfe7}
 .trade-kpi strong{font-size:13px;overflow-wrap:anywhere}
 .trade-eval-row{
@@ -1056,6 +1098,7 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
 }
 @media (max-width:900px){
   .trade-player-row{grid-template-columns:minmax(0,1fr) 60px 72px 58px;padding:9px 10px}
+  .trade-list-header{grid-template-columns:minmax(0,1fr) 60px 72px 58px}
   .trade-head h2{font-size:20px}
   .trade-team-select{font-size:16px}
   .trade-team-select select{font-size:16px;min-width:170px}
