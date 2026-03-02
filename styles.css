@@ -587,10 +587,25 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
 }
 .draft-recent-row span:nth-child(2),
 .draft-recent-row span:nth-child(3){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.contract-grid{display:flex;flex-direction:column;gap:8px}
-.contract-card{background:#0f2743;border:1px solid #1c3e63;border-radius:8px}
-.contract-row{width:100%;background:none;border:none;color:var(--text);padding:8px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;cursor:pointer}
-.negotiation-panel{border-top:1px solid #1c3e63;padding:8px;display:flex;flex-direction:column;gap:6px}
+.contract-grid{display:flex;flex-direction:column;gap:10px}
+.contract-card{background:linear-gradient(180deg,rgba(10,30,54,.92),rgba(8,23,44,.82));border:1px solid rgba(112,157,211,.32);border-radius:10px}
+.contract-row{width:100%;background:none;border:none;color:var(--text);padding:10px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;cursor:pointer}
+.contract-row-top{display:flex;justify-content:space-between;align-items:center;width:100%;gap:8px}
+.contract-player-name{font-size:17px;font-weight:800}
+.contract-chip{padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid transparent}
+.contract-chip.ok{background:rgba(44,189,137,.18);border-color:rgba(74,225,170,.5);color:#8df7cb}
+.contract-chip.warning{background:rgba(244,177,63,.18);border-color:rgba(255,203,108,.5);color:#ffd28a}
+.contract-meta-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;width:100%;font-size:14px}
+.contract-lock-note{padding:6px 8px;border:1px solid rgba(242,169,84,.4);background:rgba(80,49,13,.35);border-radius:7px;font-size:13px}
+.negotiation-panel{border-top:1px solid rgba(112,157,211,.24);padding:10px;display:flex;flex-direction:column;gap:8px;background:rgba(4,13,28,.44)}
+.negotiation-head{display:grid;grid-template-columns:1fr 160px;gap:10px;align-items:center;width:100%}
+.negotiation-chance{height:8px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}
+.negotiation-chance span{display:block;height:100%;background:linear-gradient(90deg,#36d388,#6fe1ff)}
+.negotiation-reasons{display:grid;gap:4px}
+.negotiation-reason{font-size:13px;padding:4px 6px;border-radius:6px}
+.negotiation-reason.pos{background:rgba(41,179,122,.18);color:#b9ffdf}
+.negotiation-reason.neg{background:rgba(194,88,88,.18);color:#ffd0d0}
+.negotiation-offer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:12px}
 .modal-card{background:var(--card);border:1px solid #1c3e63;border-radius:12px;padding:12px;width:min(360px,100%)}
 .sim-modal{background:rgba(2,7,16,.74);backdrop-filter:blur(8px)}
@@ -1005,6 +1020,10 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   gap:10px;
   min-width:0;
 }
+.trade-kpi-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.trade-kpi{background:rgba(255,255,255,.04);border:1px solid rgba(158,179,225,.2);border-radius:9px;padding:7px 8px;display:grid;gap:3px;min-width:0}
+.trade-kpi span{font-size:12px;color:#a8bfe7}
+.trade-kpi strong{font-size:13px;overflow-wrap:anywhere}
 .trade-eval-row{
   display:flex;
   justify-content:space-between;
@@ -1032,10 +1051,14 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
 @media (max-width:1300px){
   .trade-grid{grid-template-columns:1fr}
   .trade-summary{grid-template-columns:1fr}
+  .trade-kpi-row{grid-template-columns:1fr}
+  .negotiation-head{grid-template-columns:1fr}
 }
 @media (max-width:900px){
   .trade-player-row{grid-template-columns:minmax(0,1fr) 60px 72px 58px;padding:9px 10px}
   .trade-head h2{font-size:20px}
   .trade-team-select{font-size:16px}
   .trade-team-select select{font-size:16px;min-width:170px}
+  .contract-meta-grid{grid-template-columns:1fr}
+  .negotiation-offer-grid{grid-template-columns:1fr}
 }

@@ -30,6 +30,10 @@ export class TradeTabRenderer {
     const decision = evaluation?.decision?.label || "Соберите предложение для оценки";
     const submitDisabled = !selectedTeam || !evaluation?.isValid ? "disabled" : "";
 
+    const giveCount = evaluation?.givePlayers?.length || 0;
+    const receiveCount = evaluation?.receivePlayers?.length || 0;
+    const acceptance = evaluation?.decision?.accepted ? "🟢 Да" : "🔴 Нет";
+    const acceptanceHint = evaluation?.acceptanceHint || "Соберите предложение для оценки";
     return `<div class="trade-screen">
       <div class="trade-head">
         <h2>Обмены</h2>
@@ -51,6 +55,11 @@ export class TradeTabRenderer {
         </section>
       </div>` : `<div class="muted">Выберите команду для переговоров.</div>`}
       <div class="trade-eval-card">
+        <div class="trade-kpi-row">
+          <div class="trade-kpi"><span>В пакете</span><strong>${giveCount} → ${receiveCount}</strong></div>
+          <div class="trade-kpi"><span>ИИ примет</span><strong>${acceptance}</strong></div>
+          <div class="trade-kpi"><span>Подсказка</span><strong>${acceptanceHint}</strong></div>
+        </div>
         <div class="trade-eval-row"><span>Оценка сделки:</span><strong>${indicator}</strong></div>
         <div class="trade-eval-row"><span>Вердикт ИИ:</span><span>${decision}</span></div>
         <div class="trade-eval-row"><span>Ваш баланс:</span><span>${evaluation ? `${evaluation.userDelta > 0 ? "+" : ""}${evaluation.userDelta}` : "—"}</span></div>

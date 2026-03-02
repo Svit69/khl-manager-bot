@@ -11,6 +11,13 @@ const createDecision = (aiDelta) => {
   if (aiDelta > -2) return { accepted: false, label: "ИИ отклоняет: неравноценный баланс" };
   return { accepted: false, label: "ИИ отклоняет: слишком невыгодно для состава" };
 };
+const getAcceptanceHint = (aiDelta) => {
+  if (aiDelta >= 4) return "Высокий шанс принятия";
+  if (aiDelta >= 1.5) return "Хороший шанс принятия";
+  if (aiDelta >= 0) return "Погранично, но возможно";
+  if (aiDelta >= -2) return `Добавьте ценность примерно +${Math.ceil(Math.abs(aiDelta) + 1)} для ИИ`;
+  return `Слишком большой разрыв: нужно +${Math.ceil(Math.abs(aiDelta) + 2)} для ИИ`;
+};
 
 const toIndicator = (userDelta) => {
   if (userDelta >= 4) return { icon: "🟢", text: "Выгодно", tone: "good" };
@@ -76,6 +83,7 @@ export class TradeService {
       aiDelta,
       indicator,
       decision,
+      acceptanceHint: getAcceptanceHint(aiDelta),
       isValid
     };
   }
