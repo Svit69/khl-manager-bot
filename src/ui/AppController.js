@@ -2,6 +2,7 @@ import { FantasyDraftService } from "../draft/FantasyDraftService.js";
 export class AppController{
   #state;#calendar;#teams;#renderer;#userStore;#pendingTeamId=null;#activeTab="roster";
   #selectedNegotiationPlayerId=null;#offerByPlayerId=new Map();#outcomeByPlayerId=new Map();
+  #tradeTeamId=null;#tradeGivePlayerIds=new Set();#tradeReceivePlayerIds=new Set();#tradeMessage="";
   #activeRosterUnit="1";
   #draftState=null;
   #dragRosterSlot=null;
@@ -34,6 +35,8 @@ export class AppController{
       this.#renderer.renderResetButton();
       if(this.#activeTab==="contracts"){
         this.#renderer.renderContracts(this.#state.getActiveTeamContractRows(),this.#buildNegotiationState());
+      }else if(this.#activeTab==="trades"){
+        this.#renderer.renderTrades(this.#buildTradeState());
       }else{
         this.#renderer.renderMyTeamRoster(this.#state.activeTeam);
       }
@@ -79,12 +82,37 @@ export class AppController{
     this.#offerByPlayerId.set(this.#selectedNegotiationPlayerId,preview.offer);
     return {playerId:this.#selectedNegotiationPlayerId,preview,offer:preview.offer,outcome};
   }
+  #buildTradeState(){
+    const partners=this.#state.getTradePartnerTeams();
+    const selectedTeam=partners.find(team=>team.id===this.#tradeTeamId)||null;
+    const giveCandidates=this.#state.activeTeam?.getRoster()||[];
+    const receiveCandidates=selectedTeam?.getRoster()||[];
+    const giveIds=[...this.#tradeGivePlayerIds];
+    const receiveIds=[...this.#tradeReceivePlayerIds];
+    const evaluation=selectedTeam?this.#state.evaluateTradeWithTeam(selectedTeam.id,giveIds,receiveIds):null;
+    return {
+      partners,
+      selectedTeamId:selectedTeam?.id||"",
+      selectedTeam,
+      giveCandidates,
+      receiveCandidates,
+      giveSelectedIds:this.#tradeGivePlayerIds,
+      receiveSelectedIds:this.#tradeReceivePlayerIds,
+      evaluation,
+      message:this.#tradeMessage
+    };
+  }
   #handleClick(event){
     const clickable=event.target?.closest?.("[data-team-id],[data-tab],[data-action],#resetBtn,#playBtn");
     const teamId=clickable?.dataset?.teamId;
     if(teamId){this.#pendingTeamId=teamId;this.#renderScreen();return;}
     const tab=clickable?.dataset?.tab;
-    if(tab){this.#activeTab=tab;this.#renderScreen();return;}
+    if(tab){
+      this.#activeTab=tab;
+      if(tab!=="trades"){this.#tradeMessage="";}
+      this.#renderScreen();
+      return;
+    }
     const action=clickable?.dataset?.action;
     if(action==="calendar-tab"){
       this.#calendarPanelTab=clickable.dataset.value||"standings";
@@ -108,6 +136,51 @@ export class AppController{
     if(action==="open-negotiation"){
       this.#selectedNegotiationPlayerId=clickable.dataset.playerId;
       this.#outcomeByPlayerId.delete(this.#selectedNegotiationPlayerId);
+      this.#renderScreen();
+      return;
+    }
+    if(action==="trade-select-team"){
+      const teamId=clickable.value||"";
+      this.#tradeTeamId=teamId||null;
+      this.#tradeGivePlayerIds.clear();
+      this.#tradeReceivePlayerIds.clear();
+      this.#tradeMessage="";
+      this.#renderScreen();
+      return;
+    }
+    if(action==="trade-toggle-give"){
+      const playerId=clickable.dataset.playerId;
+      if(!playerId)return;
+      if(this.#tradeGivePlayerIds.has(playerId))this.#tradeGivePlayerIds.delete(playerId);
+      else this.#tradeGivePlayerIds.add(playerId);
+      this.#tradeMessage="";
+      this.#renderScreen();
+      return;
+    }
+    if(action==="trade-toggle-receive"){
+      const playerId=clickable.dataset.playerId;
+      if(!playerId)return;
+      if(this.#tradeReceivePlayerIds.has(playerId))this.#tradeReceivePlayerIds.delete(playerId);
+      else this.#tradeReceivePlayerIds.add(playerId);
+      this.#tradeMessage="";
+      this.#renderScreen();
+      return;
+    }
+    if(action==="trade-clear"){
+      this.#tradeGivePlayerIds.clear();
+      this.#tradeReceivePlayerIds.clear();
+      this.#tradeMessage="";
+      this.#renderScreen();
+      return;
+    }
+    if(action==="trade-submit" && this.#tradeTeamId){
+      const result=this.#state.submitTradeWithTeam(this.#tradeTeamId,[...this.#tradeGivePlayerIds],[...this.#tradeReceivePlayerIds]);
+      this.#tradeMessage=result?.message||"Не удалось обработать обмен.";
+      if(result?.accepted){
+        this.#tradeGivePlayerIds.clear();
+        this.#tradeReceivePlayerIds.clear();
+        this.#userStore.saveState(this.#state.exportState());
+      }
       this.#renderScreen();
       return;
     }

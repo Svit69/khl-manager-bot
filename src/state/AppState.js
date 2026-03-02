@@ -3,10 +3,14 @@ import { StatsTracker } from "../stats/StatsTracker.js";
 import { ContractService } from "../contracts/ContractService.js";
 import { StandingsTracker } from "../stats/StandingsTracker.js";
 import { buildCompetitiveLines } from "../data/lineupBuilder.js";
+import { TradeService } from "../trade/TradeService.js";
 export class AppState{
-  #teams;#calendar;#stats=new StatsTracker();#standings=new StandingsTracker();#sim=new MatchSimulator();#contracts;
+  #teams;#calendar;#stats=new StatsTracker();#standings=new StandingsTracker();#sim=new MatchSimulator();#contracts;#trade;
   #lastMatch=null;#activeTeamId=null;
-  constructor(teams,calendar,contracts){this.#teams=teams;this.#calendar=calendar;this.#contracts=new ContractService(contracts)}
+  constructor(teams,calendar,contracts){
+    this.#teams=teams;this.#calendar=calendar;this.#contracts=new ContractService(contracts);
+    this.#trade=new TradeService(playerId=>this.#contracts.getContractsForPlayer(playerId));
+  }
   get teams(){return this.#teams}
   get calendar(){return this.#calendar}
   get lastMatch(){return this.#lastMatch}
@@ -22,6 +26,15 @@ export class AppState{
   getCalendarScheduleRows(){return this.#calendar.getScheduleRows(this.#activeTeamId)}
   getAllPlayers(){return this.#teams.flatMap(team=>team.getRoster())}
   getActiveTeamContractRows(){return this.activeTeam?this.#contracts.getTeamContractRows(this.activeTeam):[]}
+  getTradePartnerTeams(){return this.activeTeam?this.#teams.filter(team=>team.id!==this.#activeTeamId):[]}
+  evaluateTradeWithTeam(teamId,givePlayerIds,receivePlayerIds){
+    const opponent=this.#teams.find(team=>team.id===teamId);
+    return this.activeTeam&&opponent?this.#trade.evaluateTrade(this.activeTeam,opponent,givePlayerIds,receivePlayerIds):null;
+  }
+  submitTradeWithTeam(teamId,givePlayerIds,receivePlayerIds){
+    const opponent=this.#teams.find(team=>team.id===teamId);
+    return this.activeTeam&&opponent?this.#trade.executeTrade(this.activeTeam,opponent,givePlayerIds,receivePlayerIds):null;
+  }
   getActiveTeamNegotiationPreview(playerId,offer){
     const player=this.activeTeam?.getRoster().find(p=>p.id===playerId);
     return player?this.#contracts.getRenewalPreview(this.activeTeam,player,offer,this.#buildNegotiationContext(this.activeTeam)):null;

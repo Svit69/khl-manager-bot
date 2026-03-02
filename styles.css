@@ -888,5 +888,24 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   .sim-log-side.home,.sim-log-side.away{justify-content:flex-start;text-align:left}
   .calendar-table-header,.calendar-table-row{grid-template-columns:24px minmax(72px,1fr) 24px 24px 28px 24px 24px;font-size:11px}
   .calendar-scorer-header,.calendar-scorer-row{grid-template-columns:24px minmax(90px,1.4fr) minmax(60px,1fr) 24px 24px 24px;font-size:11px}
-  .calendar-schedule-header,.calendar-schedule-row{grid-template-columns:46px minmax(90px,1fr) 58px;font-size:11px}
+.calendar-schedule-header,.calendar-schedule-row{grid-template-columns:46px minmax(90px,1fr) 58px;font-size:11px}
 }
+
+.trade-screen{display:grid;gap:14px}
+.trade-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.trade-head h2{margin:0}
+.trade-team-select{display:flex;align-items:center;gap:8px}
+.trade-team-select select{background:#171a22;color:#eef1ff;border:1px solid #3a415a;border-radius:8px;padding:6px 10px}
+.trade-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.trade-col{background:rgba(16,20,32,.62);border:1px solid rgba(152,168,214,.16);border-radius:12px;padding:10px;min-height:220px}
+.trade-col h3{margin:0 0 8px 0;font-size:15px}
+.trade-list{max-height:280px;overflow:auto;display:grid;gap:6px;padding-right:4px}
+.trade-player-row{display:grid;grid-template-columns:minmax(140px,1.5fr) 56px 68px 54px;gap:8px;align-items:center;width:100%;padding:8px 10px;border:1px solid rgba(158,171,210,.22);border-radius:8px;background:rgba(9,12,20,.64);color:#eef1ff;text-align:left}
+.trade-player-row .name{font-weight:700}
+.trade-player-row.selected{border-color:#5bc6ff;background:rgba(12,55,86,.45)}
+.trade-eval-card{background:rgba(16,20,32,.62);border:1px solid rgba(152,168,214,.16);border-radius:12px;padding:12px;display:grid;gap:8px}
+.trade-eval-row{display:flex;justify-content:space-between;gap:8px}
+.trade-summary{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.trade-summary-row{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.trade-actions{display:flex;gap:10px;justify-content:flex-end}
+.trade-message{padding:8px 10px;border-radius:8px;background:rgba(17,34,58,.7);border:1px solid rgba(94,152,215,.36)}
