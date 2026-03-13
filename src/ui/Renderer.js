@@ -170,6 +170,58 @@ export class Renderer{
     const modal=`<div class="modal"><div class="modal-card"><div class="row"><img class="logo" src="${team.logoUrl}" alt="${team.name}"/><div><div>${team.name}</div><div class="muted">${team.city}, ${team.country}</div></div></div><div class="modal-actions"><button class="btn" data-action="confirm-team">Обычная игра</button><button class="btn" data-action="start-fantasy-draft">Фэнтези драфт</button><button class="btn secondary" data-action="cancel-team">Отмена</button></div></div></div>`;
     this.#teamEl.insertAdjacentHTML("beforeend",modal);
   }
+  renderFantasyDraftIntro(team){
+    const highlights=[
+      {label:"Формат",value:"20 раундов snake draft"},
+      {label:"Приоритет",value:"Сначала элита, потом баланс позиций"},
+      {label:"Фильтры",value:"OVR, позиция, возраст"},
+      {label:"После драфта",value:"Автосбор звеньев и старт сезона"}
+    ];
+    const steps=[
+      "Выбираете лучших игроков из общего пула лиги.",
+      "Порядок идет змейкой: 1-2-3-4, затем 4-3-2-1.",
+      "ИИ усиливает состав по фазам драфта: элита, структура, глубина.",
+      "После последнего пика вы переходите к управлению составом."
+    ];
+    const chips=highlights.map(item=>`<div class="draft-intro-chip"><span>${item.label}</span><strong>${item.value}</strong></div>`).join("");
+    const tips=steps.map((text,index)=>`<div class="draft-intro-step"><span class="draft-intro-step-index">0${index+1}</span><p>${text}</p></div>`).join("");
+    this.#teamEl.innerHTML=`<section class="draft-intro-screen">
+      <div class="draft-intro-rail draft-intro-rail-top"><span>OWN THE DRAFT</span><span>BUILD YOUR KHL SQUAD</span><span>OWN THE DRAFT</span><span>BUILD YOUR KHL SQUAD</span></div>
+      <div class="draft-intro-main">
+        <div class="draft-intro-copy">
+          <div class="draft-intro-kicker">Fantasy Draft</div>
+          <h1>Собери свою команду с нуля</h1>
+          <p class="draft-intro-lead">Выбран клуб <strong>${team.name}</strong>. Дальше начинается отдельный режим, где вся лига уходит в общий пул, а команды по очереди разбирают игроков.</p>
+          <div class="draft-intro-step-list">${tips}</div>
+          <div class="draft-intro-actions">
+            <button class="btn draft-intro-primary" data-action="draft-intro-start">Открыть драфт</button>
+            <button class="btn secondary" data-action="draft-intro-back">Назад</button>
+          </div>
+        </div>
+        <div class="draft-intro-showcase">
+          <div class="draft-intro-card-shell">
+            <div class="draft-intro-card-frame">
+              ${renderRosterCard((team.getRoster?.()||[])[0]||{
+                name:team.name,
+                ovr:82,
+                identity:{lastName:team.shortName,displayName:team.name,birthDate:"1997-01-01",nationality:team.country,primaryPosition:"ЦТР",photoUrl:"./player-photo/placeholder.png"}
+              },"draft-intro-card")}
+            </div>
+            <div class="draft-intro-card-meta">
+              <div class="draft-intro-logo-wrap"><img src="${team.logoUrl}" alt="${team.name}"/></div>
+              <div>
+                <div class="draft-intro-team">${team.name}</div>
+                <div class="muted">${team.city} • ${team.shortName}</div>
+              </div>
+            </div>
+          </div>
+          <div class="draft-intro-chip-grid">${chips}</div>
+        </div>
+      </div>
+      <div class="draft-intro-rail draft-intro-rail-bottom"><span>KHL MANAGER</span><span>FANTASY DRAFT</span><span>KHL MANAGER</span><span>FANTASY DRAFT</span></div>
+    </section>`;
+    this.#matchEl.innerHTML="";
+  }
   renderFantasyDraft(draft,team){
     const selectedPlayer=draft.availablePlayers.find(player=>player.id===draft.selectedPlayerId)||null;
     const previewPlayer=selectedPlayer||draft.availablePlayers[0]||null;

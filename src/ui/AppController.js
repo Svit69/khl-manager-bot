@@ -4,6 +4,7 @@ export class AppController{
   #selectedNegotiationPlayerId=null;#offerByPlayerId=new Map();#outcomeByPlayerId=new Map();
   #tradeTeamId=null;#tradeGivePlayerIds=new Set();#tradeReceivePlayerIds=new Set();#tradeMessage="";
   #activeRosterUnit="1";
+  #draftIntroTeamId=null;
   #draftState=null;
   #dragRosterSlot=null;
   #matchPlayback=null;
@@ -51,6 +52,18 @@ export class AppController{
         draftView.selectedPlayerId=this.#draftState.selectedPlayerId;
         this.#renderer.renderFantasyDraft(draftView,selectedTeam);
       }
+      this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,true,{
+        tab:this.#calendarPanelTab,
+        standings:this.#state.getStandingsTable(),
+        scorers:this.#state.getTopScorers(10),
+        schedule:this.#state.getCalendarScheduleRows()
+      });
+      this.#renderer.renderResetButton();
+      return;
+    }
+    if(this.#draftIntroTeamId){
+      const selectedTeam=this.#teams.find(team=>team.id===this.#draftIntroTeamId);
+      if(selectedTeam)this.#renderer.renderFantasyDraftIntro(selectedTeam);
       this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,true,{
         tab:this.#calendarPanelTab,
         standings:this.#state.getStandingsTable(),
@@ -233,7 +246,20 @@ export class AppController{
       return;
     }
     if(action==="start-fantasy-draft" && this.#pendingTeamId){
-      this.#startFantasyDraft(this.#pendingTeamId);
+      this.#draftIntroTeamId=this.#pendingTeamId;
+      this.#persistDraftState();
+      this.#renderScreen();
+      return;
+    }
+    if(action==="draft-intro-start" && this.#draftIntroTeamId){
+      this.#startFantasyDraft(this.#draftIntroTeamId);
+      this.#persistDraftState();
+      this.#renderScreen();
+      return;
+    }
+    if(action==="draft-intro-back"){
+      this.#draftIntroTeamId=null;
+      this.#userStore.clearDraft();
       this.#renderScreen();
       return;
     }
@@ -272,6 +298,7 @@ export class AppController{
     }
     if(action==="draft-cancel" && this.#draftState){
       this.#draftState=null;
+      this.#draftIntroTeamId=null;
       this.#pendingTeamId=null;
       this.#userStore.clearDraft();
       this.#renderScreen();
@@ -298,10 +325,10 @@ export class AppController{
     const allPlayers=this.#state.getAllPlayers();
     const service=new FantasyDraftService(this.#teams,allPlayers,selectedTeamId,20);
     this.#draftState={service,selectedTeamId,sortBy:"ovr",filterPosition:"ALL",selectedPlayerId:null};
+    this.#draftIntroTeamId=null;
     this.#pendingTeamId=null;
     service.autoPickUntilUserTurn();
     this.#completeDraftIfReady();
-    this.#persistDraftState();
   }
   #completeDraftIfReady(){
     if(!this.#draftState?.service.isComplete)return;
@@ -316,6 +343,15 @@ export class AppController{
     if(this.#state.activeTeamId)return;
     const saved=this.#userStore.loadDraft();
     if(!saved)return;
+    if(saved.stage==="intro" && saved.selectedTeamId){
+      const selectedTeam=this.#teams.find(team=>team.id===saved.selectedTeamId);
+      if(selectedTeam){
+        this.#draftIntroTeamId=saved.selectedTeamId;
+        return;
+      }
+      this.#userStore.clearDraft();
+      return;
+    }
     const selectedTeam=this.#teams.find(team=>team.id===saved.selectedTeamId);
     if(!selectedTeam){this.#userStore.clearDraft();return;}
     const allPlayers=this.#state.getAllPlayers();
@@ -331,8 +367,16 @@ export class AppController{
     this.#completeDraftIfReady();
   }
   #persistDraftState(){
+    if(this.#draftIntroTeamId){
+      this.#userStore.saveDraft({
+        stage:"intro",
+        selectedTeamId:this.#draftIntroTeamId
+      });
+      return;
+    }
     if(!this.#draftState){this.#userStore.clearDraft();return;}
     this.#userStore.saveDraft({
+      stage:"live",
       selectedTeamId:this.#draftState.selectedTeamId,
       sortBy:this.#draftState.sortBy,
       filterPosition:this.#draftState.filterPosition,
