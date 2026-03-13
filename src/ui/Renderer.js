@@ -171,54 +171,53 @@ export class Renderer{
     this.#teamEl.insertAdjacentHTML("beforeend",modal);
   }
   renderFantasyDraftIntro(team){
-    const highlights=[
-      {label:"Формат",value:"20 раундов snake draft"},
-      {label:"Приоритет",value:"Сначала элита, потом баланс позиций"},
-      {label:"Фильтры",value:"OVR, позиция, возраст"},
-      {label:"После драфта",value:"Автосбор звеньев и старт сезона"}
+    const infoPills=[
+      {label:"Режим",value:"20 раундов"},
+      {label:"Порядок",value:"Snake draft"},
+      {label:"После",value:"Переход к составу"}
     ];
-    const steps=[
-      "Выбираете лучших игроков из общего пула лиги.",
-      "Порядок идет змейкой: 1-2-3-4, затем 4-3-2-1.",
-      "ИИ усиливает состав по фазам драфта: элита, структура, глубина.",
-      "После последнего пика вы переходите к управлению составом."
+    const featureTags=[
+      {left:"ОБЩИЙ ПУЛ",center:"Все игроки КХЛ",right:"OVR"},
+      {left:"СОРТИРОВКА",center:"Рейтинг / позиция / возраст",right:"LIVE"},
+      {left:"ИИ ДРАФТ",center:"Элита → баланс → глубина",right:"SMART"}
     ];
-    const chips=highlights.map(item=>`<div class="draft-intro-chip"><span>${item.label}</span><strong>${item.value}</strong></div>`).join("");
-    const tips=steps.map((text,index)=>`<div class="draft-intro-step"><span class="draft-intro-step-index">0${index+1}</span><p>${text}</p></div>`).join("");
+    const pills=infoPills.map(item=>`<div class="draft-intro-pill"><span>${item.label}</span><strong>${item.value}</strong></div>`).join("");
+    const tags=featureTags.map(item=>`<div class="draft-intro-tag-row"><span class="draft-intro-tag draft-intro-tag-dark">${item.left}</span><span class="draft-intro-tag draft-intro-tag-light">${item.center}</span><span class="draft-intro-tag draft-intro-tag-accent">${item.right}</span></div>`).join("");
     this.#teamEl.innerHTML=`<section class="draft-intro-screen">
-      <div class="draft-intro-rail draft-intro-rail-top"><span>OWN THE DRAFT</span><span>BUILD YOUR KHL SQUAD</span><span>OWN THE DRAFT</span><span>BUILD YOUR KHL SQUAD</span></div>
+      <div class="draft-intro-rail draft-intro-rail-top"><span>KHL MANAGER</span><span>FANTASY DRAFT</span><span>BUILD YOUR TEAM</span><span>KHL MANAGER</span><span>FANTASY DRAFT</span><span>BUILD YOUR TEAM</span></div>
       <div class="draft-intro-main">
-        <div class="draft-intro-copy">
+        <div class="draft-intro-hero">
           <div class="draft-intro-kicker">Fantasy Draft</div>
-          <h1>Собери свою команду с нуля</h1>
-          <p class="draft-intro-lead">Выбран клуб <strong>${team.name}</strong>. Дальше начинается отдельный режим, где вся лига уходит в общий пул, а команды по очереди разбирают игроков.</p>
-          <div class="draft-intro-step-list">${tips}</div>
-          <div class="draft-intro-actions">
-            <button class="btn draft-intro-primary" data-action="draft-intro-start">Открыть драфт</button>
-            <button class="btn secondary" data-action="draft-intro-back">Назад</button>
-          </div>
+          <h1>Draft your team</h1>
+          <p class="draft-intro-lead">Вы выбрали <strong>${team.name}</strong>. Сейчас вся лига попадет в единый пул, а команды начнут по очереди разбирать игроков. Ваша задача - собрать сильный, сбалансированный состав за 20 пиков.</p>
+          <div class="draft-intro-pills">${pills}</div>
         </div>
         <div class="draft-intro-showcase">
-          <div class="draft-intro-card-shell">
+          <div class="draft-intro-card-stage">
             <div class="draft-intro-card-frame">
+              <div class="draft-intro-card-badge">
+                <img src="${team.logoUrl}" alt="${team.name}"/>
+                <span>${team.shortName}</span>
+              </div>
               ${renderRosterCard((team.getRoster?.()||[])[0]||{
                 name:team.name,
                 ovr:82,
                 identity:{lastName:team.shortName,displayName:team.name,birthDate:"1997-01-01",nationality:team.country,primaryPosition:"ЦТР",photoUrl:"./player-photo/placeholder.png"}
               },"draft-intro-card")}
             </div>
-            <div class="draft-intro-card-meta">
-              <div class="draft-intro-logo-wrap"><img src="${team.logoUrl}" alt="${team.name}"/></div>
-              <div>
-                <div class="draft-intro-team">${team.name}</div>
-                <div class="muted">${team.city} • ${team.shortName}</div>
-              </div>
+            <div class="draft-intro-card-caption">
+              <strong>${team.name}</strong>
+              <span>${team.city} • старт с пустого ростера</span>
             </div>
           </div>
-          <div class="draft-intro-chip-grid">${chips}</div>
+          <div class="draft-intro-feature-stack">${tags}</div>
+          <div class="draft-intro-actions">
+            <button class="btn draft-intro-primary" data-action="draft-intro-start">Draft your team</button>
+            <button class="btn secondary draft-intro-secondary" data-action="draft-intro-back">Назад</button>
+          </div>
         </div>
       </div>
-      <div class="draft-intro-rail draft-intro-rail-bottom"><span>KHL MANAGER</span><span>FANTASY DRAFT</span><span>KHL MANAGER</span><span>FANTASY DRAFT</span></div>
+      <div class="draft-intro-rail draft-intro-rail-bottom"><span>OWN THE DRAFT</span><span>YOUR KHL ERA</span><span>OWN THE DRAFT</span><span>YOUR KHL ERA</span><span>OWN THE DRAFT</span><span>YOUR KHL ERA</span></div>
     </section>`;
     this.#matchEl.innerHTML="";
   }
