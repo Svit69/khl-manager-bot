@@ -57,7 +57,10 @@ export class AppState{
     this.#lastMatch=this.#sim.simulateMatch(day.match.home,day.match.away);
     this.#calendar.recordResult(day.day,this.#lastMatch);
     this.#standings.recordMatch(this.#lastMatch);
-    this.#stats.recordMatch(this.#lastMatch);this.#applyFatigue([day.match.home,day.match.away],12);this.#calendar.advanceDay();
+    this.#stats.recordMatch(this.#lastMatch);
+    this.#applyMatchPlayerStats(this.#lastMatch);
+    this.#applyFatigue([day.match.home,day.match.away],12);
+    this.#calendar.advanceDay();
     return this.#lastMatch;
   }
   playDayForActiveTeam(){
@@ -76,6 +79,7 @@ export class AppState{
       this.#calendar.recordResult(day.day,simulated);
       this.#standings.recordMatch(simulated);
       this.#stats.recordMatch(simulated);
+      this.#applyMatchPlayerStats(simulated);
       this.#applyFatigue([day.match.home,day.match.away],12);
       this.#calendar.advanceDay();
       if(isActiveMatch){
@@ -86,7 +90,13 @@ export class AppState{
     }
   }
   exportState(){
-    const players=this.#teams.flatMap(t=>t.getRoster()).map(p=>({id:p.id,fatigueScore:p.fatigueScore,form:p.form,injuryUntilDay:p.condition.injuryUntilDay}));
+    const players=this.#teams.flatMap(t=>t.getRoster()).map(p=>({
+      id:p.id,
+      fatigueScore:p.fatigueScore,
+      form:p.form,
+      injuryUntilDay:p.condition.injuryUntilDay,
+      seasonStats:p.seasonStats.exportSnapshot()
+    }));
     const rosters=this.#teams.map(team=>({teamId:team.id,playerIds:team.getRoster().map(player=>player.id)}));
     return {calendarIndex:this.#calendar.index,calendarResults:this.#calendar.exportResults(),players,stats:this.#stats.getSeasonStats(),activeTeamId:this.#activeTeamId,contracts:this.#contracts.exportContracts(),standings:this.#standings.getSnapshot(),rosters};
   }
@@ -96,7 +106,14 @@ export class AppState{
     if(saved.calendarResults)this.#calendar.importResults(saved.calendarResults);
     if(saved.rosters)this.#importRosters(saved.rosters);
     const map=new Map((saved.players||[]).map(p=>[p.id,p]));
-    this.#teams.flatMap(t=>t.getRoster()).forEach(p=>{const s=map.get(p.id);if(s){p.applyFatigue(s.fatigueScore-p.fatigueScore);p.applyFormDelta(s.form-p.form)}});
+    this.#teams.flatMap(t=>t.getRoster()).forEach(p=>{
+      const s=map.get(p.id);
+      if(s){
+        p.applyFatigue(s.fatigueScore-p.fatigueScore);
+        p.applyFormDelta(s.form-p.form);
+        if(s.seasonStats)p.seasonStats.importSnapshot(s.seasonStats);
+      }
+    });
     if(saved.contracts)this.#contracts.importContracts(saved.contracts);
     if(saved.standings)this.#standings.importSnapshot(saved.standings);
     this.#stats.importStats(saved.stats);
@@ -113,6 +130,7 @@ export class AppState{
     this.#lastMatch=null;
     this.#stats.importStats([]);
     this.#standings.importSnapshot([]);
+    this.#teams.flatMap(team=>team.getRoster()).forEach(player=>player.seasonStats.importSnapshot());
   }
   #importRosters(rosters){
     const playersById=new Map(this.#teams.flatMap(team=>team.getRoster()).map(player=>[player.id,player]));
@@ -144,6 +162,17 @@ export class AppState{
     return true;
   }
   #applyFatigue(teams,delta){teams.flatMap(t=>t.getRoster()).forEach(p=>{p.applyFatigue(delta);p.applyFormDelta(Math.random()*0.02-0.01)})}
+  #applyMatchPlayerStats(match){
+    const applySide=(teamSummary,team)=>{
+      const byId=new Map(team.getRoster().map(player=>[player.id,player]));
+      (teamSummary?.playerStats||[]).forEach(stat=>{
+        const player=byId.get(stat.playerId);
+        if(player)player.seasonStats.applyMatch(stat);
+      });
+    };
+    applySide(match?.summary?.home,match?.home);
+    applySide(match?.summary?.away,match?.away);
+  }
   #buildNegotiationContext(team){
     const rank=this.#standings.getRank(team.id,this.#teams);
     const teamsCount=this.#teams.length;

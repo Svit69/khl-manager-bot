@@ -1,4 +1,4 @@
-﻿export class PlayerSeasonStats{
+export class PlayerSeasonStats{
   #seasonId;#playerId;#games;#goals;#assists;#points;#shots;#totalIceTime;
   constructor({seasonId,playerId,games=0,goals=0,assists=0,points=0,shots=0,totalIceTime=0}){
     this.#seasonId=seasonId;this.#playerId=playerId;this.#games=games;this.#goals=goals;this.#assists=assists;this.#points=points;this.#shots=shots;this.#totalIceTime=totalIceTime;
@@ -11,6 +11,35 @@
   get points(){return this.#points}
   get shots(){return this.#shots}
   get totalIceTime(){return this.#totalIceTime}
+  addGame(){this.#games++}
   addGoal(){this.#goals++;this.#points++}
   addAssist(){this.#assists++;this.#points++}
+  addShot(count=1){this.#shots+=Math.max(0,Number(count)||0)}
+  addIceTime(seconds=0){this.#totalIceTime+=Math.max(0,Number(seconds)||0)}
+  applyMatch({games=1,goals=0,assists=0,shots=0,totalIceTime=0}={}){
+    this.#games+=Math.max(0,Number(games)||0);
+    this.#goals+=Math.max(0,Number(goals)||0);
+    this.#assists+=Math.max(0,Number(assists)||0);
+    this.#shots+=Math.max(0,Number(shots)||0);
+    this.#totalIceTime+=Math.max(0,Number(totalIceTime)||0);
+    this.#points=this.#goals+this.#assists;
+  }
+  importSnapshot({games=0,goals=0,assists=0,shots=0,totalIceTime=0}={}){
+    this.#games=Math.max(0,Number(games)||0);
+    this.#goals=Math.max(0,Number(goals)||0);
+    this.#assists=Math.max(0,Number(assists)||0);
+    this.#shots=Math.max(0,Number(shots)||0);
+    this.#totalIceTime=Math.max(0,Number(totalIceTime)||0);
+    this.#points=this.#goals+this.#assists;
+  }
+  exportSnapshot(){
+    return {
+      games:this.#games,
+      goals:this.#goals,
+      assists:this.#assists,
+      points:this.#points,
+      shots:this.#shots,
+      totalIceTime:this.#totalIceTime
+    };
+  }
 }

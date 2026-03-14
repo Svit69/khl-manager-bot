@@ -4,6 +4,11 @@ import { createContractNormalizer } from "./ContractNormalization.js";
 import { evaluateRenewalWillingness } from "./RenewalScoring.js";
 import { calculateAge, clamp, formatContractEndDate, formatNextSeason, parseSeasonEnd } from "./SeasonUtils.js";
 const { normalizeType, normalizeContract }=createContractNormalizer(ContractType);
+const getPositionMarketGroup=position=>{
+  if(position==="ЗАЩ")return "DEF";
+  if(position==="ВРТ")return "G";
+  return "FWD";
+};
 const getLatestContract=contracts=>contracts.reduce((latest,current)=>{
   if(!latest)return current;
   return parseSeasonEnd(current.season)>=parseSeasonEnd(latest.season)?current:latest;
@@ -161,8 +166,13 @@ export class ContractService{
     const allPlayers=Array.isArray(context?.allPlayers)?context.allPlayers:[];
     const minOvr=(player.ovr||0)-1;
     const maxOvr=(player.ovr||0)+1;
+    const marketGroup=getPositionMarketGroup(player.identity?.primaryPosition);
     const peerSalaries=allPlayers
-      .filter(candidate=>candidate?.id!==player.id && Math.abs((candidate?.ovr||0)-(player.ovr||0))<=1)
+      .filter(candidate=>
+        candidate?.id!==player.id
+        && Math.abs((candidate?.ovr||0)-(player.ovr||0))<=1
+        && getPositionMarketGroup(candidate?.identity?.primaryPosition)===marketGroup
+      )
       .map(candidate=>this.#getReferenceSalary(candidate.id))
       .filter(salary=>Number.isFinite(salary) && salary>0);
     if(peerSalaries.length){
@@ -170,18 +180,23 @@ export class ContractService{
       return {
         salaryRub:Math.max(1000000,Math.round(averageSalary/100000)*100000),
         sampleSize:peerSalaries.length,
-        rangeLabel:`OVR ${minOvr}-${maxOvr}`
+        rangeLabel:`${this.#getMarketGroupLabel(marketGroup)} • OVR ${minOvr}-${maxOvr}`
       };
     }
     return {
       salaryRub:lastContract?.salaryRub||Math.max(1000000,Math.round((player.ovr||0)*1000000)),
       sampleSize:0,
-      rangeLabel:`OVR ${minOvr}-${maxOvr}`
+      rangeLabel:`${this.#getMarketGroupLabel(marketGroup)} • OVR ${minOvr}-${maxOvr}`
     };
   }
   #getReferenceSalary(playerId){
     const contracts=this.getContractsForPlayer(playerId);
     const latest=getLatestContract(contracts);
     return latest?.salaryRub||null;
+  }
+  #getMarketGroupLabel(group){
+    if(group==="DEF")return "Защитники";
+    if(group==="G")return "Вратари";
+    return "Нападающие";
   }
 }

@@ -10,11 +10,14 @@ const BASE_SKATERS = 5;
 const rand = (min, max) => min + Math.random() * (max - min);
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const sum = (items) => items.reduce((a, b) => a + b, 0);
+const roundToInt = (value) => Math.max(0, Math.round(value));
 
 export class MatchSimulator {
   simulateMatch(home, away) {
     const homeContext = this.#buildTeamContext(home);
     const awayContext = this.#buildTeamContext(away);
+    const homePlayerStats = this.#createPlayerStatsMap(homeContext);
+    const awayPlayerStats = this.#createPlayerStatsMap(awayContext);
 
     const homePenalties = this.#buildPenaltyEvents(homeContext, false);
     const awayPenalties = this.#buildPenaltyEvents(awayContext, false);
@@ -42,6 +45,15 @@ export class MatchSimulator {
     const homeFinalGoals = homeGoals.length;
     const awayFinalGoals = awayGoals.length;
     const durationSeconds = wentToOvertime ? (REGULATION_SECONDS + OT_SECONDS) : REGULATION_SECONDS;
+    const homeShots = this.#estimateShots(homeFinalGoals, homeXgReg, wentToOvertime);
+    const awayShots = this.#estimateShots(awayFinalGoals, awayXgReg, wentToOvertime);
+
+    this.#applyIceTimeStats(homeContext, homePlayerStats, durationSeconds);
+    this.#applyIceTimeStats(awayContext, awayPlayerStats, durationSeconds);
+    this.#applyGoalEventStats(homeGoals, homePlayerStats);
+    this.#applyGoalEventStats(awayGoals, awayPlayerStats);
+    this.#applyShotStats(homeContext, homePlayerStats, homeShots);
+    this.#applyShotStats(awayContext, awayPlayerStats, awayShots);
 
     return {
       home,
@@ -53,14 +65,16 @@ export class MatchSimulator {
         durationSeconds,
         wentToOvertime,
         home: {
-          shots: this.#estimateShots(homeFinalGoals, homeXgReg, wentToOvertime),
+          shots: homeShots,
           penalties: homePenalties.length,
-          iceTimeByLine: homeContext.iceTimeByLine
+          iceTimeByLine: homeContext.iceTimeByLine,
+          playerStats: this.#exportPlayerStats(homePlayerStats)
         },
         away: {
-          shots: this.#estimateShots(awayFinalGoals, awayXgReg, wentToOvertime),
+          shots: awayShots,
           penalties: awayPenalties.length,
-          iceTimeByLine: awayContext.iceTimeByLine
+          iceTimeByLine: awayContext.iceTimeByLine,
+          playerStats: this.#exportPlayerStats(awayPlayerStats)
         }
       }
     };
@@ -93,7 +107,13 @@ export class MatchSimulator {
 
     const goalies = team.getRoster().filter((p) => p.identity?.primaryPosition === "ВРТ");
     const goalie = goalies.sort((a, b) => b.ovr - a.ovr)[0] || null;
-    return { team, lines, goalie, iceTimeByLine: this.#buildIceTimeByLine(lines) };
+    return {
+      team,
+      lines,
+      goalie,
+      activePlayers: [...new Set(lines.flatMap((line) => line.players).filter(Boolean))],
+      iceTimeByLine: this.#buildIceTimeByLine(lines)
+    };
   }
 
   #buildIceTimeByLine(lines) {
@@ -171,6 +191,7 @@ export class MatchSimulator {
         team: teamContext.team,
         scorer: play.scorer,
         assists: play.assists.map((p) => p.name),
+        assistPlayers: play.assists,
         assist: play.assists[0]?.name || null,
         strength: isOvertime ? "OT" : (isPowerPlay ? "PP" : (isShortHanded ? "SH" : "EV")),
         isOvertime,
@@ -315,6 +336,83 @@ export class MatchSimulator {
   #estimateShots(goals, xg, wentToOvertime) {
     const otBonus = wentToOvertime ? rand(1, 4) : 0;
     return Math.max(goals + 8, Math.round((xg * 8.8) + rand(0, 6) + otBonus));
+  }
+
+  #createPlayerStatsMap(teamContext) {
+    const stats = new Map();
+    const activePlayers = [...new Set([...(teamContext.activePlayers || []), teamContext.goalie].filter(Boolean))];
+    activePlayers.forEach((player) => {
+      stats.set(player.id, {
+        playerId: player.id,
+        games: 1,
+        goals: 0,
+        assists: 0,
+        shots: 0,
+        totalIceTime: 0
+      });
+    });
+    return stats;
+  }
+
+  #applyIceTimeStats(teamContext, statsMap, durationSeconds) {
+    (teamContext.lines || []).forEach((line) => {
+      const shareInfo = (teamContext.iceTimeByLine || []).find((item) => item.lineIndex === line.lineIndex);
+      const lineSeconds = Math.round((shareInfo?.share || 0) * durationSeconds);
+      if (!line.players.length || !lineSeconds) return;
+      const baseSeconds = Math.floor(lineSeconds / line.players.length);
+      let remainder = lineSeconds - (baseSeconds * line.players.length);
+      line.players.forEach((player) => {
+        const playerStats = statsMap.get(player.id);
+        if (!playerStats) return;
+        playerStats.totalIceTime += baseSeconds + (remainder > 0 ? 1 : 0);
+        if (remainder > 0) remainder--;
+      });
+    });
+
+    if (teamContext.goalie && statsMap.has(teamContext.goalie.id)) {
+      statsMap.get(teamContext.goalie.id).totalIceTime = durationSeconds;
+    }
+  }
+
+  #applyGoalEventStats(goalEvents, statsMap) {
+    (goalEvents || []).forEach((event) => {
+      const scorerId = event?.scorer?.id;
+      if (scorerId && statsMap.has(scorerId)) statsMap.get(scorerId).goals++;
+      (event?.assistPlayers || []).forEach((player) => {
+        if (player?.id && statsMap.has(player.id)) statsMap.get(player.id).assists++;
+      });
+    });
+  }
+
+  #applyShotStats(teamContext, statsMap, totalShots) {
+    const shooters = (teamContext.activePlayers || []).filter((player) => player.identity?.primaryPosition !== "ВРТ");
+    if (!shooters.length) return;
+    const weights = shooters.map((player) => {
+      const attrs = player.attributes?.attributesJson || {};
+      return Math.max(0.1, (attrs.shot || 60) * 0.55 + (attrs.skill || 60) * 0.2 + (attrs.speed || 60) * 0.05 + player.ovr * 0.2);
+    });
+    const allocated = new Map(shooters.map((player) => [player.id, 0]));
+
+    (shooters || []).forEach((player) => {
+      const playerStats = statsMap.get(player.id);
+      if (playerStats?.goals) allocated.set(player.id, playerStats.goals);
+    });
+
+    let remainingShots = Math.max(0, totalShots - sum([...allocated.values()]));
+    while (remainingShots > 0) {
+      const shooter = this.#pickWeighted(shooters, weights);
+      if (!shooter) break;
+      allocated.set(shooter.id, (allocated.get(shooter.id) || 0) + 1);
+      remainingShots--;
+    }
+
+    allocated.forEach((shots, playerId) => {
+      if (statsMap.has(playerId)) statsMap.get(playerId).shots = shots;
+    });
+  }
+
+  #exportPlayerStats(statsMap) {
+    return [...statsMap.values()];
   }
 
   #formatEvent(data) {
