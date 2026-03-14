@@ -1,4 +1,4 @@
-﻿const CACHE_NAME="khl-manager-v68";
+const CACHE_NAME="khl-manager-v69";
 const ASSETS=[
   "./",
   "./index.html",
@@ -12,6 +12,7 @@ const ASSETS=[
   "./khl-logo/traktor.png",
   "./khl-logo/metallurg.png",
   "./khl-logo/dynamo-moscow.png",
+  "./khl-logo/dinamo-minsk.png",
   "./player-photo/da-costa.png",
   "./player-photo/golyshev.png",
   "./player-photo/tryamkin.png",
@@ -214,6 +215,34 @@ const ASSETS=[
   "./player-photo/shvets-rogovoi.png",
   "./player-photo/gotovets.png",
   "./player-photo/claesson.png",
+  "./player-photo/anas.png",
+  "./player-photo/belkin.png",
+  "./player-photo/borikov.png",
+  "./player-photo/brook.png",
+  "./player-photo/dietz.png",
+  "./player-photo/galiyev.png",
+  "./player-photo/gretsky.png",
+  "./player-photo/hamilton.png",
+  "./player-photo/khenkel.png",
+  "./player-photo/krishtofik.png",
+  "./player-photo/limoges.png",
+  "./player-photo/lipsky.png",
+  "./player-photo/lyle.png",
+  "./player-photo/meloche.png",
+  "./player-photo/moroz.png",
+  "./player-photo/ouellet.png",
+  "./player-photo/pinchuk.png",
+  "./player-photo/pyshkaylo.png",
+  "./player-photo/salygo.png",
+  "./player-photo/sergei-kuznetsov.png",
+  "./player-photo/shipachyov.png",
+  "./player-photo/smith.png",
+  "./player-photo/sotishvili.png",
+  "./player-photo/spooner.png",
+  "./player-photo/stas.png",
+  "./player-photo/usov.png",
+  "./player-photo/voronin.png",
+  "./player-photo/voronov.png",
   "./player-photo/placeholder.png"
 ];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS)))});
