@@ -25,11 +25,12 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   min-height:780px;
   border-radius:18px;
   overflow:hidden;
-  padding:34px 22px 120px;
+  padding:32px 0 120px;
   background:
-    radial-gradient(circle at 18% 10%, rgba(99,255,237,.18), transparent 22%),
-    radial-gradient(circle at 76% 72%, rgba(120,255,228,.14), transparent 20%),
-    linear-gradient(180deg, rgba(3,12,12,.88) 0%, rgba(5,16,15,.96) 100%);
+    radial-gradient(circle at 18% 10%, rgba(99,255,237,.2), transparent 22%),
+    radial-gradient(circle at 76% 72%, rgba(120,255,228,.12), transparent 20%),
+    radial-gradient(circle at 50% 25%, rgba(84,225,211,.11), transparent 18%),
+    linear-gradient(180deg, rgba(3,12,12,.9) 0%, rgba(5,16,15,.98) 100%);
   border:1px solid rgba(102,255,233,.1);
 }
 .team-select-screen::before{
@@ -50,7 +51,9 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   justify-items:center;
   gap:10px;
   text-align:center;
-  margin-bottom:28px;
+  margin:0 auto 34px;
+  padding:0 22px;
+  max-width:980px;
 }
 .team-select-badge{
   display:inline-flex;
@@ -67,16 +70,30 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   text-transform:uppercase;
 }
 .team-select-mark{
-  font-size:72px;
+  font-size:76px;
   line-height:.88;
   font-weight:1000;
   letter-spacing:-4px;
   text-transform:uppercase;
   color:#f2f7f7;
   text-shadow:8px 0 0 rgba(255,255,255,.14),-8px 0 0 rgba(255,255,255,.07);
+  position:relative;
 }
+.team-select-mark::before,
+.team-select-mark::after{
+  content:"";
+  position:absolute;
+  top:10%;
+  bottom:10%;
+  width:12px;
+  opacity:.65;
+  background:
+    linear-gradient(180deg, transparent 0 8%, #f2f7f7 8% 16%, transparent 16% 22%, #f2f7f7 22% 33%, transparent 33% 40%, #f2f7f7 40% 54%, transparent 54% 62%, #f2f7f7 62% 74%, transparent 74% 82%, #f2f7f7 82% 92%, transparent 92%);
+}
+.team-select-mark::before{left:-20px}
+.team-select-mark::after{right:-20px}
 .team-select-hero h2{
-  font-size:34px;
+  font-size:38px;
   text-transform:uppercase;
   letter-spacing:-1px;
 }
@@ -91,6 +108,9 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   z-index:1;
   display:grid;
   gap:24px;
+  max-width:1520px;
+  margin:0 auto;
+  padding:0 22px;
 }
 .team-select-section{
   display:grid;
@@ -105,13 +125,13 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
 }
 .team-select-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
   gap:16px;
 }
 .team-select-card{
   position:relative;
   min-height:132px;
-  padding:14px 18px 18px;
+  padding:16px 20px 18px;
   border:1px solid rgba(255,255,255,.12);
   border-radius:16px;
   background:linear-gradient(180deg, rgba(7,12,14,.86) 0%, rgba(7,12,14,.96) 100%);
@@ -136,22 +156,12 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
 .team-select-card-glow{
   position:absolute;
   inset:auto 0 0 0;
-  height:44px;
+  height:48px;
   background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(86,255,231,.12) 100%);
   pointer-events:none;
 }
 .team-select-card.active .team-select-card-glow{
   background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(255,44,44,.22) 100%);
-}
-.team-select-card-top{
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  color:#799090;
-  font-size:11px;
-  font-weight:800;
-  letter-spacing:.7px;
-  text-transform:uppercase;
 }
 .team-select-card-body{
   position:relative;
@@ -172,6 +182,12 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   font-size:15px;
   font-weight:800;
   text-align:center;
+}
+.team-select-card-subtitle{
+  font-size:12px;
+  color:#8aa0a0;
+  text-transform:uppercase;
+  letter-spacing:.8px;
 }
 .team-select-dock{
   position:sticky;
@@ -217,7 +233,7 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   justify-content:flex-end;
 }
 .team-select-dock-btn{
-  min-width:178px;
+  min-width:190px;
   min-height:44px;
   border-radius:12px;
 }
@@ -229,6 +245,9 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   background:rgba(8,10,26,.22);
   color:#fff;
   border:1px solid rgba(255,255,255,.2);
+}
+.team-select-dock-btn-ghost{
+  min-width:152px;
 }
 .tab-row{display:flex;gap:6px;margin:8px 0}
 .tab{background:#123252;border:1px solid #1c3e63;color:var(--text);padding:6px 8px;border-radius:8px;cursor:pointer}
@@ -1314,6 +1333,8 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
 @media (max-width:720px){
   .team-select-screen{padding:22px 14px 108px}
   .team-select-mark{font-size:52px}
+  .team-select-mark::before,
+  .team-select-mark::after{display:none}
   .team-select-hero h2{font-size:26px}
   .team-select-grid{grid-template-columns:1fr}
   .team-select-dock{

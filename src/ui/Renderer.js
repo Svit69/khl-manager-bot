@@ -151,13 +151,10 @@ export class Renderer{
     const selectedTeam=teams.find(team=>team.id===selectedTeamId)||null;
     const renderCard=team=>`<button class="team-select-card${selectedTeamId===team.id?" active":""}" data-team-id="${team.id}">
       <div class="team-select-card-glow"></div>
-      <div class="team-select-card-top">
-        <span class="team-select-card-country">${team.country}</span>
-        <span class="team-select-card-city">${team.city}</span>
-      </div>
       <div class="team-select-card-body">
         <img src="${team.logoUrl}" alt="${team.name}"/>
         <div class="team-select-card-name">${team.name}</div>
+        <div class="team-select-card-subtitle">${team.city}</div>
       </div>
     </button>`;
     const renderSection=(title,cards)=>cards.length?`<section class="team-select-section"><h3>${title}</h3><div class="team-select-grid">${cards.map(renderCard).join("")}</div></section>`:"";
@@ -167,7 +164,7 @@ export class Renderer{
         <strong>${selectedTeam.name}</strong>
       </div>
       <div class="team-select-dock-actions">
-        <button class="btn secondary team-select-dock-btn" data-action="start-fantasy-draft">Фэнтези драфт</button>
+        <button class="btn secondary team-select-dock-btn team-select-dock-btn-ghost" data-action="start-fantasy-draft">Фэнтези драфт</button>
         <button class="btn team-select-dock-btn" data-action="confirm-team">Выбрать ${selectedTeam.name}</button>
       </div>
     </div>`:`<div class="team-select-dock team-select-dock-empty"><div class="team-select-dock-meta"><span class="team-select-dock-label">Новая игра</span><strong>Выберите клуб, чтобы продолжить</strong></div></div>`;
