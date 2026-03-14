@@ -1158,6 +1158,28 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
 .negotiation-reason.pos{background:rgba(41,179,122,.18);color:#b9ffdf}
 .negotiation-reason.neg{background:rgba(194,88,88,.18);color:#ffd0d0}
 .negotiation-offer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.negotiation-salary-box{display:grid;gap:6px}
+.negotiation-salary-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.negotiation-salary-input{
+  width:124px;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid rgba(112,157,211,.34);
+  background:rgba(7,20,38,.88);
+  color:#eef6ff;
+  font:inherit;
+}
+.negotiation-salary-input:focus{
+  outline:none;
+  border-color:#7dd9ff;
+  box-shadow:0 0 0 3px rgba(125,217,255,.14);
+}
+.btn.secondary.active{
+  border-color:#7dd9ff;
+  color:#041122;
+  background:linear-gradient(180deg,#9cecff,#62cfff);
+}
+.btn.compact{padding:8px 10px;min-width:auto}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:12px}
 .modal-card{background:var(--card);border:1px solid #1c3e63;border-radius:12px;padding:12px;width:min(360px,100%)}
 .sim-modal{background:rgba(2,7,16,.74);backdrop-filter:blur(8px)}

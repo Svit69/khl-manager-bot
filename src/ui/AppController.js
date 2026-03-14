@@ -86,13 +86,23 @@ export class AppController{
   #handleChange(event){
     const changed=event.target?.closest?.("[data-action]");
     const action=changed?.dataset?.action;
-    if(action!=="trade-select-team")return;
-    const teamId=changed.value||"";
-    this.#tradeTeamId=teamId||null;
-    this.#tradeGivePlayerIds.clear();
-    this.#tradeReceivePlayerIds.clear();
-    this.#tradeMessage="";
-    this.#renderScreen();
+    if(action==="trade-select-team"){
+      const teamId=changed.value||"";
+      this.#tradeTeamId=teamId||null;
+      this.#tradeGivePlayerIds.clear();
+      this.#tradeReceivePlayerIds.clear();
+      this.#tradeMessage="";
+      this.#renderScreen();
+      return;
+    }
+    if(action==="set-offer-salary-input"){
+      const playerId=changed.dataset.playerId;
+      const salaryRub=this.#parseSalaryMillions(changed.value);
+      if(!playerId||!salaryRub)return;
+      const current=this.#offerByPlayerId.get(playerId)||{years:1,salaryRub};
+      this.#offerByPlayerId.set(playerId,{...current,salaryRub});
+      this.#renderScreen();
+    }
   }
   #buildNegotiationState(){
     if(!this.#selectedNegotiationPlayerId)return null;
@@ -221,6 +231,29 @@ export class AppController{
       if(preview){
         const salaryRub=Math.round(preview.marketSalary*multiplier);
         const current=this.#offerByPlayerId.get(playerId)||{years:1,salaryRub};
+        this.#offerByPlayerId.set(playerId,{...current,salaryRub});
+      }
+      this.#renderScreen();
+      return;
+    }
+    if(action==="set-offer-market-salary"){
+      const playerId=clickable.dataset.playerId;
+      const preview=this.#state.getActiveTeamNegotiationPreview(playerId,this.#offerByPlayerId.get(playerId));
+      if(preview){
+        const current=this.#offerByPlayerId.get(playerId)||{years:1,salaryRub:preview.marketSalary};
+        this.#offerByPlayerId.set(playerId,{...current,salaryRub:preview.marketSalary});
+      }
+      this.#renderScreen();
+      return;
+    }
+    if(action==="adjust-offer-salary"){
+      const playerId=clickable.dataset.playerId;
+      const deltaMillion=Number(clickable.dataset.deltaMillion)||0;
+      if(!playerId||!deltaMillion)return;
+      const preview=this.#state.getActiveTeamNegotiationPreview(playerId,this.#offerByPlayerId.get(playerId));
+      if(preview){
+        const current=this.#offerByPlayerId.get(playerId)||{years:1,salaryRub:preview.marketSalary};
+        const salaryRub=Math.max(500000,current.salaryRub+Math.round(deltaMillion*1000000));
         this.#offerByPlayerId.set(playerId,{...current,salaryRub});
       }
       this.#renderScreen();
@@ -458,6 +491,12 @@ export class AppController{
       return {kind:"line",lineIndex,slotIndex};
     }
     return null;
+  }
+  #parseSalaryMillions(rawValue){
+    const normalized=String(rawValue??"").trim().replace(",",".");
+    const millions=Number(normalized);
+    if(!Number.isFinite(millions)||millions<=0)return null;
+    return Math.max(500000,Math.round(millions*1000000));
   }
   #resetGame(){this.#userStore.clearSave();window.location.reload()}
 }

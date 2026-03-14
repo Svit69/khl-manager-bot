@@ -149,6 +149,13 @@ export class AppState{
     const teamsCount=this.#teams.length;
     const teamStats=this.#standings.getTeamStats(team.id);
     const teamGamesPlayed=teamStats?.gp||0;
-    return {teamRank:rank,teamsCount,teamGamesPlayed,isInTop8:rank!==null && rank<=8};
+    return {
+      teamRank:rank,
+      teamsCount,
+      teamGamesPlayed,
+      isInTop8:rank!==null && rank<=8,
+      teamRoster:team.getRoster(),
+      allPlayers:this.getAllPlayers()
+    };
   }
 }

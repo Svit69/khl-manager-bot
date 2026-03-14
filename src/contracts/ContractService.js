@@ -80,11 +80,14 @@ export class ContractService{
   getRenewalPreview(team,player,offer,context=null){
     const contracts=this.getContractsForPlayer(player.id);
     const lastContract=contracts[contracts.length-1]||null;
-    const evaluation=evaluateRenewalWillingness({player,team,offer,context,lastContract});
+    const market=this.#estimateMarketSalary(player,context,lastContract);
+    const evaluation=evaluateRenewalWillingness({player,team,offer,context,lastContract,marketSalary:market.salaryRub});
     const isRenewalLocked=this.isRenewalLocked(player.id);
     return {
       playerId:player.id,
       ...evaluation,
+      marketSampleSize:market.sampleSize,
+      marketRangeLabel:market.rangeLabel,
       isRenewalLocked,
       renewalLockReason:isRenewalLocked?this.getRenewalLockReason(player.id):null
     };
@@ -153,5 +156,32 @@ export class ContractService{
     contracts=linked.playerId?this.getContractsForPlayer(linked.playerId):[linked];
     if(!contracts.length)contracts=[linked];
     return contracts;
+  }
+  #estimateMarketSalary(player,context,lastContract){
+    const allPlayers=Array.isArray(context?.allPlayers)?context.allPlayers:[];
+    const minOvr=(player.ovr||0)-1;
+    const maxOvr=(player.ovr||0)+1;
+    const peerSalaries=allPlayers
+      .filter(candidate=>candidate?.id!==player.id && Math.abs((candidate?.ovr||0)-(player.ovr||0))<=1)
+      .map(candidate=>this.#getReferenceSalary(candidate.id))
+      .filter(salary=>Number.isFinite(salary) && salary>0);
+    if(peerSalaries.length){
+      const averageSalary=peerSalaries.reduce((total,value)=>total+value,0)/peerSalaries.length;
+      return {
+        salaryRub:Math.max(1000000,Math.round(averageSalary/100000)*100000),
+        sampleSize:peerSalaries.length,
+        rangeLabel:`OVR ${minOvr}-${maxOvr}`
+      };
+    }
+    return {
+      salaryRub:lastContract?.salaryRub||Math.max(1000000,Math.round((player.ovr||0)*1000000)),
+      sampleSize:0,
+      rangeLabel:`OVR ${minOvr}-${maxOvr}`
+    };
+  }
+  #getReferenceSalary(playerId){
+    const contracts=this.getContractsForPlayer(playerId);
+    const latest=getLatestContract(contracts);
+    return latest?.salaryRub||null;
   }
 }
