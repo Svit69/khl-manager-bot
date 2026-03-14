@@ -73,7 +73,7 @@ export class AppController{
       this.#renderer.renderResetButton();
       return;
     }
-    this.#renderer.renderTeamSelection(this.#teams,this.#state.activeTeamId);
+    this.#renderer.renderTeamSelection(this.#teams,this.#state.activeTeamId,this.#pendingTeamId);
     this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,true,{
       tab:this.#calendarPanelTab,
       standings:this.#state.getStandingsTable(),
@@ -82,10 +82,6 @@ export class AppController{
     });
     this.#renderer.renderResetButton();
     this.#renderer.renderMatch(this.#state.lastMatch,this.#state.seasonStats);
-    if(this.#pendingTeamId){
-      const team=this.#teams.find(item=>item.id===this.#pendingTeamId);
-      if(team)this.#renderer.renderConfirmSelection(team);
-    }
   }
   #handleChange(event){
     const changed=event.target?.closest?.("[data-action]");

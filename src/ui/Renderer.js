@@ -144,9 +144,46 @@ export class Renderer{
     const reserve=activeTab==="roster"?`<div class="team-reserve-wrap">${renderReserveStrip(team.reservePlayers||[])}</div>`:"";
     this.#teamEl.innerHTML=`<div class="team-screen">${sidebar}<div class="team-screen-main"><div class="team-screen-header"><div class="team-screen-title">${team.name}</div><div class="muted">${team.city}, ${team.shortName}</div></div>${rosterView}${reserve}<div id="teamTabContent"></div></div></div>`;
   }
-  renderTeamSelection(teams,activeTeamId){
-    const cards=teams.map(team=>`<button class="team-card" data-team-id="${team.id}"><img src="${team.logoUrl}" alt="${team.name}"/><span>${team.name}</span></button>`).join("");
-    this.#teamEl.innerHTML=`<h2>${activeTeamId?"Выбрана команда":"Выберите команду"}</h2><div class="team-grid">${cards}</div>`;
+  renderTeamSelection(teams,activeTeamId,selectedTeamId=null){
+    const popularShortNames=new Set(["AVT","AKB","CSK","AVG"]);
+    const popularTeams=teams.filter(team=>popularShortNames.has(team.shortName));
+    const otherTeams=teams.filter(team=>!popularShortNames.has(team.shortName));
+    const selectedTeam=teams.find(team=>team.id===selectedTeamId)||null;
+    const renderCard=team=>`<button class="team-select-card${selectedTeamId===team.id?" active":""}" data-team-id="${team.id}">
+      <div class="team-select-card-glow"></div>
+      <div class="team-select-card-top">
+        <span class="team-select-card-country">${team.country}</span>
+        <span class="team-select-card-city">${team.city}</span>
+      </div>
+      <div class="team-select-card-body">
+        <img src="${team.logoUrl}" alt="${team.name}"/>
+        <div class="team-select-card-name">${team.name}</div>
+      </div>
+    </button>`;
+    const renderSection=(title,cards)=>cards.length?`<section class="team-select-section"><h3>${title}</h3><div class="team-select-grid">${cards.map(renderCard).join("")}</div></section>`:"";
+    const actionDock=selectedTeam?`<div class="team-select-dock">
+      <div class="team-select-dock-meta">
+        <span class="team-select-dock-label">Выбран клуб</span>
+        <strong>${selectedTeam.name}</strong>
+      </div>
+      <div class="team-select-dock-actions">
+        <button class="btn secondary team-select-dock-btn" data-action="start-fantasy-draft">Фэнтези драфт</button>
+        <button class="btn team-select-dock-btn" data-action="confirm-team">Выбрать ${selectedTeam.name}</button>
+      </div>
+    </div>`:`<div class="team-select-dock team-select-dock-empty"><div class="team-select-dock-meta"><span class="team-select-dock-label">Новая игра</span><strong>Выберите клуб, чтобы продолжить</strong></div></div>`;
+    this.#teamEl.innerHTML=`<section class="team-select-screen">
+      <div class="team-select-hero">
+        <span class="team-select-badge">Новый сезон</span>
+        <div class="team-select-mark">WNTR</div>
+        <h2>Выберите свой клуб</h2>
+        <p>Начните обычную карьеру или сразу перейдите в режим фэнтези-драфта. Выбранная команда будет стартовой точкой нового сохранения.</p>
+      </div>
+      <div class="team-select-content">
+        ${renderSection("Популярные клубы",popularTeams)}
+        ${renderSection("Все клубы",otherTeams)}
+      </div>
+      ${actionDock}
+    </section>`;
   }
   renderMyTeamRoster(team){
     const container=document.getElementById("teamTabContent");
@@ -167,8 +204,7 @@ export class Renderer{
     this.#matchEl.innerHTML=this.#tradeTab.render(view);
   }
   renderConfirmSelection(team){
-    const modal=`<div class="modal"><div class="modal-card"><div class="row"><img class="logo" src="${team.logoUrl}" alt="${team.name}"/><div><div>${team.name}</div><div class="muted">${team.city}, ${team.country}</div></div></div><div class="modal-actions"><button class="btn" data-action="confirm-team">Обычная игра</button><button class="btn" data-action="start-fantasy-draft">Фэнтези драфт</button><button class="btn secondary" data-action="cancel-team">Отмена</button></div></div></div>`;
-    this.#teamEl.insertAdjacentHTML("beforeend",modal);
+    this.renderTeamSelection([team],null,team.id);
   }
   renderFantasyDraftIntro(team){
     const infoPills=[
