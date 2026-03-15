@@ -1,9 +1,10 @@
-const CACHE_NAME="khl-manager-v74";
+const CACHE_NAME="khl-manager-v75";
 const ASSETS=[
   "./",
   "./index.html",
   "./styles.css",
   "./src/app.js",
+  "./src/data/freeAgents.js",
   "./src/data/teams.js",
   "./manifest.json",
   "./khl-logo/avangard.png",
@@ -243,6 +244,10 @@ const ASSETS=[
   "./player-photo/usov.png",
   "./player-photo/voronin.png",
   "./player-photo/voronov.png",
+  "./player-photo/burdasov.png",
+  "./player-photo/belousov.png",
+  "./player-photo/fateyev.png",
+  "./player-photo/shumakov.png",
   "./player-photo/placeholder.png"
 ];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS)))});

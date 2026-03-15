@@ -37,6 +37,8 @@ export class AppController{
       this.#renderer.renderResetButton();
       if(this.#activeTab==="contracts"){
         this.#renderer.renderContracts(this.#state.getActiveTeamContractRows(),this.#buildNegotiationState());
+      }else if(this.#activeTab==="freeAgents"){
+        this.#renderer.renderFreeAgents(this.#state.getActiveTeamFreeAgentRows(),this.#buildNegotiationState());
       }else if(this.#activeTab==="trades"){
         this.#renderer.renderTrades(this.#buildTradeState());
       }else{
@@ -107,7 +109,9 @@ export class AppController{
   #buildNegotiationState(){
     if(!this.#selectedNegotiationPlayerId)return null;
     const offer=this.#offerByPlayerId.get(this.#selectedNegotiationPlayerId)||null;
-    const preview=this.#state.getActiveTeamNegotiationPreview(this.#selectedNegotiationPlayerId,offer);
+    const preview=this.#activeTab==="freeAgents"
+      ? this.#state.getFreeAgentSigningPreview(this.#selectedNegotiationPlayerId,offer)
+      : this.#state.getActiveTeamNegotiationPreview(this.#selectedNegotiationPlayerId,offer);
     if(!preview)return null;
     const outcome=this.#outcomeByPlayerId.get(this.#selectedNegotiationPlayerId)||null;
     this.#offerByPlayerId.set(this.#selectedNegotiationPlayerId,preview.offer);
@@ -141,6 +145,7 @@ export class AppController{
     if(tab){
       this.#activeTab=tab;
       if(tab!=="trades"){this.#tradeMessage="";}
+      this.#selectedNegotiationPlayerId=null;
       this.#renderScreen();
       return;
     }
@@ -227,7 +232,9 @@ export class AppController{
     if(action==="set-offer-salary"){
       const playerId=clickable.dataset.playerId;
       const multiplier=Number(clickable.dataset.multiplier)||1;
-      const preview=this.#state.getActiveTeamNegotiationPreview(playerId,this.#offerByPlayerId.get(playerId));
+      const preview=this.#activeTab==="freeAgents"
+        ? this.#state.getFreeAgentSigningPreview(playerId,this.#offerByPlayerId.get(playerId))
+        : this.#state.getActiveTeamNegotiationPreview(playerId,this.#offerByPlayerId.get(playerId));
       if(preview){
         const salaryRub=Math.round(preview.marketSalary*multiplier);
         const current=this.#offerByPlayerId.get(playerId)||{years:1,salaryRub};
@@ -238,7 +245,9 @@ export class AppController{
     }
     if(action==="set-offer-market-salary"){
       const playerId=clickable.dataset.playerId;
-      const preview=this.#state.getActiveTeamNegotiationPreview(playerId,this.#offerByPlayerId.get(playerId));
+      const preview=this.#activeTab==="freeAgents"
+        ? this.#state.getFreeAgentSigningPreview(playerId,this.#offerByPlayerId.get(playerId))
+        : this.#state.getActiveTeamNegotiationPreview(playerId,this.#offerByPlayerId.get(playerId));
       if(preview){
         const current=this.#offerByPlayerId.get(playerId)||{years:1,salaryRub:preview.marketSalary};
         this.#offerByPlayerId.set(playerId,{...current,salaryRub:preview.marketSalary});
@@ -250,7 +259,9 @@ export class AppController{
       const playerId=clickable.dataset.playerId;
       const deltaMillion=Number(clickable.dataset.deltaMillion)||0;
       if(!playerId||!deltaMillion)return;
-      const preview=this.#state.getActiveTeamNegotiationPreview(playerId,this.#offerByPlayerId.get(playerId));
+      const preview=this.#activeTab==="freeAgents"
+        ? this.#state.getFreeAgentSigningPreview(playerId,this.#offerByPlayerId.get(playerId))
+        : this.#state.getActiveTeamNegotiationPreview(playerId,this.#offerByPlayerId.get(playerId));
       if(preview){
         const current=this.#offerByPlayerId.get(playerId)||{years:1,salaryRub:preview.marketSalary};
         const salaryRub=Math.max(500000,current.salaryRub+Math.round(deltaMillion*1000000));
@@ -262,7 +273,9 @@ export class AppController{
     if(action==="submit-offer"){
       const playerId=clickable.dataset.playerId;
       const offer=this.#offerByPlayerId.get(playerId);
-      const result=this.#state.submitActiveTeamNegotiation(playerId,offer);
+      const result=this.#activeTab==="freeAgents"
+        ? this.#state.submitFreeAgentSigning(playerId,offer)
+        : this.#state.submitActiveTeamNegotiation(playerId,offer);
       if(result){
         const label=result.decision==="accept"?"✅ Согласен":(result.decision==="counter"?"🟡 Просит больше":(result.decision==="locked"?"⛔ Контракт уже продлен":"❌ Отказывается"));
         this.#outcomeByPlayerId.set(playerId,label);

@@ -44,7 +44,11 @@ export const createSkater=(teamInfo,firstName,lastName,position,seasonId,profile
     seasonsPlayed:profile.career.seasonsPlayed,
     reputation:profile.career.reputation||0
   });
-  const affiliation=new PlayerAffiliation({playerId,teamId:teamInfo.id,contractId:profile.affiliation?.contractId||null});
+  const affiliation=new PlayerAffiliation({
+    playerId,
+    teamId:profile.affiliation?.teamId??teamInfo?.id??null,
+    contractId:profile.affiliation?.contractId||null
+  });
   const seasonStats=new PlayerSeasonStats({seasonId,playerId});
   const skater=new Skater(identity,attributes,potential,condition,career,affiliation,seasonStats,position);
   if(profile?.lineIndex)skater.expectedLineIndex=profile.lineIndex;

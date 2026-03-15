@@ -14,14 +14,18 @@ const getLatestContract=contracts=>contracts.reduce((latest,current)=>{
   return parseSeasonEnd(current.season)>=parseSeasonEnd(latest.season)?current:latest;
 },null);
 export class ContractService{
-  #contracts;#baseContracts;#baseContractIds;
+  #contracts;#baseContracts;#baseContractIds;#releasedPlayerIds;
   constructor(contracts){
     this.#baseContracts=(contracts||[]).map(normalizeContract).filter(Boolean);
     this.#baseContractIds=new Set(this.#baseContracts.map(c=>c.id));
     this.#contracts=this.#baseContracts.map(c=>({...c}));
+    this.#releasedPlayerIds=new Set();
   }
-  importContracts(contracts){
-    const saved=(contracts||[]).map(normalizeContract).filter(Boolean);
+  importContracts(payload){
+    const savedContracts=Array.isArray(payload)?payload:(payload?.createdContracts||[]);
+    const releasedPlayerIds=Array.isArray(payload?.releasedPlayerIds)?payload.releasedPlayerIds:[];
+    const saved=(savedContracts||[]).map(normalizeContract).filter(Boolean);
+    this.#releasedPlayerIds=new Set(releasedPlayerIds);
     if(!saved.length){this.#contracts=this.#baseContracts.map(c=>({...c}));return;}
     const merged=new Map(this.#baseContracts.map(c=>[c.id,c]));
     saved.forEach(c=>{
@@ -41,8 +45,17 @@ export class ContractService{
     this.#contracts=[...merged.values()];
   }
   exportContracts(){
-    // Persist only contracts created during gameplay to keep localStorage payload small.
-    return this.#contracts.filter(c=>!this.#baseContractIds.has(c.id)).map(c=>({...c}));
+    return {
+      createdContracts:this.#contracts.filter(c=>!this.#baseContractIds.has(c.id)).map(c=>({...c})),
+      releasedPlayerIds:[...this.#releasedPlayerIds]
+    };
+  }
+  releasePlayers(playerIds){
+    (playerIds||[]).forEach(playerId=>{
+      if(!playerId)return;
+      this.#releasedPlayerIds.add(playerId);
+      this.#contracts=this.#contracts.filter(contract=>!(contract.playerId===playerId && !this.#baseContractIds.has(contract.id)));
+    });
   }
   isRenewalLocked(playerId){
     return this.#contracts.some(c=>c.playerId===playerId && !this.#baseContractIds.has(c.id));
@@ -53,7 +66,7 @@ export class ContractService{
   }
   getContractsForPlayer(playerId){
     return this.#contracts
-      .filter(c=>c.playerId===playerId)
+      .filter(c=>c.playerId===playerId && (!this.#releasedPlayerIds.has(playerId) || !this.#baseContractIds.has(c.id)))
       .sort((a,b)=>parseSeasonEnd(a.season)-parseSeasonEnd(b.season));
   }
   getTeamContractRows(team){
@@ -82,6 +95,11 @@ export class ContractService{
     }).sort((a,b)=>a.displayName.localeCompare(b.displayName,"ru"));
   }
   getContractTypeLabel(type){return contractTypeLabel[normalizeType(type)]}
+  getSigningStartSeason(){
+    const seasons=this.#contracts.map(contract=>contract.season).filter(Boolean);
+    const minSeason=seasons.sort((a,b)=>parseSeasonEnd(a)-parseSeasonEnd(b))[0];
+    return minSeason||"2025/2026";
+  }
   getRenewalPreview(team,player,offer,context=null){
     const contracts=this.getContractsForPlayer(player.id);
     const lastContract=contracts[contracts.length-1]||null;
@@ -126,6 +144,75 @@ export class ContractService{
         this.#contracts.push(nextContract);
         newContracts.push(nextContract);
         player.affiliation.contractId=nextContract.id;
+      }
+      return {decision:"accept",preview,newContracts};
+    }
+    const counter={
+      years:clamp(preview.offer.years,1,4),
+      salaryRub:Math.round(preview.marketSalary*1.05)
+    };
+    return {decision,preview,counter};
+  }
+  getFreeAgentRows(players){
+    return (players||[]).map(player=>({
+      playerId:player.id,
+      displayName:player.name,
+      age:calculateAge(player.identity.birthDate),
+      ovr:player.ovr,
+      position:player.identity?.primaryPosition||"",
+      khlGamesPlayed:player.career?.khlGamesPlayed||0,
+      seasonStats:{
+        games:player.seasonStats.games,
+        goals:player.seasonStats.goals,
+        assists:player.seasonStats.assists
+      },
+      contractEndDate:null,
+      contracts:[]
+    })).sort((a,b)=>b.ovr-a.ovr||a.displayName.localeCompare(b.displayName,"ru"));
+  }
+  getFreeAgentPreview(team,player,offer,context=null){
+    const market=this.#estimateMarketSalary(player,context,null);
+    return {
+      playerId:player.id,
+      ...evaluateRenewalWillingness({
+        player,
+        team,
+        offer,
+        context:{...(context||{}),isFreeAgent:true},
+        lastContract:null,
+        marketSalary:market.salaryRub
+      }),
+      marketSampleSize:market.sampleSize,
+      marketRangeLabel:market.rangeLabel,
+      isRenewalLocked:false,
+      renewalLockReason:null
+    };
+  }
+  submitFreeAgentOffer(team,player,offer,context=null){
+    const preview=this.getFreeAgentPreview(team,player,offer,context);
+    const {willingness,ufaStatus}=preview;
+    let decision="counter";
+    if(ufaStatus==="NSA" && willingness<50)decision="reject";
+    else if(willingness>=75)decision="accept";
+    if(ufaStatus==="OSA" && decision==="reject")decision="counter";
+    if(decision==="accept"){
+      let season=this.getSigningStartSeason();
+      const newContracts=[];
+      for(let i=0;i<preview.offer.years;i++){
+        const contract={
+          id:generateUuid(),
+          playerId:player.id,
+          teamId:team.id,
+          season,
+          salaryRub:preview.offer.salaryRub,
+          type:ContractType.ONE_WAY
+        };
+        this.#contracts.push(contract);
+        newContracts.push(contract);
+        player.affiliation.contractId=contract.id;
+        player.affiliation.teamId=team.id;
+        this.#releasedPlayerIds.delete(player.id);
+        season=formatNextSeason(season);
       }
       return {decision:"accept",preview,newContracts};
     }

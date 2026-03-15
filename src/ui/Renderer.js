@@ -1,4 +1,5 @@
-﻿import { ContractTabRenderer } from "./ContractTabRenderer.js";
+import { ContractTabRenderer } from "./ContractTabRenderer.js";
+import { FreeAgentTabRenderer } from "./FreeAgentTabRenderer.js";
 import { TradeTabRenderer } from "./TradeTabRenderer.js";
 import { calculateAge } from "../contracts/SeasonUtils.js";
 const NATION_FLAG_ASSET_BY_CODE=Object.freeze({
@@ -126,9 +127,9 @@ const renderReserveStrip=players=>{
   if(!players?.length)return `<div class="team-reserve-empty">Запасных нет</div>`;
   return `<div class="team-reserve-strip">${players.map((player,index)=>renderRosterSlotCard(player,{kind:"reserve",index},"hockey-card--reserve")).join("")}</div>`;
 };
-const renderTeamSidebar=(team,activeTab)=>`<aside class="team-sidebar"><img class="team-sidebar-logo" src="${team.logoUrl}" alt="${team.name}"/><div class="team-sidebar-nav"><button class="team-nav-link${activeTab==="roster"?" active":""}" data-tab="roster">Состав</button><button class="team-nav-link${activeTab==="contracts"?" active":""}" data-tab="contracts">Контракты</button><button class="team-nav-link${activeTab==="trades"?" active":""}" data-tab="trades">Обмены</button></div></aside>`;
+const renderTeamSidebar=(team,activeTab)=>`<aside class="team-sidebar"><img class="team-sidebar-logo" src="${team.logoUrl}" alt="${team.name}"/><div class="team-sidebar-nav"><button class="team-nav-link${activeTab==="roster"?" active":""}" data-tab="roster">Состав</button><button class="team-nav-link${activeTab==="contracts"?" active":""}" data-tab="contracts">Контракты</button><button class="team-nav-link${activeTab==="freeAgents"?" active":""}" data-tab="freeAgents">Свободные агенты</button><button class="team-nav-link${activeTab==="trades"?" active":""}" data-tab="trades">Обмены</button></div></aside>`;
 export class Renderer{
-  #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();#tradeTab=new TradeTabRenderer();
+  #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();#freeAgentTab=new FreeAgentTabRenderer();#tradeTab=new TradeTabRenderer();
   constructor(){
     this.#teamEl=document.getElementById("teamPanel");
     this.#calEl=document.getElementById("calendarPanel");
@@ -198,6 +199,11 @@ export class Renderer{
     const container=document.getElementById("teamTabContent");
     if(container){container.innerHTML=this.#tradeTab.render(view);return;}
     this.#matchEl.innerHTML=this.#tradeTab.render(view);
+  }
+  renderFreeAgents(rows,negotiation){
+    const container=document.getElementById("teamTabContent");
+    if(container){container.innerHTML=this.#freeAgentTab.render(rows,negotiation);return;}
+    this.#matchEl.innerHTML=this.#freeAgentTab.render(rows,negotiation);
   }
   renderConfirmSelection(team){
     this.renderTeamSelection([team],null,team.id);
@@ -399,4 +405,3 @@ export class Renderer{
     return `<div class="tab-row"><button class="${rosterClass}" data-tab="roster">Состав</button><button class="${contractClass}" data-tab="contracts">Контракты</button></div>`;
   }
 }
-
