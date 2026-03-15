@@ -1,14 +1,34 @@
 import { calculateAge } from "../contracts/SeasonUtils.js";
 
+const formatDelta = (value) => {
+  if (typeof value !== "number" || Number.isNaN(value)) return "—";
+  return `${value > 0 ? "+" : ""}${value}`;
+};
+
 const renderPlayerPickRow = (side, player, selectedIds) => {
   const age = calculateAge(player.identity?.birthDate);
   const selected = selectedIds.has(player.id);
-  return `<button class="trade-player-row${selected ? " selected" : ""}" data-action="trade-toggle-${side}" data-player-id="${player.id}"><span class="name">${player.name}</span><span class="pos">${player.identity?.primaryPosition || "—"}</span><span class="ovr">OVR ${player.ovr}</span><span class="age">${age} лет</span></button>`;
+  const position = player.identity?.primaryPosition || "—";
+  return `<button class="trade-player-row${selected ? " selected" : ""}" data-action="trade-toggle-${side}" data-player-id="${player.id}">
+    <div class="trade-player-main">
+      <span class="trade-player-name" title="${player.name}">${player.name}</span>
+      <span class="trade-player-subtitle">${position} • ${age} лет</span>
+    </div>
+    <div class="trade-player-rating">
+      <span class="trade-player-rating-label">OVR</span>
+      <strong>${player.ovr}</strong>
+    </div>
+  </button>`;
 };
 
-const renderSelectedSummary = (items) => {
-  if (!items?.length) return `<div class="muted">Пока пусто</div>`;
-  return items.map((item) => `<div class="trade-summary-row"><span>${item.player.name}</span><span>${item.userValue}</span></div>`).join("");
+const renderSelectedSummary = (items, emptyLabel) => {
+  if (!items?.length) return `<div class="trade-summary-empty">${emptyLabel}</div>`;
+  return items.map((item) => `
+    <div class="trade-summary-row">
+      <span class="trade-summary-name" title="${item.player.name}">${item.player.name}</span>
+      <span class="trade-summary-value">${item.userValue}</span>
+    </div>
+  `).join("");
 };
 
 export class TradeTabRenderer {
@@ -25,54 +45,116 @@ export class TradeTabRenderer {
       message = ""
     } = view || {};
 
-    const partnerOptions = partners.map((team) => `<option value="${team.id}" ${team.id === selectedTeamId ? "selected" : ""}>${team.name}</option>`).join("");
-    const indicator = evaluation?.indicator ? `${evaluation.indicator.icon} ${evaluation.indicator.text}` : "—";
-    const decision = evaluation?.decision?.label || "Соберите предложение для оценки";
+    const partnerOptions = partners
+      .map((team) => `<option value="${team.id}" ${team.id === selectedTeamId ? "selected" : ""}>${team.name}</option>`)
+      .join("");
+
+    const indicator = evaluation?.indicator ? `${evaluation.indicator.icon} ${evaluation.indicator.text}` : "Соберите пакет";
+    const decision = evaluation?.decision?.label || "Добавьте игроков с обеих сторон и оцените сделку";
     const submitDisabled = !selectedTeam || !evaluation?.isValid ? "disabled" : "";
     const giveCount = evaluation?.givePlayers?.length || 0;
     const receiveCount = evaluation?.receivePlayers?.length || 0;
-    const acceptance = evaluation?.decision?.accepted ? "🟢 Да" : "🔴 Нет";
-    const acceptanceHint = evaluation?.acceptanceHint || "Добавьте игроков и соберите пакет";
+    const acceptance = evaluation?.decision?.accepted ? "Да" : "Нет";
+    const acceptanceClass = evaluation?.decision?.accepted ? "positive" : "negative";
+    const acceptanceHint = evaluation?.acceptanceHint || "Подберите равный пакет по ценности и роли";
 
     return `<div class="trade-screen">
-      <div class="trade-head">
-        <div class="trade-head-main">
-          <h2>Трансферный центр</h2>
-          <div class="trade-head-meta">Соберите пакет и оцените баланс до отправки предложения</div>
+      <div class="trade-hero">
+        <div class="trade-hero-copy">
+          <div class="trade-overline">Transfer hub</div>
+          <h2>Обмен игроков</h2>
+          <p>Соберите пакет, оцените баланс и отправьте предложение только когда оно действительно выглядит равноценным.</p>
         </div>
-        <label class="trade-team-select">Обмен с:
-          <select data-action="trade-select-team">
-            <option value="">Выберите команду</option>
-            ${partnerOptions}
-          </select>
-        </label>
+        <div class="trade-hero-controls">
+          <label class="trade-team-select">
+            <span>Клуб для переговоров</span>
+            <select data-action="trade-select-team">
+              <option value="">Выберите команду</option>
+              ${partnerOptions}
+            </select>
+          </label>
+        </div>
       </div>
+
+      <div class="trade-status-bar">
+        <div class="trade-status-pill">
+          <span>Баланс сделки</span>
+          <strong>${indicator}</strong>
+        </div>
+        <div class="trade-status-pill ${acceptanceClass}">
+          <span>Решение ИИ</span>
+          <strong>${acceptance}</strong>
+        </div>
+        <div class="trade-status-pill wide">
+          <span>Подсказка</span>
+          <strong>${acceptanceHint}</strong>
+        </div>
+      </div>
+
       ${selectedTeam ? `<div class="trade-grid">
-        <section class="trade-col">
-          <div class="trade-col-head"><h3>Вы отдаёте</h3><span class="trade-pill">${giveSelectedIds.size} выбрано</span></div>
-          <div class="trade-list-header"><span>Игрок</span><span>Поз.</span><span>Рейт.</span><span>Возраст</span></div>
-          <div class="trade-list">${giveCandidates.map((player) => renderPlayerPickRow("give", player, giveSelectedIds)).join("") || `<div class="muted">Нет игроков</div>`}</div>
+        <section class="trade-panel">
+          <div class="trade-panel-head">
+            <div>
+              <h3>Вы отдаёте</h3>
+              <span>${giveCandidates.length} игроков в списке</span>
+            </div>
+            <div class="trade-panel-badge">${giveSelectedIds.size} выбрано</div>
+          </div>
+          <div class="trade-list-shell">
+            <div class="trade-list-header">
+              <span>Игрок</span>
+              <span class="align-right">Рейтинг</span>
+            </div>
+            <div class="trade-list">
+              ${giveCandidates.map((player) => renderPlayerPickRow("give", player, giveSelectedIds)).join("") || `<div class="trade-summary-empty">Игроков нет</div>`}
+            </div>
+          </div>
         </section>
-        <section class="trade-col">
-          <div class="trade-col-head"><h3>Вы получаете</h3><span class="trade-pill">${receiveSelectedIds.size} выбрано</span></div>
-          <div class="trade-list-header"><span>Игрок</span><span>Поз.</span><span>Рейт.</span><span>Возраст</span></div>
-          <div class="trade-list">${receiveCandidates.map((player) => renderPlayerPickRow("receive", player, receiveSelectedIds)).join("") || `<div class="muted">Нет игроков</div>`}</div>
+
+        <section class="trade-panel">
+          <div class="trade-panel-head">
+            <div>
+              <h3>Вы получаете</h3>
+              <span>${receiveCandidates.length} игроков в списке</span>
+            </div>
+            <div class="trade-panel-badge">${receiveSelectedIds.size} выбрано</div>
+          </div>
+          <div class="trade-list-shell">
+            <div class="trade-list-header">
+              <span>Игрок</span>
+              <span class="align-right">Рейтинг</span>
+            </div>
+            <div class="trade-list">
+              ${receiveCandidates.map((player) => renderPlayerPickRow("receive", player, receiveSelectedIds)).join("") || `<div class="trade-summary-empty">Игроков нет</div>`}
+            </div>
+          </div>
         </section>
-      </div>` : `<div class="muted">Выберите команду для переговоров.</div>`}
-      <div class="trade-eval-card">
-        <div class="trade-kpi-row">
-          <div class="trade-kpi"><span>Пакет</span><strong>${giveCount} → ${receiveCount}</strong></div>
-          <div class="trade-kpi"><span>ИИ примет</span><strong>${acceptance}</strong></div>
-          <div class="trade-kpi"><span>Подсказка</span><strong>${acceptanceHint}</strong></div>
+      </div>` : `<div class="trade-empty-state">Выберите команду, чтобы открыть переговорный экран и собрать предложение.</div>`}
+
+      <div class="trade-deal-card">
+        <div class="trade-deal-head">
+          <div>
+            <div class="trade-overline">Deal review</div>
+            <h3>Разбор предложения</h3>
+          </div>
+          <div class="trade-deal-packet">${giveCount} → ${receiveCount}</div>
         </div>
-        <div class="trade-eval-row"><span>Оценка сделки:</span><strong>${indicator}</strong></div>
-        <div class="trade-eval-row"><span>Вердикт ИИ:</span><span>${decision}</span></div>
-        <div class="trade-eval-row"><span>Ваш баланс:</span><span>${evaluation ? `${evaluation.userDelta > 0 ? "+" : ""}${evaluation.userDelta}` : "—"}</span></div>
-        <div class="trade-eval-row"><span>Баланс ИИ:</span><span>${evaluation ? `${evaluation.aiDelta > 0 ? "+" : ""}${evaluation.aiDelta}` : "—"}</span></div>
+
+        <div class="trade-eval-row"><span>Вердикт ИИ</span><strong>${decision}</strong></div>
+        <div class="trade-eval-row"><span>Ваш баланс</span><strong>${formatDelta(evaluation?.userDelta)}</strong></div>
+        <div class="trade-eval-row"><span>Баланс ИИ</span><strong>${formatDelta(evaluation?.aiDelta)}</strong></div>
+
         <div class="trade-summary">
-          <div><div class="muted">Отдаёте (ценность)</div>${renderSelectedSummary(evaluation?.giveValues)}</div>
-          <div><div class="muted">Получаете (ценность)</div>${renderSelectedSummary(evaluation?.receiveValues)}</div>
+          <div class="trade-summary-card">
+            <div class="trade-summary-title">Пакет на выход</div>
+            ${renderSelectedSummary(evaluation?.giveValues, "Пока пусто")}
+          </div>
+          <div class="trade-summary-card">
+            <div class="trade-summary-title">Пакет на вход</div>
+            ${renderSelectedSummary(evaluation?.receiveValues, "Пока пусто")}
+          </div>
         </div>
+
         <div class="trade-actions">
           <button class="btn secondary" data-action="trade-clear">Сбросить</button>
           <button class="btn" ${submitDisabled} data-action="trade-submit">Предложить обмен</button>
