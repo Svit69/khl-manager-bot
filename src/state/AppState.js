@@ -56,6 +56,7 @@ export class AppState{
     if(!this.activeTeam||!player)return null;
     const result=this.#contracts.submitFreeAgentOffer(this.activeTeam,player,offer,this.#buildNegotiationContext(this.activeTeam));
     if(result?.decision==="accept"){
+      player.affiliation.acquiredDay=this.#calendar.currentDay;
       this.activeTeam.reservePlayers.push(player);
     }
     return result;
@@ -113,7 +114,8 @@ export class AppState{
       injuryUntilDay:player.condition.injuryUntilDay,
       seasonStats:player.seasonStats.exportSnapshot(),
       teamId:player.affiliation?.teamId||null,
-      contractId:player.affiliation?.contractId||null
+      contractId:player.affiliation?.contractId||null,
+      acquiredDay:player.affiliation?.acquiredDay??null
     }));
     const rosters=this.#teams.map(team=>({teamId:team.id,playerIds:team.getRoster().map(player=>player.id)}));
     return {
@@ -143,6 +145,7 @@ export class AppState{
       if(snapshot.seasonStats)player.seasonStats.importSnapshot(snapshot.seasonStats);
       if("teamId" in snapshot)player.affiliation.teamId=snapshot.teamId;
       if("contractId" in snapshot)player.affiliation.contractId=snapshot.contractId;
+      if("acquiredDay" in snapshot)player.affiliation.acquiredDay=snapshot.acquiredDay;
     });
     this.#freeAgents=allPlayers.filter(player=>!player.affiliation?.teamId);
     if(saved.contracts)this.#contracts.importContracts(saved.contracts);
@@ -159,7 +162,10 @@ export class AppState{
 
     this.#teams.forEach(team=>{
       const picked=[...(assignmentsByTeamId?.[team.id]||[])];
-      picked.forEach(player=>{player.affiliation.teamId=team.id});
+      picked.forEach(player=>{
+        player.affiliation.teamId=team.id;
+        player.affiliation.acquiredDay=null;
+      });
       const lineup=buildCompetitiveLines(picked);
       team.lines.splice(0,team.lines.length,...lineup.lines);
       team.reservePlayers.splice(0,team.reservePlayers.length,...lineup.reservePlayers);
@@ -167,6 +173,7 @@ export class AppState{
     undraftedPlayers.forEach(player=>{
       player.affiliation.teamId=null;
       player.affiliation.contractId=null;
+      player.affiliation.acquiredDay=null;
     });
     this.#contracts.releasePlayers(undraftedPlayers.map(player=>player.id));
     this.#freeAgents=undraftedPlayers;

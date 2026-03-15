@@ -2,6 +2,7 @@ import { ContractTabRenderer } from "./ContractTabRenderer.js";
 import { FreeAgentTabRenderer } from "./FreeAgentTabRenderer.js";
 import { TradeTabRenderer } from "./TradeTabRenderer.js";
 import { calculateAge } from "../contracts/SeasonUtils.js";
+import { adjustedOvrForPosition } from "../utils/positionFit.js";
 const NATION_FLAG_ASSET_BY_CODE=Object.freeze({
   RU:"./flags/icon-russia.png",RUS:"./flags/icon-russia.png",
   CA:"./flags/icon-canada.png",CAN:"./flags/icon-canada.png",
@@ -66,13 +67,18 @@ const getNationFlag=nationality=>{
   const code=String(nationality||"").trim().toUpperCase();
   return renderNationFlagIcon(code,`Флаг ${code||"N/A"}`,"nation-flag-card");
 };
-const renderRosterCard=(player,extraClass="")=>{
+const renderRosterCard=(player,extraClass="",options={})=>{
   const photo=player.identity.photoUrl||"./player-photo/placeholder.png";
   const surname=getSurname(player).toUpperCase();
   const age=calculateAge(player.identity.birthDate);
   const nationCode=getNationCode(player.identity.nationality);
   const nationFlag=getNationFlag(player.identity.nationality);
-  return `<article class="hockey-card${extraClass?` ${extraClass}`:""}"><div class="hockey-card-layers"><img class="hockey-card-bg" src="./card/card_background.svg" alt="" aria-hidden="true"/><img class="hockey-card-photo" src="${photo}" alt="${player.name}"/><img class="hockey-card-front" src="./card/card_front.svg" alt="" aria-hidden="true"/></div><div class="hockey-card-top"><span class="hockey-card-ovr">${player.ovr}</span><span class="hockey-card-pos">${player.identity.primaryPosition}</span></div><div class="hockey-card-name-band">${surname}</div><div class="hockey-card-meta-row"><span>${age} ЛЕТ</span><span>${nationFlag} ${nationCode}</span></div></article>`;
+  const displayOvr=options.displayOvr??player.ovr;
+  const displayPosition=options.displayPosition||player.identity.primaryPosition;
+  const ovrDelta=Number.isFinite(options.ovrDelta)&&options.ovrDelta!==0
+    ? `<span class="hockey-card-ovr-delta${options.ovrDelta<0?" negative":" positive"}">${options.ovrDelta>0?`+${options.ovrDelta}`:options.ovrDelta}</span>`
+    : "";
+  return `<article class="hockey-card${extraClass?` ${extraClass}`:""}"><div class="hockey-card-layers"><img class="hockey-card-bg" src="./card/card_background.svg" alt="" aria-hidden="true"/><img class="hockey-card-photo" src="${photo}" alt="${player.name}"/><img class="hockey-card-front" src="./card/card_front.svg" alt="" aria-hidden="true"/></div><div class="hockey-card-top"><span class="hockey-card-ovr-wrap"><span class="hockey-card-ovr">${displayOvr}</span>${ovrDelta}</span><span class="hockey-card-pos">${displayPosition}</span></div><div class="hockey-card-name-band">${surname}</div><div class="hockey-card-meta-row"><span>${age} ЛЕТ</span><span>${nationFlag} ${nationCode}</span></div></article>`;
 };
 const renderRosterSlotCard=(player,slot,extraClass="")=>{
   const attrs=[
@@ -85,6 +91,14 @@ const renderRosterSlotCard=(player,slot,extraClass="")=>{
   if(slot.kind==="line"){
     attrs.push(`data-line-index="${slot.lineIndex}"`);
     attrs.push(`data-slot-index="${slot.slotIndex}"`);
+    const slotPosition=slot.position||player.identity?.primaryPosition;
+    const displayOvr=adjustedOvrForPosition(player,slotPosition);
+    const ovrDelta=displayOvr-player.ovr;
+    return `<div ${attrs.join(" ")}>${renderRosterCard(player,extraClass,{
+      displayPosition:slotPosition,
+      displayOvr,
+      ovrDelta
+    })}</div>`;
   }else{
     attrs.push(`data-reserve-index="${slot.index}"`);
   }
@@ -105,7 +119,10 @@ const getRosterUnitSlotDescriptors=(team,unitKey)=>{
   }
   const lineIndex=Math.max(1,Math.min(4,Number(unitKey)||1))-1;
   const line=team.lines?.[lineIndex];
-  return (line?.players||[]).map((player,slotIndex)=>({player,slot:{kind:"line",lineIndex,slotIndex}}));
+  return (line?.players||[]).map((player,slotIndex)=>({
+    player,
+    slot:{kind:"line",lineIndex,slotIndex,position:line?.positions?.[slotIndex]||player.identity?.primaryPosition}
+  }));
 };
 const renderRosterUnitButtons=activeUnit=>{
   const units=["1","2","3","4","G"];

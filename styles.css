@@ -355,7 +355,20 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   line-height:1;
   color:#f5f7ff;
 }
+.hockey-card-ovr-wrap{
+  display:inline-flex;
+  align-items:flex-start;
+  gap:4px;
+}
 .hockey-card-ovr{font-size:20px}
+.hockey-card-ovr-delta{
+  margin-top:2px;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.4px;
+}
+.hockey-card-ovr-delta.negative{color:#ff7f7f}
+.hockey-card-ovr-delta.positive{color:#7dffaf}
 .hockey-card-pos{font-size:18px}
 .hockey-card-name-band{
   left:0;
@@ -393,6 +406,7 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   grid-template-columns:56px 1fr;
   gap:18px;
   align-items:start;
+  min-width:0;
 }
 .line-unit-buttons{
   display:flex;
@@ -418,18 +432,20 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
 .line-card-layout{
   display:grid;
   gap:14px;
+  min-width:0;
 }
 .line-card-row{
-  display:flex;
-  flex-wrap:wrap;
+  display:grid;
   gap:16px;
   justify-content:center;
+  min-width:0;
 }
-.line-card-row-top{min-height:255px}
-.line-card-row-bottom{min-height:255px}
+.line-card-row-top{min-height:255px;grid-template-columns:repeat(3,minmax(0,188px))}
+.line-card-row-bottom{min-height:255px;grid-template-columns:repeat(2,minmax(0,188px))}
 .roster-slot-card{
   border-radius:12px;
   cursor:grab;
+  justify-self:center;
 }
 .roster-slot-card:active{cursor:grabbing}
 .roster-slot-card.is-dragging{
@@ -568,6 +584,7 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   grid-template-rows:minmax(0,1fr) auto;
   gap:14px;
   min-height:0;
+  min-width:0;
 }
 .team-roster-stage{
   min-height:560px;
@@ -579,6 +596,8 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
     radial-gradient(circle at 50% 0%, rgba(100,164,255,.08), transparent 38%),
     rgba(6,11,21,.82);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+  min-width:0;
+  overflow:hidden;
 }
 .team-reserve-wrap{
   position:relative;
@@ -587,6 +606,8 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   border:1px solid rgba(255,255,255,.08);
   background:rgba(8,12,21,.82);
   box-shadow:0 18px 32px rgba(0,0,0,.14);
+  min-width:0;
+  overflow:hidden;
 }
 .team-reserve-wrap::before{
   content:"Запас";
@@ -607,6 +628,7 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   min-height:120px;
   scrollbar-width:thin;
   scroll-snap-type:x proximity;
+  max-width:100%;
 }
 .team-reserve-empty{
   min-height:92px;
@@ -621,6 +643,7 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   margin-right:-20px;
   filter:saturate(.8);
   scroll-snap-align:start;
+  flex:0 0 auto;
 }
 .hockey-card--reserve .hockey-card-photo{filter:grayscale(.1)}
 .draft-panel{display:grid;grid-template-columns:1fr;gap:6px;margin:8px 0}
@@ -1486,6 +1509,8 @@ body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 
   .line-view-panel{grid-template-columns:1fr}
   .line-unit-buttons{flex-direction:row;gap:10px;padding-top:0}
   .line-card-row{gap:10px}
+  .line-card-row-top{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .line-card-row-bottom{grid-template-columns:repeat(2,minmax(0,1fr))}
   .hockey-card--reserve{transform:scale(.72);margin-right:-52px}
   .draft-header-shell{grid-template-columns:1fr}
   .draft-layout{grid-template-columns:1fr}

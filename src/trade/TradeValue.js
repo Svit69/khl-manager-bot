@@ -64,6 +64,16 @@ const getRoleScore = (team, player) => {
   return -3;
 };
 
+const getRecentAcquisitionPenalty = (player) => {
+  const acquiredDay = player.affiliation?.acquiredDay;
+  if (acquiredDay === null || acquiredDay === undefined) return 0;
+  const games = player.seasonStats?.games || 0;
+  if (games <= 1) return -26;
+  if (games <= 3) return -18;
+  if (games <= 6) return -10;
+  return -4;
+};
+
 export const calculateTradeValueForTeam = (team, player, contracts) => {
   const age = calculateAge(player.identity?.birthDate);
   const ovr = Number(player.ovr) || 0;
@@ -79,6 +89,7 @@ export const calculateTradeValueForTeam = (team, player, contracts) => {
     getAgeScore(age) +
     getContractScore(ovr, contracts) +
     getRoleScore(team, player) +
+    getRecentAcquisitionPenalty(player) +
     (progress * 0.9) +
     (ppg * 4);
   const needAdjusted = raw * (1 + getNeedAdjustment(team, player.identity?.primaryPosition));

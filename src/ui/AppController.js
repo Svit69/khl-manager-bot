@@ -236,7 +236,7 @@ export class AppController{
         ? this.#state.getFreeAgentSigningPreview(playerId,this.#offerByPlayerId.get(playerId))
         : this.#state.getActiveTeamNegotiationPreview(playerId,this.#offerByPlayerId.get(playerId));
       if(preview){
-        const salaryRub=Math.round(preview.marketSalary*multiplier);
+        const salaryRub=this.#roundSalaryRub(preview.marketSalary*multiplier);
         const current=this.#offerByPlayerId.get(playerId)||{years:1,salaryRub};
         this.#offerByPlayerId.set(playerId,{...current,salaryRub});
       }
@@ -250,7 +250,7 @@ export class AppController{
         : this.#state.getActiveTeamNegotiationPreview(playerId,this.#offerByPlayerId.get(playerId));
       if(preview){
         const current=this.#offerByPlayerId.get(playerId)||{years:1,salaryRub:preview.marketSalary};
-        this.#offerByPlayerId.set(playerId,{...current,salaryRub:preview.marketSalary});
+        this.#offerByPlayerId.set(playerId,{...current,salaryRub:this.#roundSalaryRub(preview.marketSalary)});
       }
       this.#renderScreen();
       return;
@@ -264,7 +264,7 @@ export class AppController{
         : this.#state.getActiveTeamNegotiationPreview(playerId,this.#offerByPlayerId.get(playerId));
       if(preview){
         const current=this.#offerByPlayerId.get(playerId)||{years:1,salaryRub:preview.marketSalary};
-        const salaryRub=Math.max(500000,current.salaryRub+Math.round(deltaMillion*1000000));
+        const salaryRub=this.#roundSalaryRub(Math.max(500000,current.salaryRub+Math.round(deltaMillion*1000000)));
         this.#offerByPlayerId.set(playerId,{...current,salaryRub});
       }
       this.#renderScreen();
@@ -509,7 +509,10 @@ export class AppController{
     const normalized=String(rawValue??"").trim().replace(",",".");
     const millions=Number(normalized);
     if(!Number.isFinite(millions)||millions<=0)return null;
-    return Math.max(500000,Math.round(millions*1000000));
+    return this.#roundSalaryRub(millions*1000000);
+  }
+  #roundSalaryRub(value){
+    return Math.max(500000,Math.round((Number(value)||0)/500000)*500000);
   }
   #resetGame(){this.#userStore.clearSave();window.location.reload()}
 }

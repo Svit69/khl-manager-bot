@@ -4,6 +4,7 @@ import { createContractNormalizer } from "./ContractNormalization.js";
 import { evaluateRenewalWillingness } from "./RenewalScoring.js";
 import { calculateAge, clamp, formatContractEndDate, formatNextSeason, parseSeasonEnd } from "./SeasonUtils.js";
 const { normalizeType, normalizeContract }=createContractNormalizer(ContractType);
+const roundSalaryRub=value=>Math.max(500000,Math.round((Number(value)||0)/500000)*500000);
 const getPositionMarketGroup=position=>{
   if(position==="ЗАЩ")return "DEF";
   if(position==="ВРТ")return "G";
@@ -138,7 +139,7 @@ export class ContractService{
           playerId:player.id,
           teamId:player.affiliation.teamId,
           season,
-          salaryRub:preview.offer.salaryRub,
+          salaryRub:roundSalaryRub(preview.offer.salaryRub),
           type:lastContract.type
         };
         this.#contracts.push(nextContract);
@@ -149,7 +150,7 @@ export class ContractService{
     }
     const counter={
       years:clamp(preview.offer.years,1,4),
-      salaryRub:Math.round(preview.marketSalary*1.05)
+      salaryRub:roundSalaryRub(preview.marketSalary*1.05)
     };
     return {decision,preview,counter};
   }
@@ -204,7 +205,7 @@ export class ContractService{
           playerId:player.id,
           teamId:team.id,
           season,
-          salaryRub:preview.offer.salaryRub,
+          salaryRub:roundSalaryRub(preview.offer.salaryRub),
           type:ContractType.ONE_WAY
         };
         this.#contracts.push(contract);
@@ -218,7 +219,7 @@ export class ContractService{
     }
     const counter={
       years:clamp(preview.offer.years,1,4),
-      salaryRub:Math.round(preview.marketSalary*1.05)
+      salaryRub:roundSalaryRub(preview.marketSalary*1.05)
     };
     return {decision,preview,counter};
   }
@@ -233,7 +234,7 @@ export class ContractService{
       playerId,
       teamId:player.affiliation.teamId,
       season:formatNextSeason(lastContract.season),
-      salaryRub:Math.round(lastContract.salaryRub*(mode==="raise"?1.1:1)),
+      salaryRub:roundSalaryRub(lastContract.salaryRub*(mode==="raise"?1.1:1)),
       type:lastContract.type
     };
     this.#contracts.push(nextContract);
@@ -265,13 +266,13 @@ export class ContractService{
     if(peerSalaries.length){
       const averageSalary=peerSalaries.reduce((total,value)=>total+value,0)/peerSalaries.length;
       return {
-        salaryRub:Math.max(1000000,Math.round(averageSalary/100000)*100000),
+        salaryRub:roundSalaryRub(Math.max(1000000,Math.round(averageSalary/100000)*100000)),
         sampleSize:peerSalaries.length,
         rangeLabel:`${this.#getMarketGroupLabel(marketGroup)} • OVR ${minOvr}-${maxOvr}`
       };
     }
     return {
-      salaryRub:lastContract?.salaryRub||Math.max(1000000,Math.round((player.ovr||0)*1000000)),
+      salaryRub:roundSalaryRub(lastContract?.salaryRub||Math.max(1000000,Math.round((player.ovr||0)*1000000))),
       sampleSize:0,
       rangeLabel:`${this.#getMarketGroupLabel(marketGroup)} • OVR ${minOvr}-${maxOvr}`
     };

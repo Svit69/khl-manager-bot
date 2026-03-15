@@ -47,7 +47,8 @@ export const createSkater=(teamInfo,firstName,lastName,position,seasonId,profile
   const affiliation=new PlayerAffiliation({
     playerId,
     teamId:profile.affiliation?.teamId??teamInfo?.id??null,
-    contractId:profile.affiliation?.contractId||null
+    contractId:profile.affiliation?.contractId||null,
+    acquiredDay:profile.affiliation?.acquiredDay??null
   });
   const seasonStats=new PlayerSeasonStats({seasonId,playerId});
   const skater=new Skater(identity,attributes,potential,condition,career,affiliation,seasonStats,position);
