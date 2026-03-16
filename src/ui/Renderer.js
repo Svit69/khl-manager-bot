@@ -75,31 +75,40 @@ const renderRosterCard=(player,extraClass="",options={})=>{
   const nationFlag=getNationFlag(player.identity.nationality);
   const displayOvr=options.displayOvr??player.ovr;
   const displayPosition=options.displayPosition||player.identity.primaryPosition;
-  const ovrDelta=Number.isFinite(options.ovrDelta)&&options.ovrDelta!==0
-    ? `<span class="hockey-card-ovr-delta${options.ovrDelta<0?" negative":" positive"}">${options.ovrDelta>0?`+${options.ovrDelta}`:options.ovrDelta}</span>`
-    : "";
-  return `<article class="hockey-card${extraClass?` ${extraClass}`:""}"><div class="hockey-card-layers"><img class="hockey-card-bg" src="./card/card_background.svg" alt="" aria-hidden="true"/><img class="hockey-card-photo" src="${photo}" alt="${player.name}"/><img class="hockey-card-front" src="./card/card_front.svg" alt="" aria-hidden="true"/></div><div class="hockey-card-top"><span class="hockey-card-ovr-wrap"><span class="hockey-card-ovr">${displayOvr}</span>${ovrDelta}</span><span class="hockey-card-pos">${displayPosition}</span></div><div class="hockey-card-name-band">${surname}</div><div class="hockey-card-meta-row"><span>${age} ЛЕТ</span><span>${nationFlag} ${nationCode}</span></div></article>`;
+  const penalizedClass=options.isPenalized?" hockey-card--penalized":"";
+  return `<article class="hockey-card${extraClass?` ${extraClass}`:""}${penalizedClass}"><div class="hockey-card-layers"><img class="hockey-card-bg" src="./card/card_background.svg" alt="" aria-hidden="true"/><img class="hockey-card-photo" src="${photo}" alt="${player.name}"/><img class="hockey-card-front" src="./card/card_front.svg" alt="" aria-hidden="true"/></div><div class="hockey-card-top"><span class="hockey-card-ovr-wrap"><span class="hockey-card-ovr">${displayOvr}</span></span><span class="hockey-card-pos">${displayPosition}</span></div><div class="hockey-card-name-band">${surname}</div><div class="hockey-card-meta-row"><span>${age} ЛЕТ</span><span>${nationFlag} ${nationCode}</span></div></article>`;
+};
+const renderEmptyRosterSlot=slot=>{
+  const attrs=[
+    `class="roster-slot-card roster-slot-card-empty"`,
+    `data-empty-slot="1"`,
+    `data-line-index="${slot.lineIndex}"`,
+    `data-slot-index="${slot.slotIndex}"`,
+    `data-slot-position="${slot.position}"`
+  ];
+  return `<div ${attrs.join(" ")}><div class="empty-roster-slot"><span class="empty-roster-slot-pos">${slot.position}</span><span class="empty-roster-slot-text">Пустой слот</span></div></div>`;
 };
 const renderRosterSlotCard=(player,slot,extraClass="")=>{
   const attrs=[
     `class="roster-slot-card"`,
     `data-roster-slot="1"`,
     `data-roster-kind="${slot.kind}"`,
-    `data-player-id="${player.id}"`,
-    `draggable="true"`
+    `data-player-id="${player.id}"`
   ];
   if(slot.kind==="line"){
+    attrs.push(`draggable="true"`);
     attrs.push(`data-line-index="${slot.lineIndex}"`);
     attrs.push(`data-slot-index="${slot.slotIndex}"`);
     const slotPosition=slot.position||player.identity?.primaryPosition;
     const displayOvr=adjustedOvrForPosition(player,slotPosition);
-    const ovrDelta=displayOvr-player.ovr;
+    const isPenalized=displayOvr<player.ovr;
     return `<div ${attrs.join(" ")}>${renderRosterCard(player,extraClass,{
       displayPosition:slotPosition,
       displayOvr,
-      ovrDelta
-    })}</div>`;
+      isPenalized
+    })}<button class="roster-slot-action" data-action="move-to-reserve" data-line-index="${slot.lineIndex}" data-slot-index="${slot.slotIndex}" title="Убрать в запас">В запас</button></div>`;
   }else{
+    attrs.push(`draggable="true"`);
     attrs.push(`data-reserve-index="${slot.index}"`);
   }
   return `<div ${attrs.join(" ")}>${renderRosterCard(player,extraClass)}</div>`;
@@ -119,10 +128,13 @@ const getRosterUnitSlotDescriptors=(team,unitKey)=>{
   }
   const lineIndex=Math.max(1,Math.min(4,Number(unitKey)||1))-1;
   const line=team.lines?.[lineIndex];
-  return (line?.players||[]).map((player,slotIndex)=>({
-    player,
-    slot:{kind:"line",lineIndex,slotIndex,position:line?.positions?.[slotIndex]||player.identity?.primaryPosition}
-  }));
+  return (line?.positions||[]).map((position,slotIndex)=>{
+    const player=line?.players?.[slotIndex]||null;
+    return {
+      player,
+      slot:{kind:"line",lineIndex,slotIndex,position}
+    };
+  });
 };
 const renderRosterUnitButtons=activeUnit=>{
   const units=["1","2","3","4","G"];
@@ -132,12 +144,13 @@ const renderRosterUnitButtons=activeUnit=>{
 const renderRosterUnitCards=(team,unitKey)=>{
   const items=getRosterUnitSlotDescriptors(team,unitKey);
   if(!items.length)return `<div class="line-empty">Состав пуст</div>`;
-  const forwards=items.filter(item=>["ЛНП","ЦТР","ПНП"].includes(item.player.identity?.primaryPosition));
-  const defenders=items.filter(item=>item.player.identity?.primaryPosition==="ЗАЩ");
+  const forwards=items.filter(item=>["ЛНП","ЦТР","ПНП"].includes(item.slot.position));
+  const defenders=items.filter(item=>item.slot.position==="ЗАЩ");
   const others=items.filter(item=>!forwards.includes(item)&&!defenders.includes(item));
   const ordered=[...forwards,...defenders,...others];
-  const top=ordered.slice(0,3).map(item=>renderRosterSlotCard(item.player,item.slot)).join("");
-  const bottom=ordered.slice(3).map(item=>renderRosterSlotCard(item.player,item.slot)).join("");
+  const renderItem=item=>item.player?renderRosterSlotCard(item.player,item.slot):renderEmptyRosterSlot(item.slot);
+  const top=ordered.slice(0,3).map(renderItem).join("");
+  const bottom=ordered.slice(3).map(renderItem).join("");
   return `<div class="line-card-layout"><div class="line-card-row line-card-row-top">${top}</div><div class="line-card-row line-card-row-bottom">${bottom}</div></div>`;
 };
 const renderReserveStrip=players=>{

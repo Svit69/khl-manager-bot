@@ -9,11 +9,13 @@ export class Line{
     if(this.#players.length===0){
       return 0;
     }
-    const values=this.#players.map((player,index)=>{
+    const values=this.#positions.map((position,index)=>{
+      const player=this.#players[index];
+      if(!player)return 0;
       const adjusted=adjustedOvrForPosition(player,this.#positions[index]);
       const ratio=player.ovr>0?adjusted/player.ovr:1;
       return player.getEfficiency()*ratio;
     });
-    return values.reduce((a,b)=>a+b,0)/this.#players.length*this.#weight;
+    return values.reduce((a,b)=>a+b,0)/Math.max(1,this.#positions.length)*this.#weight;
   }
 }

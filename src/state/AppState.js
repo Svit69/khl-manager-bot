@@ -65,6 +65,9 @@ export class AppState{
     const player=this.activeTeam?.getRoster().find(p=>p.id===playerId);
     return player?this.#contracts.extendContract(player,mode):null;
   }
+  moveActiveTeamLinePlayerToReserve(lineIndex,slotIndex){
+    return this.activeTeam?this.activeTeam.moveLinePlayerToReserve(lineIndex,slotIndex):false;
+  }
   swapActiveTeamRosterSlots(source,target){
     return this.activeTeam?this.activeTeam.swapRosterSlots(source,target):false;
   }
@@ -117,7 +120,11 @@ export class AppState{
       contractId:player.affiliation?.contractId||null,
       acquiredDay:player.affiliation?.acquiredDay??null
     }));
-    const rosters=this.#teams.map(team=>({teamId:team.id,playerIds:team.getRoster().map(player=>player.id)}));
+    const rosters=this.#teams.map(team=>({
+      teamId:team.id,
+      linePlayerIds:team.lines.map(line=>line.players.map(player=>player?.id||null)),
+      reservePlayerIds:team.reservePlayers.map(player=>player.id)
+    }));
     return {
       calendarIndex:this.#calendar.index,
       calendarResults:this.#calendar.exportResults(),
@@ -188,14 +195,35 @@ export class AppState{
     (rosters||[]).forEach(item=>{
       const team=this.#teams.find(entry=>entry.id===item.teamId);
       if(!team)return;
-      const picked=(item.playerIds||[]).map(playerId=>playersById.get(playerId)).filter(Boolean);
-      picked.forEach(player=>{player.affiliation.teamId=team.id});
-      if(!this.#applySavedRosterOrder(team,picked)){
+      const restored=this.#restoreSavedRoster(team,item,playersById);
+      if(!restored){
+        const picked=(item.playerIds||[]).map(playerId=>playersById.get(playerId)).filter(Boolean);
+        picked.forEach(player=>{player.affiliation.teamId=team.id});
         const lineup=buildCompetitiveLines(picked);
         team.lines.splice(0,team.lines.length,...lineup.lines);
         team.reservePlayers.splice(0,team.reservePlayers.length,...lineup.reservePlayers);
       }
     });
+  }
+  #restoreSavedRoster(team,item,playersById){
+    const linePlayerIds=item?.linePlayerIds;
+    const reservePlayerIds=item?.reservePlayerIds;
+    if(!Array.isArray(linePlayerIds)||!Array.isArray(reservePlayerIds))return false;
+    linePlayerIds.forEach((lineIds,lineIndex)=>{
+      const line=team.lines[lineIndex];
+      if(!line||!Array.isArray(lineIds)||lineIds.length!==line.positions.length)return;
+      line.players.splice(0,line.players.length,...lineIds.map(playerId=>{
+        const player=playerId?playersById.get(playerId):null;
+        if(player)player.affiliation.teamId=team.id;
+        return player||null;
+      }));
+    });
+    team.reservePlayers.splice(0,team.reservePlayers.length,...reservePlayerIds.map(playerId=>{
+      const player=playersById.get(playerId);
+      if(player)player.affiliation.teamId=team.id;
+      return player;
+    }).filter(Boolean));
+    return true;
   }
   #applySavedRosterOrder(team,picked){
     if(!team||!Array.isArray(picked)||picked.length===0)return false;

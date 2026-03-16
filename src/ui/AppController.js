@@ -216,6 +216,15 @@ export class AppController{
       this.#renderScreen();
       return;
     }
+    if(action==="move-to-reserve"){
+      const lineIndex=Number(clickable.dataset.lineIndex);
+      const slotIndex=Number(clickable.dataset.slotIndex);
+      const moved=this.#state.moveActiveTeamLinePlayerToReserve(lineIndex,slotIndex);
+      if(!moved)return;
+      this.#userStore.saveState(this.#state.exportState());
+      this.#renderScreen();
+      return;
+    }
     if(action==="close-negotiation"){
       this.#selectedNegotiationPlayerId=null;
       this.#renderScreen();
@@ -473,14 +482,14 @@ export class AppController{
   }
   #handleDragOver(event){
     if(!this.#dragRosterSlot)return;
-    const target=event.target?.closest?.("[data-roster-slot='1']");
+    const target=event.target?.closest?.("[data-roster-slot='1'],[data-empty-slot='1']");
     if(!target)return;
     event.preventDefault();
     if(event.dataTransfer)event.dataTransfer.dropEffect="move";
   }
   #handleDrop(event){
     if(!this.#dragRosterSlot || !this.#state.activeTeam || this.#activeTab!=="roster")return;
-    const targetEl=event.target?.closest?.("[data-roster-slot='1']");
+    const targetEl=event.target?.closest?.("[data-roster-slot='1'],[data-empty-slot='1']");
     if(!targetEl)return;
     event.preventDefault();
     const targetSlot=this.#readRosterSlotDataset(targetEl.dataset);
@@ -498,6 +507,12 @@ export class AppController{
       return Number.isInteger(index)?{kind:"reserve",index}:null;
     }
     if(dataset.rosterKind==="line"){
+      const lineIndex=Number(dataset.lineIndex);
+      const slotIndex=Number(dataset.slotIndex);
+      if(!Number.isInteger(lineIndex)||!Number.isInteger(slotIndex))return null;
+      return {kind:"line",lineIndex,slotIndex};
+    }
+    if(dataset.emptySlot==="1"){
       const lineIndex=Number(dataset.lineIndex);
       const slotIndex=Number(dataset.slotIndex);
       if(!Number.isInteger(lineIndex)||!Number.isInteger(slotIndex))return null;
