@@ -1,0 +1,219 @@
+/* Hockey cards and lineup slots */
+
+.hockey-card{
+  position:relative;
+  display:block;
+  isolation:isolate;
+  width:200px;
+  height:255px;
+  margin:0 auto;
+  overflow:hidden;
+  border-radius:12px;
+}
+.hockey-card-layers{
+  position:absolute;
+  inset:0;
+}
+.hockey-card-bg,.hockey-card-front{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  pointer-events:none;
+}
+.hockey-card-bg{z-index:1}
+.hockey-card-photo{
+  position:absolute;
+  top:45px;
+  left:50%;
+  transform:translateX(-50%);
+  width:156px;
+  height:156px;
+  object-fit:cover;
+  object-position:center 15%;
+  z-index:2;
+  display:block;
+  pointer-events:none;
+}
+.hockey-card-front{z-index:3}
+.hockey-card-top,.hockey-card-name-band,.hockey-card-meta-row{
+  position:absolute;
+  z-index:4;
+}
+.hockey-card-top{
+  top:16px;
+  left:18px;
+  right:18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-weight:800;
+  font-size:36px;
+  letter-spacing:.5px;
+  text-transform:uppercase;
+  color:#f5f7ff;
+}
+.hockey-card-ovr,.hockey-card-pos{
+  font-weight:800;
+  line-height:1;
+  color:#f5f7ff;
+}
+.hockey-card-ovr{font-size:20px}
+.hockey-card-pos{font-size:18px}
+.hockey-card--penalized .hockey-card-ovr,
+.hockey-card--penalized .hockey-card-pos{
+  color:#ff9d9d;
+  text-shadow:0 0 12px rgba(255,92,92,.18);
+}
+.hockey-card-name-band{
+  left:0;
+  right:0;
+  bottom:48px;
+  height:46px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+  font-size:16px;
+  letter-spacing:.6px;
+  text-transform:uppercase;
+  color:#f5f7ff;
+}
+.hockey-card-meta-row{
+  left:20px;
+  right:20px;
+  bottom:38px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:11px;
+  font-weight:600;
+  color:#d4d7dd;
+  text-transform:uppercase;
+}
+.hockey-card-meta-row span:last-child{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+}
+.line-view-panel{
+  display:grid;
+  grid-template-columns:56px 1fr;
+  gap:18px;
+  align-items:start;
+  min-width:0;
+}
+.line-unit-buttons{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  padding-top:4px;
+}
+.line-unit-btn{
+  width:42px;
+  height:42px;
+  border-radius:999px;
+  border:1px solid #313131;
+  background:#313131;
+  color:#afafaf;
+  font-weight:700;
+  cursor:pointer;
+}
+.line-unit-btn.active{
+  background:#afafaf;
+  color:#313131;
+  border-color:#afafaf;
+}
+.line-card-layout{
+  display:grid;
+  gap:14px;
+  min-width:0;
+}
+.line-card-row{
+  display:grid;
+  gap:16px;
+  justify-content:center;
+  min-width:0;
+}
+.line-card-row-top{min-height:255px;grid-template-columns:repeat(3,minmax(0,188px))}
+.line-card-row-bottom{min-height:255px;grid-template-columns:repeat(2,minmax(0,188px))}
+.roster-slot-card{
+  border-radius:12px;
+  cursor:grab;
+  justify-self:center;
+  position:relative;
+}
+.roster-slot-card:active{cursor:grabbing}
+.roster-slot-card.is-dragging{
+  opacity:.55;
+  transform:scale(.98);
+}
+.roster-slot-card[data-roster-slot="1"] .hockey-card{
+  transition:transform .14s ease, filter .14s ease;
+}
+.roster-slot-card[data-roster-slot="1"]:hover .hockey-card{
+  transform:translateY(-2px);
+  filter:drop-shadow(0 8px 16px rgba(0,0,0,.28));
+}
+.roster-slot-action{
+  position:absolute;
+  right:8px;
+  top:8px;
+  z-index:6;
+  border:none;
+  border-radius:999px;
+  background:rgba(7,14,25,.9);
+  color:#d8deea;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.4px;
+  text-transform:uppercase;
+  padding:6px 9px;
+  cursor:pointer;
+  opacity:0;
+  transform:translateY(-4px);
+  transition:opacity .14s ease, transform .14s ease, background .14s ease;
+}
+.roster-slot-card:hover .roster-slot-action{
+  opacity:1;
+  transform:translateY(0);
+}
+.roster-slot-action:hover{
+  background:rgba(20,34,58,.96);
+}
+.roster-slot-card-empty{
+  cursor:default;
+}
+.empty-roster-slot{
+  width:188px;
+  height:252px;
+  border-radius:22px;
+  border:1px dashed rgba(255,255,255,.18);
+  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  color:#a8b7ce;
+}
+.empty-roster-slot-pos{
+  font-size:24px;
+  font-weight:900;
+  letter-spacing:1px;
+  color:#dbe6f8;
+}
+.empty-roster-slot-text{
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.8px;
+}
+.line-empty{
+  min-height:140px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--muted);
+}

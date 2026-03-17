@@ -1,0 +1,83 @@
+/* Calendar and standings */
+
+.calendar-tabs{
+  display:flex;
+  gap:6px;
+  margin-top:10px;
+}
+.calendar-tab-btn{
+  border:1px solid rgba(255,255,255,.10);
+  background:#10233d;
+  color:#cfe0f8;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+}
+.calendar-tab-btn.active{
+  background:linear-gradient(180deg,#8de7ff,#57c6ff);
+  color:#041122;
+  border-color:#8de7ff;
+}
+.calendar-panel-list{
+  margin-top:8px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;
+  background:rgba(10,21,38,.55);
+  overflow:hidden;
+}
+.calendar-panel-scroll{
+  max-height:240px;
+  overflow:auto;
+}
+.calendar-table-header,.calendar-table-row{
+  display:grid;
+  grid-template-columns:28px minmax(90px,1fr) 28px 28px 34px 28px 28px;
+  gap:6px;
+  align-items:center;
+  padding:6px 8px;
+  font-size:12px;
+}
+.calendar-scorer-header,.calendar-scorer-row{
+  display:grid;
+  grid-template-columns:28px minmax(120px,1.6fr) minmax(80px,1fr) 28px 28px 28px;
+  gap:6px;
+  align-items:center;
+  padding:6px 8px;
+  font-size:12px;
+}
+.calendar-schedule-header,.calendar-schedule-row{
+  display:grid;
+  grid-template-columns:56px minmax(120px,1fr) 72px;
+  gap:6px;
+  align-items:center;
+  padding:6px 8px;
+  font-size:12px;
+}
+.calendar-table-header,.calendar-scorer-header{
+  background:rgba(255,255,255,.04);
+  color:#b7c9e5;
+  font-weight:700;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.calendar-schedule-header{
+  background:rgba(255,255,255,.04);
+  color:#b7c9e5;
+  font-weight:700;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.calendar-table-row:nth-child(odd),.calendar-scorer-row:nth-child(odd),.calendar-schedule-row:nth-child(odd){background:rgba(255,255,255,.02)}
+.calendar-table-row span,.calendar-scorer-row span,.calendar-schedule-row span{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.calendar-schedule-row.current{background:rgba(83,142,255,.14)}
+.calendar-schedule-row.mine{box-shadow:inset 2px 0 0 #6be7ff}
+.calendar-schedule-row .day{color:#b7c9e5}
+.calendar-schedule-row .res{text-align:right;font-weight:700}
+.calendar-panel-scroll::-webkit-scrollbar{width:10px}
+.calendar-panel-scroll::-webkit-scrollbar-track{background:rgba(10,17,30,.7)}
+.calendar-panel-scroll::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(111,212,255,.8),rgba(83,142,255,.75));border-radius:999px;border:2px solid rgba(10,17,30,.6)}
+.calendar-panel-scroll{scrollbar-color:rgba(111,212,255,.8) rgba(10,17,30,.7);scrollbar-width:thin}

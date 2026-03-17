@@ -1,0 +1,89 @@
+/* Shared responsive adjustments */
+
+@media (orientation:landscape){
+  .main{grid-template-columns:minmax(0,2.2fr) minmax(320px,1fr)}
+  .header h1{font-size:16px}
+}
+@media (max-width:720px){
+  .team-select-screen{padding:22px 14px 108px}
+  .team-select-mark{font-size:52px}
+  .team-select-mark::before,
+  .team-select-mark::after{display:none}
+  .team-select-hero h2{font-size:26px}
+  .team-select-grid{grid-template-columns:1fr}
+  .team-select-dock{
+    width:100%;
+    bottom:0;
+    border-radius:16px 16px 0 0;
+    padding:14px;
+    flex-direction:column;
+    align-items:stretch;
+  }
+  .team-select-dock-actions{justify-content:stretch}
+  .team-select-dock-btn{width:100%;min-width:0}
+  .draft-intro-main{
+    gap:22px;
+    padding:86px 18px 72px;
+  }
+  .draft-intro-hero h1{font-size:48px}
+  .draft-intro-lead{font-size:16px}
+  .draft-intro-pills{display:grid;grid-template-columns:1fr;justify-items:stretch;width:100%}
+  .draft-intro-pill{min-width:0}
+  .draft-intro-card-frame{min-height:344px;padding:24px 16px 18px}
+  .draft-intro-card{transform:scale(.98)}
+  .draft-intro-tag-row{display:grid;grid-template-columns:1fr;justify-items:stretch}
+  .draft-intro-tag{width:100%}
+  .draft-intro-rail{font-size:10px;padding:10px 12px;gap:10px;overflow:hidden}
+  .team-screen{grid-template-columns:1fr;min-height:auto;padding:14px}
+  .team-sidebar{
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+    border-right:none;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    padding:0 0 14px;
+  }
+  .team-sidebar-nav{margin-top:0;flex-direction:row;gap:10px;flex-wrap:wrap}
+  .team-sidebar-logo{width:58px;height:58px}
+  .team-screen-main{grid-template-rows:auto auto auto}
+  .team-screen-header{flex-direction:column;align-items:flex-start}
+  .team-screen-title{font-size:24px}
+  .team-roster-stage{min-height:0;padding:14px 10px}
+  .line-view-panel{grid-template-columns:1fr}
+  .line-unit-buttons{flex-direction:row;gap:10px;padding-top:0}
+  .line-card-row{gap:10px}
+  .line-card-row-top{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .line-card-row-bottom{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hockey-card--reserve{transform:scale(.72);margin-right:-52px}
+  .empty-roster-slot{width:100%;max-width:188px}
+  .draft-header-shell{grid-template-columns:1fr}
+  .draft-layout{grid-template-columns:1fr}
+  .draft-list{max-height:38vh}
+  .draft-list-row{grid-template-columns:36px 38px minmax(0,1fr) auto}
+  .draft-list-row-stat:last-child{display:none}
+  .draft-preview-head{grid-template-columns:84px 1fr}
+  .draft-preview-photo{width:84px;height:84px}
+  .draft-needs-grid{grid-template-columns:1fr}
+  .draft-action{position:static}
+  .sim-scoreboard{grid-template-columns:1fr}
+  .sim-top-head{grid-template-columns:1fr}
+  .sim-top-team,.sim-top-team-right{justify-content:center}
+  .sim-top-team-name{font-size:16px}
+  .sim-top-score{font-size:34px}
+  .sim-stage{grid-template-columns:1fr}
+  .sim-side-panel,.sim-side-panel-right{
+    grid-template-columns:repeat(3,1fr);
+    display:grid;
+    text-align:center;
+    gap:8px;
+    padding:0;
+  }
+  .sim-side-value{font-size:34px}
+  .sim-board{min-height:380px;padding:10px}
+  .sim-log-row{grid-template-columns:1fr}
+  .sim-log-time{order:-1}
+  .sim-log-side.home,.sim-log-side.away{justify-content:flex-start;text-align:left}
+  .calendar-table-header,.calendar-table-row{grid-template-columns:24px minmax(72px,1fr) 24px 24px 28px 24px 24px;font-size:11px}
+  .calendar-scorer-header,.calendar-scorer-row{grid-template-columns:24px minmax(90px,1.4fr) minmax(60px,1fr) 24px 24px 24px;font-size:11px}
+.calendar-schedule-header,.calendar-schedule-row{grid-template-columns:46px minmax(90px,1fr) 58px;font-size:11px}
+}
