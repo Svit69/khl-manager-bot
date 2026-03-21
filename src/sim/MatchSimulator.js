@@ -364,14 +364,29 @@ export class MatchSimulator{
     (teamContext.lines||[]).forEach(line=>{
       const shareInfo=(teamContext.iceTimeByLine||[]).find(item=>item.lineIndex===line.lineIndex);
       const lineSeconds=Math.round((shareInfo?.share||0)*durationSeconds);
-      if(!line.players.length || !lineSeconds)return;
-      const baseSeconds=Math.floor(lineSeconds/line.players.length);
-      let remainder=lineSeconds-(baseSeconds*line.players.length);
-      line.players.forEach(player=>{
-        const playerStats=statsMap.get(player.id);
+      if(!lineSeconds)return;
+      const assignGroupIceTime=profiles=>{
+        profiles.forEach(profile=>{
+          const playerStats=statsMap.get(profile.player.id);
+          if(!playerStats)return;
+          playerStats.totalIceTime+=lineSeconds;
+        });
+      };
+      if((line.forwards||[]).length){
+        assignGroupIceTime(line.forwards);
+      }
+      if((line.defenders||[]).length){
+        assignGroupIceTime(line.defenders);
+      }
+      const assignedIds=new Set([
+        ...(line.forwards||[]).map(profile=>profile.player.id),
+        ...(line.defenders||[]).map(profile=>profile.player.id)
+      ]);
+      (line.playerProfiles||[]).forEach(profile=>{
+        if(assignedIds.has(profile.player.id))return;
+        const playerStats=statsMap.get(profile.player.id);
         if(!playerStats)return;
-        playerStats.totalIceTime+=baseSeconds+(remainder>0?1:0);
-        if(remainder>0)remainder--;
+        playerStats.totalIceTime+=Math.round(lineSeconds/Math.max(1,(line.playerProfiles||[]).length));
       });
     });
 

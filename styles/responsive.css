@@ -66,6 +66,16 @@
   .draft-needs-grid{grid-template-columns:1fr}
   .draft-action{position:static}
   .sim-scoreboard{grid-template-columns:1fr}
+  .sim-modal{padding:8px}
+  .sim-modal-card{
+    width:100%;
+    height:min(100dvh - 16px, 100%);
+    border-radius:16px;
+  }
+  .sim-modal-close{
+    top:10px;
+    right:10px;
+  }
   .sim-top-head{grid-template-columns:1fr}
   .sim-top-team,.sim-top-team-right{justify-content:center}
   .sim-top-team-name{font-size:16px}
@@ -88,6 +98,7 @@
   .sim-stats-layout{grid-template-columns:1fr}
   .sim-player-detail{
     position:static;
+    max-height:none;
   }
   .sim-player-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .sim-stats-section-head{
