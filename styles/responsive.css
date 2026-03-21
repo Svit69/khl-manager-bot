@@ -86,7 +86,9 @@
     align-items:flex-start;
   }
   .sim-stats-summary{justify-content:flex-start}
-  .sim-player-card{grid-template-columns:1fr}
+  .sim-player-card{grid-template-columns:28px 1fr}
+  .sim-player-main{grid-column:span 1}
+  .sim-player-stats{grid-column:1 / -1}
   .sim-player-stats{justify-content:flex-start}
   .sim-player-stat,.sim-stats-summary-chip{min-width:42px;padding:6px 8px}
   .sim-log-time{order:-1}
