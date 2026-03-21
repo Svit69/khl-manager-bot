@@ -212,5 +212,64 @@
 .sim-timeline::-webkit-scrollbar-track{background:rgba(10,17,30,.7);border-radius:999px}
 .sim-timeline::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(111,212,255,.8),rgba(83,142,255,.75));border-radius:999px;border:2px solid rgba(10,17,30,.6)}
 .sim-timeline{scrollbar-color:rgba(111,212,255,.8) rgba(10,17,30,.7);scrollbar-width:thin}
+.sim-stats-table{
+  position:relative;
+  z-index:1;
+  display:grid;
+  gap:6px;
+  max-height:48vh;
+  overflow:auto;
+  padding-right:4px;
+}
+.sim-stats-header,.sim-stats-row{
+  display:grid;
+  grid-template-columns:120px minmax(160px,1fr) 36px 36px 36px 64px 42px 48px;
+  gap:8px;
+  align-items:center;
+}
+.sim-stats-header{
+  position:sticky;
+  top:0;
+  z-index:2;
+  padding:8px 10px;
+  border-radius:10px;
+  background:rgba(9,16,58,.88);
+  color:#bcd3ff;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.sim-stats-row{
+  padding:8px 10px;
+  border-radius:10px;
+  background:rgba(9,16,58,.40);
+  border:1px solid rgba(255,255,255,.04);
+  color:#eef5ff;
+  font-size:12px;
+}
+.sim-stats-team{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+  font-weight:700;
+}
+.sim-stats-team-logo{
+  width:18px;
+  height:18px;
+  object-fit:contain;
+  flex:0 0 auto;
+}
+.sim-stats-player{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-weight:700;
+}
+.sim-stats-table::-webkit-scrollbar{width:10px}
+.sim-stats-table::-webkit-scrollbar-track{background:rgba(10,17,30,.7);border-radius:999px}
+.sim-stats-table::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(111,212,255,.8),rgba(83,142,255,.75));border-radius:999px;border:2px solid rgba(10,17,30,.6)}
+.sim-stats-table{scrollbar-color:rgba(111,212,255,.8) rgba(10,17,30,.7);scrollbar-width:thin}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
 .reset-row{justify-content:flex-end;margin-top:8px}

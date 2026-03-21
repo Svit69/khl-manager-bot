@@ -53,6 +53,8 @@ export class MatchSimulator{
     this.#applyIceTimeStats(awayContext,awayPlayerStats,durationSeconds);
     this.#applyGoalEventStats(homeGoals,homePlayerStats);
     this.#applyGoalEventStats(awayGoals,awayPlayerStats);
+    this.#applyPenaltyEventStats(homePenalties,homePlayerStats);
+    this.#applyPenaltyEventStats(awayPenalties,awayPlayerStats);
     this.#applyShotStats(homeContext,homePlayerStats,homeShots);
     this.#applyShotStats(awayContext,awayPlayerStats,awayShots);
 
@@ -69,13 +71,13 @@ export class MatchSimulator{
           shots:homeShots,
           penalties:homePenalties.length,
           iceTimeByLine:homeContext.iceTimeByLine,
-          playerStats:this.#exportPlayerStats(homePlayerStats)
+          playerStats:this.#exportPlayerStats(homeContext,homePlayerStats)
         },
         away:{
           shots:awayShots,
           penalties:awayPenalties.length,
           iceTimeByLine:awayContext.iceTimeByLine,
-          playerStats:this.#exportPlayerStats(awayPlayerStats)
+          playerStats:this.#exportPlayerStats(awayContext,awayPlayerStats)
         }
       }
     };
@@ -353,7 +355,7 @@ export class MatchSimulator{
     const stats=new Map();
     const activePlayers=[...new Set([...(teamContext.activePlayers||[]),teamContext.goalie].filter(Boolean))];
     activePlayers.forEach(player=>{
-      stats.set(player.id,{playerId:player.id,games:1,goals:0,assists:0,shots:0,totalIceTime:0});
+      stats.set(player.id,{playerId:player.id,playerName:player.name,games:1,goals:0,assists:0,shots:0,totalIceTime:0,penaltyMinutes:0});
     });
     return stats;
   }
@@ -388,6 +390,15 @@ export class MatchSimulator{
     });
   }
 
+  #applyPenaltyEventStats(penaltyEvents,statsMap){
+    (penaltyEvents||[]).forEach(event=>{
+      const playerId=event?.player?.id;
+      if(playerId && statsMap.has(playerId)){
+        statsMap.get(playerId).penaltyMinutes+=(event.penaltyMinutes||PENALTY_MINUTES);
+      }
+    });
+  }
+
   #applyShotStats(teamContext,statsMap,totalShots){
     const shooters=(teamContext.activeProfiles||[]).filter(profile=>profile.player.identity?.primaryPosition!=="ВРТ");
     if(!shooters.length)return;
@@ -415,8 +426,12 @@ export class MatchSimulator{
     });
   }
 
-  #exportPlayerStats(statsMap){
-    return [...statsMap.values()];
+  #exportPlayerStats(teamContext,statsMap){
+    const rosterMap=new Map((teamContext?.team?.getRoster?.()||[]).map(player=>[player.id,player]));
+    return [...statsMap.values()].map(stat=>({
+      ...stat,
+      playerName:stat.playerName||rosterMap.get(stat.playerId)?.name||"Игрок"
+    }));
   }
 
   #formatEvent(data){

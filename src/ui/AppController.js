@@ -169,6 +169,16 @@ export class AppController{
       this.#renderScreen();
       return;
     }
+    if(action==="sim-view-stats" && this.#matchPlayback){
+      this.#matchPlayback.view="stats";
+      this.#renderScreen();
+      return;
+    }
+    if(action==="sim-view-events" && this.#matchPlayback){
+      this.#matchPlayback.view="events";
+      this.#renderScreen();
+      return;
+    }
     if(action==="open-negotiation"){
       this.#selectedNegotiationPlayerId=clickable.dataset.playerId;
       this.#outcomeByPlayerId.delete(this.#selectedNegotiationPlayerId);
@@ -442,7 +452,8 @@ export class AppController{
       currentSecond:0,
       visibleEvents:[],
       eventIndex:0,
-      isFinished:false
+      isFinished:false,
+      view:"events"
     };
     this.#matchPlaybackTimer=setInterval(()=>this.#tickMatchPlayback(),120);
   }
