@@ -501,18 +501,19 @@ export class AppController{
     this.#renderScreen();
   }
   #readRosterSlotDataset(dataset){
-    if(!dataset?.rosterKind)return null;
-    if(dataset.rosterKind==="reserve"){
-      const index=Number(dataset.reserveIndex);
-      return Number.isInteger(index)?{kind:"reserve",index}:null;
-    }
-    if(dataset.rosterKind==="line"){
+    if(!dataset)return null;
+    if(dataset.emptySlot==="1"){
       const lineIndex=Number(dataset.lineIndex);
       const slotIndex=Number(dataset.slotIndex);
       if(!Number.isInteger(lineIndex)||!Number.isInteger(slotIndex))return null;
       return {kind:"line",lineIndex,slotIndex};
     }
-    if(dataset.emptySlot==="1"){
+    if(!dataset.rosterKind)return null;
+    if(dataset.rosterKind==="reserve"){
+      const index=Number(dataset.reserveIndex);
+      return Number.isInteger(index)?{kind:"reserve",index}:null;
+    }
+    if(dataset.rosterKind==="line"){
       const lineIndex=Number(dataset.lineIndex);
       const slotIndex=Number(dataset.slotIndex);
       if(!Number.isInteger(lineIndex)||!Number.isInteger(slotIndex))return null;

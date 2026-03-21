@@ -82,15 +82,16 @@ const renderEmptyRosterSlot=slot=>{
   const attrs=[
     `class="roster-slot-card roster-slot-card-empty"`,
     `data-empty-slot="1"`,
+    `data-roster-kind="line"`,
     `data-line-index="${slot.lineIndex}"`,
     `data-slot-index="${slot.slotIndex}"`,
     `data-slot-position="${slot.position}"`
   ];
-  return `<div ${attrs.join(" ")}><div class="empty-roster-slot"><span class="empty-roster-slot-pos">${slot.position}</span><span class="empty-roster-slot-text">Пустой слот</span></div></div>`;
+  return `<div ${attrs.join(" ")}><div class="empty-roster-slot"><span class="empty-roster-slot-icon">+</span><span class="empty-roster-slot-pos">${slot.position}</span><span class="empty-roster-slot-text">Перетащите игрока из запаса</span></div></div>`;
 };
-const renderRosterSlotCard=(player,slot,extraClass="")=>{
+const renderRosterSlotCard=(player,slot,extraClass="",selected=false)=>{
   const attrs=[
-    `class="roster-slot-card"`,
+    `class="roster-slot-card${selected?" is-selected":""}"`,
     `data-roster-slot="1"`,
     `data-roster-kind="${slot.kind}"`,
     `data-player-id="${player.id}"`
@@ -99,6 +100,7 @@ const renderRosterSlotCard=(player,slot,extraClass="")=>{
     attrs.push(`draggable="true"`);
     attrs.push(`data-line-index="${slot.lineIndex}"`);
     attrs.push(`data-slot-index="${slot.slotIndex}"`);
+    attrs.push(`data-action="select-roster-card"`);
     const slotPosition=slot.position||player.identity?.primaryPosition;
     const displayOvr=adjustedOvrForPosition(player,slotPosition);
     const isPenalized=displayOvr<player.ovr;
@@ -106,7 +108,7 @@ const renderRosterSlotCard=(player,slot,extraClass="")=>{
       displayPosition:slotPosition,
       displayOvr,
       isPenalized
-    })}<button class="roster-slot-action" data-action="move-to-reserve" data-line-index="${slot.lineIndex}" data-slot-index="${slot.slotIndex}" title="Убрать в запас">В запас</button></div>`;
+    })}</div>`;
   }else{
     attrs.push(`draggable="true"`);
     attrs.push(`data-reserve-index="${slot.index}"`);
@@ -141,17 +143,26 @@ const renderRosterUnitButtons=activeUnit=>{
   const labels={1:"1",2:"2",3:"3",4:"4",G:"В"};
   return `<div class="line-unit-buttons">${units.map(unit=>`<button class="line-unit-btn${String(activeUnit||"1")===unit?" active":""}" data-action="select-roster-unit" data-unit="${unit}">${labels[unit]}</button>`).join("")}</div>`;
 };
-const renderRosterUnitCards=(team,unitKey)=>{
+const renderRosterActionBar=(selectedItem,unitKey)=>{
+  if(!selectedItem?.player || String(unitKey)==="G")return "";
+  const slotPosition=selectedItem.slot.position||selectedItem.player.identity?.primaryPosition;
+  const displayOvr=adjustedOvrForPosition(selectedItem.player,slotPosition);
+  return `<div class="roster-action-bar"><div class="roster-action-bar-meta"><span class="roster-action-bar-label">Выбран игрок</span><strong>${selectedItem.player.name}</strong><span>${slotPosition} • OVR ${displayOvr}</span></div><div class="roster-action-bar-actions"><button class="btn secondary" data-action="move-to-reserve" data-line-index="${selectedItem.slot.lineIndex}" data-slot-index="${selectedItem.slot.slotIndex}">Убрать в запас</button></div></div>`;
+};
+const renderRosterUnitCards=(team,unitKey,selectedSlot=null)=>{
   const items=getRosterUnitSlotDescriptors(team,unitKey);
   if(!items.length)return `<div class="line-empty">Состав пуст</div>`;
   const forwards=items.filter(item=>["ЛНП","ЦТР","ПНП"].includes(item.slot.position));
   const defenders=items.filter(item=>item.slot.position==="ЗАЩ");
   const others=items.filter(item=>!forwards.includes(item)&&!defenders.includes(item));
   const ordered=[...forwards,...defenders,...others];
-  const renderItem=item=>item.player?renderRosterSlotCard(item.player,item.slot):renderEmptyRosterSlot(item.slot);
+  const selectedItem=ordered.find(item=>item.slot.kind==="line"&&selectedSlot&&item.slot.lineIndex===selectedSlot.lineIndex&&item.slot.slotIndex===selectedSlot.slotIndex) || null;
+  const renderItem=item=>item.player
+    ? renderRosterSlotCard(item.player,item.slot,"",Boolean(selectedSlot&&item.slot.lineIndex===selectedSlot.lineIndex&&item.slot.slotIndex===selectedSlot.slotIndex))
+    : renderEmptyRosterSlot(item.slot);
   const top=ordered.slice(0,3).map(renderItem).join("");
   const bottom=ordered.slice(3).map(renderItem).join("");
-  return `<div class="line-card-layout"><div class="line-card-row line-card-row-top">${top}</div><div class="line-card-row line-card-row-bottom">${bottom}</div></div>`;
+  return `<div class="line-card-layout"><div class="line-card-row line-card-row-top">${top}</div><div class="line-card-row line-card-row-bottom">${bottom}</div>${renderRosterActionBar(selectedItem,unitKey)}</div>`;
 };
 const renderReserveStrip=players=>{
   if(!players?.length)return `<div class="team-reserve-empty">Запасных нет</div>`;
@@ -167,9 +178,9 @@ export class Renderer{
     this.#userEl=document.getElementById("userBadge");
   }
   renderUser(user){this.#userEl.textContent=`ID: ${user.id}`}
-  renderTeam(team,activeTab,activeRosterUnit="1"){
+  renderTeam(team,activeTab,activeRosterUnit="1",selectedRosterSlot=null){
     const rosterView=activeTab==="roster"
-      ? `<div class="team-club-shell"><div class="team-roster-stage"><div class="line-view-panel">${renderRosterUnitButtons(activeRosterUnit)}${renderRosterUnitCards(team,activeRosterUnit)}</div></div><div class="team-reserve-wrap">${renderReserveStrip(team.reservePlayers||[])}</div></div>`
+      ? `<div class="team-club-shell"><div class="team-roster-stage"><div class="line-view-panel">${renderRosterUnitButtons(activeRosterUnit)}${renderRosterUnitCards(team,activeRosterUnit,selectedRosterSlot)}</div></div><div class="team-reserve-wrap">${renderReserveStrip(team.reservePlayers||[])}</div></div>`
       : `<div class="muted">Переключитесь на вкладку «Состав»</div>`;
     const sidebar=renderTeamSidebar(team,activeTab);
     this.#teamEl.innerHTML=`<div class="team-screen">${sidebar}<div class="team-screen-main"><div class="team-screen-header"><div><div class="team-screen-title">${team.name}</div><div class="team-screen-subtitle">${team.city}, ${team.shortName}</div></div><div class="team-screen-status"><span class="team-screen-status-pill">Club Hub</span><span class="team-screen-status-pill team-screen-status-pill-muted">${activeTab==="roster"?"Основной состав":"Управление клубом"}</span></div></div>${rosterView}<div id="teamTabContent"></div></div></div>`;
