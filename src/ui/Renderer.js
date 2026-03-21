@@ -385,19 +385,37 @@ export class Renderer{
       const ss=String(safe%60).padStart(2,"0");
       return `${mm}:${ss}`;
     };
-    const buildMatchStatsRows=(teamSummary,team)=>((teamSummary?.playerStats||[])
+    const buildMatchStatsRows=(teamSummary,team)=>(teamSummary?.playerStats||[])
       .map(stat=>({
         ...stat,
         points:(stat.goals||0)+(stat.assists||0),
-        team
-      }))
-      .sort((a,b)=>(
-        (b.points-a.points)||
-        ((b.goals||0)-(a.goals||0))||
-        ((b.assists||0)-(a.assists||0))||
-        ((b.shots||0)-(a.shots||0))||
-        String(a.playerName||"").localeCompare(String(b.playerName||""),"ru")
-      )));
+        team,
+        playerKey:`${team?.id||team?.name||"team"}:${stat.playerId||stat.playerName||"player"}`
+      }));
+    const sortMatchStats=(rows,sortKey="points")=>{
+      const sorted=[...rows];
+      const compareName=(left,right)=>String(left.playerName||"").localeCompare(String(right.playerName||""),"ru");
+      sorted.sort((left,right)=>{
+        if(sortKey==="iceTime"){
+          return ((right.totalIceTime||0)-(left.totalIceTime||0))||
+            ((right.points||0)-(left.points||0))||
+            ((right.shots||0)-(left.shots||0))||
+            compareName(left,right);
+        }
+        if(sortKey==="shots"){
+          return ((right.shots||0)-(left.shots||0))||
+            ((right.points||0)-(left.points||0))||
+            ((right.goals||0)-(left.goals||0))||
+            compareName(left,right);
+        }
+        return ((right.points||0)-(left.points||0))||
+          ((right.goals||0)-(left.goals||0))||
+          ((right.assists||0)-(left.assists||0))||
+          ((right.shots||0)-(left.shots||0))||
+          compareName(left,right);
+      });
+      return sorted;
+    };
     const fmtClock=seconds=>{
       const safe=Math.max(0,Number(seconds)||0);
       const isOt=safe>=3600;
@@ -427,8 +445,13 @@ export class Renderer{
     const awayVisibleGoals=visibleEvents.filter(event=>event.type==="goal"&&event.teamId===playback.match.away.id).length;
     const homeShots=Math.min(finalHomeShots,Math.max(homeVisibleGoals,Math.round(finalHomeShots*Math.pow(progressRatio,0.92))));
     const awayShots=Math.min(finalAwayShots,Math.max(awayVisibleGoals,Math.round(finalAwayShots*Math.pow(progressRatio,0.92))));
-    const homeStatsRows=buildMatchStatsRows(playback.match.summary?.home,playback.match.home);
-    const awayStatsRows=buildMatchStatsRows(playback.match.summary?.away,playback.match.away);
+    const statsSort=playback.statsSort||"points";
+    const homeStatsRows=sortMatchStats(buildMatchStatsRows(playback.match.summary?.home,playback.match.home),statsSort);
+    const awayStatsRows=sortMatchStats(buildMatchStatsRows(playback.match.summary?.away,playback.match.away),statsSort);
+    const allStatsRows=[...homeStatsRows,...awayStatsRows];
+    const selectedPlayerKey=playback.selectedStatPlayerKey||allStatsRows[0]?.playerKey||null;
+    playback.selectedStatPlayerKey=selectedPlayerKey;
+    const selectedPlayer=allStatsRows.find(row=>row.playerKey===selectedPlayerKey)||allStatsRows[0]||null;
     const timeline=visibleEvents.map(event=>{
       const isHome=event.teamId===playback.match.home.id;
       let text="";
@@ -467,7 +490,7 @@ export class Renderer{
         </div>
         <div class="sim-stats-list">
           ${rows.map((row,index)=>`
-            <article class="sim-player-card${index===0?" is-top":""}">
+            <button type="button" class="sim-player-card${index===0?" is-top":""}${row.playerKey===selectedPlayerKey?" is-selected":""}" data-action="sim-select-player" data-player-key="${row.playerKey}">
               <div class="sim-player-rank">${index+1}</div>
               <div class="sim-player-main">
                 <div class="sim-player-name" title="${row.playerName||"\u0418\u0433\u0440\u043e\u043a"}">${row.playerName||"\u0418\u0433\u0440\u043e\u043a"}</div>
@@ -483,14 +506,59 @@ export class Renderer{
                 <span class="sim-player-stat"><b>${row.shots||0}</b><small>\u0411\u0440</small></span>
                 <span class="sim-player-stat"><b>${row.penaltyMinutes||0}</b><small>\u0428\u041c</small></span>
               </div>
-            </article>
+            </button>
           `).join("")||`<div class="muted">\u041d\u0435\u0442 \u0441\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u0438</div>`}
         </div>
       </section>
     `;
+    const renderSortButton=(key,label)=>`<button type="button" class="sim-stats-sort${statsSort===key?" is-active":""}" data-action="sim-stats-sort" data-sort="${key}">${label}</button>`;
+    const detailPanel=selectedPlayer?`
+      <aside class="sim-player-detail">
+        <div class="sim-player-detail-head">
+          <div class="sim-player-detail-team">
+            ${selectedPlayer.team?.logoUrl?`<img class="sim-player-detail-logo" src="${selectedPlayer.team.logoUrl}" alt="${selectedPlayer.team.name}"/>`:""}
+            <div>
+              <div class="sim-player-detail-label">\u0414\u0435\u0442\u0430\u043b\u0438 \u0438\u0433\u0440\u043e\u043a\u0430</div>
+              <div class="sim-player-detail-team-name">${selectedPlayer.team?.name||"\u2014"}</div>
+            </div>
+          </div>
+          <div class="sim-player-detail-badge">${selectedPlayer.team?.shortName||"\u2014"}</div>
+        </div>
+        <div class="sim-player-detail-body">
+          <div class="sim-player-detail-name">${selectedPlayer.playerName||"\u0418\u0433\u0440\u043e\u043a"}</div>
+          <div class="sim-player-detail-meta">
+            <span>${selectedPlayer.team?.shortName||selectedPlayer.team?.name||"\u2014"}</span>
+            <span>${formatIceTime(selectedPlayer.totalIceTime)}</span>
+          </div>
+          <div class="sim-player-detail-grid">
+            <div class="sim-player-detail-stat sim-player-detail-stat--accent"><strong>${selectedPlayer.points||0}</strong><span>\u041e\u0447\u043a\u0438</span></div>
+            <div class="sim-player-detail-stat"><strong>${selectedPlayer.goals||0}</strong><span>\u0413\u043e\u043b\u044b</span></div>
+            <div class="sim-player-detail-stat"><strong>${selectedPlayer.assists||0}</strong><span>\u041f\u0435\u0440\u0435\u0434\u0430\u0447\u0438</span></div>
+            <div class="sim-player-detail-stat"><strong>${selectedPlayer.shots||0}</strong><span>\u0411\u0440\u043e\u0441\u043a\u0438</span></div>
+            <div class="sim-player-detail-stat"><strong>${selectedPlayer.penaltyMinutes||0}</strong><span>\u0428\u0442\u0440. \u043c\u0438\u043d</span></div>
+            <div class="sim-player-detail-stat"><strong>${formatIceTime(selectedPlayer.totalIceTime)}</strong><span>\u0410\u0439\u0441\u0442\u0430\u0439\u043c</span></div>
+          </div>
+        </div>
+      </aside>
+    `:`<aside class="sim-player-detail"><div class="muted">\u041d\u0435\u0442 \u0441\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u0438</div></aside>`;
     const statsTable=`<div class="sim-stats-table sim-stats-table-modern">
-      ${renderStatsSection("\u0414\u043e\u043c\u0430\u0448\u043d\u044f\u044f \u043a\u043e\u043c\u0430\u043d\u0434\u0430",playback.match.home,homeStatsRows,score.home,homeShots,visibleHomePens)}
-      ${renderStatsSection("\u0413\u043e\u0441\u0442\u0435\u0432\u0430\u044f \u043a\u043e\u043c\u0430\u043d\u0434\u0430",playback.match.away,awayStatsRows,score.away,awayShots,visibleAwayPens)}
+      <div class="sim-stats-shell">
+        <div class="sim-stats-toolbar">
+          <div class="sim-stats-toolbar-label">\u0421\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u0430 \u043c\u0430\u0442\u0447\u0430</div>
+          <div class="sim-stats-toolbar-actions">
+            ${renderSortButton("points","\u041e\u0447\u043a\u0438")}
+            ${renderSortButton("iceTime","\u0412\u0440\u0435\u043c\u044f")}
+            ${renderSortButton("shots","\u0411\u0440\u043e\u0441\u043a\u0438")}
+          </div>
+        </div>
+        <div class="sim-stats-layout">
+          <div class="sim-stats-columns">
+            ${renderStatsSection("\u0414\u043e\u043c\u0430\u0448\u043d\u044f\u044f \u043a\u043e\u043c\u0430\u043d\u0434\u0430",playback.match.home,homeStatsRows,score.home,homeShots,visibleHomePens)}
+            ${renderStatsSection("\u0413\u043e\u0441\u0442\u0435\u0432\u0430\u044f \u043a\u043e\u043c\u0430\u043d\u0434\u0430",playback.match.away,awayStatsRows,score.away,awayShots,visibleAwayPens)}
+          </div>
+          ${detailPanel}
+        </div>
+      </div>
     </div>`;
     const periodsLabel=clock.period===4?"\u041e\u0422 3x3":"\u041f\u0435\u0440\u0438\u043e\u0434";
     const contentLabel=playback.view==="stats"?"\u0421\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u0430 \u043c\u0430\u0442\u0447\u0430":"\u0421\u043e\u0431\u044b\u0442\u0438\u044f \u043c\u0430\u0442\u0447\u0430";

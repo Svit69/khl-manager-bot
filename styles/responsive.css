@@ -81,6 +81,15 @@
   .sim-side-value{font-size:34px}
   .sim-board{min-height:380px;padding:10px}
   .sim-log-row{grid-template-columns:1fr}
+  .sim-stats-toolbar{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  .sim-stats-layout{grid-template-columns:1fr}
+  .sim-player-detail{
+    position:static;
+  }
+  .sim-player-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .sim-stats-section-head{
     flex-direction:column;
     align-items:flex-start;

@@ -222,6 +222,63 @@
   padding-right:4px;
 }
 .sim-stats-table-modern{align-content:start}
+.sim-stats-shell{
+  display:grid;
+  gap:14px;
+}
+.sim-stats-toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:2px 2px 0;
+}
+.sim-stats-toolbar-label{
+  color:#f4f8ff;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.sim-stats-toolbar-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.sim-stats-sort{
+  appearance:none;
+  border:none;
+  border-radius:999px;
+  padding:9px 14px;
+  background:rgba(255,255,255,.05);
+  color:#a7c0e8;
+  font:inherit;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.04em;
+  cursor:pointer;
+  transition:background .18s ease,color .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+.sim-stats-sort:hover{
+  background:rgba(255,255,255,.08);
+  color:#f5f9ff;
+  transform:translateY(-1px);
+}
+.sim-stats-sort.is-active{
+  background:linear-gradient(180deg,rgba(96,206,255,.22),rgba(52,126,255,.18));
+  color:#f7fbff;
+  box-shadow:0 0 0 1px rgba(108,208,255,.26);
+}
+.sim-stats-layout{
+  display:grid;
+  grid-template-columns:minmax(0,1.7fr) minmax(280px,.9fr);
+  gap:14px;
+  align-items:start;
+}
+.sim-stats-columns{
+  display:grid;
+  gap:12px;
+}
 .sim-stats-section{
   background:
     linear-gradient(180deg,rgba(9,20,64,.92),rgba(7,17,46,.72)),
@@ -316,6 +373,8 @@
   gap:10px;
 }
 .sim-player-card{
+  appearance:none;
+  width:100%;
   display:grid;
   grid-template-columns:32px minmax(0,1fr) auto;
   gap:10px;
@@ -324,16 +383,28 @@
   border-radius:16px;
   background:linear-gradient(180deg,rgba(8,14,41,.72),rgba(8,13,34,.54));
   border:1px solid rgba(255,255,255,.06);
-  transition:transform .18s ease,border-color .18s ease,background .18s ease;
+  text-align:left;
+  cursor:pointer;
+  transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease;
 }
 .sim-player-card:hover{
   transform:translateY(-1px);
   border-color:rgba(111,212,255,.24);
   background:linear-gradient(180deg,rgba(11,19,54,.82),rgba(8,13,34,.62));
 }
+.sim-player-card.is-selected{
+  border-color:rgba(108,208,255,.34);
+  background:
+    linear-gradient(180deg,rgba(16,30,77,.95),rgba(9,18,47,.86)),
+    linear-gradient(90deg,rgba(94,206,255,.12),transparent 44%);
+  box-shadow:0 0 0 1px rgba(108,208,255,.2),0 14px 28px rgba(36,97,209,.2);
+}
 .sim-player-card.is-top{
   border-color:rgba(111,212,255,.28);
   box-shadow:0 0 0 1px rgba(111,212,255,.12),0 10px 26px rgba(40,116,255,.12);
+}
+.sim-player-card.is-selected.is-top{
+  box-shadow:0 0 0 1px rgba(108,208,255,.22),0 18px 36px rgba(36,97,209,.22);
 }
 .sim-player-rank{
   width:28px;
@@ -372,6 +443,108 @@
   gap:6px;
   flex-wrap:wrap;
   justify-content:flex-end;
+}
+.sim-player-detail{
+  position:sticky;
+  top:0;
+  display:grid;
+  gap:14px;
+  align-self:start;
+  padding:16px;
+  border-radius:20px;
+  background:
+    linear-gradient(180deg,rgba(11,22,63,.96),rgba(8,16,46,.88)),
+    linear-gradient(135deg,rgba(94,206,255,.08),transparent 56%);
+  border:1px solid rgba(160,208,255,.12);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 16px 34px rgba(0,0,0,.22);
+}
+.sim-player-detail-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+.sim-player-detail-team{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+.sim-player-detail-logo{
+  width:42px;
+  height:42px;
+  object-fit:contain;
+  flex:0 0 auto;
+}
+.sim-player-detail-label{
+  color:#82dcff;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.sim-player-detail-team-name{
+  color:#f4f8ff;
+  font-size:16px;
+  font-weight:800;
+}
+.sim-player-detail-badge{
+  padding:8px 10px;
+  border-radius:12px;
+  background:rgba(255,255,255,.06);
+  color:#b3ccf4;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.sim-player-detail-body{
+  display:grid;
+  gap:10px;
+}
+.sim-player-detail-name{
+  color:#f9fbff;
+  font-size:26px;
+  line-height:1.05;
+  font-weight:900;
+}
+.sim-player-detail-meta{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  color:#91addb;
+  font-size:12px;
+  font-weight:700;
+}
+.sim-player-detail-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+.sim-player-detail-stat{
+  display:grid;
+  gap:4px;
+  padding:12px;
+  border-radius:14px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.07);
+}
+.sim-player-detail-stat--accent{
+  background:linear-gradient(180deg,rgba(83,185,255,.22),rgba(69,132,255,.12));
+  border-color:rgba(105,190,255,.24);
+}
+.sim-player-detail-stat strong{
+  color:#f8fbff;
+  font-size:22px;
+  line-height:1;
+  font-weight:900;
+}
+.sim-player-detail-stat span{
+  color:#91b6ea;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.06em;
+  text-transform:uppercase;
 }
 .sim-stats-table::-webkit-scrollbar{width:10px}
 .sim-stats-table::-webkit-scrollbar-track{background:rgba(10,17,30,.7);border-radius:999px}

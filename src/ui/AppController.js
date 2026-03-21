@@ -171,11 +171,24 @@ export class AppController{
     }
     if(action==="sim-view-stats" && this.#matchPlayback){
       this.#matchPlayback.view="stats";
+      this.#matchPlayback.statsSort=this.#matchPlayback.statsSort||"points";
       this.#renderScreen();
       return;
     }
     if(action==="sim-view-events" && this.#matchPlayback){
       this.#matchPlayback.view="events";
+      this.#renderScreen();
+      return;
+    }
+    if(action==="sim-stats-sort" && this.#matchPlayback){
+      this.#matchPlayback.view="stats";
+      this.#matchPlayback.statsSort=clickable.dataset.sort||"points";
+      this.#renderScreen();
+      return;
+    }
+    if(action==="sim-select-player" && this.#matchPlayback){
+      this.#matchPlayback.view="stats";
+      this.#matchPlayback.selectedStatPlayerKey=clickable.dataset.playerKey||null;
       this.#renderScreen();
       return;
     }
