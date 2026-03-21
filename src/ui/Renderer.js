@@ -427,27 +427,54 @@ export class Renderer{
     const awayVisibleGoals=visibleEvents.filter(event=>event.type==="goal"&&event.teamId===playback.match.away.id).length;
     const homeShots=Math.min(finalHomeShots,Math.max(homeVisibleGoals,Math.round(finalHomeShots*Math.pow(progressRatio,0.92))));
     const awayShots=Math.min(finalAwayShots,Math.max(awayVisibleGoals,Math.round(finalAwayShots*Math.pow(progressRatio,0.92))));
-    const statsRows=[
-      ...buildMatchStatsRows(playback.match.summary?.home,playback.match.home),
-      ...buildMatchStatsRows(playback.match.summary?.away,playback.match.away)
-    ];
-    const timeline=(visibleEvents).map(event=>{
-      const isHome=event.teamId===playback.match.home.id;
-      let text="";
-      let tagClass="sim-log-chip";
-      if(event.type==="goal"){
-        const scorer=event.scorer?.name||event.scorer;
-        const assists=(event.assists||[]).length?` (${(event.assists||[]).join(", ")})`:"";
-        const strength=event.strength?` [${event.strength}]`:"";
-        text=`${scorer}${assists}${strength}`;
-        tagClass+=" goal";
-      }else{
-        text=`Удаление: ${event.player?.name||event.player} (${event.penaltyMinutes||2} мин)`;
-        tagClass+=" penalty";
-      }
-      return `<div class="sim-log-row"><div class="sim-log-side home">${isHome?`<span class="${tagClass}">${event.type==="goal"?"ГОЛ":"УДАЛ."}</span><span>${text}</span>`:""}</div><div class="sim-log-time">P${event.period} ${event.periodClock}</div><div class="sim-log-side away">${!isHome?`<span>${text}</span><span class="${tagClass}">${event.type==="goal"?"ГОЛ":"УДАЛ."}</span>`:""}</div></div>`;
-    }).join("");
-    const statsTable=`<div class="sim-stats-table"><div class="sim-stats-header"><span>Команда</span><span>Игрок</span><span>Г</span><span>П</span><span>О</span><span>Время</span><span>Бр</span><span>ШМ</span></div>${statsRows.map(row=>`<div class="sim-stats-row"><span class="sim-stats-team">${row.team?.logoUrl?`<img class="sim-stats-team-logo" src="${row.team.logoUrl}" alt="${row.team.name}"/>`:""}<span>${row.team?.shortName||row.team?.name||"—"}</span></span><span class="sim-stats-player" title="${row.playerName||"Игрок"}">${row.playerName||"Игрок"}</span><span>${row.goals||0}</span><span>${row.assists||0}</span><span>${row.points||0}</span><span>${formatIceTime(row.totalIceTime)}</span><span>${row.shots||0}</span><span>${row.penaltyMinutes||0}</span></div>`).join("")||`<div class="muted">Нет статистики</div>`}</div>`;
+    const homeStatsRows=buildMatchStatsRows(playback.match.summary?.home,playback.match.home);
+    const awayStatsRows=buildMatchStatsRows(playback.match.summary?.away,playback.match.away);
+    const renderStatsSection=(title, team, rows, goalsValue, shotsValue, pimValue)=>`
+      <section class="sim-stats-section">
+        <div class="sim-stats-section-head">
+          <div class="sim-stats-section-team">
+            ${team?.logoUrl?`<img class="sim-stats-section-logo" src="${team.logoUrl}" alt="${team.name}"/>`:""}
+            <div>
+              <div class="sim-stats-section-label">${title}</div>
+              <div class="sim-stats-section-name">${team?.name||"?"}</div>
+            </div>
+          </div>
+          <div class="sim-stats-summary">
+            <span class="sim-stats-summary-chip"><b>${goalsValue}</b><small>?</small></span>
+            <span class="sim-stats-summary-chip"><b>${shotsValue}</b><small>??</small></span>
+            <span class="sim-stats-summary-chip"><b>${pimValue}</b><small>??</small></span>
+          </div>
+        </div>
+        <div class="sim-stats-legend">
+          <span>?????</span>
+          <span>??????????</span>
+        </div>
+        <div class="sim-stats-list">
+          ${rows.map(row=>`
+            <article class="sim-player-card">
+              <div class="sim-player-main">
+                <div class="sim-player-name" title="${row.playerName||"?????"}">${row.playerName||"?????"}</div>
+                <div class="sim-player-subline">
+                  <span>${row.team?.shortName||row.team?.name||"?"}</span>
+                  <span>${formatIceTime(row.totalIceTime)}</span>
+                </div>
+              </div>
+              <div class="sim-player-stats">
+                <span class="sim-player-stat sim-player-stat-accent"><b>${row.points||0}</b><small>?</small></span>
+                <span class="sim-player-stat"><b>${row.goals||0}</b><small>?</small></span>
+                <span class="sim-player-stat"><b>${row.assists||0}</b><small>?</small></span>
+                <span class="sim-player-stat"><b>${row.shots||0}</b><small>??</small></span>
+                <span class="sim-player-stat"><b>${row.penaltyMinutes||0}</b><small>??</small></span>
+              </div>
+            </article>
+          `).join("")||`<div class="muted">??? ??????????</div>`}
+        </div>
+      </section>
+    `;
+    const statsTable=`<div class="sim-stats-table sim-stats-table-modern">
+      ${renderStatsSection("???????? ???????",playback.match.home,homeStatsRows,score.home,homeShots,visibleHomePens)}
+      ${renderStatsSection("???????? ???????",playback.match.away,awayStatsRows,score.away,awayShots,visibleAwayPens)}
+    </div>`;
     const periodsLabel=clock.period===4?"ОТ 3x3":"Период";
     const contentLabel=playback.view==="stats"?"Статистика матча":"События матча";
     const contentBody=playback.view==="stats"
