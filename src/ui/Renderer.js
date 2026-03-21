@@ -25,15 +25,15 @@ const renderNationFlagIcon=(nationality,altText,className="nation-flag-icon")=>{
   const src=getNationFlagAsset(nationality);
   return src
     ? `<img class="${className}" src="${src}" alt="${altText||""}"/>`
-    : `<span class="${className} nation-flag-fallback" aria-hidden="true">рџЏіпёЏ</span>`;
+    : `<span class="${className} nation-flag-fallback" aria-hidden="true">СЂСџРЏС–РїС‘РЏ</span>`;
 };
 const getNationBadge=nationality=>{
   const code=String(nationality||"").trim().toUpperCase()||"N/A";
-  return `<span class="nation-badge-inline">${renderNationFlagIcon(code,`Р¤Р»Р°Рі ${code}`,"nation-flag-inline")}<span>${code}</span></span>`;
+  return `<span class="nation-badge-inline">${renderNationFlagIcon(code,`Р В¤Р В»Р В°Р С– ${code}`,"nation-flag-inline")}<span>${code}</span></span>`;
 };
 const renderDraftPositionBlock=(label,players)=>{
   const names=(players||[]).map(player=>player.name).join(", ");
-  return `<div class="draft-pos"><div class="muted">${label} (${players.length})</div><div>${names||"вЂ”"}</div></div>`;
+  return `<div class="draft-pos"><div class="muted">${label} (${players.length})</div><div>${names||"РІР‚вЂќ"}</div></div>`;
 };
 const getDraftTargetByPosition=position=>{
   if(position==="CTR")return 4;
@@ -45,11 +45,11 @@ const getDraftTargetByPosition=position=>{
 };
 const renderDraftNeedsGrid=userRoster=>{
   const items=[
-    {key:"CTR",label:"Р¦РўР "},
-    {key:"LW",label:"Р›РќРџ"},
-    {key:"RW",label:"РџРќРџ"},
-    {key:"DEF",label:"Р—РђР©"},
-    {key:"G",label:"Р’Р Рў"}
+    {key:"CTR",label:"Р В¦Р СћР В "},
+    {key:"LW",label:"Р вЂєР СњР Сџ"},
+    {key:"RW",label:"Р СџР СњР Сџ"},
+    {key:"DEF",label:"Р вЂ”Р С’Р В©"},
+    {key:"G",label:"Р вЂ™Р В Р Сћ"}
   ];
   return `<div class="draft-needs-grid">${items.map(item=>{
     const current=(userRoster[item.key]||[]).length;
@@ -65,7 +65,7 @@ const getNationCode=nationality=>{
 };
 const getNationFlag=nationality=>{
   const code=String(nationality||"").trim().toUpperCase();
-  return renderNationFlagIcon(code,`Р¤Р»Р°Рі ${code||"N/A"}`,"nation-flag-card");
+  return renderNationFlagIcon(code,`Р В¤Р В»Р В°Р С– ${code||"N/A"}`,"nation-flag-card");
 };
 const renderRosterCard=(player,extraClass="",options={})=>{
   const photo=player.identity.photoUrl||"./player-photo/placeholder.png";
@@ -76,7 +76,7 @@ const renderRosterCard=(player,extraClass="",options={})=>{
   const displayOvr=options.displayOvr??player.ovr;
   const displayPosition=options.displayPosition||player.identity.primaryPosition;
   const penalizedClass=options.isPenalized?" hockey-card--penalized":"";
-  return `<article class="hockey-card${extraClass?` ${extraClass}`:""}${penalizedClass}"><div class="hockey-card-layers"><img class="hockey-card-bg" src="./card/card_background.svg" alt="" aria-hidden="true"/><img class="hockey-card-photo" src="${photo}" alt="${player.name}"/><img class="hockey-card-front" src="./card/card_front.svg" alt="" aria-hidden="true"/></div><div class="hockey-card-top"><span class="hockey-card-ovr-wrap"><span class="hockey-card-ovr">${displayOvr}</span></span><span class="hockey-card-pos">${displayPosition}</span></div><div class="hockey-card-name-band">${surname}</div><div class="hockey-card-meta-row"><span>${age} Р›Р•Рў</span><span>${nationFlag} ${nationCode}</span></div></article>`;
+  return `<article class="hockey-card${extraClass?` ${extraClass}`:""}${penalizedClass}"><div class="hockey-card-layers"><img class="hockey-card-bg" src="./card/card_background.svg" alt="" aria-hidden="true"/><img class="hockey-card-photo" src="${photo}" alt="${player.name}"/><img class="hockey-card-front" src="./card/card_front.svg" alt="" aria-hidden="true"/></div><div class="hockey-card-top"><span class="hockey-card-ovr-wrap"><span class="hockey-card-ovr">${displayOvr}</span></span><span class="hockey-card-pos">${displayPosition}</span></div><div class="hockey-card-name-band">${surname}</div><div class="hockey-card-meta-row"><span>${age} Р вЂєР вЂўР Сћ</span><span>${nationFlag} ${nationCode}</span></div></article>`;
 };
 const renderEmptyRosterSlot=slot=>{
   const attrs=[
@@ -87,7 +87,7 @@ const renderEmptyRosterSlot=slot=>{
     `data-slot-index="${slot.slotIndex}"`,
     `data-slot-position="${slot.position}"`
   ];
-  return `<div ${attrs.join(" ")}><div class="empty-roster-slot"><span class="empty-roster-slot-icon">+</span><span class="empty-roster-slot-pos">${slot.position}</span><span class="empty-roster-slot-text">РџРµСЂРµС‚Р°С‰РёС‚Рµ РёРіСЂРѕРєР° РёР· Р·Р°РїР°СЃР°</span></div></div>`;
+  return `<div ${attrs.join(" ")}><div class="empty-roster-slot"><span class="empty-roster-slot-icon">+</span><span class="empty-roster-slot-pos">${slot.position}</span></div></div>`;
 };
 const renderRosterSlotCard=(player,slot,extraClass="",selected=false)=>{
   const attrs=[
@@ -108,7 +108,7 @@ const renderRosterSlotCard=(player,slot,extraClass="",selected=false)=>{
       displayPosition:slotPosition,
       displayOvr,
       isPenalized
-    })}</div>`;
+    })}<button class="roster-slot-action" data-action="move-to-reserve" data-line-index="${slot.lineIndex}" data-slot-index="${slot.slotIndex}">В запас</button></div>`;
   }else{
     attrs.push(`draggable="true"`);
     attrs.push(`data-reserve-index="${slot.index}"`);
@@ -117,7 +117,7 @@ const renderRosterSlotCard=(player,slot,extraClass="",selected=false)=>{
 };
 const getRosterUnitPlayers=(team,unitKey)=>{
   if(String(unitKey)==="G"){
-    return team.getRoster().filter(player=>player.identity?.primaryPosition==="Р’Р Рў");
+    return team.getRoster().filter(player=>player.identity?.primaryPosition==="Р вЂ™Р В Р Сћ");
   }
   const lineIndex=Math.max(1,Math.min(4,Number(unitKey)||1))-1;
   return [...(team.lines?.[lineIndex]?.players||[])];
@@ -126,7 +126,7 @@ const getRosterUnitSlotDescriptors=(team,unitKey)=>{
   if(String(unitKey)==="G"){
     return (team.reservePlayers||[])
       .map((player,index)=>({player,slot:{kind:"reserve",index}}))
-      .filter(item=>item.player.identity?.primaryPosition==="Р’Р Рў");
+      .filter(item=>item.player.identity?.primaryPosition==="Р вЂ™Р В Р Сћ");
   }
   const lineIndex=Math.max(1,Math.min(4,Number(unitKey)||1))-1;
   const line=team.lines?.[lineIndex];
@@ -140,20 +140,20 @@ const getRosterUnitSlotDescriptors=(team,unitKey)=>{
 };
 const renderRosterUnitButtons=activeUnit=>{
   const units=["1","2","3","4","G"];
-  const labels={1:"1",2:"2",3:"3",4:"4",G:"Р’"};
+  const labels={1:"1",2:"2",3:"3",4:"4",G:"Р вЂ™"};
   return `<div class="line-unit-buttons">${units.map(unit=>`<button class="line-unit-btn${String(activeUnit||"1")===unit?" active":""}" data-action="select-roster-unit" data-unit="${unit}">${labels[unit]}</button>`).join("")}</div>`;
 };
 const renderRosterActionBar=(selectedItem,unitKey)=>{
   if(!selectedItem?.player || String(unitKey)==="G")return "";
   const slotPosition=selectedItem.slot.position||selectedItem.player.identity?.primaryPosition;
   const displayOvr=adjustedOvrForPosition(selectedItem.player,slotPosition);
-  return `<div class="roster-action-bar"><div class="roster-action-bar-meta"><span class="roster-action-bar-label">Р’С‹Р±СЂР°РЅ РёРіСЂРѕРє</span><strong>${selectedItem.player.name}</strong><span>${slotPosition} вЂў OVR ${displayOvr}</span></div><div class="roster-action-bar-actions"><button class="btn secondary" data-action="move-to-reserve" data-line-index="${selectedItem.slot.lineIndex}" data-slot-index="${selectedItem.slot.slotIndex}">РЈР±СЂР°С‚СЊ РІ Р·Р°РїР°СЃ</button></div></div>`;
+  return `<div class="roster-action-bar"><div class="roster-action-bar-meta"><span class="roster-action-bar-label">Р вЂ™РЎвЂ№Р В±РЎР‚Р В°Р Р… Р С‘Р С–РЎР‚Р С•Р С”</span><strong>${selectedItem.player.name}</strong><span>${slotPosition} РІР‚Сћ OVR ${displayOvr}</span></div><div class="roster-action-bar-actions"><button class="btn secondary" data-action="move-to-reserve" data-line-index="${selectedItem.slot.lineIndex}" data-slot-index="${selectedItem.slot.slotIndex}">Р Р€Р В±РЎР‚Р В°РЎвЂљРЎРЉ Р Р† Р В·Р В°Р С—Р В°РЎРѓ</button></div></div>`;
 };
 const renderRosterUnitCards=(team,unitKey,selectedSlot=null)=>{
   const items=getRosterUnitSlotDescriptors(team,unitKey);
-  if(!items.length)return `<div class="line-empty">РЎРѕСЃС‚Р°РІ РїСѓСЃС‚</div>`;
-  const forwards=items.filter(item=>["Р›РќРџ","Р¦РўР ","РџРќРџ"].includes(item.slot.position));
-  const defenders=items.filter(item=>item.slot.position==="Р—РђР©");
+  if(!items.length)return `<div class="line-empty">Р РЋР С•РЎРѓРЎвЂљР В°Р Р† Р С—РЎС“РЎРѓРЎвЂљ</div>`;
+  const forwards=items.filter(item=>["Р вЂєР СњР Сџ","Р В¦Р СћР В ","Р СџР СњР Сџ"].includes(item.slot.position));
+  const defenders=items.filter(item=>item.slot.position==="Р вЂ”Р С’Р В©");
   const others=items.filter(item=>!forwards.includes(item)&&!defenders.includes(item));
   const ordered=[...forwards,...defenders,...others];
   const selectedItem=ordered.find(item=>item.slot.kind==="line"&&selectedSlot&&item.slot.lineIndex===selectedSlot.lineIndex&&item.slot.slotIndex===selectedSlot.slotIndex) || null;
@@ -165,10 +165,10 @@ const renderRosterUnitCards=(team,unitKey,selectedSlot=null)=>{
   return `<div class="line-card-layout"><div class="line-card-row line-card-row-top">${top}</div><div class="line-card-row line-card-row-bottom">${bottom}</div>${renderRosterActionBar(selectedItem,unitKey)}</div>`;
 };
 const renderReserveStrip=players=>{
-  if(!players?.length)return `<div class="team-reserve-empty">Р—Р°РїР°СЃРЅС‹С… РЅРµС‚</div>`;
+  if(!players?.length)return `<div class="team-reserve-empty">Р вЂ”Р В°Р С—Р В°РЎРѓР Р…РЎвЂ№РЎвЂ¦ Р Р…Р ВµРЎвЂљ</div>`;
   return `<div class="team-reserve-strip">${players.map((player,index)=>renderRosterSlotCard(player,{kind:"reserve",index},"hockey-card--reserve")).join("")}</div>`;
 };
-const renderTeamSidebar=(team,activeTab)=>`<aside class="team-sidebar"><img class="team-sidebar-logo" src="${team.logoUrl}" alt="${team.name}"/><div class="team-sidebar-nav"><button class="team-nav-link${activeTab==="roster"?" active":""}" data-tab="roster">РЎРѕСЃС‚Р°РІ</button><button class="team-nav-link${activeTab==="contracts"?" active":""}" data-tab="contracts">РљРѕРЅС‚СЂР°РєС‚С‹</button><button class="team-nav-link${activeTab==="freeAgents"?" active":""}" data-tab="freeAgents">РЎРІРѕР±РѕРґРЅС‹Рµ Р°РіРµРЅС‚С‹</button><button class="team-nav-link${activeTab==="trades"?" active":""}" data-tab="trades">РћР±РјРµРЅС‹</button></div></aside>`;
+const renderTeamSidebar=(team,activeTab)=>`<aside class="team-sidebar"><img class="team-sidebar-logo" src="${team.logoUrl}" alt="${team.name}"/><div class="team-sidebar-nav"><button class="team-nav-link${activeTab==="roster"?" active":""}" data-tab="roster">Р РЋР С•РЎРѓРЎвЂљР В°Р Р†</button><button class="team-nav-link${activeTab==="contracts"?" active":""}" data-tab="contracts">Р С™Р С•Р Р…РЎвЂљРЎР‚Р В°Р С”РЎвЂљРЎвЂ№</button><button class="team-nav-link${activeTab==="freeAgents"?" active":""}" data-tab="freeAgents">Р РЋР Р†Р С•Р В±Р С•Р Т‘Р Р…РЎвЂ№Р Вµ Р В°Р С–Р ВµР Р…РЎвЂљРЎвЂ№</button><button class="team-nav-link${activeTab==="trades"?" active":""}" data-tab="trades">Р С›Р В±Р СР ВµР Р…РЎвЂ№</button></div></aside>`;
 export class Renderer{
   #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();#freeAgentTab=new FreeAgentTabRenderer();#tradeTab=new TradeTabRenderer();
   constructor(){
@@ -181,9 +181,9 @@ export class Renderer{
   renderTeam(team,activeTab,activeRosterUnit="1",selectedRosterSlot=null){
     const rosterView=activeTab==="roster"
       ? `<div class="team-club-shell"><div class="team-roster-stage"><div class="line-view-panel">${renderRosterUnitButtons(activeRosterUnit)}${renderRosterUnitCards(team,activeRosterUnit,selectedRosterSlot)}</div></div><div class="team-reserve-wrap">${renderReserveStrip(team.reservePlayers||[])}</div></div>`
-      : `<div class="muted">РџРµСЂРµРєР»СЋС‡РёС‚РµСЃСЊ РЅР° РІРєР»Р°РґРєСѓ В«РЎРѕСЃС‚Р°РІВ»</div>`;
+      : `<div class="muted">Р СџР ВµРЎР‚Р ВµР С”Р В»РЎР‹РЎвЂЎР С‘РЎвЂљР ВµРЎРѓРЎРЉ Р Р…Р В° Р Р†Р С”Р В»Р В°Р Т‘Р С”РЎС“ Р’В«Р РЋР С•РЎРѓРЎвЂљР В°Р Р†Р’В»</div>`;
     const sidebar=renderTeamSidebar(team,activeTab);
-    this.#teamEl.innerHTML=`<div class="team-screen">${sidebar}<div class="team-screen-main"><div class="team-screen-header"><div><div class="team-screen-title">${team.name}</div><div class="team-screen-subtitle">${team.city}, ${team.shortName}</div></div><div class="team-screen-status"><span class="team-screen-status-pill">Club Hub</span><span class="team-screen-status-pill team-screen-status-pill-muted">${activeTab==="roster"?"РћСЃРЅРѕРІРЅРѕР№ СЃРѕСЃС‚Р°РІ":"РЈРїСЂР°РІР»РµРЅРёРµ РєР»СѓР±РѕРј"}</span></div></div>${rosterView}<div id="teamTabContent"></div></div></div>`;
+    this.#teamEl.innerHTML=`<div class="team-screen">${sidebar}<div class="team-screen-main"><div class="team-screen-header"><div><div class="team-screen-title">${team.name}</div><div class="team-screen-subtitle">${team.city}, ${team.shortName}</div></div><div class="team-screen-status"><span class="team-screen-status-pill">Club Hub</span><span class="team-screen-status-pill team-screen-status-pill-muted">${activeTab==="roster"?"Р С›РЎРѓР Р…Р С•Р Р†Р Р…Р С•Р в„– РЎРѓР С•РЎРѓРЎвЂљР В°Р Р†":"Р Р€Р С—РЎР‚Р В°Р Р†Р В»Р ВµР Р…Р С‘Р Вµ Р С”Р В»РЎС“Р В±Р С•Р С"}</span></div></div>${rosterView}<div id="teamTabContent"></div></div></div>`;
   }
   renderTeamSelection(teams,activeTeamId,selectedTeamId=null){
     const popularShortNames=new Set(["AVT","AKB","CSK","AVG"]);
@@ -201,24 +201,24 @@ export class Renderer{
     const renderSection=(title,cards)=>cards.length?`<section class="team-select-section"><h3>${title}</h3><div class="team-select-grid">${cards.map(renderCard).join("")}</div></section>`:"";
     const actionDock=selectedTeam?`<div class="team-select-dock">
       <div class="team-select-dock-meta">
-        <span class="team-select-dock-label">Р’С‹Р±СЂР°РЅ РєР»СѓР±</span>
+        <span class="team-select-dock-label">Р вЂ™РЎвЂ№Р В±РЎР‚Р В°Р Р… Р С”Р В»РЎС“Р В±</span>
         <strong>${selectedTeam.name}</strong>
       </div>
       <div class="team-select-dock-actions">
-        <button class="btn secondary team-select-dock-btn team-select-dock-btn-ghost" data-action="start-fantasy-draft">Р¤СЌРЅС‚РµР·Рё РґСЂР°С„С‚</button>
-        <button class="btn team-select-dock-btn" data-action="confirm-team">Р’С‹Р±СЂР°С‚СЊ ${selectedTeam.name}</button>
+        <button class="btn secondary team-select-dock-btn team-select-dock-btn-ghost" data-action="start-fantasy-draft">Р В¤РЎРЊР Р…РЎвЂљР ВµР В·Р С‘ Р Т‘РЎР‚Р В°РЎвЂћРЎвЂљ</button>
+        <button class="btn team-select-dock-btn" data-action="confirm-team">Р вЂ™РЎвЂ№Р В±РЎР‚Р В°РЎвЂљРЎРЉ ${selectedTeam.name}</button>
       </div>
-    </div>`:`<div class="team-select-dock team-select-dock-empty"><div class="team-select-dock-meta"><span class="team-select-dock-label">РќРѕРІР°СЏ РёРіСЂР°</span><strong>Р’С‹Р±РµСЂРёС‚Рµ РєР»СѓР±, С‡С‚РѕР±С‹ РїСЂРѕРґРѕР»Р¶РёС‚СЊ</strong></div></div>`;
+    </div>`:`<div class="team-select-dock team-select-dock-empty"><div class="team-select-dock-meta"><span class="team-select-dock-label">Р СњР С•Р Р†Р В°РЎРЏ Р С‘Р С–РЎР‚Р В°</span><strong>Р вЂ™РЎвЂ№Р В±Р ВµРЎР‚Р С‘РЎвЂљР Вµ Р С”Р В»РЎС“Р В±, РЎвЂЎРЎвЂљР С•Р В±РЎвЂ№ Р С—РЎР‚Р С•Р Т‘Р С•Р В»Р В¶Р С‘РЎвЂљРЎРЉ</strong></div></div>`;
     this.#teamEl.innerHTML=`<section class="team-select-screen">
       <div class="team-select-hero">
-        <span class="team-select-badge">РќРѕРІС‹Р№ СЃРµР·РѕРЅ</span>
+        <span class="team-select-badge">Р СњР С•Р Р†РЎвЂ№Р в„– РЎРѓР ВµР В·Р С•Р Р…</span>
         <div class="team-select-mark">WNTR</div>
-        <h2>Р’С‹Р±РµСЂРёС‚Рµ СЃРІРѕР№ РєР»СѓР±</h2>
-        <p>РќР°С‡РЅРёС‚Рµ РѕР±С‹С‡РЅСѓСЋ РєР°СЂСЊРµСЂСѓ РёР»Рё СЃСЂР°Р·Сѓ РїРµСЂРµР№РґРёС‚Рµ РІ СЂРµР¶РёРј С„СЌРЅС‚РµР·Рё-РґСЂР°С„С‚Р°. Р’С‹Р±СЂР°РЅРЅР°СЏ РєРѕРјР°РЅРґР° Р±СѓРґРµС‚ СЃС‚Р°СЂС‚РѕРІРѕР№ С‚РѕС‡РєРѕР№ РЅРѕРІРѕРіРѕ СЃРѕС…СЂР°РЅРµРЅРёСЏ.</p>
+        <h2>Р вЂ™РЎвЂ№Р В±Р ВµРЎР‚Р С‘РЎвЂљР Вµ РЎРѓР Р†Р С•Р в„– Р С”Р В»РЎС“Р В±</h2>
+        <p>Р СњР В°РЎвЂЎР Р…Р С‘РЎвЂљР Вµ Р С•Р В±РЎвЂ№РЎвЂЎР Р…РЎС“РЎР‹ Р С”Р В°РЎР‚РЎРЉР ВµРЎР‚РЎС“ Р С‘Р В»Р С‘ РЎРѓРЎР‚Р В°Р В·РЎС“ Р С—Р ВµРЎР‚Р ВµР в„–Р Т‘Р С‘РЎвЂљР Вµ Р Р† РЎР‚Р ВµР В¶Р С‘Р С РЎвЂћРЎРЊР Р…РЎвЂљР ВµР В·Р С‘-Р Т‘РЎР‚Р В°РЎвЂћРЎвЂљР В°. Р вЂ™РЎвЂ№Р В±РЎР‚Р В°Р Р…Р Р…Р В°РЎРЏ Р С”Р С•Р СР В°Р Р…Р Т‘Р В° Р В±РЎС“Р Т‘Р ВµРЎвЂљ РЎРѓРЎвЂљР В°РЎР‚РЎвЂљР С•Р Р†Р С•Р в„– РЎвЂљР С•РЎвЂЎР С”Р С•Р в„– Р Р…Р С•Р Р†Р С•Р С–Р С• РЎРѓР С•РЎвЂ¦РЎР‚Р В°Р Р…Р ВµР Р…Р С‘РЎРЏ.</p>
       </div>
       <div class="team-select-content">
-        ${renderSection("РџРѕРїСѓР»СЏСЂРЅС‹Рµ РєР»СѓР±С‹",popularTeams)}
-        ${renderSection("Р’СЃРµ РєР»СѓР±С‹",otherTeams)}
+        ${renderSection("Р СџР С•Р С—РЎС“Р В»РЎРЏРЎР‚Р Р…РЎвЂ№Р Вµ Р С”Р В»РЎС“Р В±РЎвЂ№",popularTeams)}
+        ${renderSection("Р вЂ™РЎРѓР Вµ Р С”Р В»РЎС“Р В±РЎвЂ№",otherTeams)}
       </div>
       ${actionDock}
     </section>`;
@@ -228,7 +228,7 @@ export class Renderer{
     if(container)container.innerHTML="";
     else{
       const cards=team.getRoster().map(player=>renderRosterCard(player)).join("");
-      this.#matchEl.innerHTML=`<h2>РЎРѕСЃС‚Р°РІ</h2><div class="roster-grid roster-grid-cards">${cards}</div>`;
+      this.#matchEl.innerHTML=`<h2>Р РЋР С•РЎРѓРЎвЂљР В°Р Р†</h2><div class="roster-grid roster-grid-cards">${cards}</div>`;
     }
   }
   renderContracts(rows,negotiation){
@@ -251,14 +251,14 @@ export class Renderer{
   }
   renderFantasyDraftIntro(team){
     const infoPills=[
-      {label:"Р РµР¶РёРј",value:"20 СЂР°СѓРЅРґРѕРІ"},
-      {label:"РџРѕСЂСЏРґРѕРє",value:"Snake draft"},
-      {label:"РџРѕСЃР»Рµ",value:"РџРµСЂРµС…РѕРґ Рє СЃРѕСЃС‚Р°РІСѓ"}
+      {label:"Р В Р ВµР В¶Р С‘Р С",value:"20 РЎР‚Р В°РЎС“Р Р…Р Т‘Р С•Р Р†"},
+      {label:"Р СџР С•РЎР‚РЎРЏР Т‘Р С•Р С”",value:"Snake draft"},
+      {label:"Р СџР С•РЎРѓР В»Р Вµ",value:"Р СџР ВµРЎР‚Р ВµРЎвЂ¦Р С•Р Т‘ Р С” РЎРѓР С•РЎРѓРЎвЂљР В°Р Р†РЎС“"}
     ];
     const featureTags=[
-      {left:"РћР‘Р©РР™ РџРЈР›",center:"Р’СЃРµ РёРіСЂРѕРєРё РљРҐР›",right:"OVR"},
-      {left:"РЎРћР РўРР РћР’РљРђ",center:"Р РµР№С‚РёРЅРі / РїРѕР·РёС†РёСЏ / РІРѕР·СЂР°СЃС‚",right:"LIVE"},
-      {left:"РР Р”Р РђР¤Рў",center:"Р­Р»РёС‚Р° в†’ Р±Р°Р»Р°РЅСЃ в†’ РіР»СѓР±РёРЅР°",right:"SMART"}
+      {left:"Р С›Р вЂР В©Р ВР в„ў Р СџР Р€Р вЂє",center:"Р вЂ™РЎРѓР Вµ Р С‘Р С–РЎР‚Р С•Р С”Р С‘ Р С™Р ТђР вЂє",right:"OVR"},
+      {left:"Р РЋР С›Р В Р СћР ВР В Р С›Р вЂ™Р С™Р С’",center:"Р В Р ВµР в„–РЎвЂљР С‘Р Р…Р С– / Р С—Р С•Р В·Р С‘РЎвЂ Р С‘РЎРЏ / Р Р†Р С•Р В·РЎР‚Р В°РЎРѓРЎвЂљ",right:"LIVE"},
+      {left:"Р ВР В Р вЂќР В Р С’Р В¤Р Сћ",center:"Р В­Р В»Р С‘РЎвЂљР В° РІвЂ вЂ™ Р В±Р В°Р В»Р В°Р Р…РЎРѓ РІвЂ вЂ™ Р С–Р В»РЎС“Р В±Р С‘Р Р…Р В°",right:"SMART"}
     ];
     const pills=infoPills.map(item=>`<div class="draft-intro-pill"><span>${item.label}</span><strong>${item.value}</strong></div>`).join("");
     const tags=featureTags.map(item=>`<div class="draft-intro-tag-row"><span class="draft-intro-tag draft-intro-tag-dark">${item.left}</span><span class="draft-intro-tag draft-intro-tag-light">${item.center}</span><span class="draft-intro-tag draft-intro-tag-accent">${item.right}</span></div>`).join("");
@@ -268,7 +268,7 @@ export class Renderer{
         <div class="draft-intro-hero">
           <div class="draft-intro-kicker">Fantasy Draft</div>
           <h1>Draft your team</h1>
-          <p class="draft-intro-lead">Р’С‹ РІС‹Р±СЂР°Р»Рё <strong>${team.name}</strong>. РЎРµР№С‡Р°СЃ РІСЃСЏ Р»РёРіР° РїРѕРїР°РґРµС‚ РІ РµРґРёРЅС‹Р№ РїСѓР», Р° РєРѕРјР°РЅРґС‹ РЅР°С‡РЅСѓС‚ РїРѕ РѕС‡РµСЂРµРґРё СЂР°Р·Р±РёСЂР°С‚СЊ РёРіСЂРѕРєРѕРІ. Р’Р°С€Р° Р·Р°РґР°С‡Р° - СЃРѕР±СЂР°С‚СЊ СЃРёР»СЊРЅС‹Р№, СЃР±Р°Р»Р°РЅСЃРёСЂРѕРІР°РЅРЅС‹Р№ СЃРѕСЃС‚Р°РІ Р·Р° 20 РїРёРєРѕРІ.</p>
+          <p class="draft-intro-lead">Р вЂ™РЎвЂ№ Р Р†РЎвЂ№Р В±РЎР‚Р В°Р В»Р С‘ <strong>${team.name}</strong>. Р РЋР ВµР в„–РЎвЂЎР В°РЎРѓ Р Р†РЎРѓРЎРЏ Р В»Р С‘Р С–Р В° Р С—Р С•Р С—Р В°Р Т‘Р ВµРЎвЂљ Р Р† Р ВµР Т‘Р С‘Р Р…РЎвЂ№Р в„– Р С—РЎС“Р В», Р В° Р С”Р С•Р СР В°Р Р…Р Т‘РЎвЂ№ Р Р…Р В°РЎвЂЎР Р…РЎС“РЎвЂљ Р С—Р С• Р С•РЎвЂЎР ВµРЎР‚Р ВµР Т‘Р С‘ РЎР‚Р В°Р В·Р В±Р С‘РЎР‚Р В°РЎвЂљРЎРЉ Р С‘Р С–РЎР‚Р С•Р С”Р С•Р Р†. Р вЂ™Р В°РЎв‚¬Р В° Р В·Р В°Р Т‘Р В°РЎвЂЎР В° - РЎРѓР С•Р В±РЎР‚Р В°РЎвЂљРЎРЉ РЎРѓР С‘Р В»РЎРЉР Р…РЎвЂ№Р в„–, РЎРѓР В±Р В°Р В»Р В°Р Р…РЎРѓР С‘РЎР‚Р С•Р Р†Р В°Р Р…Р Р…РЎвЂ№Р в„– РЎРѓР С•РЎРѓРЎвЂљР В°Р Р† Р В·Р В° 20 Р С—Р С‘Р С”Р С•Р Р†.</p>
           <div class="draft-intro-pills">${pills}</div>
         </div>
         <div class="draft-intro-showcase">
@@ -281,18 +281,18 @@ export class Renderer{
               ${renderRosterCard((team.getRoster?.()||[])[0]||{
                 name:team.name,
                 ovr:82,
-                identity:{lastName:team.shortName,displayName:team.name,birthDate:"1997-01-01",nationality:team.country,primaryPosition:"Р¦РўР ",photoUrl:"./player-photo/placeholder.png"}
+                identity:{lastName:team.shortName,displayName:team.name,birthDate:"1997-01-01",nationality:team.country,primaryPosition:"Р В¦Р СћР В ",photoUrl:"./player-photo/placeholder.png"}
               },"draft-intro-card")}
             </div>
             <div class="draft-intro-card-caption">
               <strong>${team.name}</strong>
-              <span>${team.city} вЂў СЃС‚Р°СЂС‚ СЃ РїСѓСЃС‚РѕРіРѕ СЂРѕСЃС‚РµСЂР°</span>
+              <span>${team.city} РІР‚Сћ РЎРѓРЎвЂљР В°РЎР‚РЎвЂљ РЎРѓ Р С—РЎС“РЎРѓРЎвЂљР С•Р С–Р С• РЎР‚Р С•РЎРѓРЎвЂљР ВµРЎР‚Р В°</span>
             </div>
           </div>
           <div class="draft-intro-feature-stack">${tags}</div>
           <div class="draft-intro-actions">
             <button class="btn draft-intro-primary" data-action="draft-intro-start">Draft your team</button>
-            <button class="btn secondary draft-intro-secondary" data-action="draft-intro-back">РќР°Р·Р°Рґ</button>
+            <button class="btn secondary draft-intro-secondary" data-action="draft-intro-back">Р СњР В°Р В·Р В°Р Т‘</button>
           </div>
         </div>
       </div>
@@ -304,7 +304,7 @@ export class Renderer{
     const selectedPlayer=draft.availablePlayers.find(player=>player.id===draft.selectedPlayerId)||null;
     const previewPlayer=selectedPlayer||draft.availablePlayers[0]||null;
     const totalProgress=draft.totalPicks>0?Math.min(100,Math.round((Math.max(0,draft.pickNumber-1)/draft.totalPicks)*100)):0;
-    const draftHeader=`<div class="draft-header-shell"><div class="draft-header-main"><img class="logo" src="${team.logoUrl}" alt="${team.name}"/><div><div class="draft-header-title">Р¤СЌРЅС‚РµР·Рё РґСЂР°С„С‚ вЂў ${team.name}</div><div class="muted">Р Р°СѓРЅРґ ${draft.currentRound}/20 вЂў РџРёРє ${draft.currentPickInRound}/${draft.teams.length} вЂў РћР±С‰РёР№ #${draft.pickNumber}/${draft.totalPicks}</div></div></div><div class="draft-header-side"><div class="muted">РўРµРєСѓС‰РёР№ РїРёРє</div><div class="draft-current-team">${draft.currentTeamName||"вЂ”"}</div><div class="draft-progress"><span style="width:${totalProgress}%"></span></div></div></div>`;
+    const draftHeader=`<div class="draft-header-shell"><div class="draft-header-main"><img class="logo" src="${team.logoUrl}" alt="${team.name}"/><div><div class="draft-header-title">Р В¤РЎРЊР Р…РЎвЂљР ВµР В·Р С‘ Р Т‘РЎР‚Р В°РЎвЂћРЎвЂљ РІР‚Сћ ${team.name}</div><div class="muted">Р В Р В°РЎС“Р Р…Р Т‘ ${draft.currentRound}/20 РІР‚Сћ Р СџР С‘Р С” ${draft.currentPickInRound}/${draft.teams.length} РІР‚Сћ Р С›Р В±РЎвЂ°Р С‘Р в„– #${draft.pickNumber}/${draft.totalPicks}</div></div></div><div class="draft-header-side"><div class="muted">Р СћР ВµР С”РЎС“РЎвЂ°Р С‘Р в„– Р С—Р С‘Р С”</div><div class="draft-current-team">${draft.currentTeamName||"РІР‚вЂќ"}</div><div class="draft-progress"><span style="width:${totalProgress}%"></span></div></div></div>`;
     const teamRows=draft.teams.map(item=>{
       const isCurrent=item.id===draft.currentTeamId;
       const isUser=item.id===team.id;
@@ -313,71 +313,71 @@ export class Renderer{
     const orderPreview=draft.upcomingOrder.map(item=>{
       const pickTeam=draft.teams.find(teamItem=>teamItem.id===item.teamId);
       const isCurrent=item.round===draft.currentRound && item.pick===draft.currentPickInRound;
-      return `<div class="draft-order-chip${isCurrent?" active":""}"><div class="draft-order-chip-meta">R${item.round} вЂў #${item.pick}</div><div class="draft-order-chip-name">${pickTeam?.name||item.teamId}</div></div>`;
+      return `<div class="draft-order-chip${isCurrent?" active":""}"><div class="draft-order-chip-meta">R${item.round} РІР‚Сћ #${item.pick}</div><div class="draft-order-chip-name">${pickTeam?.name||item.teamId}</div></div>`;
     }).join("");
     const userRoster=draft.userRosterByPosition||{CTR:[],LW:[],RW:[],DEF:[],G:[]};
     const rosterPanel=[
-      renderDraftPositionBlock("Р¦РўР ",userRoster.CTR||[]),
-      renderDraftPositionBlock("Р›РќРџ",userRoster.LW||[]),
-      renderDraftPositionBlock("РџРќРџ",userRoster.RW||[]),
-      renderDraftPositionBlock("Р—РђР©",userRoster.DEF||[]),
-      renderDraftPositionBlock("Р’Р Рў",userRoster.G||[])
+      renderDraftPositionBlock("Р В¦Р СћР В ",userRoster.CTR||[]),
+      renderDraftPositionBlock("Р вЂєР СњР Сџ",userRoster.LW||[]),
+      renderDraftPositionBlock("Р СџР СњР Сџ",userRoster.RW||[]),
+      renderDraftPositionBlock("Р вЂ”Р С’Р В©",userRoster.DEF||[]),
+      renderDraftPositionBlock("Р вЂ™Р В Р Сћ",userRoster.G||[])
     ].join("");
-    const status=draft.isComplete?"Р”СЂР°С„С‚ Р·Р°РІРµСЂС€РµРЅ":(draft.isUserTurn?`Р’Р°С€ РїРёРє: ${draft.currentTeamName}`:`РџРёРєР°РµС‚: ${draft.currentTeamName}`);
-    const confirmText=selectedPlayer?`Р—Р°РґСЂР°С„С‚РѕРІР°С‚СЊ: ${selectedPlayer.name}`:"Р’С‹Р±РµСЂРёС‚Рµ РёРіСЂРѕРєР°";
+    const status=draft.isComplete?"Р вЂќРЎР‚Р В°РЎвЂћРЎвЂљ Р В·Р В°Р Р†Р ВµРЎР‚РЎв‚¬Р ВµР Р…":(draft.isUserTurn?`Р вЂ™Р В°РЎв‚¬ Р С—Р С‘Р С”: ${draft.currentTeamName}`:`Р СџР С‘Р С”Р В°Р ВµРЎвЂљ: ${draft.currentTeamName}`);
+    const confirmText=selectedPlayer?`Р вЂ”Р В°Р Т‘РЎР‚Р В°РЎвЂћРЎвЂљР С•Р Р†Р В°РЎвЂљРЎРЉ: ${selectedPlayer.name}`:"Р вЂ™РЎвЂ№Р В±Р ВµРЎР‚Р С‘РЎвЂљР Вµ Р С‘Р С–РЎР‚Р С•Р С”Р В°";
     const confirmDisabled=(!draft.isUserTurn||draft.isComplete||!selectedPlayer)?"disabled":"";
     const sortControls=`<div class="draft-toolbar-group">${[
       {id:"ovr",label:"OVR"},
-      {id:"position",label:"РџРѕР·РёС†РёСЏ"},
-      {id:"age",label:"Р’РѕР·СЂР°СЃС‚"}
+      {id:"position",label:"Р СџР С•Р В·Р С‘РЎвЂ Р С‘РЎРЏ"},
+      {id:"age",label:"Р вЂ™Р С•Р В·РЎР‚Р В°РЎРѓРЎвЂљ"}
     ].map(item=>`<button class="chip-btn${draft.sortBy===item.id?" active":""}" data-action="draft-sort" data-sort="${item.id}">${item.label}</button>`).join("")}</div>`;
     const filterControls=`<div class="draft-toolbar-group">${[
-      {id:"ALL",label:"Р’СЃРµ"},
-      {id:"Р¦РўР ",label:"Р¦РўР "},
-      {id:"Р›РќРџ",label:"Р›РќРџ"},
-      {id:"РџРќРџ",label:"РџРќРџ"},
-      {id:"Р—РђР©",label:"Р—РђР©"},
-      {id:"Р’Р Рў",label:"Р’Р Рў"}
+      {id:"ALL",label:"Р вЂ™РЎРѓР Вµ"},
+      {id:"Р В¦Р СћР В ",label:"Р В¦Р СћР В "},
+      {id:"Р вЂєР СњР Сџ",label:"Р вЂєР СњР Сџ"},
+      {id:"Р СџР СњР Сџ",label:"Р СџР СњР Сџ"},
+      {id:"Р вЂ”Р С’Р В©",label:"Р вЂ”Р С’Р В©"},
+      {id:"Р вЂ™Р В Р Сћ",label:"Р вЂ™Р В Р Сћ"}
     ].map(item=>`<button class="chip-btn${draft.filterPosition===item.id?" active":""}" data-action="draft-filter" data-position="${item.id}">${item.label}</button>`).join("")}</div>`;
-    const actionBar=`<div class="draft-action"><div class="draft-action-text"><div class="muted">РЎС‚Р°С‚СѓСЃ</div><div>${status}</div><div class="muted">Р’С‹Р±СЂР°РЅРѕ: ${selectedPlayer?`${selectedPlayer.name} вЂў ${selectedPlayer.identity.primaryPosition} вЂў OVR ${selectedPlayer.ovr}`:"вЂ”"}</div></div><div class="draft-action-buttons"><button class="btn secondary" data-action="draft-cancel">РћС‚РјРµРЅР°</button><button class="btn" ${confirmDisabled} data-action="draft-confirm-pick">${confirmText}</button></div></div>`;
+    const actionBar=`<div class="draft-action"><div class="draft-action-text"><div class="muted">Р РЋРЎвЂљР В°РЎвЂљРЎС“РЎРѓ</div><div>${status}</div><div class="muted">Р вЂ™РЎвЂ№Р В±РЎР‚Р В°Р Р…Р С•: ${selectedPlayer?`${selectedPlayer.name} РІР‚Сћ ${selectedPlayer.identity.primaryPosition} РІР‚Сћ OVR ${selectedPlayer.ovr}`:"РІР‚вЂќ"}</div></div><div class="draft-action-buttons"><button class="btn secondary" data-action="draft-cancel">Р С›РЎвЂљР СР ВµР Р…Р В°</button><button class="btn" ${confirmDisabled} data-action="draft-confirm-pick">${confirmText}</button></div></div>`;
     const cards=draft.availablePlayers.map(player=>{
       const age=calculateAge(player.identity.birthDate);
       const selectedClass=player.id===draft.selectedPlayerId?" selected":"";
       const nation=getNationBadge(player.identity.nationality);
-      return `<button class="draft-list-row${selectedClass}" data-action="draft-select" data-player-id="${player.id}"><div class="draft-list-row-pos">${player.identity.primaryPosition||"вЂ”"}</div><img class="player-photo" src="${player.identity.photoUrl||"./player-photo/placeholder.png"}" alt="${player.name}"/><div class="draft-list-row-main"><div class="draft-list-row-name">${player.name}</div><div class="draft-list-row-meta">${nation}</div></div><div class="draft-list-row-stat"><span class="draft-list-row-stat-label">OVR</span><strong>${player.ovr}</strong></div><div class="draft-list-row-stat"><span class="draft-list-row-stat-label">Р’РѕР·СЂР°СЃС‚</span><strong>${age}</strong></div></button>`;
+      return `<button class="draft-list-row${selectedClass}" data-action="draft-select" data-player-id="${player.id}"><div class="draft-list-row-pos">${player.identity.primaryPosition||"РІР‚вЂќ"}</div><img class="player-photo" src="${player.identity.photoUrl||"./player-photo/placeholder.png"}" alt="${player.name}"/><div class="draft-list-row-main"><div class="draft-list-row-name">${player.name}</div><div class="draft-list-row-meta">${nation}</div></div><div class="draft-list-row-stat"><span class="draft-list-row-stat-label">OVR</span><strong>${player.ovr}</strong></div><div class="draft-list-row-stat"><span class="draft-list-row-stat-label">Р вЂ™Р С•Р В·РЎР‚Р В°РЎРѓРЎвЂљ</span><strong>${age}</strong></div></button>`;
     }).join("");
-    const recentPicks=(draft.pickLog||[]).slice(-5).reverse().map(item=>`<div class="draft-recent-row"><span>#${item.pickNumber}</span><span>${item.teamName}</span><span>${item.playerName}</span></div>`).join("")||`<div class="muted">РџРёРєРѕРІ РїРѕРєР° РЅРµС‚</div>`;
+    const recentPicks=(draft.pickLog||[]).slice(-5).reverse().map(item=>`<div class="draft-recent-row"><span>#${item.pickNumber}</span><span>${item.teamName}</span><span>${item.playerName}</span></div>`).join("")||`<div class="muted">Р СџР С‘Р С”Р С•Р Р† Р С—Р С•Р С”Р В° Р Р…Р ВµРЎвЂљ</div>`;
     const attrs=previewPlayer?.attributes?.attributesJson||{};
     const attrRows=Object.entries(attrs).filter(([,value])=>typeof value==="number").slice(0,5).map(([key,value])=>{
-      const labels={shot:"Р‘СЂРѕСЃРѕРє",speed:"РЎРєРѕСЂРѕСЃС‚СЊ",physical:"РЎРёР»РѕРІР°СЏ",defense:"РћР±РѕСЂРѕРЅР°",skill:"РўРµС…РЅРёРєР°",reflexes:"Р РµС„Р»РµРєСЃС‹",positioning:"РџРѕР·РёС†РёСЏ",glove:"Р›РѕРІСѓС€РєР°",blocker:"Р‘Р»РёРЅ",reboundControl:"РџРѕРґР±РѕСЂ"};
+      const labels={shot:"Р вЂРЎР‚Р С•РЎРѓР С•Р С”",speed:"Р РЋР С”Р С•РЎР‚Р С•РЎРѓРЎвЂљРЎРЉ",physical:"Р РЋР С‘Р В»Р С•Р Р†Р В°РЎРЏ",defense:"Р С›Р В±Р С•РЎР‚Р С•Р Р…Р В°",skill:"Р СћР ВµРЎвЂ¦Р Р…Р С‘Р С”Р В°",reflexes:"Р В Р ВµРЎвЂћР В»Р ВµР С”РЎРѓРЎвЂ№",positioning:"Р СџР С•Р В·Р С‘РЎвЂ Р С‘РЎРЏ",glove:"Р вЂєР С•Р Р†РЎС“РЎв‚¬Р С”Р В°",blocker:"Р вЂР В»Р С‘Р Р…",reboundControl:"Р СџР С•Р Т‘Р В±Р С•РЎР‚"};
       const pct=Math.max(0,Math.min(100,Number(value)||0));
       return `<div class="draft-attr-row"><span>${labels[key]||key}</span><div class="draft-attr-bar"><span style="width:${pct}%"></span></div><strong>${value}</strong></div>`;
     }).join("");
     const previewAge=previewPlayer?calculateAge(previewPlayer.identity.birthDate):null;
-    const previewCard=previewPlayer?`<div class="draft-preview-head"><img class="draft-preview-photo" src="${previewPlayer.identity.photoUrl||"./player-photo/placeholder.png"}" alt="${previewPlayer.name}"/><div class="draft-preview-title"><div class="draft-preview-ovr">${previewPlayer.ovr}</div><div class="draft-preview-name">${previewPlayer.name}</div><div class="draft-preview-meta">${previewPlayer.identity.primaryPosition} вЂў ${previewAge} Р»РµС‚ вЂў ${getNationBadge(previewPlayer.identity.nationality)}</div></div></div><div class="draft-preview-attrs">${attrRows||'<div class="muted">РђС‚СЂРёР±СѓС‚С‹ РЅРµРґРѕСЃС‚СѓРїРЅС‹</div>'}</div>`:`<div class="muted">РРіСЂРѕРє РЅРµ РІС‹Р±СЂР°РЅ</div>`;
-    this.#teamEl.innerHTML=`<div class="draft-screen"><div class="draft-top">${draftHeader}<div class="draft-order-strip">${orderPreview}</div></div><div class="draft-layout"><section class="draft-left"><div class="draft-card"><div class="draft-card-head"><h2>Р”РѕСЃС‚СѓРїРЅС‹Рµ РёРіСЂРѕРєРё</h2><div class="muted">${draft.availablePlayers.length} РІ РїСѓР»Рµ</div></div><div class="draft-toolbar"><div><div class="muted">РЎРѕСЂС‚РёСЂРѕРІРєР°</div>${sortControls}</div><div><div class="muted">Р¤РёР»СЊС‚СЂ РїРѕ РїРѕР·РёС†РёРё</div>${filterControls}</div></div>${actionBar}<div class="draft-list">${cards||"<div class=\"muted\">РќРµС‚ РёРіСЂРѕРєРѕРІ</div>"}</div></div></section><aside class="draft-right"><div class="draft-card"><div class="draft-card-head"><h2>РџСЂРѕСЃРјРѕС‚СЂ РёРіСЂРѕРєР°</h2><div class="muted">MVP РїРѕР»СЏ: РёРјСЏ вЂў РїРѕР·РёС†РёСЏ вЂў OVR вЂў РІРѕР·СЂР°СЃС‚ вЂў РЅР°С†РёСЏ</div></div>${previewCard}</div><div class="draft-card"><div class="draft-card-head"><h2>Р’Р°С€ РґСЂР°С„С‚-Р±РѕСЂРґ</h2><div class="muted">${team.name}</div></div>${renderDraftNeedsGrid(userRoster)}<div class="draft-panel">${rosterPanel}</div></div><div class="draft-card"><div class="draft-card-head"><h2>РљРѕРјР°РЅРґС‹</h2><div class="muted">20 СЂР°СѓРЅРґРѕРІ вЂў Р·РјРµР№РєР°</div></div><div class="draft-team-list">${teamRows}</div></div><div class="draft-card"><div class="draft-card-head"><h2>РџРѕСЃР»РµРґРЅРёРµ РїРёРєРё</h2><div class="muted">Live log</div></div><div class="draft-recent-list">${recentPicks}</div></div></aside></div></div>`;
+    const previewCard=previewPlayer?`<div class="draft-preview-head"><img class="draft-preview-photo" src="${previewPlayer.identity.photoUrl||"./player-photo/placeholder.png"}" alt="${previewPlayer.name}"/><div class="draft-preview-title"><div class="draft-preview-ovr">${previewPlayer.ovr}</div><div class="draft-preview-name">${previewPlayer.name}</div><div class="draft-preview-meta">${previewPlayer.identity.primaryPosition} РІР‚Сћ ${previewAge} Р В»Р ВµРЎвЂљ РІР‚Сћ ${getNationBadge(previewPlayer.identity.nationality)}</div></div></div><div class="draft-preview-attrs">${attrRows||'<div class="muted">Р С’РЎвЂљРЎР‚Р С‘Р В±РЎС“РЎвЂљРЎвЂ№ Р Р…Р ВµР Т‘Р С•РЎРѓРЎвЂљРЎС“Р С—Р Р…РЎвЂ№</div>'}</div>`:`<div class="muted">Р ВР С–РЎР‚Р С•Р С” Р Р…Р Вµ Р Р†РЎвЂ№Р В±РЎР‚Р В°Р Р…</div>`;
+    this.#teamEl.innerHTML=`<div class="draft-screen"><div class="draft-top">${draftHeader}<div class="draft-order-strip">${orderPreview}</div></div><div class="draft-layout"><section class="draft-left"><div class="draft-card"><div class="draft-card-head"><h2>Р вЂќР С•РЎРѓРЎвЂљРЎС“Р С—Р Р…РЎвЂ№Р Вµ Р С‘Р С–РЎР‚Р С•Р С”Р С‘</h2><div class="muted">${draft.availablePlayers.length} Р Р† Р С—РЎС“Р В»Р Вµ</div></div><div class="draft-toolbar"><div><div class="muted">Р РЋР С•РЎР‚РЎвЂљР С‘РЎР‚Р С•Р Р†Р С”Р В°</div>${sortControls}</div><div><div class="muted">Р В¤Р С‘Р В»РЎРЉРЎвЂљРЎР‚ Р С—Р С• Р С—Р С•Р В·Р С‘РЎвЂ Р С‘Р С‘</div>${filterControls}</div></div>${actionBar}<div class="draft-list">${cards||"<div class=\"muted\">Р СњР ВµРЎвЂљ Р С‘Р С–РЎР‚Р С•Р С”Р С•Р Р†</div>"}</div></div></section><aside class="draft-right"><div class="draft-card"><div class="draft-card-head"><h2>Р СџРЎР‚Р С•РЎРѓР СР С•РЎвЂљРЎР‚ Р С‘Р С–РЎР‚Р С•Р С”Р В°</h2><div class="muted">MVP Р С—Р С•Р В»РЎРЏ: Р С‘Р СРЎРЏ РІР‚Сћ Р С—Р С•Р В·Р С‘РЎвЂ Р С‘РЎРЏ РІР‚Сћ OVR РІР‚Сћ Р Р†Р С•Р В·РЎР‚Р В°РЎРѓРЎвЂљ РІР‚Сћ Р Р…Р В°РЎвЂ Р С‘РЎРЏ</div></div>${previewCard}</div><div class="draft-card"><div class="draft-card-head"><h2>Р вЂ™Р В°РЎв‚¬ Р Т‘РЎР‚Р В°РЎвЂћРЎвЂљ-Р В±Р С•РЎР‚Р Т‘</h2><div class="muted">${team.name}</div></div>${renderDraftNeedsGrid(userRoster)}<div class="draft-panel">${rosterPanel}</div></div><div class="draft-card"><div class="draft-card-head"><h2>Р С™Р С•Р СР В°Р Р…Р Т‘РЎвЂ№</h2><div class="muted">20 РЎР‚Р В°РЎС“Р Р…Р Т‘Р С•Р Р† РІР‚Сћ Р В·Р СР ВµР в„–Р С”Р В°</div></div><div class="draft-team-list">${teamRows}</div></div><div class="draft-card"><div class="draft-card-head"><h2>Р СџР С•РЎРѓР В»Р ВµР Т‘Р Р…Р С‘Р Вµ Р С—Р С‘Р С”Р С‘</h2><div class="muted">Live log</div></div><div class="draft-recent-list">${recentPicks}</div></div></aside></div></div>`;
     this.#matchEl.innerHTML="";
   }
   renderCalendar(day,info,isLocked,panelData={}){
-    const text=isLocked?"РЎРЅР°С‡Р°Р»Р° РІС‹Р±РµСЂРёС‚Рµ РєРѕРјР°РЅРґСѓ":(info?.match?`${info.match.home.name} вЂ” ${info.match.away.name}`:"Р”РµРЅСЊ РѕС‚РґС‹С…Р°");
+    const text=isLocked?"Р РЋР Р…Р В°РЎвЂЎР В°Р В»Р В° Р Р†РЎвЂ№Р В±Р ВµРЎР‚Р С‘РЎвЂљР Вµ Р С”Р С•Р СР В°Р Р…Р Т‘РЎС“":(info?.match?`${info.match.home.name} РІР‚вЂќ ${info.match.away.name}`:"Р вЂќР ВµР Р…РЎРЉ Р С•РЎвЂљР Т‘РЎвЂ№РЎвЂ¦Р В°");
     const activeTab=panelData?.tab||"standings";
-    const standings=(panelData?.standings||[]).map((row,index)=>`<div class="calendar-table-row"><span>${index+1}</span><span>${row.shortName||row.name}</span><span>${row.gp||0}</span><span>${row.w||0}</span><span>${row.otl||0}</span><span>${row.l||0}</span><span>${row.pts||0}</span></div>`).join("")||`<div class="muted">РќРµС‚ РґР°РЅРЅС‹С…</div>`;
-    const scorers=(panelData?.scorers||[]).map((row,index)=>`<div class="calendar-scorer-row"><span>${index+1}</span><span>${row.name}</span><span>${row.team||"вЂ”"}</span><span>${row.points||((row.goals||0)+(row.assists||0))}</span><span>${row.goals||0}</span><span>${row.assists||0}</span></div>`).join("")||`<div class="muted">РќРµС‚ РґР°РЅРЅС‹С…</div>`;
+    const standings=(panelData?.standings||[]).map((row,index)=>`<div class="calendar-table-row"><span>${index+1}</span><span>${row.shortName||row.name}</span><span>${row.gp||0}</span><span>${row.w||0}</span><span>${row.otl||0}</span><span>${row.l||0}</span><span>${row.pts||0}</span></div>`).join("")||`<div class="muted">Р СњР ВµРЎвЂљ Р Т‘Р В°Р Р…Р Р…РЎвЂ№РЎвЂ¦</div>`;
+    const scorers=(panelData?.scorers||[]).map((row,index)=>`<div class="calendar-scorer-row"><span>${index+1}</span><span>${row.name}</span><span>${row.team||"РІР‚вЂќ"}</span><span>${row.points||((row.goals||0)+(row.assists||0))}</span><span>${row.goals||0}</span><span>${row.assists||0}</span></div>`).join("")||`<div class="muted">Р СњР ВµРЎвЂљ Р Т‘Р В°Р Р…Р Р…РЎвЂ№РЎвЂ¦</div>`;
     const scheduleRows=(panelData?.schedule||[]).map(row=>{
-      if(row.isRestDay)return `<div class="calendar-schedule-row${row.isCurrent?" current":""}"><span class="day">Р”${row.day}</span><span class="teams">${row.isCurrent?"Р”РµРЅСЊ РѕС‚РґС‹С…Р° (С‚РµРєСѓС‰РёР№)":"Р”РµРЅСЊ РѕС‚РґС‹С…Р°"}</span><span class="res">${row.isPlayed?"вњ“":"вЂ”"}</span></div>`;
-      const result=row.result?`${row.result.homeGoals}:${row.result.awayGoals}${row.result.wentToOvertime?" РћРў":""}`:(row.isPlayed?"вЂ”":"vs");
-      return `<div class="calendar-schedule-row${row.isCurrent?" current":""}${row.isMyMatch?" mine":""}"><span class="day">Р”${row.day}</span><span class="teams">${row.home?.shortName||row.home?.name} вЂ” ${row.away?.shortName||row.away?.name}</span><span class="res">${result}</span></div>`;
-    }).join("")||`<div class="muted">РќРµС‚ РјР°С‚С‡РµР№</div>`;
-    const tabButtons=`<div class="calendar-tabs"><button class="calendar-tab-btn${activeTab==="standings"?" active":""}" data-action="calendar-tab" data-value="standings">РўР°Р±Р»РёС†Р°</button><button class="calendar-tab-btn${activeTab==="scorers"?" active":""}" data-action="calendar-tab" data-value="scorers">Р‘РѕРјР±Р°СЂРґРёСЂС‹</button><button class="calendar-tab-btn${activeTab==="schedule"?" active":""}" data-action="calendar-tab" data-value="schedule">Р Р°СЃРїРёСЃР°РЅРёРµ</button></div>`;
+      if(row.isRestDay)return `<div class="calendar-schedule-row${row.isCurrent?" current":""}"><span class="day">Р вЂќ${row.day}</span><span class="teams">${row.isCurrent?"Р вЂќР ВµР Р…РЎРЉ Р С•РЎвЂљР Т‘РЎвЂ№РЎвЂ¦Р В° (РЎвЂљР ВµР С”РЎС“РЎвЂ°Р С‘Р в„–)":"Р вЂќР ВµР Р…РЎРЉ Р С•РЎвЂљР Т‘РЎвЂ№РЎвЂ¦Р В°"}</span><span class="res">${row.isPlayed?"РІСљвЂњ":"РІР‚вЂќ"}</span></div>`;
+      const result=row.result?`${row.result.homeGoals}:${row.result.awayGoals}${row.result.wentToOvertime?" Р С›Р Сћ":""}`:(row.isPlayed?"РІР‚вЂќ":"vs");
+      return `<div class="calendar-schedule-row${row.isCurrent?" current":""}${row.isMyMatch?" mine":""}"><span class="day">Р вЂќ${row.day}</span><span class="teams">${row.home?.shortName||row.home?.name} РІР‚вЂќ ${row.away?.shortName||row.away?.name}</span><span class="res">${result}</span></div>`;
+    }).join("")||`<div class="muted">Р СњР ВµРЎвЂљ Р СР В°РЎвЂљРЎвЂЎР ВµР в„–</div>`;
+    const tabButtons=`<div class="calendar-tabs"><button class="calendar-tab-btn${activeTab==="standings"?" active":""}" data-action="calendar-tab" data-value="standings">Р СћР В°Р В±Р В»Р С‘РЎвЂ Р В°</button><button class="calendar-tab-btn${activeTab==="scorers"?" active":""}" data-action="calendar-tab" data-value="scorers">Р вЂР С•Р СР В±Р В°РЎР‚Р Т‘Р С‘РЎР‚РЎвЂ№</button><button class="calendar-tab-btn${activeTab==="schedule"?" active":""}" data-action="calendar-tab" data-value="schedule">Р В Р В°РЎРѓР С—Р С‘РЎРѓР В°Р Р…Р С‘Р Вµ</button></div>`;
     const tableHeader=activeTab==="standings"
-      ? `<div class="calendar-table-header"><span>#</span><span>РљРѕРјР°РЅРґР°</span><span>Р</span><span>Р’</span><span>РџРћ</span><span>Рџ</span><span>Рћ</span></div>`
+      ? `<div class="calendar-table-header"><span>#</span><span>Р С™Р С•Р СР В°Р Р…Р Т‘Р В°</span><span>Р В</span><span>Р вЂ™</span><span>Р СџР С›</span><span>Р Сџ</span><span>Р С›</span></div>`
       : activeTab==="scorers"
-        ? `<div class="calendar-scorer-header"><span>#</span><span>РРіСЂРѕРє</span><span>РљРѕРјР°РЅРґР°</span><span>Рћ</span><span>Р“</span><span>Рџ</span></div>`
-        : `<div class="calendar-schedule-header"><span>Р”РµРЅСЊ</span><span>РњР°С‚С‡</span><span>РЎС‡РµС‚</span></div>`;
+        ? `<div class="calendar-scorer-header"><span>#</span><span>Р ВР С–РЎР‚Р С•Р С”</span><span>Р С™Р С•Р СР В°Р Р…Р Т‘Р В°</span><span>Р С›</span><span>Р вЂњ</span><span>Р Сџ</span></div>`
+        : `<div class="calendar-schedule-header"><span>Р вЂќР ВµР Р…РЎРЉ</span><span>Р СљР В°РЎвЂљРЎвЂЎ</span><span>Р РЋРЎвЂЎР ВµРЎвЂљ</span></div>`;
     const tableBody=activeTab==="standings"?standings:(activeTab==="scorers"?scorers:scheduleRows);
-    this.#calEl.innerHTML=`<h2>РљР°Р»РµРЅРґР°СЂСЊ вЂў Р”РµРЅСЊ ${day}</h2><div class="row"><div>${text}</div><button id="playBtn" class="btn" ${isLocked?"disabled":""}>${isLocked?"Р’С‹Р±СЂР°С‚СЊ РєРѕРјР°РЅРґСѓ":"Р”Р°Р»СЊС€Рµ"}</button></div>${tabButtons}<div class="calendar-panel-list">${tableHeader}<div class="calendar-panel-scroll">${tableBody}</div></div>`;
+    this.#calEl.innerHTML=`<h2>Р С™Р В°Р В»Р ВµР Р…Р Т‘Р В°РЎР‚РЎРЉ РІР‚Сћ Р вЂќР ВµР Р…РЎРЉ ${day}</h2><div class="row"><div>${text}</div><button id="playBtn" class="btn" ${isLocked?"disabled":""}>${isLocked?"Р вЂ™РЎвЂ№Р В±РЎР‚Р В°РЎвЂљРЎРЉ Р С”Р С•Р СР В°Р Р…Р Т‘РЎС“":"Р вЂќР В°Р В»РЎРЉРЎв‚¬Р Вµ"}</button></div>${tabButtons}<div class="calendar-panel-list">${tableHeader}<div class="calendar-panel-scroll">${tableBody}</div></div>`;
   }
-  renderResetButton(){this.#calEl.insertAdjacentHTML("beforeend","<div class=\"row reset-row\"><button id=\"resetBtn\" class=\"btn secondary\">РќРѕРІР°СЏ РёРіСЂР°</button></div>")}
+  renderResetButton(){this.#calEl.insertAdjacentHTML("beforeend","<div class=\"row reset-row\"><button id=\"resetBtn\" class=\"btn secondary\">Р СњР С•Р Р†Р В°РЎРЏ Р С‘Р С–РЎР‚Р В°</button></div>")}
   renderMatchSimulationPopup(playback){
     if(!playback)return;
     const formatIceTime=seconds=>{
@@ -443,37 +443,37 @@ export class Renderer{
         text=`${scorer}${assists}${strength}`;
         tagClass+=" goal";
       }else{
-        text=`Удаление: ${event.player?.name||event.player} (${event.penaltyMinutes||2} мин)`;
+        text=`РЈРґР°Р»РµРЅРёРµ: ${event.player?.name||event.player} (${event.penaltyMinutes||2} РјРёРЅ)`;
         tagClass+=" penalty";
       }
-      return `<div class="sim-log-row"><div class="sim-log-side home">${isHome?`<span class="${tagClass}">${event.type==="goal"?"ГОЛ":"УДАЛ."}</span><span>${text}</span>`:""}</div><div class="sim-log-time">P${event.period} ${event.periodClock}</div><div class="sim-log-side away">${!isHome?`<span>${text}</span><span class="${tagClass}">${event.type==="goal"?"ГОЛ":"УДАЛ."}</span>`:""}</div></div>`;
+      return `<div class="sim-log-row"><div class="sim-log-side home">${isHome?`<span class="${tagClass}">${event.type==="goal"?"Р“РћР›":"РЈР”РђР›."}</span><span>${text}</span>`:""}</div><div class="sim-log-time">P${event.period} ${event.periodClock}</div><div class="sim-log-side away">${!isHome?`<span>${text}</span><span class="${tagClass}">${event.type==="goal"?"Р“РћР›":"РЈР”РђР›."}</span>`:""}</div></div>`;
     }).join("");
-    const statsTable=`<div class="sim-stats-table"><div class="sim-stats-header"><span>Команда</span><span>Игрок</span><span>Г</span><span>П</span><span>О</span><span>Время</span><span>Бр</span><span>ШМ</span></div>${statsRows.map(row=>`<div class="sim-stats-row"><span class="sim-stats-team">${row.team?.logoUrl?`<img class="sim-stats-team-logo" src="${row.team.logoUrl}" alt="${row.team.name}"/>`:""}<span>${row.team?.shortName||row.team?.name||"—"}</span></span><span class="sim-stats-player" title="${row.playerName||"Игрок"}">${row.playerName||"Игрок"}</span><span>${row.goals||0}</span><span>${row.assists||0}</span><span>${row.points||0}</span><span>${formatIceTime(row.totalIceTime)}</span><span>${row.shots||0}</span><span>${row.penaltyMinutes||0}</span></div>`).join("")||`<div class="muted">Нет статистики</div>`}</div>`;
-    const periodsLabel=clock.period===4?"ОТ 3x3":"Период";
-    const contentLabel=playback.view==="stats"?"Статистика матча":"События матча";
+    const statsTable=`<div class="sim-stats-table"><div class="sim-stats-header"><span>РљРѕРјР°РЅРґР°</span><span>РРіСЂРѕРє</span><span>Р“</span><span>Рџ</span><span>Рћ</span><span>Р’СЂРµРјСЏ</span><span>Р‘СЂ</span><span>РЁРњ</span></div>${statsRows.map(row=>`<div class="sim-stats-row"><span class="sim-stats-team">${row.team?.logoUrl?`<img class="sim-stats-team-logo" src="${row.team.logoUrl}" alt="${row.team.name}"/>`:""}<span>${row.team?.shortName||row.team?.name||"вЂ”"}</span></span><span class="sim-stats-player" title="${row.playerName||"РРіСЂРѕРє"}">${row.playerName||"РРіСЂРѕРє"}</span><span>${row.goals||0}</span><span>${row.assists||0}</span><span>${row.points||0}</span><span>${formatIceTime(row.totalIceTime)}</span><span>${row.shots||0}</span><span>${row.penaltyMinutes||0}</span></div>`).join("")||`<div class="muted">РќРµС‚ СЃС‚Р°С‚РёСЃС‚РёРєРё</div>`}</div>`;
+    const periodsLabel=clock.period===4?"РћРў 3x3":"РџРµСЂРёРѕРґ";
+    const contentLabel=playback.view==="stats"?"РЎС‚Р°С‚РёСЃС‚РёРєР° РјР°С‚С‡Р°":"РЎРѕР±С‹С‚РёСЏ РјР°С‚С‡Р°";
     const contentBody=playback.view==="stats"
       ? statsTable
-      : `<div class="sim-timeline sim-timeline-eafc">${timeline||'<div class="muted">Симуляция идет...</div>'}</div>`;
+      : `<div class="sim-timeline sim-timeline-eafc">${timeline||'<div class="muted">РЎРёРјСѓР»СЏС†РёСЏ РёРґРµС‚...</div>'}</div>`;
     const controls=playback.isFinished
-      ? `<button class="btn secondary${playback.view==="events"?" active":""}" data-action="sim-view-events">События</button><button class="btn secondary${playback.view==="stats"?" active":""}" data-action="sim-view-stats">Статистика матча</button><button class="btn" data-action="sim-close">Закрыть</button>`
-      : `<button class="btn secondary" data-action="sim-skip">Пропустить симуляцию</button>`;
-    this.#teamEl.insertAdjacentHTML("beforeend",`<div class="modal sim-modal"><div class="sim-modal-card sim-eafc"><div class="sim-top-head"><div class="sim-top-team"><span class="sim-top-team-name">${playback.match.home.name}</span><img class="sim-team-logo" src="${playback.match.home.logoUrl}" alt="${playback.match.home.name}"/></div><div class="sim-top-center"><div class="sim-top-score">${score.home}:${score.away}</div><div class="sim-period">${periodsLabel}${clock.period===4?"":" • "+clock.period+"/3"}</div><div class="sim-clock">${clock.label}</div></div><div class="sim-top-team sim-top-team-right"><img class="sim-team-logo" src="${playback.match.away.logoUrl}" alt="${playback.match.away.name}"/><span class="sim-top-team-name">${playback.match.away.name}</span></div></div><div class="sim-stage"><aside class="sim-side-panel"><div class="sim-side-stat"><div class="sim-side-label">Броски</div><div class="sim-side-value">${homeShots}</div></div><div class="sim-side-stat"><div class="sim-side-label">Удаления</div><div class="sim-side-value">${visibleHomePens}</div></div><div class="sim-side-stat"><div class="sim-side-label">Голы</div><div class="sim-side-value">${score.home}</div></div></aside><section class="sim-board"><div class="sim-board-overlay"></div><div class="sim-progress sim-progress-eafc"><span style="width:${Math.min(100,Math.round(progressRatio*100))}%"></span></div><div class="sim-timeline-header"><span>${contentLabel}</span><span>${playback.match.summary?.wentToOvertime?"С ОТ":"Основное время"}</span></div>${contentBody}<div class="sim-center-actions sim-center-actions-eafc">${controls}</div></section><aside class="sim-side-panel sim-side-panel-right"><div class="sim-side-stat"><div class="sim-side-label">Броски</div><div class="sim-side-value">${awayShots}</div></div><div class="sim-side-stat"><div class="sim-side-label">Удаления</div><div class="sim-side-value">${visibleAwayPens}</div></div><div class="sim-side-stat"><div class="sim-side-label">Голы</div><div class="sim-side-value">${score.away}</div></div></aside></div></div></div>`);
+      ? `<button class="btn secondary${playback.view==="events"?" active":""}" data-action="sim-view-events">РЎРѕР±С‹С‚РёСЏ</button><button class="btn secondary${playback.view==="stats"?" active":""}" data-action="sim-view-stats">РЎС‚Р°С‚РёСЃС‚РёРєР° РјР°С‚С‡Р°</button><button class="btn" data-action="sim-close">Р—Р°РєСЂС‹С‚СЊ</button>`
+      : `<button class="btn secondary" data-action="sim-skip">РџСЂРѕРїСѓСЃС‚РёС‚СЊ СЃРёРјСѓР»СЏС†РёСЋ</button>`;
+    this.#teamEl.insertAdjacentHTML("beforeend",`<div class="modal sim-modal"><div class="sim-modal-card sim-eafc"><div class="sim-top-head"><div class="sim-top-team"><span class="sim-top-team-name">${playback.match.home.name}</span><img class="sim-team-logo" src="${playback.match.home.logoUrl}" alt="${playback.match.home.name}"/></div><div class="sim-top-center"><div class="sim-top-score">${score.home}:${score.away}</div><div class="sim-period">${periodsLabel}${clock.period===4?"":" вЂў "+clock.period+"/3"}</div><div class="sim-clock">${clock.label}</div></div><div class="sim-top-team sim-top-team-right"><img class="sim-team-logo" src="${playback.match.away.logoUrl}" alt="${playback.match.away.name}"/><span class="sim-top-team-name">${playback.match.away.name}</span></div></div><div class="sim-stage"><aside class="sim-side-panel"><div class="sim-side-stat"><div class="sim-side-label">Р‘СЂРѕСЃРєРё</div><div class="sim-side-value">${homeShots}</div></div><div class="sim-side-stat"><div class="sim-side-label">РЈРґР°Р»РµРЅРёСЏ</div><div class="sim-side-value">${visibleHomePens}</div></div><div class="sim-side-stat"><div class="sim-side-label">Р“РѕР»С‹</div><div class="sim-side-value">${score.home}</div></div></aside><section class="sim-board"><div class="sim-board-overlay"></div><div class="sim-progress sim-progress-eafc"><span style="width:${Math.min(100,Math.round(progressRatio*100))}%"></span></div><div class="sim-timeline-header"><span>${contentLabel}</span><span>${playback.match.summary?.wentToOvertime?"РЎ РћРў":"РћСЃРЅРѕРІРЅРѕРµ РІСЂРµРјСЏ"}</span></div>${contentBody}<div class="sim-center-actions sim-center-actions-eafc">${controls}</div></section><aside class="sim-side-panel sim-side-panel-right"><div class="sim-side-stat"><div class="sim-side-label">Р‘СЂРѕСЃРєРё</div><div class="sim-side-value">${awayShots}</div></div><div class="sim-side-stat"><div class="sim-side-label">РЈРґР°Р»РµРЅРёСЏ</div><div class="sim-side-value">${visibleAwayPens}</div></div><div class="sim-side-stat"><div class="sim-side-label">Р“РѕР»С‹</div><div class="sim-side-value">${score.away}</div></div></aside></div></div></div>`);
   }
   renderMatch(match,stats){
-    if(match===null){this.#matchEl.innerHTML=`<h2>РњР°С‚С‡</h2><div class="list">РЎРµРіРѕРґРЅСЏ РѕС‚РґС‹С…</div>`;return;}
-    if(!match){this.#matchEl.innerHTML=`<h2>РњР°С‚С‡</h2><div class="list">РЎРµР·РѕРЅ Р·Р°РІРµСЂС€С‘РЅ</div>`;return;}
+    if(match===null){this.#matchEl.innerHTML=`<h2>Р СљР В°РЎвЂљРЎвЂЎ</h2><div class="list">Р РЋР ВµР С–Р С•Р Т‘Р Р…РЎРЏ Р С•РЎвЂљР Т‘РЎвЂ№РЎвЂ¦</div>`;return;}
+    if(!match){this.#matchEl.innerHTML=`<h2>Р СљР В°РЎвЂљРЎвЂЎ</h2><div class="list">Р РЋР ВµР В·Р С•Р Р… Р В·Р В°Р Р†Р ВµРЎР‚РЎв‚¬РЎвЂР Р…</div>`;return;}
     const events=(match.events||[]).map(event=>{
-      if(event.type==="penalty")return `<div class="event">P${event.period} ${event.periodClock} ${event.team}: СѓРґР°Р»РµРЅРёРµ (${event.player?.name||event.player})</div>`;
+      if(event.type==="penalty")return `<div class="event">P${event.period} ${event.periodClock} ${event.team}: РЎС“Р Т‘Р В°Р В»Р ВµР Р…Р С‘Р Вµ (${event.player?.name||event.player})</div>`;
       const scorer=event.scorer?.name||event.scorer;
       const assists=(event.assists||[]).length?event.assists.join(", "):(event.assist||"");
-      return `<div class="event">P${event.period||1} ${event.periodClock||`${event.minute}'`}: ${event.team} вЂ” ${scorer}${assists?` (+${assists})`:""}</div>`;
+      return `<div class="event">P${event.period||1} ${event.periodClock||`${event.minute}'`}: ${event.team} РІР‚вЂќ ${scorer}${assists?` (+${assists})`:""}</div>`;
     }).join("");
     const top=stats.slice(0,4).map(item=>`${item.name} ${item.goals}+${item.assists}`).join("<br/>");
-    this.#matchEl.innerHTML=`<h2>РњР°С‚С‡</h2><div class="list">${match.home.name} ${match.homeGoals}:${match.awayGoals} ${match.away.name}</div><div class="list">${events||"Р‘РµР· РіРѕР»РѕРІ"}</div><div class="list">Р›РёРґРµСЂС‹:<br/>${top||"РќРµС‚"}</div>`;
+    this.#matchEl.innerHTML=`<h2>Р СљР В°РЎвЂљРЎвЂЎ</h2><div class="list">${match.home.name} ${match.homeGoals}:${match.awayGoals} ${match.away.name}</div><div class="list">${events||"Р вЂР ВµР В· Р С–Р С•Р В»Р С•Р Р†"}</div><div class="list">Р вЂєР С‘Р Т‘Р ВµРЎР‚РЎвЂ№:<br/>${top||"Р СњР ВµРЎвЂљ"}</div>`;
   }
   #renderTabs(activeTab){
     const rosterClass=activeTab==="roster"?"tab active":"tab";
     const contractClass=activeTab==="contracts"?"tab active":"tab";
-    return `<div class="tab-row"><button class="${rosterClass}" data-tab="roster">РЎРѕСЃС‚Р°РІ</button><button class="${contractClass}" data-tab="contracts">РљРѕРЅС‚СЂР°РєС‚С‹</button></div>`;
+    return `<div class="tab-row"><button class="${rosterClass}" data-tab="roster">Р РЋР С•РЎРѓРЎвЂљР В°Р Р†</button><button class="${contractClass}" data-tab="contracts">Р С™Р С•Р Р…РЎвЂљРЎР‚Р В°Р С”РЎвЂљРЎвЂ№</button></div>`;
   }
 }
