@@ -391,13 +391,13 @@ export class Renderer{
         points:(stat.goals||0)+(stat.assists||0),
         team
       }))
-      .sort((a,b)=>
+      .sort((a,b)=>(
         (b.points-a.points)||
         ((b.goals||0)-(a.goals||0))||
         ((b.assists||0)-(a.assists||0))||
         ((b.shots||0)-(a.shots||0))||
         String(a.playerName||"").localeCompare(String(b.playerName||""),"ru")
-      ));
+      )));
     const fmtClock=seconds=>{
       const safe=Math.max(0,Number(seconds)||0);
       const isOt=safe>=3600;
@@ -440,10 +440,10 @@ export class Renderer{
         text=`${scorer}${assists}${strength}`;
         tagClass+=" goal";
       }else{
-        text=`????????: ${event.player?.name||event.player} (${event.penaltyMinutes||2} ???)`;
+        text=`Удаление: ${event.player?.name||event.player} (${event.penaltyMinutes||2} мин)`;
         tagClass+=" penalty";
       }
-      return `<div class="sim-log-row"><div class="sim-log-side home">${isHome?`<span class="${tagClass}">${event.type==="goal"?"???":"????."}</span><span>${text}</span>`:""}</div><div class="sim-log-time">P${event.period} ${event.periodClock}</div><div class="sim-log-side away">${!isHome?`<span>${text}</span><span class="${tagClass}">${event.type==="goal"?"???":"????."}</span>`:""}</div></div>`;
+      return `<div class="sim-log-row"><div class="sim-log-side home">${isHome?`<span class="${tagClass}">${event.type==="goal"?"ГОЛ":"УДАЛ."}</span><span>${text}</span>`:""}</div><div class="sim-log-time">P${event.period} ${event.periodClock}</div><div class="sim-log-side away">${!isHome?`<span>${text}</span><span class="${tagClass}">${event.type==="goal"?"ГОЛ":"УДАЛ."}</span>`:""}</div></div>`;
     }).join("");
     const renderStatsSection=(title,team,rows,goalsValue,shotsValue,pimValue)=>`
       <section class="sim-stats-section">
@@ -452,58 +452,58 @@ export class Renderer{
             ${team?.logoUrl?`<img class="sim-stats-section-logo" src="${team.logoUrl}" alt="${team.name}"/>`:""}
             <div>
               <div class="sim-stats-section-label">${title}</div>
-              <div class="sim-stats-section-name">${team?.name||"?"}</div>
+              <div class="sim-stats-section-name">${team?.name||"—"}</div>
             </div>
           </div>
           <div class="sim-stats-summary">
-            <span class="sim-stats-summary-chip"><b>${goalsValue}</b><small>?</small></span>
-            <span class="sim-stats-summary-chip"><b>${shotsValue}</b><small>??</small></span>
-            <span class="sim-stats-summary-chip"><b>${pimValue}</b><small>??</small></span>
+            <span class="sim-stats-summary-chip"><b>${goalsValue}</b><small>Г</small></span>
+            <span class="sim-stats-summary-chip"><b>${shotsValue}</b><small>БР</small></span>
+            <span class="sim-stats-summary-chip"><b>${pimValue}</b><small>ШМ</small></span>
           </div>
         </div>
         <div class="sim-stats-legend">
-          <span>?????</span>
-          <span>??????????</span>
+          <span>Игрок</span>
+          <span>Показатели</span>
         </div>
         <div class="sim-stats-list">
           ${rows.map(row=>`
             <article class="sim-player-card">
               <div class="sim-player-main">
-                <div class="sim-player-name" title="${row.playerName||"?????"}">${row.playerName||"?????"}</div>
+                <div class="sim-player-name" title="${row.playerName||"Игрок"}">${row.playerName||"Игрок"}</div>
                 <div class="sim-player-subline">
-                  <span>${row.team?.shortName||row.team?.name||"?"}</span>
+                  <span>${row.team?.shortName||row.team?.name||"—"}</span>
                   <span>${formatIceTime(row.totalIceTime)}</span>
                 </div>
               </div>
               <div class="sim-player-stats">
-                <span class="sim-player-stat sim-player-stat-accent"><b>${row.points||0}</b><small>?</small></span>
-                <span class="sim-player-stat"><b>${row.goals||0}</b><small>?</small></span>
-                <span class="sim-player-stat"><b>${row.assists||0}</b><small>?</small></span>
-                <span class="sim-player-stat"><b>${row.shots||0}</b><small>??</small></span>
-                <span class="sim-player-stat"><b>${row.penaltyMinutes||0}</b><small>??</small></span>
+                <span class="sim-player-stat sim-player-stat-accent"><b>${row.points||0}</b><small>О</small></span>
+                <span class="sim-player-stat"><b>${row.goals||0}</b><small>Г</small></span>
+                <span class="sim-player-stat"><b>${row.assists||0}</b><small>П</small></span>
+                <span class="sim-player-stat"><b>${row.shots||0}</b><small>Бр</small></span>
+                <span class="sim-player-stat"><b>${row.penaltyMinutes||0}</b><small>ШМ</small></span>
               </div>
             </article>
-          `).join("")||`<div class="muted">??? ??????????</div>`}
+          `).join("")||`<div class="muted">Нет статистики</div>`}
         </div>
       </section>
     `;
     const statsTable=`<div class="sim-stats-table sim-stats-table-modern">
-      ${renderStatsSection("???????? ???????",playback.match.home,homeStatsRows,score.home,homeShots,visibleHomePens)}
-      ${renderStatsSection("???????? ???????",playback.match.away,awayStatsRows,score.away,awayShots,visibleAwayPens)}
+      ${renderStatsSection("Домашняя команда",playback.match.home,homeStatsRows,score.home,homeShots,visibleHomePens)}
+      ${renderStatsSection("Гостевая команда",playback.match.away,awayStatsRows,score.away,awayShots,visibleAwayPens)}
     </div>`;
-    const periodsLabel=clock.period===4?"?? 3x3":"??????";
-    const contentLabel=playback.view==="stats"?"?????????? ?????":"??????? ?????";
+    const periodsLabel=clock.period===4?"ОТ 3x3":"Период";
+    const contentLabel=playback.view==="stats"?"Статистика матча":"События матча";
     const contentBody=playback.view==="stats"
       ? statsTable
-      : `<div class="sim-timeline sim-timeline-eafc">${timeline||'<div class="muted">????????? ????...</div>'}</div>`;
+      : `<div class="sim-timeline sim-timeline-eafc">${timeline||'<div class="muted">Симуляция идет...</div>'}</div>`;
     const controls=playback.isFinished
-      ? `<button class="btn secondary${playback.view==="events"?" active":""}" data-action="sim-view-events">???????</button><button class="btn secondary${playback.view==="stats"?" active":""}" data-action="sim-view-stats">?????????? ?????</button><button class="btn" data-action="sim-close">???????</button>`
-      : `<button class="btn secondary" data-action="sim-skip">?????????? ?????????</button>`;
-    this.#teamEl.insertAdjacentHTML("beforeend",`<div class="modal sim-modal"><div class="sim-modal-card sim-eafc"><div class="sim-top-head"><div class="sim-top-team"><span class="sim-top-team-name">${playback.match.home.name}</span><img class="sim-team-logo" src="${playback.match.home.logoUrl}" alt="${playback.match.home.name}"/></div><div class="sim-top-center"><div class="sim-top-score">${score.home}:${score.away}</div><div class="sim-period">${periodsLabel}${clock.period===4?"":" ? "+clock.period+"/3"}</div><div class="sim-clock">${clock.label}</div></div><div class="sim-top-team sim-top-team-right"><img class="sim-team-logo" src="${playback.match.away.logoUrl}" alt="${playback.match.away.name}"/><span class="sim-top-team-name">${playback.match.away.name}</span></div></div><div class="sim-stage"><aside class="sim-side-panel"><div class="sim-side-stat"><div class="sim-side-label">??????</div><div class="sim-side-value">${homeShots}</div></div><div class="sim-side-stat"><div class="sim-side-label">????????</div><div class="sim-side-value">${visibleHomePens}</div></div><div class="sim-side-stat"><div class="sim-side-label">????</div><div class="sim-side-value">${score.home}</div></div></aside><section class="sim-board"><div class="sim-board-overlay"></div><div class="sim-progress sim-progress-eafc"><span style="width:${Math.min(100,Math.round(progressRatio*100))}%"></span></div><div class="sim-timeline-header"><span>${contentLabel}</span><span>${playback.match.summary?.wentToOvertime?"? ??":"???????? ?????"}</span></div>${contentBody}<div class="sim-center-actions sim-center-actions-eafc">${controls}</div></section><aside class="sim-side-panel sim-side-panel-right"><div class="sim-side-stat"><div class="sim-side-label">??????</div><div class="sim-side-value">${awayShots}</div></div><div class="sim-side-stat"><div class="sim-side-label">????????</div><div class="sim-side-value">${visibleAwayPens}</div></div><div class="sim-side-stat"><div class="sim-side-label">????</div><div class="sim-side-value">${score.away}</div></div></aside></div></div></div>`);
+      ? `<button class="btn secondary${playback.view==="events"?" active":""}" data-action="sim-view-events">События</button><button class="btn secondary${playback.view==="stats"?" active":""}" data-action="sim-view-stats">Статистика матча</button><button class="btn" data-action="sim-close">Закрыть</button>`
+      : `<button class="btn secondary" data-action="sim-skip">Пропустить симуляцию</button>`;
+    this.#teamEl.insertAdjacentHTML("beforeend",`<div class="modal sim-modal"><div class="sim-modal-card sim-eafc"><div class="sim-top-head"><div class="sim-top-team"><span class="sim-top-team-name">${playback.match.home.name}</span><img class="sim-team-logo" src="${playback.match.home.logoUrl}" alt="${playback.match.home.name}"/></div><div class="sim-top-center"><div class="sim-top-score">${score.home}:${score.away}</div><div class="sim-period">${periodsLabel}${clock.period===4?"":" • "+clock.period+"/3"}</div><div class="sim-clock">${clock.label}</div></div><div class="sim-top-team sim-top-team-right"><img class="sim-team-logo" src="${playback.match.away.logoUrl}" alt="${playback.match.away.name}"/><span class="sim-top-team-name">${playback.match.away.name}</span></div></div><div class="sim-stage"><aside class="sim-side-panel"><div class="sim-side-stat"><div class="sim-side-label">Броски</div><div class="sim-side-value">${homeShots}</div></div><div class="sim-side-stat"><div class="sim-side-label">Удаления</div><div class="sim-side-value">${visibleHomePens}</div></div><div class="sim-side-stat"><div class="sim-side-label">Голы</div><div class="sim-side-value">${score.home}</div></div></aside><section class="sim-board"><div class="sim-board-overlay"></div><div class="sim-progress sim-progress-eafc"><span style="width:${Math.min(100,Math.round(progressRatio*100))}%"></span></div><div class="sim-timeline-header"><span>${contentLabel}</span><span>${playback.match.summary?.wentToOvertime?"С ОТ":"Основное время"}</span></div>${contentBody}<div class="sim-center-actions sim-center-actions-eafc">${controls}</div></section><aside class="sim-side-panel sim-side-panel-right"><div class="sim-side-stat"><div class="sim-side-label">Броски</div><div class="sim-side-value">${awayShots}</div></div><div class="sim-side-stat"><div class="sim-side-label">Удаления</div><div class="sim-side-value">${visibleAwayPens}</div></div><div class="sim-side-stat"><div class="sim-side-label">Голы</div><div class="sim-side-value">${score.away}</div></div></aside></div></div></div>`);
   }
   renderMatch(match,stats){
     if(match===null){this.#matchEl.innerHTML=`<h2>Матч</h2><div class="list">Сегодня отдых</div>`;return;}
-    this.#matchEl.innerHTML=`<h2>????</h2><div class="list">${match.home.name} ${match.homeGoals}:${match.awayGoals} ${match.away.name}</div><div class="list">${events||"??? ?????"}</div><div class="list">??????:<br/>${top||"???"}</div>`;
+    if(!match){this.#matchEl.innerHTML=`<h2>Матч</h2><div class="list">Сезон завершен</div>`;return;}
     const events=(match.events||[]).map(event=>{
       if(event.type==="penalty")return `<div class="event">P${event.period} ${event.periodClock} ${event.team}: удаление (${event.player?.name||event.player})</div>`;
       const scorer=event.scorer?.name||event.scorer;
