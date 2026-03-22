@@ -8,6 +8,8 @@ const PERIOD_SECONDS=20*60;
 const PENALTY_MINUTES=2;
 const SHOT_BIN_SECONDS=10;
 const BASE_SKATERS=5;
+const FORWARD_USAGE_WEIGHTS=[0.37,0.29,0.21,0.13];
+const DEFENSE_USAGE_WEIGHTS=[0.41,0.33,0.18,0.08];
 
 const rand=(min,max)=>min+Math.random()*(max-min);
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
@@ -98,8 +100,8 @@ export class MatchSimulator{
         players:playerProfiles.map(profile=>profile.player),
         playerProfiles,
         skaters:fallback,
-        forwards:forwards.length?forwards:fallback,
-        defenders:defenders.length?defenders:fallback,
+        forwards,
+        defenders,
         offenseRating:this.#averageWeighted(fallback,profile=>{
           const attrs=profile.player.attributes?.attributesJson||{};
           return (profile.effectiveOvr*0.52)+((attrs.shot||0)*profile.gameFactor*0.26)+((attrs.skill||0)*profile.gameFactor*0.17)+((attrs.speed||0)*profile.gameFactor*0.05);
@@ -132,12 +134,15 @@ export class MatchSimulator{
 
   #buildIceTimeByLine(lines){
     if(!lines.length)return [];
-    const jittered=lines.map(line=>Math.max(0.05,line.weight*(1+rand(-0.08,0.08))));
-    const total=sum(jittered)||1;
-    return jittered.map((value,index)=>({
-      lineIndex:lines[index].lineIndex,
-      share:value/total,
-      minutesApprox:Math.round((value/total)*60*10)/10
+    const forwardShares=this.#buildUsageShares(lines,line=>(line.forwards||[]).length,FORWARD_USAGE_WEIGHTS,0.04);
+    const defenseShares=this.#buildUsageShares(lines,line=>(line.defenders||[]).length,DEFENSE_USAGE_WEIGHTS,0.035);
+    return lines.map((line,index)=>({
+      lineIndex:line.lineIndex,
+      share:forwardShares[index]||0,
+      forwardShare:forwardShares[index]||0,
+      defenseShare:defenseShares[index]||0,
+      forwardMinutesApprox:Math.round((forwardShares[index]||0)*60*10)/10,
+      defenseMinutesApprox:Math.round((defenseShares[index]||0)*60*10)/10
     }));
   }
 
@@ -363,20 +368,20 @@ export class MatchSimulator{
   #applyIceTimeStats(teamContext,statsMap,durationSeconds){
     (teamContext.lines||[]).forEach(line=>{
       const shareInfo=(teamContext.iceTimeByLine||[]).find(item=>item.lineIndex===line.lineIndex);
-      const lineSeconds=Math.round((shareInfo?.share||0)*durationSeconds);
-      if(!lineSeconds)return;
-      const assignGroupIceTime=profiles=>{
+      const forwardSeconds=Math.round((shareInfo?.forwardShare||0)*durationSeconds);
+      const defenseSeconds=Math.round((shareInfo?.defenseShare||0)*durationSeconds);
+      const assignGroupIceTime=(profiles,seconds)=>{
         profiles.forEach(profile=>{
           const playerStats=statsMap.get(profile.player.id);
           if(!playerStats)return;
-          playerStats.totalIceTime+=lineSeconds;
+          playerStats.totalIceTime+=seconds;
         });
       };
-      if((line.forwards||[]).length){
-        assignGroupIceTime(line.forwards);
+      if((line.forwards||[]).length && forwardSeconds){
+        assignGroupIceTime(line.forwards,forwardSeconds);
       }
-      if((line.defenders||[]).length){
-        assignGroupIceTime(line.defenders);
+      if((line.defenders||[]).length && defenseSeconds){
+        assignGroupIceTime(line.defenders,defenseSeconds);
       }
       const assignedIds=new Set([
         ...(line.forwards||[]).map(profile=>profile.player.id),
@@ -386,7 +391,8 @@ export class MatchSimulator{
         if(assignedIds.has(profile.player.id))return;
         const playerStats=statsMap.get(profile.player.id);
         if(!playerStats)return;
-        playerStats.totalIceTime+=Math.round(lineSeconds/Math.max(1,(line.playerProfiles||[]).length));
+        const fallbackSeconds=Math.round(Math.max(forwardSeconds,defenseSeconds)/Math.max(1,(line.playerProfiles||[]).length));
+        playerStats.totalIceTime+=fallbackSeconds;
       });
     });
 
@@ -520,6 +526,22 @@ export class MatchSimulator{
     const shares=new Map((iceTimeByLine||[]).map(item=>[item.lineIndex,item.share]));
     const weights=(lines||[]).map(line=>Math.max(0.05,shares.get(line.lineIndex)||line.weight||0.5));
     return this.#pickWeighted(lines,weights);
+  }
+
+  #buildUsageShares(lines,presenceSelector,baseWeights,jitterAmount){
+    const presentIndexes=lines
+      .map((line,index)=>presenceSelector(line)?index:-1)
+      .filter(index=>index!==-1);
+    if(!presentIndexes.length){
+      return lines.map(()=>0);
+    }
+    const raw=new Array(lines.length).fill(0);
+    presentIndexes.forEach(index=>{
+      const base=baseWeights[index]??baseWeights[baseWeights.length-1]??0.1;
+      raw[index]=Math.max(0.02,base*(1+rand(-jitterAmount,jitterAmount)));
+    });
+    const total=sum(raw)||1;
+    return raw.map(value=>value/total);
   }
 
   #pickWeightedSecond(durationSeconds,weightFn){
