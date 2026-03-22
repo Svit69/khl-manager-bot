@@ -91,6 +91,14 @@
   .sim-side-value{font-size:34px}
   .sim-board{min-height:380px;padding:10px}
   .sim-log-row{grid-template-columns:1fr}
+  .sim-stats-hero{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  .sim-stats-hero-chips{
+    justify-content:flex-start;
+  }
+  .sim-leader-strip{grid-template-columns:1fr}
   .sim-stats-toolbar{
     flex-direction:column;
     align-items:flex-start;

@@ -511,6 +511,24 @@ export class Renderer{
         </div>
       </section>
     `;
+    const leaderRows=sortMatchStats(allStatsRows,"points").slice(0,3);
+    const renderLeaderCard=(row,index)=>`
+      <button type="button" class="sim-leader-card${row.playerKey===selectedPlayerKey?" is-selected":""}" data-action="sim-select-player" data-player-key="${row.playerKey}">
+        <div class="sim-leader-rank">#${index+1}</div>
+        <div class="sim-leader-main">
+          <div class="sim-leader-name">${row.playerName||"\u0418\u0433\u0440\u043e\u043a"}</div>
+          <div class="sim-leader-subline">
+            ${row.team?.logoUrl?`<img class="sim-leader-logo" src="${row.team.logoUrl}" alt="${row.team.name}"/>`:""}
+            <span>${row.team?.shortName||row.team?.name||"\u2014"}</span>
+            <span>${formatIceTime(row.totalIceTime)}</span>
+          </div>
+        </div>
+        <div class="sim-leader-points">
+          <strong>${row.points||0}</strong>
+          <span>\u041e\u0447\u043a\u0438</span>
+        </div>
+      </button>
+    `;
     const renderSortButton=(key,label)=>`<button type="button" class="sim-stats-sort${statsSort===key?" is-active":""}" data-action="sim-stats-sort" data-sort="${key}">${label}</button>`;
     const detailPanel=selectedPlayer?`
       <aside class="sim-player-detail">
@@ -543,6 +561,20 @@ export class Renderer{
     `:`<aside class="sim-player-detail"><div class="muted">\u041d\u0435\u0442 \u0441\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u0438</div></aside>`;
     const statsTable=`<div class="sim-stats-table sim-stats-table-modern">
       <div class="sim-stats-shell">
+        <div class="sim-stats-hero">
+          <div class="sim-stats-hero-copy">
+            <div class="sim-stats-hero-kicker">\u0420\u0430\u0437\u0431\u043e\u0440 \u043c\u0430\u0442\u0447\u0430</div>
+            <div class="sim-stats-hero-title">\u041b\u0438\u0434\u0435\u0440\u044b \u0438 \u0441\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u0430 \u043f\u043e \u0438\u0433\u0440\u043e\u043a\u0430\u043c</div>
+          </div>
+          <div class="sim-stats-hero-chips">
+            <span class="sim-stats-hero-chip"><b>${score.home}:${score.away}</b><small>\u0421\u0447\u0435\u0442</small></span>
+            <span class="sim-stats-hero-chip"><b>${homeShots+awayShots}</b><small>\u0411\u0440\u043e\u0441\u043a\u0438</small></span>
+            <span class="sim-stats-hero-chip"><b>${visibleHomePens+visibleAwayPens}</b><small>\u0423\u0434\u0430\u043b\u0435\u043d\u0438\u044f</small></span>
+          </div>
+        </div>
+        <div class="sim-leader-strip">
+          ${leaderRows.map((row,index)=>renderLeaderCard(row,index)).join("")||`<div class="muted">\u041d\u0435\u0442 \u043b\u0438\u0434\u0435\u0440\u043e\u0432</div>`}
+        </div>
         <div class="sim-stats-toolbar">
           <div class="sim-stats-toolbar-label">\u0421\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u0430 \u043c\u0430\u0442\u0447\u0430</div>
           <div class="sim-stats-toolbar-actions">
