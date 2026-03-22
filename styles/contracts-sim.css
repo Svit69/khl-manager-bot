@@ -43,22 +43,23 @@
 .btn.compact{padding:8px 10px;min-width:auto}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:12px}
 .modal-card{background:var(--card);border:1px solid #1c3e63;border-radius:12px;padding:12px;width:min(360px,100%)}
-.sim-modal{background:rgba(2,7,16,.74);backdrop-filter:blur(8px);padding:16px;overflow:auto}
+.sim-modal{background:rgba(4,8,12,.82);backdrop-filter:blur(10px);padding:16px;overflow:auto}
 .sim-modal-card{
   position:relative;
   width:min(980px,96vw);
   height:min(920px,92vh);
   background:
-    radial-gradient(70% 120% at 8% 12%, rgba(53,110,255,.18), transparent 60%),
-    radial-gradient(70% 100% at 88% 16%, rgba(0,214,255,.12), transparent 58%),
-    linear-gradient(180deg,#031146,#071b7e 45%, #0a2b9c 100%);
-  border:1px solid rgba(145,201,255,.18);
-  border-radius:18px;
+    radial-gradient(70% 120% at 8% 10%, rgba(88,255,187,.10), transparent 58%),
+    radial-gradient(70% 100% at 88% 12%, rgba(155,255,112,.08), transparent 54%),
+    linear-gradient(180deg,#12171c 0%, #101418 52%, #0d1014 100%);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:24px;
   padding:14px;
   display:grid;
   grid-template-rows:auto minmax(0,1fr);
   gap:12px;
   overflow:hidden;
+  box-shadow:0 30px 80px rgba(0,0,0,.42);
 }
 .sim-modal-close{
   position:absolute;
@@ -71,8 +72,8 @@
   border-radius:999px;
   display:grid;
   place-items:center;
-  background:rgba(7,16,46,.88);
-  color:#f4f8ff;
+  background:rgba(255,255,255,.07);
+  color:#eef5ef;
   font-size:24px;
   line-height:1;
   cursor:pointer;
@@ -80,7 +81,7 @@
   transition:background .18s ease,transform .18s ease;
 }
 .sim-modal-close:hover{
-  background:rgba(14,31,81,.96);
+  background:rgba(255,255,255,.12);
   transform:translateY(-1px);
 }
 .sim-top-head{
@@ -88,7 +89,7 @@
   grid-template-columns:1fr auto 1fr;
   gap:16px;
   align-items:center;
-  color:#eaf2ff;
+  color:#eef5ef;
   padding-right:52px;
 }
 .sim-top-team{
@@ -99,8 +100,9 @@
 }
 .sim-top-team-right{justify-content:flex-end}
 .sim-top-team-name{
-  font-size:22px;
-  font-weight:700;
+  font-size:21px;
+  font-weight:800;
+  letter-spacing:.01em;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
@@ -116,11 +118,11 @@
   font-size:46px;
   line-height:1;
   font-weight:900;
-  color:#57e3ff;
-  text-shadow:0 0 18px rgba(87,227,255,.18);
+  color:#e7f56b;
+  text-shadow:none;
 }
-.sim-period{font-size:12px;color:#b9c9ff;letter-spacing:.4px}
-.sim-clock{font-size:22px;font-weight:800;letter-spacing:1px;color:#f3f7ff}
+.sim-period{font-size:11px;color:#95a19a;letter-spacing:.12em;text-transform:uppercase}
+.sim-clock{font-size:22px;font-weight:900;letter-spacing:.04em;color:#f6fbf7}
 .sim-stage{
   display:grid;
   grid-template-columns:160px 1fr 160px;
@@ -139,37 +141,41 @@
 .sim-side-stat{
   display:grid;
   gap:2px;
-  color:#e9f3ff;
+  color:#edf6ee;
+  padding:12px 10px;
+  border-radius:16px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.05);
 }
 .sim-side-label{
-  font-size:12px;
-  color:#6be7ff;
+  font-size:11px;
+  color:#8d9a93;
   text-transform:uppercase;
-  letter-spacing:.7px;
+  letter-spacing:.12em;
 }
 .sim-side-value{
-  font-size:58px;
+  font-size:52px;
   line-height:.95;
-  font-weight:300;
-  color:#f5fbff;
+  font-weight:800;
+  color:#f7fbf7;
 }
 .sim-board{
   position:relative;
   min-height:0;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,.08);
-  background:rgba(8,20,96,.28);
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,.06);
+  background:linear-gradient(180deg,rgba(17,23,29,.96),rgba(12,16,21,.98));
   overflow:hidden;
   display:grid;
   grid-template-rows:auto auto 1fr auto;
-  padding:12px;
+  padding:14px;
 }
 .sim-board-overlay{
   position:absolute;
   inset:0;
   background:
-    linear-gradient(135deg, rgba(255,255,255,.02) 0%, rgba(255,255,255,0) 30%),
-    radial-gradient(80% 100% at 50% 30%, rgba(160,120,255,.08), transparent 70%);
+    linear-gradient(135deg, rgba(255,255,255,.02) 0%, rgba(255,255,255,0) 26%),
+    radial-gradient(80% 100% at 50% 30%, rgba(117,255,179,.05), transparent 70%);
   pointer-events:none;
 }
 .sim-timeline-header{
@@ -178,13 +184,15 @@
   display:flex;
   justify-content:space-between;
   gap:8px;
-  color:#d9e7ff;
-  font-size:12px;
+  color:#c9d4cc;
+  font-size:11px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
   margin:4px 0 8px;
 }
-.sim-progress{width:100%;height:6px;background:#14253c;border-radius:999px;overflow:hidden}
-.sim-progress span{display:block;height:100%;background:linear-gradient(90deg,#5dd7ff,#6effaf)}
-.sim-progress-eafc{position:relative;z-index:1;background:rgba(13,28,92,.5);margin-top:2px}
+.sim-progress{width:100%;height:6px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden}
+.sim-progress span{display:block;height:100%;background:linear-gradient(90deg,#76f3ba,#e7f56b)}
+.sim-progress-eafc{position:relative;z-index:1;background:rgba(255,255,255,.06);margin-top:2px}
 .sim-center-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .sim-center-actions-eafc{position:relative;z-index:1;padding-top:8px;border-top:1px solid rgba(255,255,255,.08);margin-top:8px}
 .sim-timeline{
@@ -200,10 +208,10 @@
   grid-template-columns:minmax(0,1fr) 98px minmax(0,1fr);
   gap:8px;
   align-items:center;
-  background:rgba(9,16,58,.40);
-  border:1px solid rgba(255,255,255,.04);
-  border-radius:10px;
-  padding:7px 8px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:14px;
+  padding:9px 10px;
 }
 .sim-log-side{
   display:flex;
@@ -225,18 +233,18 @@
 .sim-log-time{
   text-align:center;
   font-size:12px;
-  color:#c0d0ff;
+  color:#8f9b94;
   font-weight:800;
 }
 .sim-log-chip{
   display:inline-flex;align-items:center;justify-content:center;
   min-width:44px;padding:2px 6px;border-radius:999px;
   font-size:10px;font-weight:800;letter-spacing:.4px;
-  background:#1a2d47;color:#dceaff;
+  background:rgba(255,255,255,.08);color:#eef5ef;
   flex:0 0 auto;
 }
-.sim-log-chip.goal{background:rgba(77,209,255,.16);color:#9aedff;border:1px solid rgba(77,209,255,.2)}
-.sim-log-chip.penalty{background:rgba(255,177,90,.14);color:#ffd39f;border:1px solid rgba(255,177,90,.18)}
+.sim-log-chip.goal{background:rgba(118,243,186,.12);color:#9ef0c6;border:1px solid rgba(118,243,186,.16)}
+.sim-log-chip.penalty{background:rgba(255,198,92,.12);color:#f3d88d;border:1px solid rgba(255,198,92,.16)}
 .sim-timeline::-webkit-scrollbar{width:10px}
 .sim-timeline::-webkit-scrollbar-track{background:rgba(10,17,30,.7);border-radius:999px}
 .sim-timeline::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(111,212,255,.8),rgba(83,142,255,.75));border-radius:999px;border:2px solid rgba(10,17,30,.6)}
@@ -261,25 +269,25 @@
   justify-content:space-between;
   gap:16px;
   padding:14px 16px;
-  border-radius:18px;
+  border-radius:20px;
   background:
-    linear-gradient(135deg,rgba(99,214,255,.12),rgba(48,85,224,.08) 44%,rgba(255,255,255,.03) 100%),
-    linear-gradient(180deg,rgba(9,20,64,.92),rgba(7,17,46,.72));
-  border:1px solid rgba(160,208,255,.14);
+    linear-gradient(135deg,rgba(118,243,186,.10),rgba(231,245,107,.07) 44%,rgba(255,255,255,.02) 100%),
+    linear-gradient(180deg,rgba(22,28,34,.96),rgba(14,18,23,.92));
+  border:1px solid rgba(255,255,255,.07);
 }
 .sim-stats-hero-copy{
   display:grid;
   gap:6px;
 }
 .sim-stats-hero-kicker{
-  color:#82dcff;
+  color:#97a39c;
   font-size:11px;
   font-weight:900;
   letter-spacing:.12em;
   text-transform:uppercase;
 }
 .sim-stats-hero-title{
-  color:#f8fbff;
+  color:#f4f8f4;
   font-size:22px;
   line-height:1.1;
   font-weight:900;
@@ -297,17 +305,17 @@
   min-width:78px;
   padding:10px 12px;
   border-radius:14px;
-  background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.06);
 }
 .sim-stats-hero-chip b{
-  color:#f7fbff;
+  color:#eef5ef;
   font-size:18px;
   line-height:1;
   font-weight:900;
 }
 .sim-stats-hero-chip small{
-  color:#9cc0f3;
+  color:#8f9b94;
   font-size:10px;
   line-height:1;
   text-transform:uppercase;
@@ -326,26 +334,26 @@
   gap:10px;
   padding:12px 14px;
   border:none;
-  border-radius:16px;
-  background:linear-gradient(180deg,rgba(8,14,41,.72),rgba(8,13,34,.54));
-  border:1px solid rgba(255,255,255,.06);
+  border-radius:18px;
+  background:linear-gradient(180deg,rgba(20,25,31,.94),rgba(13,17,22,.92));
+  border:1px solid rgba(255,255,255,.05);
   text-align:left;
   cursor:pointer;
   transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease;
 }
 .sim-leader-card:hover{
   transform:translateY(-1px);
-  border-color:rgba(111,212,255,.24);
+  border-color:rgba(118,243,186,.16);
 }
 .sim-leader-card.is-selected{
-  border-color:rgba(108,208,255,.34);
-  box-shadow:0 0 0 1px rgba(108,208,255,.18),0 12px 24px rgba(36,97,209,.16);
+  border-color:rgba(118,243,186,.22);
+  box-shadow:0 0 0 1px rgba(118,243,186,.12),0 12px 24px rgba(0,0,0,.18);
   background:
-    linear-gradient(180deg,rgba(16,30,77,.95),rgba(9,18,47,.86)),
-    linear-gradient(90deg,rgba(94,206,255,.10),transparent 44%);
+    linear-gradient(180deg,rgba(24,34,35,.96),rgba(14,20,22,.94)),
+    linear-gradient(90deg,rgba(118,243,186,.06),transparent 44%);
 }
 .sim-leader-rank{
-  color:#7de2ff;
+  color:#e7f56b;
   font-size:12px;
   font-weight:900;
   letter-spacing:.08em;
@@ -356,7 +364,7 @@
   gap:4px;
 }
 .sim-leader-name{
-  color:#f8fbff;
+  color:#f4f8f4;
   font-size:15px;
   font-weight:900;
   white-space:nowrap;
@@ -368,7 +376,7 @@
   align-items:center;
   gap:8px;
   flex-wrap:wrap;
-  color:#8fa8d8;
+  color:#8f9b94;
   font-size:12px;
 }
 .sim-leader-logo{
@@ -382,13 +390,13 @@
   gap:2px;
 }
 .sim-leader-points strong{
-  color:#f7fbff;
+  color:#f4f8f4;
   font-size:20px;
   line-height:1;
   font-weight:900;
 }
 .sim-leader-points span{
-  color:#9cc0f3;
+  color:#8f9b94;
   font-size:10px;
   line-height:1;
   text-transform:uppercase;
@@ -404,13 +412,13 @@
   top:0;
   z-index:3;
   padding:8px 10px;
-  border-radius:14px;
-  background:rgba(4,12,36,.86);
-  border:1px solid rgba(255,255,255,.06);
+  border-radius:16px;
+  background:rgba(16,21,26,.92);
+  border:1px solid rgba(255,255,255,.05);
   backdrop-filter:blur(10px);
 }
 .sim-stats-toolbar-label{
-  color:#f4f8ff;
+  color:#f4f8f4;
   font-size:12px;
   font-weight:900;
   letter-spacing:.12em;
@@ -426,8 +434,8 @@
   border:none;
   border-radius:999px;
   padding:9px 14px;
-  background:rgba(255,255,255,.05);
-  color:#a7c0e8;
+  background:rgba(255,255,255,.04);
+  color:#a8b2ab;
   font:inherit;
   font-size:12px;
   font-weight:800;
@@ -436,14 +444,14 @@
   transition:background .18s ease,color .18s ease,box-shadow .18s ease,transform .18s ease;
 }
 .sim-stats-sort:hover{
-  background:rgba(255,255,255,.08);
-  color:#f5f9ff;
+  background:rgba(255,255,255,.07);
+  color:#f4f8f4;
   transform:translateY(-1px);
 }
 .sim-stats-sort.is-active{
-  background:linear-gradient(180deg,rgba(96,206,255,.22),rgba(52,126,255,.18));
-  color:#f7fbff;
-  box-shadow:0 0 0 1px rgba(108,208,255,.26);
+  background:linear-gradient(180deg,rgba(118,243,186,.18),rgba(231,245,107,.12));
+  color:#f4f8f4;
+  box-shadow:0 0 0 1px rgba(118,243,186,.16);
 }
 .sim-stats-layout{
   display:grid;
@@ -457,9 +465,9 @@
 }
 .sim-stats-section{
   background:
-    linear-gradient(180deg,rgba(8,18,54,.92),rgba(7,15,39,.82)),
-    linear-gradient(90deg,rgba(109,217,255,.05),transparent 40%);
-  border:1px solid rgba(160,208,255,.1);
+    linear-gradient(180deg,rgba(19,25,31,.96),rgba(12,16,21,.92)),
+    linear-gradient(90deg,rgba(118,243,186,.03),transparent 40%);
+  border:1px solid rgba(255,255,255,.05);
   border-radius:18px;
   padding:14px;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 10px 24px rgba(0,0,0,.16);
@@ -488,11 +496,11 @@
   font-size:11px;
   font-weight:800;
   letter-spacing:.08em;
-  color:#82dcff;
+  color:#97a39c;
   text-transform:uppercase;
 }
 .sim-stats-section-name{
-  color:#f5f9ff;
+  color:#f4f8f4;
   font-size:19px;
   font-weight:800;
 }
@@ -510,27 +518,27 @@
   min-width:46px;
   padding:8px 10px;
   border-radius:12px;
-  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
-  border:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));
+  border:1px solid rgba(255,255,255,.05);
 }
 .sim-stats-summary-chip b,
 .sim-player-stat b{
-  color:#f8fbff;
+  color:#f4f8f4;
   font-size:16px;
   line-height:1;
   font-weight:800;
 }
 .sim-stats-summary-chip small,
 .sim-player-stat small{
-  color:#92bfff;
+  color:#8f9b94;
   font-size:10px;
   line-height:1;
   text-transform:uppercase;
   letter-spacing:.08em;
 }
 .sim-player-stat-accent{
-  background:linear-gradient(180deg,rgba(83,185,255,.22),rgba(69,132,255,.12));
-  border-color:rgba(105,190,255,.24);
+  background:linear-gradient(180deg,rgba(118,243,186,.14),rgba(231,245,107,.10));
+  border-color:rgba(118,243,186,.14);
 }
 .sim-stats-legend{
   display:flex;
@@ -538,7 +546,7 @@
   gap:12px;
   margin-bottom:10px;
   padding:0 4px;
-  color:#85a3d8;
+  color:#78837c;
   font-size:10px;
   font-weight:800;
   letter-spacing:.06em;
@@ -557,7 +565,7 @@
   align-items:center;
   padding:12px 14px;
   border-radius:14px;
-  background:rgba(6,12,30,.62);
+  background:rgba(255,255,255,.025);
   border:1px solid rgba(255,255,255,.05);
   text-align:left;
   cursor:pointer;
@@ -565,22 +573,22 @@
 }
 .sim-player-card:hover{
   transform:translateY(-1px);
-  border-color:rgba(111,212,255,.18);
-  background:rgba(9,17,40,.78);
+  border-color:rgba(118,243,186,.12);
+  background:rgba(255,255,255,.045);
 }
 .sim-player-card.is-selected{
-  border-color:rgba(108,208,255,.28);
+  border-color:rgba(118,243,186,.18);
   background:
-    linear-gradient(180deg,rgba(11,22,58,.92),rgba(8,16,39,.88)),
-    linear-gradient(90deg,rgba(94,206,255,.10),transparent 44%);
-  box-shadow:0 0 0 1px rgba(108,208,255,.12),0 10px 20px rgba(36,97,209,.12);
+    linear-gradient(180deg,rgba(24,34,35,.96),rgba(14,20,22,.94)),
+    linear-gradient(90deg,rgba(118,243,186,.06),transparent 44%);
+  box-shadow:0 0 0 1px rgba(118,243,186,.10),0 10px 20px rgba(0,0,0,.16);
 }
 .sim-player-card.is-top{
-  border-color:rgba(255,214,111,.18);
-  box-shadow:0 0 0 1px rgba(255,214,111,.08),0 8px 20px rgba(255,184,40,.08);
+  border-color:rgba(231,245,107,.14);
+  box-shadow:0 0 0 1px rgba(231,245,107,.06),0 8px 20px rgba(0,0,0,.12);
 }
 .sim-player-card.is-selected.is-top{
-  box-shadow:0 0 0 1px rgba(108,208,255,.14),0 12px 24px rgba(36,97,209,.14);
+  box-shadow:0 0 0 1px rgba(118,243,186,.10),0 12px 24px rgba(0,0,0,.18);
 }
 .sim-player-rank{
   width:28px;
@@ -601,7 +609,7 @@
 .sim-player-name{
   font-size:15px;
   font-weight:800;
-  color:#f2f7ff;
+  color:#f4f8f4;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
@@ -611,7 +619,7 @@
   align-items:center;
   gap:10px;
   flex-wrap:wrap;
-  color:#8fa8d8;
+  color:#8f9b94;
   font-size:12px;
 }
 .sim-player-stats{
@@ -627,12 +635,12 @@
   gap:14px;
   align-self:start;
   padding:18px;
-  border-radius:18px;
+  border-radius:20px;
   background:
-    linear-gradient(180deg,rgba(9,19,55,.96),rgba(7,15,39,.9)),
-    linear-gradient(135deg,rgba(94,206,255,.06),transparent 56%);
-  border:1px solid rgba(160,208,255,.1);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 12px 26px rgba(0,0,0,.18);
+    linear-gradient(180deg,rgba(18,24,29,.98),rgba(12,16,21,.94)),
+    linear-gradient(135deg,rgba(118,243,186,.04),transparent 56%);
+  border:1px solid rgba(255,255,255,.05);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 12px 26px rgba(0,0,0,.18);
   max-height:100%;
   overflow:auto;
 }
@@ -655,22 +663,22 @@
   flex:0 0 auto;
 }
 .sim-player-detail-label{
-  color:#82dcff;
+  color:#97a39c;
   font-size:11px;
   font-weight:900;
   letter-spacing:.1em;
   text-transform:uppercase;
 }
 .sim-player-detail-team-name{
-  color:#f4f8ff;
+  color:#f4f8f4;
   font-size:16px;
   font-weight:800;
 }
 .sim-player-detail-badge{
   padding:8px 10px;
   border-radius:12px;
-  background:rgba(255,255,255,.06);
-  color:#b3ccf4;
+  background:rgba(255,255,255,.05);
+  color:#a8b2ab;
   font-size:12px;
   font-weight:900;
   letter-spacing:.08em;
@@ -681,7 +689,7 @@
   gap:10px;
 }
 .sim-player-detail-name{
-  color:#f9fbff;
+  color:#f4f8f4;
   font-size:26px;
   line-height:1.05;
   font-weight:900;
@@ -690,7 +698,7 @@
   display:flex;
   gap:10px;
   flex-wrap:wrap;
-  color:#91addb;
+  color:#8f9b94;
   font-size:12px;
   font-weight:700;
 }
@@ -704,21 +712,21 @@
   gap:4px;
   padding:12px;
   border-radius:14px;
-  background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.07);
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.05);
 }
 .sim-player-detail-stat--accent{
-  background:linear-gradient(180deg,rgba(83,185,255,.22),rgba(69,132,255,.12));
-  border-color:rgba(105,190,255,.24);
+  background:linear-gradient(180deg,rgba(118,243,186,.14),rgba(231,245,107,.10));
+  border-color:rgba(118,243,186,.14);
 }
 .sim-player-detail-stat strong{
-  color:#f8fbff;
+  color:#f4f8f4;
   font-size:22px;
   line-height:1;
   font-weight:900;
 }
 .sim-player-detail-stat span{
-  color:#91b6ea;
+  color:#8f9b94;
   font-size:11px;
   font-weight:800;
   letter-spacing:.06em;
