@@ -56,8 +56,9 @@ const getNeedAdjustment = (team, position) => {
 };
 
 const getRoleScore = (team, player) => {
+  if (!team || !player) return -3;
   for (let i = 0; i < (team.lines || []).length; i++) {
-    if ((team.lines[i]?.players || []).some((item) => item.id === player.id)) {
+    if ((team.lines[i]?.players || []).some((item) => item?.id === player.id)) {
       return ROLE_SCORE_BY_LINE[i + 1] ?? -2;
     }
   }
