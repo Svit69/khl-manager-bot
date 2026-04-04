@@ -24,19 +24,23 @@ export class ContractService {
   #baseContracts;
   #baseContractIds;
   #releasedPlayerIds;
+  #badOfferCounts;
 
   constructor(contracts) {
     this.#baseContracts = (contracts || []).map(normalizeContract).filter(Boolean);
     this.#baseContractIds = new Set(this.#baseContracts.map((contract) => contract.id));
     this.#contracts = this.#baseContracts.map((contract) => ({ ...contract }));
     this.#releasedPlayerIds = new Set();
+    this.#badOfferCounts = new Map();
   }
 
   importContracts(payload) {
     const savedContracts = Array.isArray(payload) ? payload : payload?.createdContracts || [];
     const releasedPlayerIds = Array.isArray(payload?.releasedPlayerIds) ? payload.releasedPlayerIds : [];
+    const badOfferCounts = payload?.badOfferCounts && typeof payload.badOfferCounts === "object" ? payload.badOfferCounts : {};
     const saved = (savedContracts || []).map(normalizeContract).filter(Boolean);
     this.#releasedPlayerIds = new Set(releasedPlayerIds);
+    this.#badOfferCounts = new Map(Object.entries(badOfferCounts).map(([playerId, count]) => [playerId, Number(count) || 0]).filter(([, count]) => count > 0));
 
     if (!saved.length) {
       this.#contracts = this.#baseContracts.map((contract) => ({ ...contract }));
@@ -68,6 +72,7 @@ export class ContractService {
         .filter((contract) => !this.#baseContractIds.has(contract.id))
         .map((contract) => ({ ...contract })),
       releasedPlayerIds: [...this.#releasedPlayerIds],
+      badOfferCounts: Object.fromEntries(this.#badOfferCounts),
     };
   }
 
@@ -166,7 +171,7 @@ export class ContractService {
       player,
       team,
       offer,
-      context,
+      context: { ...(context || {}), badOfferCount: this.#getBadOfferCount(player.id) },
       lastContract,
       marketSalary: market.salaryRub,
     });
@@ -211,7 +216,12 @@ export class ContractService {
         newContracts.push(nextContract);
         player.affiliation.contractId = nextContract.id;
       }
+      this.#clearBadOfferCount(player.id);
       return { decision: "accept", preview, newContracts };
+    }
+
+    if (this.#isBlatantlyBadOffer(preview)) {
+      this.#registerBadOffer(player.id);
     }
 
     return { decision, preview, counter: this.#buildCounterOffer(preview) };
@@ -245,7 +255,7 @@ export class ContractService {
         player,
         team,
         offer,
-        context: { ...(context || {}), isFreeAgent: true },
+        context: { ...(context || {}), isFreeAgent: true, badOfferCount: this.#getBadOfferCount(player.id) },
         lastContract: null,
         marketSalary: market.salaryRub,
       }),
@@ -279,7 +289,12 @@ export class ContractService {
         this.#releasedPlayerIds.delete(player.id);
         season = formatNextSeason(season);
       }
+      this.#clearBadOfferCount(player.id);
       return { decision: "accept", preview, newContracts };
+    }
+
+    if (this.#isBlatantlyBadOffer(preview)) {
+      this.#registerBadOffer(player.id);
     }
 
     return { decision, preview, counter: this.#buildCounterOffer(preview) };
@@ -385,6 +400,25 @@ export class ContractService {
     }
 
     return { years, salaryRub };
+  }
+
+  #getBadOfferCount(playerId) {
+    return this.#badOfferCounts.get(playerId) || 0;
+  }
+
+  #clearBadOfferCount(playerId) {
+    this.#badOfferCounts.delete(playerId);
+  }
+
+  #registerBadOffer(playerId) {
+    this.#badOfferCounts.set(playerId, this.#getBadOfferCount(playerId) + 1);
+  }
+
+  #isBlatantlyBadOffer(preview) {
+    const salaryRatio = Number(preview?.salaryRatio) || 0;
+    const termMod = Number(preview?.termMod) || 0;
+    const roleScore = Number(preview?.roleScore) || 0;
+    return salaryRatio < 0.75 || (salaryRatio < 0.85 && termMod < 0 && roleScore < -3);
   }
 
   #getNegotiationDecision(preview, player) {
