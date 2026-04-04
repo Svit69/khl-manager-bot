@@ -268,9 +268,23 @@ export class AppController{
         ? this.#state.getFreeAgentSigningPreview(playerId,this.#offerByPlayerId.get(playerId))
         : this.#state.getActiveTeamNegotiationPreview(playerId,this.#offerByPlayerId.get(playerId));
       if(preview){
-        const salaryRub=this.#roundSalaryRub(preview.marketSalary*multiplier);
+        const baseSalary=preview.teamAdjustedDemand||preview.marketSalary;
+        const salaryRub=this.#roundSalaryRub(baseSalary*multiplier);
         const current=this.#offerByPlayerId.get(playerId)||{years:1,salaryRub};
         this.#offerByPlayerId.set(playerId,{...current,salaryRub});
+      }
+      this.#renderScreen();
+      return;
+    }
+    if(action==="set-offer-demand-salary"){
+      const playerId=clickable.dataset.playerId;
+      const preview=this.#activeTab==="freeAgents"
+        ? this.#state.getFreeAgentSigningPreview(playerId,this.#offerByPlayerId.get(playerId))
+        : this.#state.getActiveTeamNegotiationPreview(playerId,this.#offerByPlayerId.get(playerId));
+      if(preview){
+        const demandSalary=preview.teamAdjustedDemand||preview.marketSalary;
+        const current=this.#offerByPlayerId.get(playerId)||{years:1,salaryRub:demandSalary};
+        this.#offerByPlayerId.set(playerId,{...current,salaryRub:this.#roundSalaryRub(demandSalary)});
       }
       this.#renderScreen();
       return;
@@ -295,7 +309,8 @@ export class AppController{
         ? this.#state.getFreeAgentSigningPreview(playerId,this.#offerByPlayerId.get(playerId))
         : this.#state.getActiveTeamNegotiationPreview(playerId,this.#offerByPlayerId.get(playerId));
       if(preview){
-        const current=this.#offerByPlayerId.get(playerId)||{years:1,salaryRub:preview.marketSalary};
+        const baseSalary=preview.teamAdjustedDemand||preview.marketSalary;
+        const current=this.#offerByPlayerId.get(playerId)||{years:1,salaryRub:baseSalary};
         const salaryRub=this.#roundSalaryRub(Math.max(500000,current.salaryRub+Math.round(deltaMillion*1000000)));
         this.#offerByPlayerId.set(playerId,{...current,salaryRub});
       }
