@@ -324,7 +324,13 @@ export class AppController{
         ? this.#state.submitFreeAgentSigning(playerId,offer)
         : this.#state.submitActiveTeamNegotiation(playerId,offer);
       if(result){
-        const label=result.decision==="accept"?"✅ Согласен":(result.decision==="counter"?"🟡 Просит больше":(result.decision==="locked"?"⛔ Контракт уже продлен":"❌ Отказывается"));
+        const label=result.decision==="accept"
+          ?"\u2705 \u0421\u043e\u0433\u043b\u0430\u0441\u0435\u043d"
+          :(result.decision==="counter"
+            ?`\ud83d\udfe1 ${result.counter?.summary||"\u0425\u043e\u0447\u0435\u0442 \u0438\u0437\u043c\u0435\u043d\u0438\u0442\u044c \u0443\u0441\u043b\u043e\u0432\u0438\u044f"}`
+            :(result.decision==="locked"
+              ?"\u26d4 \u041a\u043e\u043d\u0442\u0440\u0430\u043a\u0442 \u0443\u0436\u0435 \u043f\u0440\u043e\u0434\u043b\u0435\u043d"
+              :"\u274c \u041e\u0442\u043a\u0430\u0437\u044b\u0432\u0430\u0435\u0442\u0441\u044f"));
         this.#outcomeByPlayerId.set(playerId,label);
         this.#userStore.saveState(this.#state.exportState());
         if(result.decision==="accept"||result.decision==="locked"){

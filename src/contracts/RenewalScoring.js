@@ -253,40 +253,40 @@ const topPlayerCompetitiveOutlookScore = (player, context, reasons) => {
 
   const teamGamesPlayed = context?.teamGamesPlayed ?? 0;
   if (teamGamesPlayed < 8) {
-    reasons.push({ text: "???-????? ???? ?? ?????? ?????? ?? ?????? ??????? ?? ?????", value: 0 });
+    reasons.push({ text: "Для топ-игрока еще слишком рано оценивать сезонную перспективу", value: 0 });
     return 0;
   }
 
   const rank = context?.teamRank ?? null;
   const teamsCount = Math.max(2, context?.teamsCount || 0);
   if (rank === null) {
-    reasons.push({ text: "???????????? ?????? ??? ?????? ?????? ?? ????? ? ????-???", value: 0 });
+    reasons.push({ text: "Недостаточно данных о турнирном положении команды", value: 0 });
     return 0;
   }
 
   const progressFactor = clamp((teamGamesPlayed - 8) / 18, 0.25, 1);
   const playoffCut = Math.min(8, teamsCount - 1);
   let baseScore = 0;
-  let label = "??????????? ?????? ???????? ??????????";
+  let label = "Топ-игрок пока нейтрален к перспективам сезона";
 
-  if (rank == 1) {
+  if (rank === 1) {
     baseScore = 8;
-    label = "??????? ???????? ???????? ????????? ??????";
+    label = "Команда борется за лидерство и это важно для топ-игрока";
   } else if (rank <= Math.min(2, teamsCount)) {
     baseScore = 6;
-    label = "??????? ?????? ? ???? ??????? ????????????";
+    label = "Команда идет среди фаворитов и выглядит конкурентно";
   } else if (rank <= Math.min(4, teamsCount)) {
     baseScore = 4;
-    label = "??????? ? ?????? ??????? ???????????? ?? ????-???";
+    label = "Команда в хорошей позиции для борьбы за плей-офф";
   } else if (rank <= playoffCut) {
     baseScore = 1;
-    label = "????-??? ????????, ?? ????????? ????? ??????????";
-  } else if (rank == playoffCut + 1) {
+    label = "Плей-офф реален, но запас прочности ограничен";
+  } else if (rank === playoffCut + 1) {
     baseScore = -4;
-    label = "??????? ???? ??? ???? ????-???";
+    label = "Команда рискует остаться вне плей-офф";
   } else {
     baseScore = -7;
-    label = "???????? ??????????? ??? ???-?????? ???????? ?????";
+    label = "Сезонная перспектива команды слабо убеждает топ-игрока";
   }
 
   const score = Math.round(baseScore * progressFactor);
@@ -377,8 +377,75 @@ const repeatedBadOfferScore = (context, reasons) => {
   if (badOfferCount <= 0) return 0;
 
   const penalty = -Math.min(9, badOfferCount * 3);
-  reasons.push({ text: `????? ?????????? ?????? ??????? ????????? ??????? (${badOfferCount})`, value: penalty });
+  reasons.push({ text: `Серия откровенно плохих офферов снижает доверие игрока (${badOfferCount})`, value: penalty });
   return penalty;
+};
+
+const getPreferredYears = (termPreference) => {
+  if (termPreference === "short") return 2;
+  if (termPreference === "long") return 4;
+  return 3;
+};
+
+const offerMomentumScore = (offer, context, teamAdjustedDemand, termPreference, reasons) => {
+  const lastOffer = context?.lastOffer;
+  if (!lastOffer) return 0;
+
+  let score = 0;
+  const previousRatio = roundToTenth((Number(lastOffer.salaryRub) || 0) / Math.max(1, teamAdjustedDemand));
+  const currentRatio = roundToTenth((Number(offer.salaryRub) || 0) / Math.max(1, teamAdjustedDemand));
+  const ratioDelta = currentRatio - previousRatio;
+  const preferredYears = getPreferredYears(termPreference);
+  const previousTermDistance = Math.abs((Number(lastOffer.years) || preferredYears) - preferredYears);
+  const currentTermDistance = Math.abs((Number(offer.years) || preferredYears) - preferredYears);
+
+  if (ratioDelta >= 0.08) {
+    score += 4;
+    reasons.push({ text: "Новый оффер заметно лучше предыдущего по деньгам", value: 4 });
+  } else if (ratioDelta >= 0.03) {
+    score += 2;
+    reasons.push({ text: "Новый оффер стал чуть лучше по зарплате", value: 2 });
+  } else if (ratioDelta <= -0.08) {
+    score -= 5;
+    reasons.push({ text: "Новый оффер хуже предыдущего по деньгам", value: -5 });
+  } else if (ratioDelta <= -0.03) {
+    score -= 3;
+    reasons.push({ text: "Клуб ухудшил прошлое предложение", value: -3 });
+  } else if (Math.abs(ratioDelta) < 0.01 && currentRatio < 0.95) {
+    score -= 2;
+    reasons.push({ text: "Клуб повторяет почти тот же слабый оффер", value: -2 });
+  }
+
+  if (currentTermDistance < previousTermDistance) {
+    score += 2;
+    reasons.push({ text: "Срок контракта стал ближе к ожиданию игрока", value: 2 });
+  } else if (currentTermDistance > previousTermDistance) {
+    score -= 2;
+    reasons.push({ text: "Срок контракта стал дальше от ожидания игрока", value: -2 });
+  }
+
+  return clamp(score, -7, 6);
+};
+
+const seasonTimingScore = ({ context, years, salaryRatio, ufaStatus, isFreeAgent }, reasons) => {
+  const teamGamesPlayed = Number(context?.teamGamesPlayed) || 0;
+  if (teamGamesPlayed < 10) return 0;
+
+  const progress = clamp((teamGamesPlayed - 10) / 24, 0, 1);
+  let score = 0;
+
+  if (salaryRatio >= 1 && years >= 2) {
+    score += Math.round(interpolate(progress, 0, 1, 1, 3));
+    reasons.push({ text: "По ходу сезона стабильный оффер выглядит убедительнее", value: Math.round(interpolate(progress, 0, 1, 1, 3)) });
+  } else if (!isFreeAgent && ufaStatus === "NSA" && salaryRatio < 0.95 && years <= 1) {
+    score -= Math.round(interpolate(progress, 0, 1, 1, 3));
+    reasons.push({ text: "Ближе к концу сезона короткий и слабый оффер выглядит рискованно", value: -Math.round(interpolate(progress, 0, 1, 1, 3)) });
+  } else if (isFreeAgent && salaryRatio < 0.95) {
+    score -= Math.round(interpolate(progress, 0, 1, 0, 2));
+    if (score < 0) reasons.push({ text: "Свободный агент ближе к сезону осторожнее смотрит на слабый оффер", value: score });
+  }
+
+  return clamp(score, -3, 3);
 };
 
 const ageMotivationScore = (age, reasons) => {
@@ -600,6 +667,15 @@ export const evaluateRenewalWillingness = ({
   willingness += termMod;
   reasons.push({ text: `Срок ${years} г. • Предпочтение: ${termPreferenceLabel(termPreference)}`, value: termMod });
 
+  const momentumScore = offerMomentumScore({ years, salaryRub: offerSalary }, context, teamAdjustedDemand, termPreference, reasons);
+  willingness += momentumScore;
+
+  const seasonWindowScore = seasonTimingScore(
+    { context, years, salaryRatio, ufaStatus, isFreeAgent: Boolean(context?.isFreeAgent) },
+    reasons,
+  );
+  willingness += seasonWindowScore;
+
   if (ufaStatus === "OSA") willingness = Math.max(willingness, 30);
   willingness = clamp(Math.round(willingness), 0, 100);
 
@@ -620,6 +696,8 @@ export const evaluateRenewalWillingness = ({
     salaryScore,
     salaryRatio,
     badOfferPenalty,
+    momentumScore,
+    seasonWindowScore,
     projectedRole,
   };
 };

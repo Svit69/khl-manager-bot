@@ -25,6 +25,7 @@ export class ContractService {
   #baseContractIds;
   #releasedPlayerIds;
   #badOfferCounts;
+  #lastOffers;
 
   constructor(contracts) {
     this.#baseContracts = (contracts || []).map(normalizeContract).filter(Boolean);
@@ -32,15 +33,27 @@ export class ContractService {
     this.#contracts = this.#baseContracts.map((contract) => ({ ...contract }));
     this.#releasedPlayerIds = new Set();
     this.#badOfferCounts = new Map();
+    this.#lastOffers = new Map();
   }
 
   importContracts(payload) {
     const savedContracts = Array.isArray(payload) ? payload : payload?.createdContracts || [];
     const releasedPlayerIds = Array.isArray(payload?.releasedPlayerIds) ? payload.releasedPlayerIds : [];
     const badOfferCounts = payload?.badOfferCounts && typeof payload.badOfferCounts === "object" ? payload.badOfferCounts : {};
+    const lastOffers = payload?.lastOffers && typeof payload.lastOffers === "object" ? payload.lastOffers : {};
     const saved = (savedContracts || []).map(normalizeContract).filter(Boolean);
     this.#releasedPlayerIds = new Set(releasedPlayerIds);
     this.#badOfferCounts = new Map(Object.entries(badOfferCounts).map(([playerId, count]) => [playerId, Number(count) || 0]).filter(([, count]) => count > 0));
+    this.#lastOffers = new Map(
+      Object.entries(lastOffers)
+        .map(([playerId, offer]) => [
+          playerId,
+          offer && typeof offer === "object"
+            ? { years: clamp(Number(offer.years) || 1, 1, 4), salaryRub: roundSalaryRub(offer.salaryRub) }
+            : null,
+        ])
+        .filter(([, offer]) => Boolean(offer)),
+    );
 
     if (!saved.length) {
       this.#contracts = this.#baseContracts.map((contract) => ({ ...contract }));
@@ -73,6 +86,7 @@ export class ContractService {
         .map((contract) => ({ ...contract })),
       releasedPlayerIds: [...this.#releasedPlayerIds],
       badOfferCounts: Object.fromEntries(this.#badOfferCounts),
+      lastOffers: Object.fromEntries(this.#lastOffers),
     };
   }
 
@@ -171,7 +185,7 @@ export class ContractService {
       player,
       team,
       offer,
-      context: { ...(context || {}), badOfferCount: this.#getBadOfferCount(player.id) },
+      context: { ...(context || {}), badOfferCount: this.#getBadOfferCount(player.id), lastOffer: this.#getLastOffer(player.id) },
       lastContract,
       marketSalary: market.salaryRub,
     });
@@ -217,12 +231,14 @@ export class ContractService {
         player.affiliation.contractId = nextContract.id;
       }
       this.#clearBadOfferCount(player.id);
+      this.#clearLastOffer(player.id);
       return { decision: "accept", preview, newContracts };
     }
 
     if (this.#isBlatantlyBadOffer(preview)) {
       this.#registerBadOffer(player.id);
     }
+    this.#rememberLastOffer(player.id, preview.offer);
 
     return { decision, preview, counter: this.#buildCounterOffer(preview) };
   }
@@ -255,7 +271,7 @@ export class ContractService {
         player,
         team,
         offer,
-        context: { ...(context || {}), isFreeAgent: true, badOfferCount: this.#getBadOfferCount(player.id) },
+        context: { ...(context || {}), isFreeAgent: true, badOfferCount: this.#getBadOfferCount(player.id), lastOffer: this.#getLastOffer(player.id) },
         lastContract: null,
         marketSalary: market.salaryRub,
       }),
@@ -290,12 +306,14 @@ export class ContractService {
         season = formatNextSeason(season);
       }
       this.#clearBadOfferCount(player.id);
+      this.#clearLastOffer(player.id);
       return { decision: "accept", preview, newContracts };
     }
 
     if (this.#isBlatantlyBadOffer(preview)) {
       this.#registerBadOffer(player.id);
     }
+    this.#rememberLastOffer(player.id, preview.offer);
 
     return { decision, preview, counter: this.#buildCounterOffer(preview) };
   }
@@ -338,29 +356,31 @@ export class ContractService {
     const maxOvr = (player.ovr || 0) + 1;
     const marketGroup = getPositionMarketGroup(player.identity?.primaryPosition);
 
-    const peerSalaries = allPlayers
-      .filter(
-        (candidate) =>
-          candidate?.id !== player.id &&
-          Math.abs((candidate?.ovr || 0) - (player.ovr || 0)) <= 1 &&
-          getPositionMarketGroup(candidate?.identity?.primaryPosition) === marketGroup,
-      )
+    const peers = allPlayers.filter(
+      (candidate) =>
+        candidate?.id !== player.id &&
+        Math.abs((candidate?.ovr || 0) - (player.ovr || 0)) <= 1 &&
+        getPositionMarketGroup(candidate?.identity?.primaryPosition) === marketGroup,
+    );
+    const peerSalaries = peers
       .map((candidate) => this.#getReferenceSalary(candidate.id))
       .filter((salary) => Number.isFinite(salary) && salary > 0);
+    const marketModifier = this.#getSeasonMarketModifier(player, peers, context);
 
     if (peerSalaries.length) {
       const averageSalary = peerSalaries.reduce((total, value) => total + value, 0) / peerSalaries.length;
       return {
-        salaryRub: roundSalaryRub(Math.max(1000000, Math.round(averageSalary / 100000) * 100000)),
+        salaryRub: roundSalaryRub(Math.max(1000000, averageSalary * marketModifier)),
         sampleSize: peerSalaries.length,
-        rangeLabel: `${this.#getMarketGroupLabel(marketGroup)} • OVR ${minOvr}-${maxOvr}`,
+        rangeLabel: `${this.#getMarketGroupLabel(marketGroup)} - OVR ${minOvr}-${maxOvr}`,
       };
     }
 
+    const fallbackBase = lastContract?.salaryRub || Math.max(1000000, Math.round((player.ovr || 0) * 1000000));
     return {
-      salaryRub: roundSalaryRub(lastContract?.salaryRub || Math.max(1000000, Math.round((player.ovr || 0) * 1000000))),
+      salaryRub: roundSalaryRub(fallbackBase * marketModifier),
       sampleSize: 0,
-      rangeLabel: `${this.#getMarketGroupLabel(marketGroup)} • OVR ${minOvr}-${maxOvr}`,
+      rangeLabel: `${this.#getMarketGroupLabel(marketGroup)} - OVR ${minOvr}-${maxOvr}`,
     };
   }
 
@@ -399,7 +419,17 @@ export class ContractService {
       salaryRub = roundSalaryRub(Math.max(preview.offer.salaryRub, preview.teamAdjustedDemand));
     }
 
-    return { years, salaryRub };
+    if (wantsMoreMoney && wantsDifferentTerm) {
+      return { years, salaryRub, style: "both", summary: "Игрок хочет изменить и срок, и зарплату" };
+    }
+    if (wantsMoreMoney) {
+      return { years, salaryRub, style: "salary", summary: "Игрок готов обсуждать контракт, но просит больше денег" };
+    }
+    if (wantsDifferentTerm) {
+      return { years, salaryRub, style: "term", summary: "Игроку не нравится срок и он просит другую структуру контракта" };
+    }
+
+    return { years, salaryRub, style: "close", summary: "Игрок близок к согласию, но хочет чуть лучшее предложение" };
   }
 
   #getBadOfferCount(playerId) {
@@ -412,6 +442,69 @@ export class ContractService {
 
   #registerBadOffer(playerId) {
     this.#badOfferCounts.set(playerId, this.#getBadOfferCount(playerId) + 1);
+  }
+
+  #getLastOffer(playerId) {
+    return this.#lastOffers.get(playerId) || null;
+  }
+
+  #clearLastOffer(playerId) {
+    this.#lastOffers.delete(playerId);
+  }
+
+  #rememberLastOffer(playerId, offer) {
+    if (!playerId || !offer) return;
+    this.#lastOffers.set(playerId, {
+      years: clamp(Number(offer.years) || 1, 1, 4),
+      salaryRub: roundSalaryRub(offer.salaryRub),
+    });
+  }
+
+  #getSeasonMarketModifier(player, peers, context) {
+    const gamesPlayed = Number(player?.seasonStats?.games) || 0;
+    const teamGamesPlayed = Number(context?.teamGamesPlayed) || 0;
+    if (gamesPlayed < 5 || teamGamesPlayed < 5 || !peers.length) {
+      return 1;
+    }
+
+    const progressFactor = clamp(teamGamesPlayed / 40, 0.15, 1);
+    const comparablePeers = peers.filter((candidate) => (candidate?.seasonStats?.games || 0) >= 5);
+    if (!comparablePeers.length) {
+      return 1;
+    }
+
+    const average = (values) => (values.length ? values.reduce((total, value) => total + value, 0) / values.length : 0);
+    const playerPointsPerGame = this.#getPointsPerGame(player);
+    const playerShotsPerGame = this.#getShotsPerGame(player);
+    const playerIceMinutes = this.#getIceMinutesPerGame(player);
+    const ppgGap = playerPointsPerGame - average(comparablePeers.map((candidate) => this.#getPointsPerGame(candidate)));
+    const shotsGap = playerShotsPerGame - average(comparablePeers.map((candidate) => this.#getShotsPerGame(candidate)));
+    const iceGap = playerIceMinutes - average(comparablePeers.map((candidate) => this.#getIceMinutesPerGame(candidate)));
+
+    let premium = 0;
+    premium += clamp(ppgGap * 0.2, -0.08, 0.12);
+    premium += clamp(shotsGap * 0.03, -0.03, 0.04);
+    premium += clamp(iceGap * 0.01, -0.02, 0.03);
+
+    return 1 + clamp(premium * progressFactor, -0.1, 0.15);
+  }
+
+  #getPointsPerGame(player) {
+    const games = Math.max(1, Number(player?.seasonStats?.games) || 0);
+    const points =
+      Number(player?.seasonStats?.points) ||
+      (Number(player?.seasonStats?.goals) || 0) + (Number(player?.seasonStats?.assists) || 0);
+    return points / games;
+  }
+
+  #getShotsPerGame(player) {
+    const games = Math.max(1, Number(player?.seasonStats?.games) || 0);
+    return (Number(player?.seasonStats?.shots) || 0) / games;
+  }
+
+  #getIceMinutesPerGame(player) {
+    const games = Math.max(1, Number(player?.seasonStats?.games) || 0);
+    return ((Number(player?.seasonStats?.totalIceTime) || 0) / 60) / games;
   }
 
   #isBlatantlyBadOffer(preview) {
