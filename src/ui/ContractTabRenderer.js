@@ -38,7 +38,7 @@ export class ContractTabRenderer {
       ? `Рынок: ${this.#formatMillions(market)} млн • ${preview.marketSampleSize} игроков • ${preview.marketRangeLabel}`
       : `Рынок: ${this.#formatMillions(market)} млн • недостаточно игроков в диапазоне ${preview.marketRangeLabel}`;
     const demandLine = `Ожидание от клуба: ${this.#formatMillions(teamAdjustedDemand)} млн`;
-    const reaction = `Ожидаемая реакция: ${preview.state.emoji} ${preview.state.label} (~${preview.state.chance}%)`;
+    const reaction = `Вероятность согласия: ${preview.state.emoji} ${preview.state.label} (~${preview.state.chance}%)`;
     const chance = Math.max(0, Math.min(100, Number(preview.state.chance) || 0));
     const outcome = negotiation.outcome ? `<div class="muted">Ответ: ${negotiation.outcome}</div>` : "";
     const lockNotice = preview.isRenewalLocked ? `<div class="muted">${preview.renewalLockReason}</div>` : "";

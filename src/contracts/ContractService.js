@@ -1,7 +1,7 @@
 import { generateUuid } from "../utils/uuid.js";
 import { ContractType, contractTypeLabel } from "./ContractType.js";
 import { createContractNormalizer } from "./ContractNormalization.js";
-import { evaluateRenewalWillingness } from "./RenewalScoring.js";
+import { evaluateRenewalWillingness, getAcceptanceChance } from "./RenewalScoring.js";
 import { calculateAge, clamp, formatContractEndDate, formatNextSeason, parseSeasonEnd } from "./SeasonUtils.js";
 
 const { normalizeType, normalizeContract } = createContractNormalizer(ContractType);
@@ -188,11 +188,7 @@ export class ContractService {
       return { decision: "locked", preview };
     }
 
-    const { willingness, ufaStatus } = preview;
-    let decision = "counter";
-    if (ufaStatus === "NSA" && willingness < 50) decision = "reject";
-    else if (willingness >= 75) decision = "accept";
-    if (ufaStatus === "OSA" && decision === "reject") decision = "counter";
+    const decision = this.#getNegotiationDecision(preview, player);
 
     if (decision === "accept") {
       const contracts = this.getContractsForPlayer(player.id);
@@ -262,11 +258,7 @@ export class ContractService {
 
   submitFreeAgentOffer(team, player, offer, context = null) {
     const preview = this.getFreeAgentPreview(team, player, offer, context);
-    const { willingness, ufaStatus } = preview;
-    let decision = "counter";
-    if (ufaStatus === "NSA" && willingness < 50) decision = "reject";
-    else if (willingness >= 75) decision = "accept";
-    if (ufaStatus === "OSA" && decision === "reject") decision = "counter";
+    const decision = this.#getNegotiationDecision(preview, player);
 
     if (decision === "accept") {
       let season = this.getSigningStartSeason();
@@ -393,5 +385,42 @@ export class ContractService {
     }
 
     return { years, salaryRub };
+  }
+
+  #getNegotiationDecision(preview, player) {
+    const willingness = Number(preview?.willingness) || 0;
+    const chance = getAcceptanceChance(willingness);
+    const isStar = (player?.ovr || 0) >= 82;
+    const isElite = (player?.ovr || 0) >= 84;
+    const salaryRatio = Number(preview?.salaryRatio) || 0;
+    const roleScore = Number(preview?.roleScore) || 0;
+    const termMod = Number(preview?.termMod) || 0;
+    const ufaStatus = preview?.ufaStatus;
+
+    if (ufaStatus === "NSA" && willingness < 45) {
+      return "reject";
+    }
+    if (willingness < 25) {
+      return ufaStatus === "OSA" ? "counter" : "reject";
+    }
+    if (isStar && salaryRatio < 0.9) {
+      return willingness >= 35 ? "counter" : ufaStatus === "OSA" ? "counter" : "reject";
+    }
+    if (isElite && termMod < 0 && roleScore < 0) {
+      return "counter";
+    }
+
+    const acceptRoll = Math.random() * 100 < chance;
+    if (acceptRoll && willingness >= 35) {
+      return "accept";
+    }
+
+    if (willingness < 35) {
+      return ufaStatus === "OSA" ? "counter" : "reject";
+    }
+    if (willingness < 60) {
+      return "counter";
+    }
+    return "counter";
   }
 }

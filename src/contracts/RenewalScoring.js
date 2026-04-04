@@ -461,14 +461,25 @@ export const estimateMarketSalary = (player, lastContract, marketSalaryOverride 
   return roundSalaryRub(Math.max(1000000, Math.round((player.ovr || 0) * 1000000)));
 };
 
+export const getAcceptanceChance = (willingness) => {
+  const value = clamp(Number(willingness) || 0, 0, 100);
+  if (value <= 24) return Math.round(interpolate(value, 0, 24, 0, 4));
+  if (value <= 44) return Math.round(interpolate(value, 25, 44, 5, 15));
+  if (value <= 59) return Math.round(interpolate(value, 45, 59, 16, 35));
+  if (value <= 74) return Math.round(interpolate(value, 60, 74, 36, 65));
+  if (value <= 89) return Math.round(interpolate(value, 75, 89, 66, 88));
+  return Math.round(interpolate(value, 90, 100, 89, 96));
+};
+
 export const willingnessState = (willingness) => {
+  const chance = getAcceptanceChance(willingness);
   if (willingness >= 75) {
-    return { label: "Хочет продлевать", emoji: "🟢", chance: clamp(Math.round(willingness * 0.9), 55, 95) };
+    return { label: "Хочет продлевать", emoji: "🟢", chance };
   }
   if (willingness >= 45) {
-    return { label: "Сомневается", emoji: "🟡", chance: clamp(Math.round(willingness * 0.7), 25, 85) };
+    return { label: "Сомневается", emoji: "🟡", chance };
   }
-  return { label: "Не хочет", emoji: "🔴", chance: clamp(Math.round(willingness * 0.5), 5, 60) };
+  return { label: "Не хочет", emoji: "🔴", chance };
 };
 
 export const evaluateRenewalWillingness = ({
