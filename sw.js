@@ -1,4 +1,4 @@
-const CACHE_NAME="khl-manager-v77";
+const CACHE_NAME="khl-manager-v78";
 const ASSETS=[
   "./",
   "./index.html",
@@ -257,6 +257,34 @@ const ASSETS=[
   "./player-photo/belousov.png",
   "./player-photo/fateyev.png",
   "./player-photo/shumakov.png",
+  "./khl-logo/torpedo.png",
+  "./player-photo/alexandrov.png",
+  "./player-photo/atanasov.png",
+  "./player-photo/belevich.png",
+  "./player-photo/boikov.png",
+  "./player-photo/vinogradov.png",
+  "./player-photo/garayev.png",
+  "./player-photo/geraskin.png",
+  "./player-photo/goncharuk.png",
+  "./player-photo/zhuravlyov.png",
+  "./player-photo/konyushkov.png",
+  "./player-photo/kruchinin.png",
+  "./player-photo/letunov.png",
+  "./player-photo/mukhanov.png",
+  "./player-photo/nardella.png",
+  "./player-photo/naumenkov.png",
+  "./player-photo/prince.png",
+  "./player-photo/svishchyov.png",
+  "./player-photo/sizov.png",
+  "./player-photo/silayev.png",
+  "./player-photo/sokolov.png",
+  "./player-photo/vladimir-tkachyov.png",
+  "./player-photo/firstov.png",
+  "./player-photo/shavin.png",
+  "./player-photo/shevchenko.png",
+  "./player-photo/yaremchuk.png",
+  "./player-photo/viktor-fyodorov.png",
+  "./player-photo/pugachyov.png",
   "./player-photo/placeholder.png"
 ];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS)))});
