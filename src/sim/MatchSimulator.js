@@ -10,6 +10,11 @@ const SHOT_BIN_SECONDS=10;
 const BASE_SKATERS=5;
 const FORWARD_USAGE_WEIGHTS=[0.37,0.29,0.21,0.13];
 const DEFENSE_USAGE_WEIGHTS=[0.41,0.33,0.18,0.08];
+const LATE_GAME_PUSH_SECONDS=5*60;
+const FORWARD_SHIFT_BINS=[5,5,4,4];
+const DEFENSE_SHIFT_BINS=[6,5,5,4];
+const PP_UNIT_SHARE=0.68;
+const PK_UNIT_SHARE=0.62;
 
 const rand=(min,max)=>min+Math.random()*(max-min);
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
@@ -29,8 +34,12 @@ export class MatchSimulator{
     const homeXgReg=baseHomeXg+awayPenalties.length*0.16;
     const awayXgReg=baseAwayXg+homePenalties.length*0.16;
 
-    let homeGoals=this.#buildGoalEvents(homeContext,awayContext,poissonSample(clamp(homeXgReg,0.55,6.1)),awayPenalties,homePenalties,false);
-    let awayGoals=this.#buildGoalEvents(awayContext,homeContext,poissonSample(clamp(awayXgReg,0.55,6.1)),homePenalties,awayPenalties,false);
+    const homeGoalResult=this.#buildGoalEvents(homeContext,awayContext,poissonSample(clamp(homeXgReg,0.55,6.1)),awayPenalties,homePenalties,false);
+    const awayGoalResult=this.#buildGoalEvents(awayContext,homeContext,poissonSample(clamp(awayXgReg,0.55,6.1)),homePenalties,awayPenalties,false);
+    let homeGoals=homeGoalResult.events;
+    let awayGoals=awayGoalResult.events;
+    const releasedHomePenaltyIds=awayGoalResult.releasedPenaltyIds;
+    const releasedAwayPenaltyIds=homeGoalResult.releasedPenaltyIds;
 
     let wentToOvertime=false;
     if(homeGoals.length===awayGoals.length){
@@ -51,8 +60,8 @@ export class MatchSimulator{
     const homeShots=this.#estimateShots(homeFinalGoals,homeXgReg,wentToOvertime);
     const awayShots=this.#estimateShots(awayFinalGoals,awayXgReg,wentToOvertime);
 
-    this.#applyIceTimeStats(homeContext,homePlayerStats,durationSeconds);
-    this.#applyIceTimeStats(awayContext,awayPlayerStats,durationSeconds);
+    this.#applyIceTimeStats(homeContext,homePlayerStats,durationSeconds,homePenalties,awayPenalties,releasedHomePenaltyIds,releasedAwayPenaltyIds);
+    this.#applyIceTimeStats(awayContext,awayPlayerStats,durationSeconds,awayPenalties,homePenalties,releasedAwayPenaltyIds,releasedHomePenaltyIds);
     this.#applyGoalEventStats(homeGoals,homePlayerStats);
     this.#applyGoalEventStats(awayGoals,awayPlayerStats);
     this.#applyPenaltyEventStats(homePenalties,homePlayerStats);
@@ -118,6 +127,8 @@ export class MatchSimulator{
     const goalieProfile=goalie?this.#buildMatchProfile(goalie,"ВРТ"):null;
     const attackRating=this.#weightedLineRating(lines,"offenseRating");
     const defenseRating=this.#weightedLineRating(lines,"defenseRating");
+    const playerUsageFactors=this.#buildPlayerUsageFactors(lines);
+    const specialTeams=this.#buildSpecialTeams(lines);
     return {
       team,
       lines,
@@ -128,7 +139,10 @@ export class MatchSimulator{
       teamRating:(attackRating*0.55)+(defenseRating*0.45),
       activePlayers:[...new Set(lines.flatMap(line=>line.players).filter(Boolean))],
       activeProfiles:lines.flatMap(line=>line.playerProfiles),
-      iceTimeByLine:this.#buildIceTimeByLine(lines)
+      iceTimeByLine:this.#buildIceTimeByLine(lines),
+      playerUsageFactors,
+      specialTeams,
+      shiftSchedule:this.#buildShiftSchedule(lines)
     };
   }
 
@@ -144,6 +158,114 @@ export class MatchSimulator{
       forwardMinutesApprox:Math.round((forwardShares[index]||0)*60*10)/10,
       defenseMinutesApprox:Math.round((defenseShares[index]||0)*60*10)/10
     }));
+  }
+
+  #buildShiftSchedule(lines){
+    return {
+      regulation:{
+        forwards:this.#buildGroupSchedule(lines,line=>(line.forwards||[]).length,FORWARD_USAGE_WEIGHTS,FORWARD_SHIFT_BINS,Math.ceil(REGULATION_SECONDS/SHOT_BIN_SECONDS)),
+        defenders:this.#buildGroupSchedule(lines,line=>(line.defenders||[]).length,DEFENSE_USAGE_WEIGHTS,DEFENSE_SHIFT_BINS,Math.ceil(REGULATION_SECONDS/SHOT_BIN_SECONDS))
+      },
+      overtime:{
+        forwards:this.#buildOvertimeSchedule(lines,"forwards",Math.ceil(OT_SECONDS/SHOT_BIN_SECONDS)),
+        defenders:this.#buildOvertimeSchedule(lines,"defenders",Math.ceil(OT_SECONDS/SHOT_BIN_SECONDS))
+      }
+    };
+  }
+
+  #buildGroupSchedule(lines,presenceSelector,baseWeights,shiftBins,binCount){
+    const activeIndexes=lines
+      .map((line,index)=>presenceSelector(line)?index:-1)
+      .filter(index=>index!==-1);
+    if(!activeIndexes.length){
+      return Array.from({length:binCount},()=>null);
+    }
+    const shares=this.#buildUsageShares(lines,presenceSelector,baseWeights,0.025);
+    const targetBins=shares.map(share=>share*binCount);
+    const assignedBins=new Array(lines.length).fill(0);
+    const schedule=[];
+    let lastIndex=null;
+    while(schedule.length<binCount){
+      const candidates=activeIndexes.map(index=>{
+        const remaining=Math.max(0.25,targetBins[index]-assignedBins[index]);
+        const repeatPenalty=lastIndex===index?0.54:1;
+        return Math.max(0.05,remaining*repeatPenalty);
+      });
+      const chosenIndex=this.#pickWeighted(activeIndexes,candidates);
+      const chosen=chosenIndex??activeIndexes[0];
+      const baseSpan=shiftBins[chosen]??shiftBins[shiftBins.length-1]??4;
+      const remainingTarget=Math.max(1,targetBins[chosen]-assignedBins[chosen]);
+      const span=clamp(Math.round(baseSpan*rand(0.88,1.18)),1,Math.max(1,Math.round(remainingTarget)+1));
+      const actualSpan=Math.min(span,binCount-schedule.length);
+      for(let i=0;i<actualSpan;i++){
+        schedule.push(chosen);
+      }
+      assignedBins[chosen]+=actualSpan;
+      lastIndex=chosen;
+    }
+    return schedule;
+  }
+
+  #buildOvertimeSchedule(lines,groupField,binCount){
+    const candidates=lines
+      .map((line,index)=>({
+        index,
+        line,
+        score:(groupField==="forwards")
+          ? (line.offenseRating*0.72+line.defenseRating*0.28)
+          : (line.defenseRating*0.6+line.offenseRating*0.4)
+      }))
+      .filter(item=>(item.line[groupField]||[]).length>0)
+      .sort((a,b)=>b.score-a.score)
+      .slice(0,2);
+    if(!candidates.length){
+      return Array.from({length:binCount},()=>null);
+    }
+    const weights=candidates.map((item,index)=>(index===0?0.65:0.35));
+    return Array.from({length:binCount},()=>this.#pickWeighted(candidates.map(item=>item.index),weights));
+  }
+
+  #buildPlayerUsageFactors(lines){
+    const factors=new Map();
+    (lines||[]).forEach((line,lineIndex)=>{
+      const lineAverage=this.#averageWeighted(line.playerProfiles||[],profile=>profile.effectiveOvr||profile.adjustedOvr||profile.player.ovr||70)||70;
+      (line.playerProfiles||[]).forEach(profile=>{
+        const relative=(profile.effectiveOvr-lineAverage)/90;
+        const formBoost=(((profile.player.condition?.form??profile.player.form) || 1)-1)*0.9;
+        const fatiguePenalty=((profile.player.condition?.fatigueScore??profile.player.fatigueScore) || 0)*0.0014;
+        const lineupTrust=Math.max(0,0.025-(lineIndex*0.004));
+        factors.set(profile.player.id,clamp(1+relative+formBoost-fatiguePenalty+lineupTrust,0.9,1.12));
+      });
+    });
+    return factors;
+  }
+
+  #buildSpecialTeams(lines){
+    const allProfiles=(lines||[]).flatMap(line=>line.playerProfiles||[]);
+    const forwards=allProfiles.filter(profile=>["ЛНП","ЦТР","ПНП"].includes(profile.player.identity?.primaryPosition));
+    const defenders=allProfiles.filter(profile=>profile.player.identity?.primaryPosition==="ЗАЩ");
+    const offensiveScore=profile=>{
+      const attrs=profile.player.attributes?.attributesJson||{};
+      return profile.effectiveOvr*0.45+(attrs.shot||0)*0.23+(attrs.skill||0)*0.22+(attrs.speed||0)*0.1;
+    };
+    const defensiveScore=profile=>{
+      const attrs=profile.player.attributes?.attributesJson||{};
+      return profile.effectiveOvr*0.42+(attrs.defense||0)*0.33+(attrs.physical||0)*0.17+(attrs.speed||0)*0.08;
+    };
+    const ppForwards=[...forwards].sort((a,b)=>offensiveScore(b)-offensiveScore(a));
+    const ppDefenders=[...defenders].sort((a,b)=>offensiveScore(b)-offensiveScore(a));
+    const pkForwards=[...forwards].sort((a,b)=>defensiveScore(b)-defensiveScore(a));
+    const pkDefenders=[...defenders].sort((a,b)=>defensiveScore(b)-defensiveScore(a));
+    return {
+      pp:{
+        forwardUnits:[ppForwards.slice(0,3),ppForwards.slice(3,6)].filter(unit=>unit.length),
+        defenseUnits:[ppDefenders.slice(0,2),ppDefenders.slice(2,4)].filter(unit=>unit.length)
+      },
+      pk:{
+        forwardUnits:[pkForwards.slice(0,2),pkForwards.slice(2,4)].filter(unit=>unit.length),
+        defenseUnits:[pkDefenders.slice(0,2),pkDefenders.slice(2,4)].filter(unit=>unit.length)
+      }
+    };
   }
 
   #estimateExpectedGoals(offense,defense,isHome){
@@ -192,9 +314,8 @@ export class MatchSimulator{
       const ownSkaters=this.#getSkatersOnIce(ownActivePenalties.length);
       const opponentSkaters=this.#getSkatersOnIce(opponentActivePenalties.length);
       const blockedPlayerIds=new Set(ownActivePenalties.map(penalty=>penalty.player?.id).filter(Boolean));
-
-      const line=this.#pickScoringLine(teamContext.lines,teamContext.iceTimeByLine,opponentContext,isOvertime);
-      const play=this.#pickScoringPlay(line,isOvertime,blockedPlayerIds);
+      const state=this.#getOnIceState(teamContext,gameSecond,ownPenalties,opponentPenalties,new Set(),releasedPenaltyIds,isOvertime,true);
+      const play=this.#pickScoringPlay(state.profiles,isOvertime,blockedPlayerIds,state.mode);
       if(!play.scorer || blockedPlayerIds.has(play.scorer.id))continue;
 
       const isPowerPlay=ownSkaters>opponentSkaters;
@@ -217,7 +338,7 @@ export class MatchSimulator{
         description:play.assists.length?`Гол: ${play.scorer.name} (${play.assists.map(player=>player.name).join(", ")})`:`Гол: ${play.scorer.name}`
       }));
     }
-    return events;
+    return {events,releasedPenaltyIds};
   }
 
   #simulateOvertime(homeContext,awayContext){
@@ -229,9 +350,9 @@ export class MatchSimulator{
     const scoringContext=winnerIsHome?homeContext:awayContext;
     const defendingContext=winnerIsHome?awayContext:homeContext;
     if(Math.random()>goalChance){
-      return {teamId:scoringContext.team.id,event:this.#buildGoalEvents(scoringContext,defendingContext,1,[],[],true)[0]};
+      return {teamId:scoringContext.team.id,event:this.#buildGoalEvents(scoringContext,defendingContext,1,[],[],true).events[0]};
     }
-    return {teamId:scoringContext.team.id,event:this.#buildGoalEvents(scoringContext,defendingContext,1,[],[],true)[0]};
+    return {teamId:scoringContext.team.id,event:this.#buildGoalEvents(scoringContext,defendingContext,1,[],[],true).events[0]};
   }
 
   #overtimeAttackRating(teamContext){
@@ -302,17 +423,6 @@ export class MatchSimulator{
     return sum(lines.map(line=>line.defenseRating||70))/lines.length;
   }
 
-  #pickScoringLine(lines,iceTimeByLine,opponentContext,isOvertime){
-    const sharesByLineIndex=new Map((iceTimeByLine||[]).map(item=>[item.lineIndex,item.share]));
-    const weights=lines.map(line=>{
-      const usageShare=sharesByLineIndex.get(line.lineIndex)||0.1;
-      const matchupFactor=clamp((line.offenseRating-this.#averageLineDefense(opponentContext.lines))/60,-0.15,0.25);
-      const otBoost=isOvertime && line.lineIndex<=1?1.25:1;
-      return Math.max(0.05,usageShare*(1+matchupFactor)*otBoost);
-    });
-    return this.#pickWeighted(lines,weights);
-  }
-
   #pickPenaltyPlayer(profiles){
     if(!profiles.length)return null;
     const weights=profiles.map(profile=>{
@@ -323,12 +433,13 @@ export class MatchSimulator{
     return this.#pickWeighted(profiles,weights)?.player||null;
   }
 
-  #pickScoringPlay(line,isOvertime,blockedPlayerIds=new Set()){
-    const skaters=(line?.skaters||[]).filter(profile=>!blockedPlayerIds.has(profile.player.id));
+  #pickScoringPlay(profiles,isOvertime,blockedPlayerIds=new Set(),mode="ev"){
+    const skaters=(profiles||[]).filter(profile=>profile?.player && !blockedPlayerIds.has(profile.player.id));
     const scorerProfile=this.#pickWeighted(skaters,skaters.map(profile=>{
       const attrs=profile.player.attributes?.attributesJson||{};
       const otFactor=isOvertime?((attrs.speed||60)*0.12+(attrs.skill||60)*0.08):0;
-      return Math.max(0.1,(attrs.shot||60)*profile.gameFactor*0.55+(attrs.skill||60)*profile.gameFactor*0.2+(attrs.speed||60)*profile.gameFactor*0.05+profile.effectiveOvr*0.2+otFactor);
+      const modeFactor=mode==="pp"?1.1:(mode==="ot"?1.08:(mode==="pk"?0.82:1));
+      return Math.max(0.1,((attrs.shot||60)*profile.gameFactor*0.55+(attrs.skill||60)*profile.gameFactor*0.2+(attrs.speed||60)*profile.gameFactor*0.05+profile.effectiveOvr*0.2+otFactor)*modeFactor);
     }));
     const scorer=scorerProfile?.player||null;
     if(!scorer)return {scorer:null,assists:[]};
@@ -365,36 +476,37 @@ export class MatchSimulator{
     return stats;
   }
 
-  #applyIceTimeStats(teamContext,statsMap,durationSeconds){
-    (teamContext.lines||[]).forEach(line=>{
-      const shareInfo=(teamContext.iceTimeByLine||[]).find(item=>item.lineIndex===line.lineIndex);
-      const forwardSeconds=Math.round((shareInfo?.forwardShare||0)*durationSeconds);
-      const defenseSeconds=Math.round((shareInfo?.defenseShare||0)*durationSeconds);
-      const assignGroupIceTime=(profiles,seconds)=>{
-        profiles.forEach(profile=>{
-          const playerStats=statsMap.get(profile.player.id);
-          if(!playerStats)return;
-          playerStats.totalIceTime+=seconds;
-        });
-      };
-      if((line.forwards||[]).length && forwardSeconds){
-        assignGroupIceTime(line.forwards,forwardSeconds);
+  #applyIceTimeStats(teamContext,statsMap,durationSeconds,ownPenalties,opponentPenalties,releasedOwnPenaltyIds=new Set(),releasedOpponentPenaltyIds=new Set()){
+    const scheduleSeconds=Math.min(durationSeconds,REGULATION_SECONDS);
+    for(let second=0;second<scheduleSeconds;second+=SHOT_BIN_SECONDS){
+      const activeState=this.#getOnIceState(
+        teamContext,
+        second,
+        ownPenalties,
+        opponentPenalties,
+        releasedOwnPenaltyIds,
+        releasedOpponentPenaltyIds,
+        false,
+        true
+      );
+      this.#assignShiftBinIceTime(activeState.profiles,statsMap,Math.min(SHOT_BIN_SECONDS,scheduleSeconds-second),teamContext.playerUsageFactors);
+    }
+
+    if(durationSeconds>REGULATION_SECONDS){
+      for(let second=REGULATION_SECONDS;second<durationSeconds;second+=SHOT_BIN_SECONDS){
+        const activeState=this.#getOnIceState(
+          teamContext,
+          second,
+          ownPenalties,
+          opponentPenalties,
+          releasedOwnPenaltyIds,
+          releasedOpponentPenaltyIds,
+          true,
+          true
+        );
+        this.#assignShiftBinIceTime(activeState.profiles,statsMap,Math.min(SHOT_BIN_SECONDS,durationSeconds-second),teamContext.playerUsageFactors);
       }
-      if((line.defenders||[]).length && defenseSeconds){
-        assignGroupIceTime(line.defenders,defenseSeconds);
-      }
-      const assignedIds=new Set([
-        ...(line.forwards||[]).map(profile=>profile.player.id),
-        ...(line.defenders||[]).map(profile=>profile.player.id)
-      ]);
-      (line.playerProfiles||[]).forEach(profile=>{
-        if(assignedIds.has(profile.player.id))return;
-        const playerStats=statsMap.get(profile.player.id);
-        if(!playerStats)return;
-        const fallbackSeconds=Math.round(Math.max(forwardSeconds,defenseSeconds)/Math.max(1,(line.playerProfiles||[]).length));
-        playerStats.totalIceTime+=fallbackSeconds;
-      });
-    });
+    }
 
     if(teamContext.goalie && statsMap.has(teamContext.goalie.id)){
       statsMap.get(teamContext.goalie.id).totalIceTime=durationSeconds;
@@ -425,7 +537,8 @@ export class MatchSimulator{
     if(!shooters.length)return;
     const weights=shooters.map(profile=>{
       const attrs=profile.player.attributes?.attributesJson||{};
-      return Math.max(0.1,(attrs.shot||60)*profile.gameFactor*0.55+(attrs.skill||60)*profile.gameFactor*0.2+(attrs.speed||60)*profile.gameFactor*0.05+profile.effectiveOvr*0.2);
+      const iceTimeFactor=(statsMap.get(profile.player.id)?.totalIceTime||0)/Math.max(1,REGULATION_SECONDS*0.18);
+      return Math.max(0.1,((attrs.shot||60)*profile.gameFactor*0.55+(attrs.skill||60)*profile.gameFactor*0.2+(attrs.speed||60)*profile.gameFactor*0.05+profile.effectiveOvr*0.2)*(0.75+iceTimeFactor*0.25));
     });
     const allocated=new Map(shooters.map(profile=>[profile.player.id,0]));
 
@@ -508,6 +621,91 @@ export class MatchSimulator{
       gameFactor,
       effectiveOvr:adjustedOvr*player.form*gameFactor
     };
+  }
+
+  #getOnIceState(teamContext,gameSecond,ownPenalties,opponentPenalties,releasedOwnPenaltyIds=new Set(),releasedOpponentPenaltyIds=new Set(),isOvertime=false,lateGamePush=false){
+    const ownActivePenalties=this.#getActivePenalties(ownPenalties,gameSecond,releasedOwnPenaltyIds);
+    const opponentActivePenalties=this.#getActivePenalties(opponentPenalties,gameSecond,releasedOpponentPenaltyIds);
+    const ownSkaters=this.#getSkatersOnIce(ownActivePenalties.length);
+    const opponentSkaters=this.#getSkatersOnIce(opponentActivePenalties.length);
+    if(ownSkaters!==opponentSkaters){
+      const mode=ownSkaters>opponentSkaters?"pp":"pk";
+      return {
+        mode,
+        ownSkaters,
+        opponentSkaters,
+        profiles:this.#pickSpecialTeamsProfiles(teamContext.specialTeams,mode,ownSkaters,gameSecond)
+      };
+    }
+    if(isOvertime){
+      return {
+        mode:"ot",
+        ownSkaters,
+        opponentSkaters,
+        profiles:this.#pickScheduledProfiles(teamContext,gameSecond,true,true)
+      };
+    }
+    return {
+      mode:gameSecond>=REGULATION_SECONDS-LATE_GAME_PUSH_SECONDS&&lateGamePush?"push":"ev",
+      ownSkaters,
+      opponentSkaters,
+      profiles:this.#pickScheduledProfiles(teamContext,gameSecond,false,gameSecond>=REGULATION_SECONDS-LATE_GAME_PUSH_SECONDS&&lateGamePush)
+    };
+  }
+
+  #pickScheduledProfiles(teamContext,gameSecond,isOvertime=false,lateGamePush=false){
+    const schedule=isOvertime?teamContext.shiftSchedule?.overtime:teamContext.shiftSchedule?.regulation;
+    const scheduleSecond=isOvertime?(gameSecond-REGULATION_SECONDS):gameSecond;
+    const binIndex=Math.max(0,Math.floor(scheduleSecond/SHOT_BIN_SECONDS));
+    let forwardIndex=schedule?.forwards?.[binIndex]??0;
+    let defenseIndex=schedule?.defenders?.[binIndex]??0;
+    if(lateGamePush && teamContext.lines.length>1){
+      if(Math.random()<0.32)forwardIndex=0;
+      if(Math.random()<0.24)defenseIndex=0;
+    }
+    const forwardProfiles=teamContext.lines[forwardIndex]?.forwards||teamContext.lines[forwardIndex]?.skaters||[];
+    const defenseProfiles=teamContext.lines[defenseIndex]?.defenders||[];
+    const profiles=isOvertime
+      ? [...forwardProfiles.slice(0,2),...defenseProfiles.slice(0,1)]
+      : [...forwardProfiles.slice(0,3),...defenseProfiles.slice(0,2)];
+    return profiles.length?profiles:(teamContext.activeProfiles||[]).slice(0,isOvertime?3:5);
+  }
+
+  #pickSpecialTeamsProfiles(specialTeams,mode,skaterCount,gameSecond){
+    const units=specialTeams?.[mode];
+    if(!units)return [];
+    const usePrimary=((Math.floor(gameSecond/SHOT_BIN_SECONDS)%3)!==2)
+      ? true
+      : Math.random()<(mode==="pp"?PP_UNIT_SHARE:PK_UNIT_SHARE);
+    const forwardUnit=units.forwardUnits?.[usePrimary?0:1]||units.forwardUnits?.[0]||[];
+    const defenseUnit=units.defenseUnits?.[usePrimary?0:1]||units.defenseUnits?.[0]||[];
+    const baseProfiles=mode==="pp"
+      ? (skaterCount>=5
+        ? [...forwardUnit.slice(0,3),...defenseUnit.slice(0,2)]
+        : skaterCount===4
+          ? [...forwardUnit.slice(0,2),...defenseUnit.slice(0,2)]
+          : [...forwardUnit.slice(0,2),...defenseUnit.slice(0,1)])
+      : (skaterCount>=4
+        ? [...forwardUnit.slice(0,2),...defenseUnit.slice(0,2)]
+        : [...forwardUnit.slice(0,1),...defenseUnit.slice(0,2)]);
+    const fallbackPool=[...forwardUnit,...defenseUnit];
+    for(const profile of fallbackPool){
+      if(baseProfiles.length>=skaterCount)break;
+      if(baseProfiles.some(item=>item.player.id===profile.player.id))continue;
+      baseProfiles.push(profile);
+    }
+    return baseProfiles.slice(0,skaterCount);
+  }
+
+  #assignShiftBinIceTime(profiles,statsMap,seconds,usageFactors){
+    if(!profiles?.length || !seconds)return;
+    const weights=profiles.map(profile=>usageFactors?.get(profile.player.id)||1);
+    const averageWeight=(sum(weights)/weights.length)||1;
+    profiles.forEach((profile,index)=>{
+      const playerStats=statsMap.get(profile.player.id);
+      if(!playerStats)return;
+      playerStats.totalIceTime+=Math.round(seconds*(weights[index]/averageWeight));
+    });
   }
 
   #rollGameFactor(player){
