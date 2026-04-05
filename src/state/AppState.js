@@ -73,40 +73,16 @@ export class AppState{
   }
   playDay(){
     const day=this.#calendar.getCurrent();
-    if(!day)return null;
-    if(!day.match){this.#lastMatch=null;this.#applyFatigue(this.#teams,-8);this.#calendar.advanceDay();return null;}
-    this.#lastMatch=this.#sim.simulateMatch(day.match.home,day.match.away);
-    this.#calendar.recordResult(day.day,this.#lastMatch);
-    this.#standings.recordMatch(this.#lastMatch);
-    this.#stats.recordMatch(this.#lastMatch);
-    this.#applyMatchPlayerStats(this.#lastMatch);
-    this.#applyFatigue([day.match.home,day.match.away],12);
-    this.#calendar.advanceDay();
-    return this.#lastMatch;
+    return day?this.#simulateCalendarDay(day,null):null;
   }
   playDayForActiveTeam(){
     if(!this.#activeTeamId)return this.playDay();
     while(true){
       const day=this.#calendar.getCurrent();
       if(!day)return null;
-      if(!day.match){
-        this.#lastMatch=null;
-        this.#applyFatigue(this.#teams,-8);
-        this.#calendar.advanceDay();
-        return null;
-      }
-      const isActiveMatch=day.match.home?.id===this.#activeTeamId || day.match.away?.id===this.#activeTeamId;
-      const simulated=this.#sim.simulateMatch(day.match.home,day.match.away);
-      this.#calendar.recordResult(day.day,simulated);
-      this.#standings.recordMatch(simulated);
-      this.#stats.recordMatch(simulated);
-      this.#applyMatchPlayerStats(simulated);
-      this.#applyFatigue([day.match.home,day.match.away],12);
-      this.#calendar.advanceDay();
-      if(isActiveMatch){
-        this.#lastMatch=simulated;
-        return simulated;
-      }
+      if(!day.matches?.length)return this.#simulateCalendarDay(day,null);
+      const simulated=this.#simulateCalendarDay(day,this.#activeTeamId);
+      if(simulated)return simulated;
     }
   }
   exportState(){
@@ -239,6 +215,38 @@ export class AppState{
     });
     team.reservePlayers.splice(0,team.reservePlayers.length,...picked.slice(cursor));
     return true;
+  }
+  #simulateCalendarDay(day,focusTeamId){
+    const matches=day?.matches||[];
+    if(matches.length===0){
+      this.#lastMatch=null;
+      this.#applyFatigue(this.#teams,-8);
+      this.#calendar.advanceDay();
+      return null;
+    }
+
+    const focusedMatches=[];
+    const playedTeams=new Set();
+    matches.forEach(match=>{
+      const simulated=this.#sim.simulateMatch(match.home,match.away);
+      this.#calendar.recordResult(day.day,match.id,simulated);
+      this.#standings.recordMatch(simulated);
+      this.#stats.recordMatch(simulated);
+      this.#applyMatchPlayerStats(simulated);
+      playedTeams.add(match.home.id);
+      playedTeams.add(match.away.id);
+      if(!focusTeamId || match.home.id===focusTeamId || match.away.id===focusTeamId){
+        focusedMatches.push(simulated);
+      }
+    });
+
+    const playedTeamList=this.#teams.filter(team=>playedTeams.has(team.id));
+    const idleTeamList=this.#teams.filter(team=>!playedTeams.has(team.id));
+    if(playedTeamList.length)this.#applyFatigue(playedTeamList,12);
+    if(idleTeamList.length)this.#applyFatigue(idleTeamList,-8);
+    this.#calendar.advanceDay();
+    this.#lastMatch=focusedMatches[0]||null;
+    return this.#lastMatch;
   }
   #applyFatigue(teams,delta){teams.flatMap(team=>team.getRoster()).forEach(player=>{player.applyFatigue(delta);player.applyFormDelta(Math.random()*0.02-0.01)})}
   #applyMatchPlayerStats(match){

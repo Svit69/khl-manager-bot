@@ -30,6 +30,7 @@ export class AppController{
       this.#renderer.renderTeam(this.#state.activeTeam,this.#activeTab,this.#activeRosterUnit);
       this.#renderer.renderCalendar(dayInfo?.day||this.#calendar.currentDay,dayInfo,false,{
         tab:this.#calendarPanelTab,
+        activeTeamId:this.#state.activeTeamId,
         standings:this.#state.getStandingsTable(),
         scorers:this.#state.getTopScorers(10),
         schedule:this.#state.getCalendarScheduleRows()
@@ -56,6 +57,7 @@ export class AppController{
       }
       this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,true,{
         tab:this.#calendarPanelTab,
+        activeTeamId:this.#state.activeTeamId,
         standings:this.#state.getStandingsTable(),
         scorers:this.#state.getTopScorers(10),
         schedule:this.#state.getCalendarScheduleRows()
@@ -68,6 +70,7 @@ export class AppController{
       if(selectedTeam)this.#renderer.renderFantasyDraftIntro(selectedTeam);
       this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,true,{
         tab:this.#calendarPanelTab,
+        activeTeamId:this.#state.activeTeamId,
         standings:this.#state.getStandingsTable(),
         scorers:this.#state.getTopScorers(10),
         schedule:this.#state.getCalendarScheduleRows()
@@ -78,6 +81,7 @@ export class AppController{
     this.#renderer.renderTeamSelection(this.#teams,this.#state.activeTeamId,this.#pendingTeamId);
     this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,true,{
       tab:this.#calendarPanelTab,
+      activeTeamId:this.#state.activeTeamId,
       standings:this.#state.getStandingsTable(),
       scorers:this.#state.getTopScorers(10),
       schedule:this.#state.getCalendarScheduleRows()
@@ -413,7 +417,7 @@ export class AppController{
     const day=this.#state.activeTeam?this.#state.getVisibleCalendarDay():this.#calendar.getCurrent();
     this.#state.activeTeam?this.#state.playDayForActiveTeam():this.#state.playDay();
     this.#userStore.saveState(this.#state.exportState());
-    if(day?.match && this.#state.lastMatch)this.#startMatchPlayback(this.#state.lastMatch);
+    if(this.#state.lastMatch)this.#startMatchPlayback(this.#state.lastMatch);
     this.#renderScreen();
   }
   #startFantasyDraft(selectedTeamId){

@@ -358,23 +358,50 @@ export class Renderer{
     this.#teamEl.innerHTML=`<div class="draft-screen"><div class="draft-top">${draftHeader}<div class="draft-order-strip">${orderPreview}</div></div><div class="draft-layout"><section class="draft-left"><div class="draft-card"><div class="draft-card-head"><h2>Доступные игроки</h2><div class="muted">${draft.availablePlayers.length} в пуле</div></div><div class="draft-toolbar"><div><div class="muted">Сортировка</div>${sortControls}</div><div><div class="muted">Фильтр по позиции</div>${filterControls}</div></div>${actionBar}<div class="draft-list">${cards||"<div class=\"muted\">Нет игроков</div>"}</div></div></section><aside class="draft-right"><div class="draft-card"><div class="draft-card-head"><h2>Просмотр игрока</h2><div class="muted">Имя • позиция • OVR • возраст • нация</div></div>${previewCard}</div><div class="draft-card"><div class="draft-card-head"><h2>Ваш драфт-борд</h2><div class="muted">${team.name}</div></div>${renderDraftNeedsGrid(userRoster)}<div class="draft-panel">${rosterPanel}</div></div><div class="draft-card"><div class="draft-card-head"><h2>Команды</h2><div class="muted">20 раундов • змейка</div></div><div class="draft-team-list">${teamRows}</div></div><div class="draft-card"><div class="draft-card-head"><h2>Последние пики</h2><div class="muted">Live log</div></div><div class="draft-recent-list">${recentPicks}</div></div></aside></div></div>`;
     this.#matchEl.innerHTML="";
   }  renderCalendar(day,info,isLocked,panelData={}){
-    const text=isLocked?"Сначала выберите команду":(info?.match?`${info.match.home.name} — ${info.match.away.name}`:"День отдыха");
     const activeTab=panelData?.tab||"standings";
+    const activeTeamId=panelData?.activeTeamId||null;
+    const currentMatch=info?.matches?.find(match=>activeTeamId&&(match.home?.id===activeTeamId||match.away?.id===activeTeamId))||info?.matches?.[0]||null;
+    const text=isLocked
+      ? "Сначала выберите команду"
+      : (!info?.matches?.length
+        ? "День отдыха"
+        : (activeTeamId&&currentMatch
+          ? `${currentMatch.home.name} — ${currentMatch.away.name}`
+          : `Игровой день: ${info.matches.length} ${this.#pluralizeMatches(info.matches.length)}`));
     const standings=(panelData?.standings||[]).map((row,index)=>`<div class="calendar-table-row"><span>${index+1}</span><span>${row.shortName||row.name}</span><span>${row.gp||0}</span><span>${row.w||0}</span><span>${row.otl||0}</span><span>${row.l||0}</span><span>${row.pts||0}</span></div>`).join("")||`<div class="muted">Нет данных</div>`;
     const scorers=(panelData?.scorers||[]).map((row,index)=>`<div class="calendar-scorer-row"><span>${index+1}</span><span>${row.name}</span><span>${row.team||"—"}</span><span>${row.points||((row.goals||0)+(row.assists||0))}</span><span>${row.goals||0}</span><span>${row.assists||0}</span></div>`).join("")||`<div class="muted">Нет данных</div>`;
     const scheduleRows=(panelData?.schedule||[]).map(row=>{
-      if(row.isRestDay)return `<div class="calendar-schedule-row${row.isCurrent?" current":""}"><span class="day">Д${row.day}</span><span class="teams">${row.isCurrent?"День отдыха (текущий)":"День отдыха"}</span><span class="res">${row.isPlayed?"✓":"—"}</span></div>`;
-      const result=row.result?`${row.result.homeGoals}:${row.result.awayGoals}${row.result.wentToOvertime?" ОТ":""}`:(row.isPlayed?"—":"vs");
-      return `<div class="calendar-schedule-row${row.isCurrent?" current":""}${row.isMyMatch?" mine":""}"><span class="day">Д${row.day}</span><span class="teams">${row.home?.shortName||row.home?.name} — ${row.away?.shortName||row.away?.name}</span><span class="res">${result}</span></div>`;
+      if(row.isRestDay){
+        return `<div class="calendar-schedule-row${row.isCurrent?" current":""}"><span class="day">Д${row.day}</span><span class="teams"><strong>${row.isCurrent?"День отдыха (текущий)":"День отдыха"}</strong></span><span class="res">${row.isPlayed?"✓":"—"}</span></div>`;
+      }
+      const primaryMatch=row.myMatch||row.matches?.[0]||null;
+      const extraMatches=Math.max(0,(row.matchCount||0)-(primaryMatch?1:0));
+      const previewText=primaryMatch
+        ? `${primaryMatch.home?.shortName||primaryMatch.home?.name} — ${primaryMatch.away?.shortName||primaryMatch.away?.name}`
+        : `${row.matchCount||0} ${this.#pluralizeMatches(row.matchCount||0)}`;
+      const secondaryText=row.isMyMatch
+        ? (extraMatches>0?`Еще ${extraMatches} ${this.#pluralizeMatches(extraMatches)} в этот день`:"Матч вашей команды")
+        : `${(row.matches||[]).slice(0,2).map(match=>`${match.home?.shortName||match.home?.name} — ${match.away?.shortName||match.away?.name}`).join(" • ")}${(row.matchCount||0)>2?` • +${(row.matchCount||0)-2}`:""}`;
+      const primaryResult=primaryMatch?.result
+        ? `${primaryMatch.result.homeGoals}:${primaryMatch.result.awayGoals}${primaryMatch.result.wentToOvertime?" ОТ":""}`
+        : (row.isPlayed?`${row.playedMatchCount}/${row.matchCount}`:`${row.matchCount} vs`);
+      return `<div class="calendar-schedule-row${row.isCurrent?" current":""}${row.isMyMatch?" mine":""}"><span class="day">Д${row.day}</span><span class="teams"><strong>${previewText}</strong><small>${secondaryText}</small></span><span class="res">${primaryResult}</span></div>`;
     }).join("")||`<div class="muted">Нет матчей</div>`;
     const tabButtons=`<div class="calendar-tabs"><button class="calendar-tab-btn${activeTab==="standings"?" active":""}" data-action="calendar-tab" data-value="standings">Таблица</button><button class="calendar-tab-btn${activeTab==="scorers"?" active":""}" data-action="calendar-tab" data-value="scorers">Бомбардиры</button><button class="calendar-tab-btn${activeTab==="schedule"?" active":""}" data-action="calendar-tab" data-value="schedule">Расписание</button></div>`;
     const tableHeader=activeTab==="standings"
       ? `<div class="calendar-table-header"><span>#</span><span>Команда</span><span>И</span><span>В</span><span>ПО</span><span>П</span><span>О</span></div>`
       : activeTab==="scorers"
         ? `<div class="calendar-scorer-header"><span>#</span><span>Игрок</span><span>Команда</span><span>О</span><span>Г</span><span>П</span></div>`
-        : `<div class="calendar-schedule-header"><span>День</span><span>Матч</span><span>Счет</span></div>`;
+        : `<div class="calendar-schedule-header"><span>День</span><span>Игровой день</span><span>Счет</span></div>`;
     const tableBody=activeTab==="standings"?standings:(activeTab==="scorers"?scorers:scheduleRows);
     this.#calEl.innerHTML=`<h2>Календарь • День ${day}</h2><div class="row"><div>${text}</div><button id="playBtn" class="btn" ${isLocked?"disabled":""}>${isLocked?"Выбрать команду":"Дальше"}</button></div>${tabButtons}<div class="calendar-panel-list">${tableHeader}<div class="calendar-panel-scroll">${tableBody}</div></div>`;
+  }
+  #pluralizeMatches(count){
+    const mod10=count%10;
+    const mod100=count%100;
+    if(mod10===1 && mod100!==11)return "матч";
+    if(mod10>=2 && mod10<=4 && (mod100<12 || mod100>14))return "матча";
+    return "матчей";
   }
   renderResetButton(){this.#calEl.insertAdjacentHTML("beforeend","<div class=\"row reset-row\"><button id=\"resetBtn\" class=\"btn secondary\">Новая игра</button></div>")}
   renderMatchSimulationPopup(playback){
