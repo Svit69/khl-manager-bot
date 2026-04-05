@@ -237,10 +237,10 @@ export class Renderer{
     if(container){container.innerHTML=this.#contractTab.render(rows,negotiation);return;}
     this.#matchEl.innerHTML=this.#contractTab.render(rows,negotiation);
   }
-  renderTeamStatistics(rows){
+  renderTeamStatistics(rows,sortBy="points"){
     const container=document.getElementById("teamTabContent");
-    if(container){container.innerHTML=this.#teamStatsTab.render(rows);return;}
-    this.#matchEl.innerHTML=this.#teamStatsTab.render(rows);
+    if(container){container.innerHTML=this.#teamStatsTab.render(rows,sortBy);return;}
+    this.#matchEl.innerHTML=this.#teamStatsTab.render(rows,sortBy);
   }
   renderTrades(view){
     const container=document.getElementById("teamTabContent");

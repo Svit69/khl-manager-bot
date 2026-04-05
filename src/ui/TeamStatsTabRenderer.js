@@ -5,6 +5,19 @@ const formatIceTime = (seconds) => {
   return `${minutes}:${remainder}`;
 };
 
+const getAverageIceTime = (row) => {
+  const games = Math.max(0, Number(row?.games) || 0);
+  if (!games) return 0;
+  return (Number(row?.totalIceTime) || 0) / games;
+};
+
+const SORT_LABELS = {
+  points: "очкам",
+  goals: "голам",
+  iceTime: "айстайму",
+  penaltyMinutes: "штрафным минутам",
+};
+
 const renderMoodCircle = (mood) => `
   <span
     class="team-stats-mood team-stats-mood--${mood?.tone || "neutral"}"
@@ -28,16 +41,17 @@ const buildSummary = (rows) => {
 };
 
 export class TeamStatsTabRenderer {
-  render(rows) {
+  render(rows, sortBy = "points") {
     const safeRows = Array.isArray(rows) ? rows : [];
     const { totals, leader } = buildSummary(safeRows);
+    const sortLabel = SORT_LABELS[sortBy] || SORT_LABELS.points;
 
     return `
       <section class="team-stats-shell">
         <div class="team-stats-hero">
           <div class="team-stats-hero-copy">
             <span class="team-stats-hero-kicker">Статистика команды</span>
-            <h3 class="team-stats-hero-title">Состав отсортирован по набранным очкам</h3>
+            <h3 class="team-stats-hero-title">Состав отсортирован по ${sortLabel}</h3>
             <p class="team-stats-hero-text">Актуальная результативность, айстайм и настроение игроков к переговорам.</p>
           </div>
           <div class="team-stats-hero-chips">
@@ -53,6 +67,16 @@ export class TeamStatsTabRenderer {
               <small>Матчей</small>
               <strong>${totals.games}</strong>
             </div>
+          </div>
+        </div>
+
+        <div class="team-stats-toolbar">
+          <span class="team-stats-toolbar-label">Сортировка</span>
+          <div class="team-stats-toolbar-actions">
+            <button class="team-stats-sort-btn${sortBy === "points" ? " active" : ""}" data-action="team-stats-sort" data-sort="points">Очки</button>
+            <button class="team-stats-sort-btn${sortBy === "goals" ? " active" : ""}" data-action="team-stats-sort" data-sort="goals">Голы</button>
+            <button class="team-stats-sort-btn${sortBy === "iceTime" ? " active" : ""}" data-action="team-stats-sort" data-sort="iceTime">Айс</button>
+            <button class="team-stats-sort-btn${sortBy === "penaltyMinutes" ? " active" : ""}" data-action="team-stats-sort" data-sort="penaltyMinutes">ШМ</button>
           </div>
         </div>
 
@@ -96,7 +120,7 @@ export class TeamStatsTabRenderer {
                   <span class="team-stats-cell" data-label="Г">${row.goals || 0}</span>
                   <span class="team-stats-cell" data-label="П">${row.assists || 0}</span>
                   <span class="team-stats-cell" data-label="ШМ">${row.penaltyMinutes || 0}</span>
-                  <span class="team-stats-cell" data-label="Айс">${formatIceTime(row.totalIceTime)}</span>
+                  <span class="team-stats-cell" data-label="Айс">${formatIceTime(getAverageIceTime(row))}</span>
                   <span class="team-stats-cell team-stats-mood-wrap" data-label="Настр.">
                     ${renderMoodCircle(row.mood)}
                   </span>

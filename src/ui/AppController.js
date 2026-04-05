@@ -4,6 +4,7 @@ export class AppController{
   #selectedNegotiationPlayerId=null;#offerByPlayerId=new Map();#outcomeByPlayerId=new Map();
   #tradeTeamId=null;#tradeGivePlayerIds=new Set();#tradeReceivePlayerIds=new Set();#tradeMessage="";
   #activeRosterUnit="1";
+  #teamStatsSort="points";
   #draftIntroTeamId=null;
   #draftState=null;
   #dragRosterSlot=null;
@@ -39,7 +40,7 @@ export class AppController{
       if(this.#activeTab==="contracts"){
         this.#renderer.renderContracts(this.#state.getActiveTeamContractRows(),this.#buildNegotiationState());
       }else if(this.#activeTab==="teamStats"){
-        this.#renderer.renderTeamStatistics(this.#state.getActiveTeamStatisticsRows());
+        this.#renderer.renderTeamStatistics(this.#state.getActiveTeamStatisticsRows(this.#teamStatsSort),this.#teamStatsSort);
       }else if(this.#activeTab==="freeAgents"){
         this.#renderer.renderFreeAgents(this.#state.getActiveTeamFreeAgentRows(),this.#buildNegotiationState());
       }else if(this.#activeTab==="trades"){
@@ -150,8 +151,14 @@ export class AppController{
     const tab=clickable?.dataset?.tab;
     if(tab){
       this.#activeTab=tab;
+      if(tab!=="teamStats")this.#teamStatsSort="points";
       if(tab!=="trades"){this.#tradeMessage="";}
       this.#selectedNegotiationPlayerId=null;
+      this.#renderScreen();
+      return;
+    }
+    if(action==="team-stats-sort"){
+      this.#teamStatsSort=clickable.dataset.sort||"points";
       this.#renderScreen();
       return;
     }

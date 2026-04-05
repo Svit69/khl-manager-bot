@@ -167,8 +167,8 @@ export class ContractService {
       .sort((left, right) => left.displayName.localeCompare(right.displayName, "ru"));
   }
 
-  getTeamStatisticsRows(team, context = null) {
-    return team
+  getTeamStatisticsRows(team, context = null, sortBy = "points") {
+    const rows = team
       .getRoster()
       .map((player) => {
         const preview = this.getRenewalPreview(team, player, null, context);
@@ -191,15 +191,36 @@ export class ContractService {
             tone: moodTone,
           },
         };
-      })
-      .sort((left, right) =>
-        (right.points - left.points) ||
+      });
+
+    const compareBySort = (left, right) => {
+      if (sortBy === "goals") {
+        return (right.goals - left.goals) ||
+          (right.points - left.points) ||
+          (right.assists - left.assists);
+      }
+      if (sortBy === "iceTime") {
+        const leftAverageIceTime = left.games ? left.totalIceTime / left.games : 0;
+        const rightAverageIceTime = right.games ? right.totalIceTime / right.games : 0;
+        return (rightAverageIceTime - leftAverageIceTime) ||
+          (right.points - left.points) ||
+          (right.goals - left.goals);
+      }
+      if (sortBy === "penaltyMinutes") {
+        return (right.penaltyMinutes - left.penaltyMinutes) ||
+          (right.games - left.games) ||
+          (right.points - left.points);
+      }
+      return (right.points - left.points) ||
         (right.goals - left.goals) ||
-        (right.assists - left.assists) ||
-        (right.totalIceTime - left.totalIceTime) ||
-        (right.ovr - left.ovr) ||
-        left.displayName.localeCompare(right.displayName, "ru"),
-      );
+        (right.assists - left.assists);
+    };
+
+    return rows.sort((left, right) =>
+      compareBySort(left, right) ||
+      (right.ovr - left.ovr) ||
+      left.displayName.localeCompare(right.displayName, "ru"),
+    );
   }
 
   getContractTypeLabel(type) {

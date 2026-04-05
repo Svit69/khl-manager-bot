@@ -56,6 +56,13 @@
   }
   .team-stats-hero-title{font-size:24px}
   .team-stats-hero-chips{justify-content:flex-start}
+  .team-stats-toolbar{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  .team-stats-toolbar-actions{
+    width:100%;
+  }
   .team-stats-head{display:none}
   .team-stats-body{max-height:none}
   .team-stats-row{
