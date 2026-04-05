@@ -38,6 +38,8 @@ export class AppController{
       this.#renderer.renderResetButton();
       if(this.#activeTab==="contracts"){
         this.#renderer.renderContracts(this.#state.getActiveTeamContractRows(),this.#buildNegotiationState());
+      }else if(this.#activeTab==="teamStats"){
+        this.#renderer.renderTeamStatistics(this.#state.getActiveTeamStatisticsRows());
       }else if(this.#activeTab==="freeAgents"){
         this.#renderer.renderFreeAgents(this.#state.getActiveTeamFreeAgentRows(),this.#buildNegotiationState());
       }else if(this.#activeTab==="trades"){

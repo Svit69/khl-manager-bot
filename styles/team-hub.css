@@ -184,3 +184,246 @@
   background:linear-gradient(180deg, rgba(109,255,229,.06), rgba(255,255,255,.02));
 }
 .hockey-card--reserve .hockey-card-photo{filter:grayscale(.1)}
+
+.team-stats-shell{
+  display:grid;
+  gap:14px;
+}
+.team-stats-hero{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:18px;
+  padding:18px 20px;
+  border-radius:22px;
+  border:1px solid rgba(255,255,255,.08);
+  background:
+    linear-gradient(135deg,rgba(118,243,186,.10),rgba(231,245,107,.06) 42%,rgba(255,255,255,.02) 100%),
+    linear-gradient(180deg,rgba(18,23,28,.96),rgba(12,16,21,.96));
+  box-shadow:0 20px 34px rgba(0,0,0,.22);
+}
+.team-stats-hero-copy{
+  display:grid;
+  gap:6px;
+}
+.team-stats-hero-kicker{
+  color:#97a39c;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.team-stats-hero-title{
+  margin:0;
+  color:#f4f8f4;
+  font-size:28px;
+  line-height:1.05;
+  font-weight:900;
+}
+.team-stats-hero-text{
+  margin:0;
+  color:#adb8b2;
+  font-size:14px;
+}
+.team-stats-hero-chips{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.team-stats-hero-chip{
+  display:grid;
+  justify-items:center;
+  gap:4px;
+  min-width:92px;
+  padding:10px 12px;
+  border-radius:14px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);
+}
+.team-stats-hero-chip small{
+  color:#8f9b94;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.team-stats-hero-chip strong{
+  color:#eef5ef;
+  font-size:20px;
+  line-height:1;
+  font-weight:900;
+}
+.team-stats-leader{
+  display:grid;
+  gap:8px;
+  padding:14px 18px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.07);
+  background:linear-gradient(180deg,rgba(17,23,29,.96),rgba(12,16,21,.98));
+}
+.team-stats-leader-kicker{
+  color:#97a39c;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.team-stats-leader-main{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+}
+.team-stats-leader-name{
+  color:#f4f8f4;
+  font-size:22px;
+  font-weight:900;
+}
+.team-stats-leader-meta{
+  color:#8f9b94;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:.04em;
+}
+.team-stats-leader-points{
+  color:#e7f56b;
+  font-size:30px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.team-stats-panel{
+  min-height:0;
+  border-radius:22px;
+  border:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(180deg,rgba(17,23,29,.96),rgba(12,16,21,.98));
+  box-shadow:0 20px 34px rgba(0,0,0,.22);
+  overflow:hidden;
+}
+.team-stats-table{
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr);
+  min-height:0;
+}
+.team-stats-head,
+.team-stats-row{
+  display:grid;
+  grid-template-columns:minmax(260px,1.9fr) 48px 48px 48px 48px 60px 82px 78px;
+  align-items:center;
+  gap:14px;
+}
+.team-stats-head{
+  padding:16px 18px 12px;
+  color:#97a39c;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.team-stats-col-player{
+  padding-left:46px;
+}
+.team-stats-col-mood{
+  text-align:center;
+}
+.team-stats-body{
+  min-height:0;
+  max-height:520px;
+  overflow:auto;
+  padding:10px 10px 12px;
+}
+.team-stats-body::-webkit-scrollbar{
+  width:10px;
+}
+.team-stats-body::-webkit-scrollbar-track{
+  background:rgba(255,255,255,.04);
+  border-radius:999px;
+}
+.team-stats-body::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg,rgba(118,243,186,.7),rgba(111,212,255,.72));
+  border-radius:999px;
+  border:2px solid rgba(16,21,27,.72);
+}
+.team-stats-row{
+  padding:12px 14px;
+  border-radius:18px;
+  color:#edf4ee;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.05);
+}
+.team-stats-row + .team-stats-row{
+  margin-top:8px;
+}
+.team-stats-player{
+  display:grid;
+  grid-template-columns:32px minmax(0,1fr);
+  gap:12px;
+  align-items:center;
+  min-width:0;
+}
+.team-stats-rank{
+  width:32px;
+  height:32px;
+  border-radius:10px;
+  display:grid;
+  place-items:center;
+  background:rgba(255,255,255,.06);
+  color:#dfe7e1;
+  font-size:12px;
+  font-weight:900;
+}
+.team-stats-player-copy{
+  min-width:0;
+  display:grid;
+  gap:4px;
+}
+.team-stats-player-copy strong{
+  color:#f4f8f4;
+  font-size:16px;
+  font-weight:800;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.team-stats-player-copy span{
+  color:#8f9b94;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.04em;
+}
+.team-stats-value{
+  font-weight:800;
+  color:#edf4ee;
+}
+.team-stats-cell{
+  color:#edf4ee;
+  font-weight:800;
+}
+.team-stats-value--accent{
+  color:#e7f56b;
+}
+.team-stats-mood-wrap{
+  display:flex;
+  justify-content:center;
+}
+.team-stats-mood{
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  border:2px solid rgba(255,255,255,.12);
+  box-shadow:0 0 0 5px rgba(255,255,255,.03);
+}
+.team-stats-mood--positive{
+  background:#76f3ba;
+}
+.team-stats-mood--neutral{
+  background:#e7f56b;
+}
+.team-stats-mood--negative{
+  background:#ff7575;
+}
+.team-stats-empty{
+  padding:32px 20px;
+  color:#8f9b94;
+}

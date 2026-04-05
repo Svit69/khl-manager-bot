@@ -167,6 +167,41 @@ export class ContractService {
       .sort((left, right) => left.displayName.localeCompare(right.displayName, "ru"));
   }
 
+  getTeamStatisticsRows(team, context = null) {
+    return team
+      .getRoster()
+      .map((player) => {
+        const preview = this.getRenewalPreview(team, player, null, context);
+        const moodTone = preview.willingness >= 75 ? "positive" : preview.willingness >= 45 ? "neutral" : "negative";
+        return {
+          playerId: player.id,
+          displayName: player.name,
+          position: player.identity?.primaryPosition || "",
+          ovr: player.ovr,
+          games: player.seasonStats?.games || 0,
+          points: player.seasonStats?.points || 0,
+          goals: player.seasonStats?.goals || 0,
+          assists: player.seasonStats?.assists || 0,
+          penaltyMinutes: player.seasonStats?.penaltyMinutes || 0,
+          totalIceTime: player.seasonStats?.totalIceTime || 0,
+          mood: {
+            willingness: preview.willingness,
+            chance: preview.state?.chance || getAcceptanceChance(preview.willingness),
+            label: preview.state?.label || "",
+            tone: moodTone,
+          },
+        };
+      })
+      .sort((left, right) =>
+        (right.points - left.points) ||
+        (right.goals - left.goals) ||
+        (right.assists - left.assists) ||
+        (right.totalIceTime - left.totalIceTime) ||
+        (right.ovr - left.ovr) ||
+        left.displayName.localeCompare(right.displayName, "ru"),
+      );
+  }
+
   getContractTypeLabel(type) {
     return contractTypeLabel[normalizeType(type)];
   }

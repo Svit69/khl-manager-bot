@@ -1,5 +1,6 @@
 import { ContractTabRenderer } from "./ContractTabRenderer.js";
 import { FreeAgentTabRenderer } from "./FreeAgentTabRenderer.js";
+import { TeamStatsTabRenderer } from "./TeamStatsTabRenderer.js";
 import { TradeTabRenderer } from "./TradeTabRenderer.js";
 import { calculateAge } from "../contracts/SeasonUtils.js";
 import { adjustedOvrForPosition } from "../utils/positionFit.js";
@@ -168,9 +169,9 @@ const renderReserveStrip=players=>{
   if(!players?.length)return `<div class="team-reserve-empty">Запасных нет</div>`;
   return `<div class="team-reserve-strip">${players.map((player,index)=>renderRosterSlotCard(player,{kind:"reserve",index},"hockey-card--reserve")).join("")}</div>`;
 };
-const renderTeamSidebar=(team,activeTab)=>`<aside class="team-sidebar"><img class="team-sidebar-logo" src="${team.logoUrl}" alt="${team.name}"/><div class="team-sidebar-nav"><button class="team-nav-link${activeTab==="roster"?" active":""}" data-tab="roster">Состав</button><button class="team-nav-link${activeTab==="contracts"?" active":""}" data-tab="contracts">Контракты</button><button class="team-nav-link${activeTab==="freeAgents"?" active":""}" data-tab="freeAgents">Свободные агенты</button><button class="team-nav-link${activeTab==="trades"?" active":""}" data-tab="trades">Обмены</button></div></aside>`;
+const renderTeamSidebar=(team,activeTab)=>`<aside class="team-sidebar"><img class="team-sidebar-logo" src="${team.logoUrl}" alt="${team.name}"/><div class="team-sidebar-nav"><button class="team-nav-link${activeTab==="roster"?" active":""}" data-tab="roster">Состав</button><button class="team-nav-link${activeTab==="contracts"?" active":""}" data-tab="contracts">Контракты</button><button class="team-nav-link${activeTab==="teamStats"?" active":""}" data-tab="teamStats">Статистика команды</button><button class="team-nav-link${activeTab==="freeAgents"?" active":""}" data-tab="freeAgents">Свободные агенты</button><button class="team-nav-link${activeTab==="trades"?" active":""}" data-tab="trades">Обмены</button></div></aside>`;
 export class Renderer{
-  #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();#freeAgentTab=new FreeAgentTabRenderer();#tradeTab=new TradeTabRenderer();
+  #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();#teamStatsTab=new TeamStatsTabRenderer();#freeAgentTab=new FreeAgentTabRenderer();#tradeTab=new TradeTabRenderer();
   constructor(){
     this.#teamEl=document.getElementById("teamPanel");
     this.#calEl=document.getElementById("calendarPanel");
@@ -181,7 +182,7 @@ export class Renderer{
   renderTeam(team,activeTab,activeRosterUnit="1",selectedRosterSlot=null){
     const rosterView=activeTab==="roster"
       ? `<div class="team-club-shell"><div class="team-roster-stage"><div class="line-view-panel">${renderRosterUnitButtons(activeRosterUnit)}${renderRosterUnitCards(team,activeRosterUnit,selectedRosterSlot)}</div></div><div class="team-reserve-wrap">${renderReserveStrip(team.reservePlayers||[])}</div></div>`
-      : `<div class="muted">Переключитесь на вкладку «Состав»</div>`;
+      : "";
     const sidebar=renderTeamSidebar(team,activeTab);
     this.#teamEl.innerHTML=`<div class="team-screen">${sidebar}<div class="team-screen-main"><div class="team-screen-header"><div><div class="team-screen-title">${team.name}</div><div class="team-screen-subtitle">${team.city}, ${team.shortName}</div></div><div class="team-screen-status"><span class="team-screen-status-pill">Club Hub</span><span class="team-screen-status-pill team-screen-status-pill-muted">${activeTab==="roster"?"Основной состав":"Управление клубом"}</span></div></div>${rosterView}<div id="teamTabContent"></div></div></div>`;
   }
@@ -235,6 +236,11 @@ export class Renderer{
     const container=document.getElementById("teamTabContent");
     if(container){container.innerHTML=this.#contractTab.render(rows,negotiation);return;}
     this.#matchEl.innerHTML=this.#contractTab.render(rows,negotiation);
+  }
+  renderTeamStatistics(rows){
+    const container=document.getElementById("teamTabContent");
+    if(container){container.innerHTML=this.#teamStatsTab.render(rows);return;}
+    this.#matchEl.innerHTML=this.#teamStatsTab.render(rows);
   }
   renderTrades(view){
     const container=document.getElementById("teamTabContent");

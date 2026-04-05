@@ -28,6 +28,7 @@ export class AppState{
   getCalendarScheduleRows(){return this.#calendar.getScheduleRows(this.#activeTeamId)}
   getAllPlayers(){return [...this.#teams.flatMap(team=>team.getRoster()),...this.#freeAgents]}
   getActiveTeamContractRows(){return this.activeTeam?this.#contracts.getTeamContractRows(this.activeTeam):[]}
+  getActiveTeamStatisticsRows(){return this.activeTeam?this.#contracts.getTeamStatisticsRows(this.activeTeam,this.#buildNegotiationContext(this.activeTeam)):[]}
   getActiveTeamFreeAgentRows(){return this.#contracts.getFreeAgentRows(this.getAvailableFreeAgents())}
   getTradePartnerTeams(){return this.activeTeam?this.#teams.filter(team=>team.id!==this.#activeTeamId):[]}
   getAvailableFreeAgents(){return this.#freeAgents.filter(player=>!player.affiliation?.teamId)}

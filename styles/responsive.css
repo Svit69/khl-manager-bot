@@ -49,6 +49,43 @@
   .team-screen-header{flex-direction:column;align-items:flex-start}
   .team-screen-title{font-size:24px}
   .team-roster-stage{min-height:0;padding:14px 10px}
+  .team-stats-hero,
+  .team-stats-leader-main{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  .team-stats-hero-title{font-size:24px}
+  .team-stats-hero-chips{justify-content:flex-start}
+  .team-stats-head{display:none}
+  .team-stats-body{max-height:none}
+  .team-stats-row{
+    grid-template-columns:1fr 1fr;
+    gap:10px 12px;
+  }
+  .team-stats-player{
+    grid-column:1 / -1;
+  }
+  .team-stats-cell{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:10px 12px;
+    border-radius:12px;
+    background:rgba(255,255,255,.03);
+    border:1px solid rgba(255,255,255,.04);
+  }
+  .team-stats-cell::before{
+    content:attr(data-label);
+    color:#8f9b94;
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+  }
+  .team-stats-mood-wrap{
+    justify-content:flex-start;
+  }
   .line-view-panel{grid-template-columns:1fr}
   .line-unit-buttons{flex-direction:row;gap:10px;padding-top:0}
   .line-card-row{gap:10px}
