@@ -93,6 +93,7 @@
   gap:8px;
   flex-wrap:wrap;
   justify-content:flex-end;
+  align-items:center;
 }
 .team-screen-status-pill{
   display:inline-flex;
@@ -112,6 +113,125 @@
   background:rgba(255,255,255,.05);
   border-color:rgba(255,255,255,.08);
   color:#d8deea;
+}
+.team-notifications{
+  position:relative;
+}
+.team-notifications-trigger{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  min-height:38px;
+  padding:0 14px;
+  border:none;
+  border-radius:999px;
+  background:rgba(255,255,255,.05);
+  color:#edf6ef;
+  font:inherit;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.04em;
+  cursor:pointer;
+  transition:background .16s ease,transform .16s ease,border-color .16s ease;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+}
+.team-notifications-trigger:hover{
+  background:rgba(255,255,255,.08);
+  transform:translateY(-1px);
+}
+.team-notifications-icon{
+  font-size:15px;
+  line-height:1;
+}
+.team-notifications-label{
+  white-space:nowrap;
+}
+.team-notifications-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:22px;
+  height:22px;
+  padding:0 6px;
+  border-radius:999px;
+  background:linear-gradient(135deg,#80f7ca,#d8ff6d);
+  color:#071018;
+  font-size:11px;
+  font-weight:900;
+  box-shadow:0 10px 20px rgba(128,247,202,.22);
+}
+.team-notifications-popover{
+  position:absolute;
+  top:calc(100% + 10px);
+  right:0;
+  width:min(360px,calc(100vw - 64px));
+  padding:14px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(180deg,rgba(18,23,28,.98),rgba(12,16,21,.98));
+  box-shadow:0 24px 40px rgba(0,0,0,.28);
+  opacity:0;
+  pointer-events:none;
+  transform:translateY(-6px);
+  transition:opacity .16s ease,transform .16s ease;
+  z-index:8;
+}
+.team-notifications:hover .team-notifications-popover{
+  opacity:1;
+  pointer-events:auto;
+  transform:translateY(0);
+}
+.team-notifications-popover-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+  color:#edf6ef;
+}
+.team-notifications-popover-head strong{
+  font-size:13px;
+  font-weight:900;
+}
+.team-notifications-popover-head span{
+  color:#9db0c6;
+  font-size:12px;
+  font-weight:700;
+}
+.team-notifications-list{
+  display:grid;
+  gap:8px;
+  max-height:280px;
+  overflow:auto;
+}
+.team-notifications-item{
+  display:grid;
+  gap:4px;
+  padding:10px 12px;
+  border-radius:14px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.06);
+}
+.team-notifications-item-title{
+  color:#edf6ef;
+  font-size:13px;
+  font-weight:800;
+}
+.team-notifications-item-text{
+  color:#c9d5e6;
+  font-size:12px;
+  line-height:1.4;
+}
+.team-notifications-item-meta,
+.team-notifications-more,
+.team-notifications-empty{
+  color:#8ea2ba;
+  font-size:11px;
+  font-weight:700;
+}
+.team-notifications-more{
+  margin-top:10px;
 }
 .team-club-shell{
   display:grid;

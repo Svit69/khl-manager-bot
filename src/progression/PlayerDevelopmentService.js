@@ -2,26 +2,29 @@ import { calculateAge, clamp } from "../contracts/SeasonUtils.js";
 
 const ATTRIBUTE_STEP_THRESHOLD = 3.5;
 const POTENTIAL_STEP_THRESHOLD = 1.75;
-const FORWARD_POSITIONS = new Set(["???", "???", "???"]);
+const FORWARD_POSITIONS = new Set(["\u041b\u041d\u041f", "\u0426\u0422\u0420", "\u041f\u041d\u041f"]);
 
 const average = (items) => items.length ? items.reduce((total, value) => total + value, 0) / items.length : 0;
 
 export class PlayerDevelopmentService {
   applyMatchDevelopment(team, teamSummary, context = {}) {
     const roster = team?.getRoster?.() || [];
-    if (!roster.length) return;
+    if (!roster.length) return [];
 
     const statsById = new Map((teamSummary?.playerStats || []).map((stat) => [stat.playerId, stat]));
+    const events = [];
     roster.forEach((player) => {
       if (player.identity?.isGoalie) return;
-      this.#applyPlayerDevelopment(player, statsById.get(player.id) || null, context);
+      events.push(...this.#applyPlayerDevelopment(player, statsById.get(player.id) || null, context));
     });
+    return events;
   }
 
   #applyPlayerDevelopment(player, matchStat, context) {
     const seasonStats = player.seasonStats;
     const games = Number(seasonStats?.games) || 0;
-    if (!games) return;
+    if (!games) return [];
+    const events = [];
 
     const age = calculateAge(player.identity?.birthDate);
     const avgIceTime = this.#getAverageIceTime(seasonStats);
@@ -39,7 +42,19 @@ export class PlayerDevelopmentService {
     player.potential.addDevelopmentProgress(developmentDelta);
     const attributeDirection = player.potential.consumeDevelopmentStep(ATTRIBUTE_STEP_THRESHOLD);
     if (attributeDirection !== 0) {
-      this.#applyAttributeStep(player, attributeDirection, pointsPerGame, shotsPerGame);
+      const beforeOvr = player.ovr;
+      const attributeKey = this.#applyAttributeStep(player, attributeDirection, pointsPerGame, shotsPerGame);
+      const afterOvr = player.ovr;
+      if (attributeKey && afterOvr !== beforeOvr) {
+        events.push({
+          type: afterOvr > beforeOvr ? "upgrade" : "downgrade",
+          playerId: player.id,
+          playerName: player.name,
+          attributeKey,
+          oldOvr: beforeOvr,
+          newOvr: afterOvr,
+        });
+      }
     }
 
     const potentialDelta = this.#getPotentialDevelopmentDelta(player, age, games, avgIceTime, pointsPerGame, shotsPerGame, expected, matchStat);
@@ -50,6 +65,7 @@ export class PlayerDevelopmentService {
         player.potential.adjustPotential(potentialDirection);
       }
     }
+    return events;
   }
 
   #getAgeDevelopmentComponent(player, age) {
@@ -129,8 +145,9 @@ export class PlayerDevelopmentService {
   #applyAttributeStep(player, direction, pointsPerGame, shotsPerGame) {
     const weights = this.#getAttributeWeights(player, direction, pointsPerGame, shotsPerGame);
     const attributeKey = this.#pickWeightedAttribute(weights);
-    if (!attributeKey) return;
+    if (!attributeKey) return null;
     player.attributes.applyAttributeDelta(attributeKey, direction);
+    return attributeKey;
   }
 
   #getAttributeWeights(player, direction, pointsPerGame, shotsPerGame) {

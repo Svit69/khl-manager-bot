@@ -170,6 +170,26 @@ const renderReserveStrip=players=>{
   return `<div class="team-reserve-strip">${players.map((player,index)=>renderRosterSlotCard(player,{kind:"reserve",index},"hockey-card--reserve")).join("")}</div>`;
 };
 const renderTeamSidebar=(team,activeTab)=>`<aside class="team-sidebar"><img class="team-sidebar-logo" src="${team.logoUrl}" alt="${team.name}"/><div class="team-sidebar-nav"><button class="team-nav-link${activeTab==="roster"?" active":""}" data-tab="roster">Состав</button><button class="team-nav-link${activeTab==="contracts"?" active":""}" data-tab="contracts">Контракты</button><button class="team-nav-link${activeTab==="teamStats"?" active":""}" data-tab="teamStats">Статистика команды</button><button class="team-nav-link${activeTab==="freeAgents"?" active":""}" data-tab="freeAgents">Свободные агенты</button><button class="team-nav-link${activeTab==="trades"?" active":""}" data-tab="trades">Обмены</button></div></aside>`;
+const renderNotificationCenter=notifications=>{
+  const unreadCount=Math.max(0,Number(notifications?.unreadCount)||0);
+  const unreadItems=notifications?.unreadItems||[];
+  const extraCount=Math.max(0,unreadCount-unreadItems.length);
+  const listMarkup=unreadItems.length
+    ? unreadItems.map(item=>`<div class="team-notifications-item"><div class="team-notifications-item-title">${item.title||"Уведомление"}</div><div class="team-notifications-item-text">${item.message||""}</div><div class="team-notifications-item-meta">День ${item.day||"—"}</div></div>`).join("")
+    : `<div class="team-notifications-empty">Непрочитанных уведомлений нет</div>`;
+  return `<div class="team-notifications${unreadCount?" has-unread":""}">
+    <button type="button" class="team-notifications-trigger" data-action="mark-notifications-read" aria-label="Уведомления">
+      <span class="team-notifications-icon" aria-hidden="true">&#128276;</span>
+      <span class="team-notifications-label">Уведомления</span>
+      ${unreadCount?`<span class="team-notifications-badge">${unreadCount>99?"99+":unreadCount}</span>`:""}
+    </button>
+    <div class="team-notifications-popover">
+      <div class="team-notifications-popover-head"><strong>Непрочитанные</strong><span>${unreadCount}</span></div>
+      <div class="team-notifications-list">${listMarkup}</div>
+      ${extraCount?`<div class="team-notifications-more">И еще ${extraCount}</div>`:""}
+    </div>
+  </div>`;
+};
 export class Renderer{
   #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();#teamStatsTab=new TeamStatsTabRenderer();#freeAgentTab=new FreeAgentTabRenderer();#tradeTab=new TradeTabRenderer();
   constructor(){
@@ -179,12 +199,12 @@ export class Renderer{
     this.#userEl=document.getElementById("userBadge");
   }
   renderUser(user){this.#userEl.textContent=`ID: ${user.id}`}
-  renderTeam(team,activeTab,activeRosterUnit="1",selectedRosterSlot=null){
+  renderTeam(team,activeTab,activeRosterUnit="1",selectedRosterSlot=null,notifications=null){
     const rosterView=activeTab==="roster"
       ? `<div class="team-club-shell"><div class="team-roster-stage"><div class="line-view-panel">${renderRosterUnitButtons(activeRosterUnit)}${renderRosterUnitCards(team,activeRosterUnit,selectedRosterSlot)}</div></div><div class="team-reserve-wrap">${renderReserveStrip(team.reservePlayers||[])}</div></div>`
       : "";
     const sidebar=renderTeamSidebar(team,activeTab);
-    this.#teamEl.innerHTML=`<div class="team-screen">${sidebar}<div class="team-screen-main"><div class="team-screen-header"><div><div class="team-screen-title">${team.name}</div><div class="team-screen-subtitle">${team.city}, ${team.shortName}</div></div><div class="team-screen-status"><span class="team-screen-status-pill">Club Hub</span><span class="team-screen-status-pill team-screen-status-pill-muted">${activeTab==="roster"?"Основной состав":"Управление клубом"}</span></div></div>${rosterView}<div id="teamTabContent"></div></div></div>`;
+    this.#teamEl.innerHTML=`<div class="team-screen">${sidebar}<div class="team-screen-main"><div class="team-screen-header"><div><div class="team-screen-title">${team.name}</div><div class="team-screen-subtitle">${team.city}, ${team.shortName}</div></div><div class="team-screen-status">${renderNotificationCenter(notifications)}<span class="team-screen-status-pill">Club Hub</span><span class="team-screen-status-pill team-screen-status-pill-muted">${activeTab==="roster"?"Основной состав":"Управление клубом"}</span></div></div>${rosterView}<div id="teamTabContent"></div></div></div>`;
   }
   renderTeamSelection(teams,activeTeamId,selectedTeamId=null){
     const popularShortNames=new Set(["AVT","AKB","CSK","AVG"]);

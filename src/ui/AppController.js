@@ -28,7 +28,10 @@ export class AppController{
   #renderScreen(){
     const dayInfo=this.#state.activeTeam?this.#state.getVisibleCalendarDay():this.#calendar.getCurrent();
     if(this.#state.activeTeam){
-      this.#renderer.renderTeam(this.#state.activeTeam,this.#activeTab,this.#activeRosterUnit);
+      this.#renderer.renderTeam(this.#state.activeTeam,this.#activeTab,this.#activeRosterUnit,null,{
+        unreadCount:this.#state.getUnreadNotificationCount(),
+        unreadItems:this.#state.getUnreadNotifications()
+      });
       this.#renderer.renderCalendar(dayInfo?.day||this.#calendar.currentDay,dayInfo,false,{
         tab:this.#calendarPanelTab,
         activeTeamId:this.#state.activeTeamId,
@@ -166,6 +169,13 @@ export class AppController{
     if(action==="calendar-tab"){
       this.#calendarPanelTab=clickable.dataset.value||"standings";
       this.#renderScreen();
+      return;
+    }
+    if(action==="mark-notifications-read"){
+      if(this.#state.markNotificationsRead()){
+        this.#userStore.saveState(this.#state.exportState());
+        this.#renderScreen();
+      }
       return;
     }
     if(action==="sim-skip" && this.#matchPlayback){

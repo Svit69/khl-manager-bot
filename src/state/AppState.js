@@ -10,6 +10,7 @@ import { TradeService } from "../trade/TradeService.js";
 export class AppState{
   #teams;#calendar;#freeAgents;#stats=new StatsTracker();#standings=new StandingsTracker();#sim=new MatchSimulator();#contracts;#development=new PlayerDevelopmentService();#trade;
   #lastMatch=null;#activeTeamId=null;
+  #notifications=[];
   constructor(teams,calendar,contracts,freeAgents=[]){
     this.#teams=teams;this.#calendar=calendar;this.#freeAgents=freeAgents;
     this.#contracts=new ContractService(contracts);
@@ -23,6 +24,19 @@ export class AppState{
   getTopScorers(limit=10){return this.#stats.getSeasonStats().slice(0,limit)}
   get activeTeamId(){return this.#activeTeamId}
   get activeTeam(){return this.#teams.find(t=>t.id===this.#activeTeamId)||null}
+  getUnreadNotificationCount(){return this.#notifications.filter(notification=>!notification.read).length}
+  getUnreadNotifications(limit=6){
+    return this.#notifications.filter(notification=>!notification.read).slice(0,limit);
+  }
+  markNotificationsRead(){
+    let changed=false;
+    this.#notifications=this.#notifications.map(notification=>{
+      if(notification.read)return notification;
+      changed=true;
+      return {...notification,read:true};
+    });
+    return changed;
+  }
   setActiveTeamId(teamId){this.#activeTeamId=teamId}
   getVisibleCalendarDay(){
     return this.#activeTeamId?this.#calendar.getCurrentForTeam(this.#activeTeamId):this.#calendar.getCurrent();
@@ -115,7 +129,8 @@ export class AppState{
       activeTeamId:this.#activeTeamId,
       contracts:this.#contracts.exportContracts(),
       standings:this.#standings.getSnapshot(),
-      rosters
+      rosters,
+      notifications:this.#notifications
     };
   }
   importState(saved){
@@ -143,6 +158,16 @@ export class AppState{
     if(saved.contracts)this.#contracts.importContracts(saved.contracts);
     if(saved.standings)this.#standings.importSnapshot(saved.standings);
     this.#stats.importStats(saved.stats);
+    this.#notifications=(saved.notifications||[]).map(notification=>({
+      id:notification.id,
+      type:notification.type,
+      title:notification.title,
+      message:notification.message,
+      day:Number(notification.day)||this.#calendar.currentDay,
+      createdAt:notification.createdAt||null,
+      playerId:notification.playerId||null,
+      read:Boolean(notification.read)
+    }));
   }
   applyFantasyDraft(assignmentsByTeamId){
     const allPlayers=[...new Map(this.getAllPlayers().map(player=>[player.id,player])).values()];
@@ -242,8 +267,10 @@ export class AppState{
       this.#standings.recordMatch(simulated);
       this.#stats.recordMatch(simulated);
       this.#applyMatchPlayerStats(simulated);
-      this.#development.applyMatchDevelopment(simulated.home,simulated.summary?.home,{teamGamesPlayed:(this.#standings.getTeamStats(simulated.home.id)?.gp||0)});
-      this.#development.applyMatchDevelopment(simulated.away,simulated.summary?.away,{teamGamesPlayed:(this.#standings.getTeamStats(simulated.away.id)?.gp||0)});
+      const homeDevelopmentEvents=this.#development.applyMatchDevelopment(simulated.home,simulated.summary?.home,{teamGamesPlayed:(this.#standings.getTeamStats(simulated.home.id)?.gp||0)});
+      const awayDevelopmentEvents=this.#development.applyMatchDevelopment(simulated.away,simulated.summary?.away,{teamGamesPlayed:(this.#standings.getTeamStats(simulated.away.id)?.gp||0)});
+      this.#pushDevelopmentNotifications(simulated.home,homeDevelopmentEvents,day.day);
+      this.#pushDevelopmentNotifications(simulated.away,awayDevelopmentEvents,day.day);
       this.#applyMatchMood(simulated.home,simulated.summary?.home);
       this.#applyMatchMood(simulated.away,simulated.summary?.away);
       playedTeams.add(match.home.id);
@@ -337,5 +364,22 @@ export class AppState{
       teamRoster:team.getRoster(),
       allPlayers:this.getAllPlayers()
     };
+  }
+  #pushDevelopmentNotifications(team,events,day){
+    if(!this.#activeTeamId || team?.id!==this.#activeTeamId || !events?.length)return;
+    events.forEach(event=>{
+      const isUpgrade=event.type==="upgrade";
+      this.#notifications.unshift({
+        id:`notification-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,
+        type:event.type,
+        title:isUpgrade?"Рост рейтинга":"Снижение рейтинга",
+        message:`${event.playerName}: OVR ${event.oldOvr} → ${event.newOvr}`,
+        day,
+        createdAt:new Date().toISOString(),
+        playerId:event.playerId,
+        read:false
+      });
+    });
+    this.#notifications=this.#notifications.slice(0,60);
   }
 }
