@@ -1,7 +1,7 @@
 import { calculateAge, clamp } from "../contracts/SeasonUtils.js";
 
-const ATTRIBUTE_STEP_THRESHOLD = 3.5;
-const POTENTIAL_STEP_THRESHOLD = 1.75;
+const ATTRIBUTE_STEP_THRESHOLD = 2.8;
+const POTENTIAL_STEP_THRESHOLD = 1.4;
 const FORWARD_POSITIONS = new Set(["\u041b\u041d\u041f", "\u0426\u0422\u0420", "\u041f\u041d\u041f"]);
 
 const average = (items) => items.length ? items.reduce((total, value) => total + value, 0) / items.length : 0;
@@ -37,7 +37,7 @@ export class PlayerDevelopmentService {
     const usageComponent = this.#getUsageDevelopmentComponent(player, games, avgIceTime, matchStat, context);
     const performanceComponent = this.#getPerformanceDevelopmentComponent(pointsPerGame, shotsPerGame, expected);
     const ceilingComponent = this.#getPotentialGapComponent(potentialGap);
-    const developmentDelta = clamp(ageComponent + usageComponent + performanceComponent + ceilingComponent, -0.18, 0.2);
+    const developmentDelta = clamp(ageComponent + usageComponent + performanceComponent + ceilingComponent, -0.18, 0.22);
 
     player.potential.addDevelopmentProgress(developmentDelta);
     const attributeDirection = player.potential.consumeDevelopmentStep(ATTRIBUTE_STEP_THRESHOLD);
