@@ -149,6 +149,7 @@ export class AppController{
     const teamId=clickable?.dataset?.teamId;
     if(teamId){this.#pendingTeamId=teamId;this.#renderScreen();return;}
     const tab=clickable?.dataset?.tab;
+    const action=clickable?.dataset?.action;
     if(tab){
       this.#activeTab=tab;
       if(tab!=="teamStats")this.#teamStatsSort="points";
@@ -162,7 +163,6 @@ export class AppController{
       this.#renderScreen();
       return;
     }
-    const action=clickable?.dataset?.action;
     if(action==="calendar-tab"){
       this.#calendarPanelTab=clickable.dataset.value||"standings";
       this.#renderScreen();
