@@ -3,6 +3,7 @@ import { StatsTracker } from "../stats/StatsTracker.js";
 import { ContractService } from "../contracts/ContractService.js";
 import { StandingsTracker } from "../stats/StandingsTracker.js";
 import { buildCompetitiveLines } from "../data/lineupBuilder.js";
+import { calculateAge } from "../contracts/SeasonUtils.js";
 import { TradeService } from "../trade/TradeService.js";
 
 export class AppState{
@@ -92,6 +93,7 @@ export class AppState{
       fatigueScore:player.fatigueScore,
       form:player.form,
       injuryUntilDay:player.condition.injuryUntilDay,
+      moodScore:player.moodScore,
       seasonStats:player.seasonStats.exportSnapshot(),
       teamId:player.affiliation?.teamId||null,
       contractId:player.affiliation?.contractId||null,
@@ -126,6 +128,7 @@ export class AppState{
       if(!snapshot)return;
       player.applyFatigue(snapshot.fatigueScore-player.fatigueScore);
       player.applyFormDelta(snapshot.form-player.form);
+      if("moodScore" in snapshot)player.applyMoodDelta(snapshot.moodScore-player.moodScore);
       if(snapshot.seasonStats)player.seasonStats.importSnapshot(snapshot.seasonStats);
       if("teamId" in snapshot)player.affiliation.teamId=snapshot.teamId;
       if("contractId" in snapshot)player.affiliation.contractId=snapshot.contractId;
@@ -234,6 +237,8 @@ export class AppState{
       this.#standings.recordMatch(simulated);
       this.#stats.recordMatch(simulated);
       this.#applyMatchPlayerStats(simulated);
+      this.#applyMatchMood(simulated.home,simulated.summary?.home);
+      this.#applyMatchMood(simulated.away,simulated.summary?.away);
       playedTeams.add(match.home.id);
       playedTeams.add(match.away.id);
       if(!focusTeamId || match.home.id===focusTeamId || match.away.id===focusTeamId){
@@ -260,6 +265,57 @@ export class AppState{
     };
     applySide(match?.summary?.home,match?.home);
     applySide(match?.summary?.away,match?.away);
+  }
+  #applyMatchMood(team,teamSummary){
+    const roster=team?.getRoster?.()||[];
+    if(!roster.length)return;
+    const statsById=new Map((teamSummary?.playerStats||[]).map(stat=>[stat.playerId,stat]));
+    const playedPlayers=roster.filter(player=>statsById.has(player.id));
+    const playedByGroup=new Map();
+    playedPlayers.forEach(player=>{
+      const group=this.#getPositionMoodGroup(player.identity?.primaryPosition);
+      if(!playedByGroup.has(group))playedByGroup.set(group,[]);
+      playedByGroup.get(group).push(player);
+    });
+
+    roster.forEach(player=>{
+      const stat=statsById.get(player.id);
+      if(stat){
+        const iceMinutes=(Number(stat.totalIceTime)||0)/60;
+        let moodDelta=1.1;
+        if(iceMinutes>=18)moodDelta+=0.9;
+        else if(iceMinutes>=12)moodDelta+=0.5;
+        else if(iceMinutes<8)moodDelta-=0.2;
+        if(player.moodState==="red"||player.moodState==="orange")moodDelta+=0.35;
+        player.applyMoodDelta(moodDelta);
+        return;
+      }
+
+      const groupPlayers=playedByGroup.get(this.#getPositionMoodGroup(player.identity?.primaryPosition))||[];
+      const age=calculateAge(player.identity?.birthDate);
+      const sensitivity=age<=19?0.25:(age<=22?0.55:1);
+      if(!groupPlayers.length){
+        player.applyMoodDelta(-0.35*sensitivity);
+        return;
+      }
+
+      const strongerThanSomeone=groupPlayers.some(activePlayer=>(player.ovr||0)>(activePlayer.ovr||0));
+      const averageActiveOvr=groupPlayers.reduce((total,activePlayer)=>total+(activePlayer.ovr||0),0)/groupPlayers.length;
+      let moodDelta=-0.75;
+      if(strongerThanSomeone && (player.ovr||0)>=averageActiveOvr+1){
+        moodDelta=-3.2;
+      }else if((player.ovr||0)>=averageActiveOvr-1){
+        moodDelta=-1.6;
+      }else if((player.ovr||0)<=averageActiveOvr-4){
+        moodDelta=-0.35;
+      }
+      player.applyMoodDelta(moodDelta*sensitivity);
+    });
+  }
+  #getPositionMoodGroup(position){
+    if(position==="\u0417\u0410\u0429")return "DEF";
+    if(position==="\u0412\u0420\u0422")return "G";
+    return "FWD";
   }
   #buildNegotiationContext(team){
     const rank=this.#standings.getRank(team.id,this.#teams);

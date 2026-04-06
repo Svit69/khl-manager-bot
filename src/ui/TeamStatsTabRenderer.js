@@ -21,7 +21,7 @@ const SORT_LABELS = {
 const renderMoodCircle = (mood) => `
   <span
     class="team-stats-mood team-stats-mood--${mood?.tone || "neutral"}"
-    title="${mood?.label || "Нейтрально"} • ${mood?.chance || 0}%"
+    title="${mood?.label || "Нейтрально"} • ${mood?.score ?? 0}"
     aria-label="${mood?.label || "Нейтрально"}"
   ></span>
 `;

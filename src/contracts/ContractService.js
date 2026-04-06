@@ -19,6 +19,19 @@ const getLatestContract = (contracts) =>
     return parseSeasonEnd(current.season) >= parseSeasonEnd(latest.season) ? current : latest;
   }, null);
 
+const getMoodTone = (state) => {
+  if (state === "green") return "positive";
+  if (state === "yellow") return "neutral";
+  return "negative";
+};
+
+const getMoodLabel = (state) => {
+  if (state === "green") return "\u041e\u0442\u043b\u0438\u0447\u043d\u043e\u0435";
+  if (state === "yellow") return "\u0421\u0442\u0430\u0431\u0438\u043b\u044c\u043d\u043e\u0435";
+  if (state === "orange") return "\u041d\u0430\u043f\u0440\u044f\u0436\u0435\u043d\u043d\u043e\u0435";
+  return "\u041f\u043b\u043e\u0445\u043e\u0435";
+};
+
 export class ContractService {
   #contracts;
   #baseContracts;
@@ -129,7 +142,7 @@ export class ContractService {
             playerId: null,
             displayName: player.name,
             age: calculateAge(player.identity.birthDate),
-            ovr: player.ovr,
+            ovr: player.currentOvr ?? player.ovr,
             position: player.identity?.primaryPosition || "",
             khlGamesPlayed: player.career?.khlGamesPlayed || 0,
             seasonStats: {
@@ -150,7 +163,7 @@ export class ContractService {
           playerId,
           displayName: player.name,
           age: calculateAge(player.identity.birthDate),
-          ovr: player.ovr,
+          ovr: player.currentOvr ?? player.ovr,
           position: player.identity?.primaryPosition || "",
           khlGamesPlayed: player.career?.khlGamesPlayed || 0,
           seasonStats: {
@@ -170,28 +183,24 @@ export class ContractService {
   getTeamStatisticsRows(team, context = null, sortBy = "points") {
     const rows = team
       .getRoster()
-      .map((player) => {
-        const preview = this.getRenewalPreview(team, player, null, context);
-        const moodTone = preview.willingness >= 75 ? "positive" : preview.willingness >= 45 ? "neutral" : "negative";
-        return {
-          playerId: player.id,
-          displayName: player.name,
-          position: player.identity?.primaryPosition || "",
-          ovr: player.ovr,
-          games: player.seasonStats?.games || 0,
-          points: player.seasonStats?.points || 0,
-          goals: player.seasonStats?.goals || 0,
-          assists: player.seasonStats?.assists || 0,
-          penaltyMinutes: player.seasonStats?.penaltyMinutes || 0,
-          totalIceTime: player.seasonStats?.totalIceTime || 0,
-          mood: {
-            willingness: preview.willingness,
-            chance: preview.state?.chance || getAcceptanceChance(preview.willingness),
-            label: preview.state?.label || "",
-            tone: moodTone,
-          },
-        };
-      });
+      .map((player) => ({
+        playerId: player.id,
+        displayName: player.name,
+        position: player.identity?.primaryPosition || "",
+        ovr: player.currentOvr ?? player.ovr,
+        games: player.seasonStats?.games || 0,
+        points: player.seasonStats?.points || 0,
+        goals: player.seasonStats?.goals || 0,
+        assists: player.seasonStats?.assists || 0,
+        penaltyMinutes: player.seasonStats?.penaltyMinutes || 0,
+        totalIceTime: player.seasonStats?.totalIceTime || 0,
+        mood: {
+          score: player.moodScore,
+          state: player.moodState,
+          label: getMoodLabel(player.moodState),
+          tone: getMoodTone(player.moodState),
+        },
+      }));
 
     const compareBySort = (left, right) => {
       if (sortBy === "goals") {

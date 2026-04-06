@@ -1,4 +1,4 @@
-﻿export class Player{
+export class Player{
   #identity;#attributes;#potential;#condition;#career;#affiliation;#seasonStats;
   constructor(identity,attributes,potential,condition,career,affiliation,seasonStats){
     if(new.target===Player)throw new Error("Нельзя создавать Player напрямую");
@@ -18,10 +18,18 @@
   get form(){return this.#condition.form}
   get fatigueScore(){return this.#condition.fatigueScore}
   get fatigueStatus(){return this.#condition.fatigueStatus}
+  get moodScore(){return this.#condition.moodScore}
+  get moodState(){return this.#condition.moodState}
+  get moodModifier(){
+    if(this.moodScore>=30)return 1;
+    return 1-((Math.max(0,30-this.moodScore)/30)*0.03);
+  }
+  get currentOvr(){return Math.max(0,Math.round(this.ovr*this.moodModifier))}
   getEfficiency(){
     const fatigueLevel=this.#condition.fatigueScore/25;
-    return this.ovr*this.form*(1-0.08*fatigueLevel);
+    return this.currentOvr*this.form*(1-0.08*fatigueLevel);
   }
   applyFatigue(deltaScore){this.#condition.applyFatigue(deltaScore)}
   applyFormDelta(delta){this.#condition.applyFormDelta(delta)}
+  applyMoodDelta(delta){this.#condition.applyMoodDelta(delta)}
 }

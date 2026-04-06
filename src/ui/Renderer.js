@@ -74,7 +74,7 @@ const renderRosterCard=(player,extraClass="",options={})=>{
   const age=calculateAge(player.identity.birthDate);
   const nationCode=getNationCode(player.identity.nationality);
   const nationFlag=getNationFlag(player.identity.nationality);
-  const displayOvr=options.displayOvr??player.ovr;
+  const displayOvr=options.displayOvr??player.currentOvr??player.ovr;
   const displayPosition=options.displayPosition||player.identity.primaryPosition;
   const penalizedClass=options.isPenalized?" hockey-card--penalized":"";
   return `<article class="hockey-card${extraClass?` ${extraClass}`:""}${penalizedClass}"><div class="hockey-card-layers"><img class="hockey-card-bg" src="./card/card_background.svg" alt="" aria-hidden="true"/><img class="hockey-card-photo" src="${photo}" alt="${player.name}"/><img class="hockey-card-front" src="./card/card_front.svg" alt="" aria-hidden="true"/></div><div class="hockey-card-top"><span class="hockey-card-ovr-wrap"><span class="hockey-card-ovr">${displayOvr}</span></span><span class="hockey-card-pos">${displayPosition}</span></div><div class="hockey-card-name-band">${surname}</div><div class="hockey-card-meta-row"><span>${age} ЛЕТ</span><span>${nationFlag} ${nationCode}</span></div></article>`;

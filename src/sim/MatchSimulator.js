@@ -112,11 +112,11 @@ export class MatchSimulator{
         forwards,
         defenders,
         offenseRating:this.#averageWeighted(fallback,profile=>{
-          const attrs=profile.player.attributes?.attributesJson||{};
+          const attrs=this.#getMatchAttributes(profile.player);
           return (profile.effectiveOvr*0.52)+((attrs.shot||0)*profile.gameFactor*0.26)+((attrs.skill||0)*profile.gameFactor*0.17)+((attrs.speed||0)*profile.gameFactor*0.05);
         }),
         defenseRating:this.#averageWeighted(fallback,profile=>{
-          const attrs=profile.player.attributes?.attributesJson||{};
+          const attrs=this.#getMatchAttributes(profile.player);
           return (profile.effectiveOvr*0.54)+((attrs.defense||0)*profile.gameFactor*0.3)+((attrs.physical||0)*profile.gameFactor*0.16);
         })
       };
@@ -245,11 +245,11 @@ export class MatchSimulator{
     const forwards=allProfiles.filter(profile=>["ЛНП","ЦТР","ПНП"].includes(profile.player.identity?.primaryPosition));
     const defenders=allProfiles.filter(profile=>profile.player.identity?.primaryPosition==="ЗАЩ");
     const offensiveScore=profile=>{
-      const attrs=profile.player.attributes?.attributesJson||{};
+      const attrs=this.#getMatchAttributes(profile.player);
       return profile.effectiveOvr*0.45+(attrs.shot||0)*0.23+(attrs.skill||0)*0.22+(attrs.speed||0)*0.1;
     };
     const defensiveScore=profile=>{
-      const attrs=profile.player.attributes?.attributesJson||{};
+      const attrs=this.#getMatchAttributes(profile.player);
       return profile.effectiveOvr*0.42+(attrs.defense||0)*0.33+(attrs.physical||0)*0.17+(attrs.speed||0)*0.08;
     };
     const ppForwards=[...forwards].sort((a,b)=>offensiveScore(b)-offensiveScore(a));
@@ -361,15 +361,15 @@ export class MatchSimulator{
     const bestSkaters=(teamContext.activeProfiles||[])
       .filter(profile=>profile.player.identity?.primaryPosition!=="ВРТ")
       .sort((a,b)=>{
-        const aa=a.player.attributes?.attributesJson||{};
-        const ab=b.player.attributes?.attributesJson||{};
+        const aa=this.#getMatchAttributes(a.player);
+        const ab=this.#getMatchAttributes(b.player);
         const sa=a.effectiveOvr+(aa.skill||0)*0.35+(aa.speed||0)*0.35+(aa.shot||0)*0.25;
         const sb=b.effectiveOvr+(ab.skill||0)*0.35+(ab.speed||0)*0.35+(ab.shot||0)*0.25;
         return sb-sa;
       })
       .slice(0,4);
     return this.#averageWeighted(bestSkaters,profile=>profile.effectiveOvr)+this.#averageWeighted(bestSkaters,profile=>{
-      const attrs=profile.player.attributes?.attributesJson||{};
+      const attrs=this.#getMatchAttributes(profile.player);
       return ((attrs.skill||0)+(attrs.speed||0)+(attrs.shot||0))/3;
     });
   }
@@ -428,7 +428,7 @@ export class MatchSimulator{
   #pickPenaltyPlayer(profiles){
     if(!profiles.length)return null;
     const weights=profiles.map(profile=>{
-      const attrs=profile.player.attributes?.attributesJson||{};
+      const attrs=this.#getMatchAttributes(profile.player);
       const risk=1+((attrs.physical||65)-70)*0.02+((attrs.defense||65)-70)*0.01;
       return clamp(risk*(2-profile.gameFactor),0.35,2.2);
     });
@@ -487,7 +487,7 @@ export class MatchSimulator{
   }
 
   #getIndividualXgWeight(profile,momentType,mode,attackingState,defendingState,isOvertime){
-    const attrs=profile.player.attributes?.attributesJson||{};
+    const attrs=this.#getMatchAttributes(profile.player);
     const position=profile.slotPosition||profile.player.identity?.primaryPosition;
     const defensePressure=this.#getDefensivePressure(defendingState?.profiles||[]);
     const modeFactor=mode==="pp"?1.08:(mode==="ot"?1.06:(mode==="pk"?0.8:1));
@@ -535,7 +535,7 @@ export class MatchSimulator{
   }
 
   #getAssistWeight(profile,momentType,mode,attackingState){
-    const attrs=profile.player.attributes?.attributesJson||{};
+    const attrs=this.#getMatchAttributes(profile.player);
     const position=profile.slotPosition||profile.player.identity?.primaryPosition;
     let weight=profile.effectiveOvr*0.34+(attrs.skill||60)*0.42+(attrs.speed||60)*0.12+(attrs.defense||60)*0.06;
     if(["rush","cycle"].includes(momentType))weight+=(attrs.speed||60)*0.08;
@@ -558,14 +558,14 @@ export class MatchSimulator{
     const defenders=(profiles||[]).filter(profile=>profile.player.identity?.primaryPosition==="ЗАЩ");
     const skaters=(profiles||[]).filter(profile=>profile.player.identity?.primaryPosition!=="ВРТ");
     const defenseCore=this.#averageWeighted(defenders.length?defenders:skaters,profile=>{
-      const attrs=profile.player.attributes?.attributesJson||{};
+      const attrs=this.#getMatchAttributes(profile.player);
       return profile.effectiveOvr*0.32+(attrs.defense||60)*0.46+(attrs.physical||60)*0.16+(attrs.speed||60)*0.06;
     });
     return defenseCore||72;
   }
 
   #getShotGenerationWeight(profile,mode,teamContext,momentType){
-    const attrs=profile.player.attributes?.attributesJson||{};
+    const attrs=this.#getMatchAttributes(profile.player);
     const position=profile.slotPosition||profile.player.identity?.primaryPosition;
     const lineIndex=this.#findPlayerLineIndex(teamContext,profile.player.id);
     let weight=profile.effectiveOvr*0.18+(attrs.shot||60)*0.42+(attrs.skill||60)*0.16+(attrs.speed||60)*0.1+(attrs.physical||60)*0.04;
@@ -774,6 +774,23 @@ export class MatchSimulator{
     if(!lines?.length)return 68;
     const totalWeight=sum(lines.map(line=>line.weight||0.75))||1;
     return sum(lines.map(line=>(line[field]||68)*(line.weight||0.75)))/totalWeight;
+  }
+
+  #getMatchAttributes(player){
+    const attrs=player?.attributes?.attributesJson||{};
+    const moodModifier=player?.moodModifier??1;
+    return {
+      shot:(attrs.shot||0)*moodModifier,
+      speed:(attrs.speed||0)*moodModifier,
+      physical:(attrs.physical||0)*moodModifier,
+      defense:(attrs.defense||0)*moodModifier,
+      skill:(attrs.skill||0)*moodModifier,
+      reflexes:(attrs.reflexes||0)*moodModifier,
+      positioning:(attrs.positioning||0)*moodModifier,
+      glove:(attrs.glove||0)*moodModifier,
+      blocker:(attrs.blocker||0)*moodModifier,
+      reboundControl:(attrs.reboundControl||0)*moodModifier,
+    };
   }
 
   #buildMatchProfile(player,slotPosition){
