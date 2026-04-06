@@ -4,10 +4,11 @@ import { ContractService } from "../contracts/ContractService.js";
 import { StandingsTracker } from "../stats/StandingsTracker.js";
 import { buildCompetitiveLines } from "../data/lineupBuilder.js";
 import { calculateAge } from "../contracts/SeasonUtils.js";
+import { PlayerDevelopmentService } from "../progression/PlayerDevelopmentService.js";
 import { TradeService } from "../trade/TradeService.js";
 
 export class AppState{
-  #teams;#calendar;#freeAgents;#stats=new StatsTracker();#standings=new StandingsTracker();#sim=new MatchSimulator();#contracts;#trade;
+  #teams;#calendar;#freeAgents;#stats=new StatsTracker();#standings=new StandingsTracker();#sim=new MatchSimulator();#contracts;#development=new PlayerDevelopmentService();#trade;
   #lastMatch=null;#activeTeamId=null;
   constructor(teams,calendar,contracts,freeAgents=[]){
     this.#teams=teams;this.#calendar=calendar;this.#freeAgents=freeAgents;
@@ -94,6 +95,8 @@ export class AppState{
       form:player.form,
       injuryUntilDay:player.condition.injuryUntilDay,
       moodScore:player.moodScore,
+      attributes:player.attributes.exportSnapshot(),
+      potential:player.potential.exportSnapshot(),
       seasonStats:player.seasonStats.exportSnapshot(),
       teamId:player.affiliation?.teamId||null,
       contractId:player.affiliation?.contractId||null,
@@ -129,6 +132,8 @@ export class AppState{
       player.applyFatigue(snapshot.fatigueScore-player.fatigueScore);
       player.applyFormDelta(snapshot.form-player.form);
       if("moodScore" in snapshot)player.applyMoodDelta(snapshot.moodScore-player.moodScore);
+      if(snapshot.attributes)player.attributes.importSnapshot(snapshot.attributes);
+      if(snapshot.potential)player.potential.importSnapshot(snapshot.potential);
       if(snapshot.seasonStats)player.seasonStats.importSnapshot(snapshot.seasonStats);
       if("teamId" in snapshot)player.affiliation.teamId=snapshot.teamId;
       if("contractId" in snapshot)player.affiliation.contractId=snapshot.contractId;
@@ -237,6 +242,8 @@ export class AppState{
       this.#standings.recordMatch(simulated);
       this.#stats.recordMatch(simulated);
       this.#applyMatchPlayerStats(simulated);
+      this.#development.applyMatchDevelopment(simulated.home,simulated.summary?.home,{teamGamesPlayed:(this.#standings.getTeamStats(simulated.home.id)?.gp||0)});
+      this.#development.applyMatchDevelopment(simulated.away,simulated.summary?.away,{teamGamesPlayed:(this.#standings.getTeamStats(simulated.away.id)?.gp||0)});
       this.#applyMatchMood(simulated.home,simulated.summary?.home);
       this.#applyMatchMood(simulated.away,simulated.summary?.away);
       playedTeams.add(match.home.id);
