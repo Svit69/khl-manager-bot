@@ -40,19 +40,26 @@ const buildSummary = (rows) => {
   return { totals, leader };
 };
 
+const renderTeamOptions = (teams, selectedTeamId) =>
+  (teams || [])
+    .map((team) => `<option value="${team.id}"${team.id === selectedTeamId ? " selected" : ""}>${team.name}</option>`)
+    .join("");
+
 export class TeamStatsTabRenderer {
-  render(rows, sortBy = "points") {
+  render(rows, sortBy = "points", selectedTeamId = null, teams = [], activeTeamId = null) {
     const safeRows = Array.isArray(rows) ? rows : [];
     const { totals, leader } = buildSummary(safeRows);
     const sortLabel = SORT_LABELS[sortBy] || SORT_LABELS.points;
+    const selectedTeam = (teams || []).find((team) => team.id === selectedTeamId) || null;
+    const activeTeam = (teams || []).find((team) => team.id === activeTeamId) || null;
 
     return `
       <section class="team-stats-shell">
         <div class="team-stats-hero">
           <div class="team-stats-hero-copy">
             <span class="team-stats-hero-kicker">Статистика команды</span>
-            <h3 class="team-stats-hero-title">Состав отсортирован по ${sortLabel}</h3>
-            <p class="team-stats-hero-text">Актуальная результативность, айстайм и настроение игроков к переговорам.</p>
+            <h3 class="team-stats-hero-title">${selectedTeam?.name || "Команда"} — состав отсортирован по ${sortLabel}</h3>
+            <p class="team-stats-hero-text">Показываются текущие игроки выбранного клуба, их сезонные показатели и настроение.</p>
           </div>
           <div class="team-stats-hero-chips">
             <div class="team-stats-hero-chip">
@@ -71,12 +78,23 @@ export class TeamStatsTabRenderer {
         </div>
 
         <div class="team-stats-toolbar">
-          <span class="team-stats-toolbar-label">Сортировка</span>
-          <div class="team-stats-toolbar-actions">
-            <button class="team-stats-sort-btn${sortBy === "points" ? " active" : ""}" data-action="team-stats-sort" data-sort="points">Очки</button>
-            <button class="team-stats-sort-btn${sortBy === "goals" ? " active" : ""}" data-action="team-stats-sort" data-sort="goals">Голы</button>
-            <button class="team-stats-sort-btn${sortBy === "iceTime" ? " active" : ""}" data-action="team-stats-sort" data-sort="iceTime">Айс</button>
-            <button class="team-stats-sort-btn${sortBy === "penaltyMinutes" ? " active" : ""}" data-action="team-stats-sort" data-sort="penaltyMinutes">ШМ</button>
+          <div class="team-stats-toolbar-block">
+            <span class="team-stats-toolbar-label">Команда</span>
+            <label class="team-stats-select-wrap">
+              <select class="team-stats-select" data-action="team-stats-team-select">
+                ${renderTeamOptions(teams, selectedTeamId)}
+              </select>
+            </label>
+            ${activeTeam && selectedTeamId !== activeTeamId ? `<span class="team-stats-toolbar-hint">Сейчас просматривается соперник</span>` : ""}
+          </div>
+          <div class="team-stats-toolbar-block team-stats-toolbar-block--right">
+            <span class="team-stats-toolbar-label">Сортировка</span>
+            <div class="team-stats-toolbar-actions">
+              <button class="team-stats-sort-btn${sortBy === "points" ? " active" : ""}" data-action="team-stats-sort" data-sort="points">Очки</button>
+              <button class="team-stats-sort-btn${sortBy === "goals" ? " active" : ""}" data-action="team-stats-sort" data-sort="goals">Голы</button>
+              <button class="team-stats-sort-btn${sortBy === "iceTime" ? " active" : ""}" data-action="team-stats-sort" data-sort="iceTime">Айс</button>
+              <button class="team-stats-sort-btn${sortBy === "penaltyMinutes" ? " active" : ""}" data-action="team-stats-sort" data-sort="penaltyMinutes">ШМ</button>
+            </div>
           </div>
         </div>
 

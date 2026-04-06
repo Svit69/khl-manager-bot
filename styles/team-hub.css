@@ -419,12 +419,54 @@
   gap:12px;
   padding:0 4px;
 }
+.team-stats-toolbar-block{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.team-stats-toolbar-block--right{
+  justify-content:flex-end;
+}
 .team-stats-toolbar-label{
   color:#97a39c;
   font-size:11px;
   font-weight:900;
   letter-spacing:.12em;
   text-transform:uppercase;
+}
+.team-stats-select-wrap{
+  position:relative;
+  display:inline-flex;
+}
+.team-stats-select{
+  min-width:220px;
+  min-height:40px;
+  padding:0 38px 0 14px;
+  border:none;
+  border-radius:12px;
+  background:rgba(255,255,255,.05);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+  color:#edf6ef;
+  font:inherit;
+  font-size:13px;
+  font-weight:800;
+  appearance:none;
+  cursor:pointer;
+}
+.team-stats-select-wrap::after{
+  content:"▾";
+  position:absolute;
+  right:14px;
+  top:50%;
+  transform:translateY(-50%);
+  color:#8ea2ba;
+  pointer-events:none;
+}
+.team-stats-toolbar-hint{
+  color:#8ea2ba;
+  font-size:12px;
+  font-weight:700;
 }
 .team-stats-toolbar-actions{
   display:flex;

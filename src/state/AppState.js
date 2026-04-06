@@ -21,7 +21,17 @@ export class AppState{
   get lastMatch(){return this.#lastMatch}
   get seasonStats(){return this.#stats.getSeasonStats()}
   getStandingsTable(){return this.#standings.getTable(this.#teams)}
-  getTopScorers(limit=10){return this.#stats.getSeasonStats().slice(0,limit)}
+  getTopScorers(limit=10){
+    const playersById=new Map(this.getAllPlayers().map(player=>[player.id,player]));
+    return this.#stats.getSeasonStats().map(row=>{
+      const player=row.playerId?playersById.get(row.playerId):[...playersById.values()].find(player=>player.name===row.name);
+      const team=player?.affiliation?.teamId?this.#teams.find(entry=>entry.id===player.affiliation.teamId):null;
+      return {
+        ...row,
+        team:team?.shortName||team?.name||"—"
+      };
+    }).slice(0,limit);
+  }
   get activeTeamId(){return this.#activeTeamId}
   get activeTeam(){return this.#teams.find(t=>t.id===this.#activeTeamId)||null}
   getUnreadNotificationCount(){return this.#notifications.filter(notification=>!notification.read).length}
@@ -44,7 +54,11 @@ export class AppState{
   getCalendarScheduleRows(){return this.#calendar.getScheduleRows(this.#activeTeamId)}
   getAllPlayers(){return [...this.#teams.flatMap(team=>team.getRoster()),...this.#freeAgents]}
   getActiveTeamContractRows(){return this.activeTeam?this.#contracts.getTeamContractRows(this.activeTeam):[]}
-  getActiveTeamStatisticsRows(sortBy="points"){return this.activeTeam?this.#contracts.getTeamStatisticsRows(this.activeTeam,this.#buildNegotiationContext(this.activeTeam),sortBy):[]}
+  getTeamStatisticsRows(teamId=this.#activeTeamId,sortBy="points"){
+    const team=this.#teams.find(entry=>entry.id===teamId)||null;
+    return team?this.#contracts.getTeamStatisticsRows(team,this.#buildNegotiationContext(team),sortBy):[];
+  }
+  getActiveTeamStatisticsRows(sortBy="points"){return this.getTeamStatisticsRows(this.#activeTeamId,sortBy)}
   getActiveTeamFreeAgentRows(){return this.#contracts.getFreeAgentRows(this.getAvailableFreeAgents())}
   getTradePartnerTeams(){return this.activeTeam?this.#teams.filter(team=>team.id!==this.#activeTeamId):[]}
   getAvailableFreeAgents(){return this.#freeAgents.filter(player=>!player.affiliation?.teamId)}

@@ -5,6 +5,7 @@ export class AppController{
   #tradeTeamId=null;#tradeGivePlayerIds=new Set();#tradeReceivePlayerIds=new Set();#tradeMessage="";
   #activeRosterUnit="1";
   #teamStatsSort="points";
+  #teamStatsTeamId=null;
   #draftIntroTeamId=null;
   #draftState=null;
   #dragRosterSlot=null;
@@ -43,7 +44,14 @@ export class AppController{
       if(this.#activeTab==="contracts"){
         this.#renderer.renderContracts(this.#state.getActiveTeamContractRows(),this.#buildNegotiationState());
       }else if(this.#activeTab==="teamStats"){
-        this.#renderer.renderTeamStatistics(this.#state.getActiveTeamStatisticsRows(this.#teamStatsSort),this.#teamStatsSort);
+        const selectedTeamId=this.#teamStatsTeamId||this.#state.activeTeamId;
+        this.#renderer.renderTeamStatistics(
+          this.#state.getTeamStatisticsRows(selectedTeamId,this.#teamStatsSort),
+          this.#teamStatsSort,
+          selectedTeamId,
+          this.#teams,
+          this.#state.activeTeamId
+        );
       }else if(this.#activeTab==="freeAgents"){
         this.#renderer.renderFreeAgents(this.#state.getActiveTeamFreeAgentRows(),this.#buildNegotiationState());
       }else if(this.#activeTab==="trades"){
@@ -114,6 +122,11 @@ export class AppController{
       const current=this.#offerByPlayerId.get(playerId)||{years:1,salaryRub};
       this.#offerByPlayerId.set(playerId,{...current,salaryRub});
       this.#renderScreen();
+      return;
+    }
+    if(action==="team-stats-team-select"){
+      this.#teamStatsTeamId=changed.value||this.#state.activeTeamId;
+      this.#renderScreen();
     }
   }
   #buildNegotiationState(){
@@ -156,6 +169,7 @@ export class AppController{
     if(tab){
       this.#activeTab=tab;
       if(tab!=="teamStats")this.#teamStatsSort="points";
+      if(tab==="teamStats"&&!this.#teamStatsTeamId)this.#teamStatsTeamId=this.#state.activeTeamId;
       if(tab!=="trades"){this.#tradeMessage="";}
       this.#selectedNegotiationPlayerId=null;
       this.#renderScreen();
@@ -424,6 +438,7 @@ export class AppController{
     }
     if(action==="confirm-team" && this.#pendingTeamId){
       this.#state.setActiveTeamId(this.#pendingTeamId);
+      this.#teamStatsTeamId=this.#pendingTeamId;
       this.#pendingTeamId=null;
       this.#userStore.saveState(this.#state.exportState());
       this.#renderScreen();
@@ -453,6 +468,7 @@ export class AppController{
     const assignments=this.#draftState.service.getAssignments();
     this.#state.applyFantasyDraft(assignments);
     this.#state.setActiveTeamId(this.#draftState.selectedTeamId);
+    this.#teamStatsTeamId=this.#draftState.selectedTeamId;
     this.#draftState=null;
     this.#userStore.saveState(this.#state.exportState());
     this.#userStore.clearDraft();
