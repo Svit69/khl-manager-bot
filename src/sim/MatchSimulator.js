@@ -3,7 +3,8 @@ import { adjustedOvrForPosition } from "../utils/positionFit.js";
 import { poissonSample } from "./Poisson.js";
 
 const REGULATION_SECONDS=60*60;
-const OT_SECONDS=5*60;
+const REGULAR_OT_SECONDS=5*60;
+const PLAYOFF_OT_SECONDS=20*60;
 const PERIOD_SECONDS=20*60;
 const PENALTY_MINUTES=2;
 const SHOT_BIN_SECONDS=10;
@@ -21,7 +22,8 @@ const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 const sum=items=>items.reduce((a,b)=>a+b,0);
 
 export class MatchSimulator{
-  simulateMatch(home,away){
+  simulateMatch(home,away,options={}){
+    const isPlayoff=options?.phase==="playoffs";
     const homeContext=this.#buildTeamContext(home);
     const awayContext=this.#buildTeamContext(away);
     const homePlayerStats=this.#createPlayerStatsMap(homeContext);
@@ -42,12 +44,13 @@ export class MatchSimulator{
     const releasedAwayPenaltyIds=homeGoalResult.releasedPenaltyIds;
 
     let wentToOvertime=false;
+    let overtimeResult=null;
     if(homeGoals.length===awayGoals.length){
       wentToOvertime=true;
-      const otResult=this.#simulateOvertime(homeContext,awayContext);
-      if(otResult){
-        if(otResult.teamId===home.id)homeGoals=[...homeGoals,otResult.event];
-        else awayGoals=[...awayGoals,otResult.event];
+      overtimeResult=this.#simulateOvertime(homeContext,awayContext,{isPlayoff});
+      if(overtimeResult?.event){
+        if(overtimeResult.teamId===home.id)homeGoals=[...homeGoals,overtimeResult.event];
+        else awayGoals=[...awayGoals,overtimeResult.event];
       }
     }
 
@@ -56,12 +59,16 @@ export class MatchSimulator{
 
     const homeFinalGoals=homeGoals.length;
     const awayFinalGoals=awayGoals.length;
-    const durationSeconds=wentToOvertime?(REGULATION_SECONDS+OT_SECONDS):REGULATION_SECONDS;
-    const homeShots=this.#estimateShots(homeFinalGoals,homeXgReg,wentToOvertime);
-    const awayShots=this.#estimateShots(awayFinalGoals,awayXgReg,wentToOvertime);
+    const durationSeconds=overtimeResult?.durationSeconds||(
+      wentToOvertime
+        ? (REGULATION_SECONDS+(isPlayoff?PLAYOFF_OT_SECONDS:REGULAR_OT_SECONDS))
+        : REGULATION_SECONDS
+    );
+    const homeShots=this.#estimateShots(homeFinalGoals,homeXgReg,durationSeconds);
+    const awayShots=this.#estimateShots(awayFinalGoals,awayXgReg,durationSeconds);
 
-    this.#applyIceTimeStats(homeContext,homePlayerStats,durationSeconds,homePenalties,awayPenalties,releasedHomePenaltyIds,releasedAwayPenaltyIds);
-    this.#applyIceTimeStats(awayContext,awayPlayerStats,durationSeconds,awayPenalties,homePenalties,releasedAwayPenaltyIds,releasedHomePenaltyIds);
+    this.#applyIceTimeStats(homeContext,homePlayerStats,durationSeconds,homePenalties,awayPenalties,releasedHomePenaltyIds,releasedAwayPenaltyIds,overtimeResult?.format||null);
+    this.#applyIceTimeStats(awayContext,awayPlayerStats,durationSeconds,awayPenalties,homePenalties,releasedAwayPenaltyIds,releasedHomePenaltyIds,overtimeResult?.format||null);
     this.#applyGoalEventStats(homeGoals,homePlayerStats);
     this.#applyGoalEventStats(awayGoals,awayPlayerStats);
     this.#applyPenaltyEventStats(homePenalties,homePlayerStats);
@@ -78,6 +85,9 @@ export class MatchSimulator{
       summary:{
         durationSeconds,
         wentToOvertime,
+        overtimeFormat:overtimeResult?.format||null,
+        overtimePeriods:overtimeResult?.overtimePeriods||(wentToOvertime?1:0),
+        phase:isPlayoff?"playoffs":"regular",
         home:{
           shots:homeShots,
           penalties:homePenalties.length,
@@ -167,8 +177,12 @@ export class MatchSimulator{
         defenders:this.#buildGroupSchedule(lines,line=>(line.defenders||[]).length,DEFENSE_USAGE_WEIGHTS,DEFENSE_SHIFT_BINS,Math.ceil(REGULATION_SECONDS/SHOT_BIN_SECONDS))
       },
       overtime:{
-        forwards:this.#buildOvertimeSchedule(lines,"forwards",Math.ceil(OT_SECONDS/SHOT_BIN_SECONDS)),
-        defenders:this.#buildOvertimeSchedule(lines,"defenders",Math.ceil(OT_SECONDS/SHOT_BIN_SECONDS))
+        forwards:this.#buildOvertimeSchedule(lines,"forwards",Math.ceil(REGULAR_OT_SECONDS/SHOT_BIN_SECONDS)),
+        defenders:this.#buildOvertimeSchedule(lines,"defenders",Math.ceil(REGULAR_OT_SECONDS/SHOT_BIN_SECONDS))
+      },
+      playoffOvertime:{
+        forwards:this.#buildGroupSchedule(lines,line=>(line.forwards||[]).length,FORWARD_USAGE_WEIGHTS,FORWARD_SHIFT_BINS,Math.ceil(PLAYOFF_OT_SECONDS/SHOT_BIN_SECONDS)),
+        defenders:this.#buildGroupSchedule(lines,line=>(line.defenders||[]).length,DEFENSE_USAGE_WEIGHTS,DEFENSE_SHIFT_BINS,Math.ceil(PLAYOFF_OT_SECONDS/SHOT_BIN_SECONDS))
       }
     };
   }
@@ -285,7 +299,7 @@ export class MatchSimulator{
       const line=this.#pickLine(teamContext.lines,teamContext.iceTimeByLine);
       const player=this.#pickPenaltyPlayer(line?.skaters||[]);
       if(!player)continue;
-      const gameSecond=isOvertime?(REGULATION_SECONDS+Math.floor(rand(0,OT_SECONDS))):this.#randomRegulationSecond();
+      const gameSecond=isOvertime?(REGULATION_SECONDS+Math.floor(rand(0,REGULAR_OT_SECONDS))):this.#randomRegulationSecond();
       events.push(this.#formatEvent({
         penaltyId:`${teamContext.team.id}-${isOvertime?"ot":"reg"}-${i}-${Math.floor(rand(1000,9999))}`,
         type:"penalty",
@@ -299,11 +313,14 @@ export class MatchSimulator{
     return events;
   }
 
-  #buildGoalEvents(teamContext,opponentContext,goalsTarget,opponentPenalties,ownPenalties,isOvertime){
+  #buildGoalEvents(teamContext,opponentContext,goalsTarget,opponentPenalties,ownPenalties,isOvertime,overtimeConfig=null){
     const releasedPenaltyIds=new Set();
+    const overtimeFormat=overtimeConfig?.format||null;
+    const overtimeStartSecond=overtimeConfig?.startSecond??REGULATION_SECONDS;
+    const overtimeDurationSeconds=overtimeConfig?.durationSeconds??REGULAR_OT_SECONDS;
     const candidateSeconds=Array.from({length:goalsTarget},()=>(
       isOvertime
-        ? (REGULATION_SECONDS+this.#pickWeightedSecond(OT_SECONDS,sec=>this.#goalSecondWeight(teamContext,opponentContext,REGULATION_SECONDS+sec,opponentPenalties,ownPenalties,releasedPenaltyIds,true)))
+        ? (overtimeStartSecond+this.#pickWeightedSecond(overtimeDurationSeconds,sec=>this.#goalSecondWeight(teamContext,opponentContext,overtimeStartSecond+sec,opponentPenalties,ownPenalties,releasedPenaltyIds,overtimeFormat)))
         : this.#pickWeightedSecond(REGULATION_SECONDS,sec=>this.#goalSecondWeight(teamContext,opponentContext,sec,opponentPenalties,ownPenalties,releasedPenaltyIds,false))
     )).sort((a,b)=>a-b);
 
@@ -314,8 +331,8 @@ export class MatchSimulator{
       const ownSkaters=this.#getSkatersOnIce(ownActivePenalties.length);
       const opponentSkaters=this.#getSkatersOnIce(opponentActivePenalties.length);
       const blockedPlayerIds=new Set(ownActivePenalties.map(penalty=>penalty.player?.id).filter(Boolean));
-      const state=this.#getOnIceState(teamContext,gameSecond,ownPenalties,opponentPenalties,new Set(),releasedPenaltyIds,isOvertime,true);
-      const defendingState=this.#getOnIceState(opponentContext,gameSecond,opponentPenalties,ownPenalties,releasedPenaltyIds,new Set(),isOvertime,false);
+      const state=this.#getOnIceState(teamContext,gameSecond,ownPenalties,opponentPenalties,new Set(),releasedPenaltyIds,overtimeFormat,true);
+      const defendingState=this.#getOnIceState(opponentContext,gameSecond,opponentPenalties,ownPenalties,releasedPenaltyIds,new Set(),overtimeFormat,false);
       const play=this.#pickScoringPlay(state,defendingState,isOvertime,blockedPlayerIds,state.mode);
       if(!play.scorer || blockedPlayerIds.has(play.scorer.id))continue;
 
@@ -337,27 +354,93 @@ export class MatchSimulator{
         momentType:play.momentType,
         strength:isOvertime?"OT":(isPowerPlay?"PP":(isShortHanded?"SH":"EV")),
         isOvertime,
+        overtimeFormat,
         description:play.assists.length?`Гол: ${play.scorer.name} (${play.assists.map(player=>player.name).join(", ")})`:`Гол: ${play.scorer.name}`
       }));
     }
     return {events,releasedPenaltyIds};
   }
 
-  #simulateOvertime(homeContext,awayContext){
-    const homePressure=this.#overtimeAttackRating(homeContext);
-    const awayPressure=this.#overtimeAttackRating(awayContext);
+  #simulateOvertime(homeContext,awayContext,{isPlayoff=false}={}){
+    if(!isPlayoff){
+      const result=this.#simulateSuddenDeathSegment(homeContext,awayContext,{
+        startSecond:REGULATION_SECONDS,
+        durationSeconds:REGULAR_OT_SECONDS,
+        format:"regular",
+        forceGoal:true
+      });
+      return {
+        ...result,
+        durationSeconds:result?.event?.gameSecond||REGULATION_SECONDS+REGULAR_OT_SECONDS,
+        overtimePeriods:1,
+        format:"regular"
+      };
+    }
+
+    const maxOvertimePeriods=12;
+    for(let overtimePeriod=1;overtimePeriod<=maxOvertimePeriods;overtimePeriod++){
+      const result=this.#simulateSuddenDeathSegment(homeContext,awayContext,{
+        startSecond:REGULATION_SECONDS+((overtimePeriod-1)*PLAYOFF_OT_SECONDS),
+        durationSeconds:PLAYOFF_OT_SECONDS,
+        format:"playoffs",
+        forceGoal:false
+      });
+      if(result?.event){
+        return {
+          ...result,
+          durationSeconds:result.event.gameSecond,
+          overtimePeriods:overtimePeriod,
+          format:"playoffs"
+        };
+      }
+    }
+
+    const fallback=this.#simulateSuddenDeathSegment(homeContext,awayContext,{
+      startSecond:REGULATION_SECONDS+((maxOvertimePeriods-1)*PLAYOFF_OT_SECONDS),
+      durationSeconds:PLAYOFF_OT_SECONDS,
+      format:"playoffs",
+      forceGoal:true
+    });
+    return {
+      ...fallback,
+      durationSeconds:fallback?.event?.gameSecond||(REGULATION_SECONDS+(maxOvertimePeriods*PLAYOFF_OT_SECONDS)),
+      overtimePeriods:maxOvertimePeriods,
+      format:"playoffs"
+    };
+  }
+
+  #simulateSuddenDeathSegment(homeContext,awayContext,{startSecond,durationSeconds,format,forceGoal=false}){
+    const homePressure=this.#overtimeAttackRating(homeContext,format);
+    const awayPressure=this.#overtimeAttackRating(awayContext,format);
     const totalPressure=Math.max(1,homePressure+awayPressure);
-    const goalChance=clamp(0.8+(homePressure+awayPressure-150)/300,0.72,0.96);
+    const goalChance=forceGoal
+      ? 1
+      : (format==="playoffs"
+        ? clamp(0.42+(homePressure+awayPressure-150)/430,0.24,0.7)
+        : clamp(0.8+(homePressure+awayPressure-150)/300,0.72,0.96));
+    if(Math.random()>goalChance)return null;
+
     const winnerIsHome=Math.random()<(homePressure/totalPressure);
     const scoringContext=winnerIsHome?homeContext:awayContext;
     const defendingContext=winnerIsHome?awayContext:homeContext;
-    if(Math.random()>goalChance){
-      return {teamId:scoringContext.team.id,event:this.#buildGoalEvents(scoringContext,defendingContext,1,[],[],true).events[0]};
-    }
-    return {teamId:scoringContext.team.id,event:this.#buildGoalEvents(scoringContext,defendingContext,1,[],[],true).events[0]};
+    const event=this.#buildSingleOvertimeGoalEvent(scoringContext,defendingContext,{
+      startSecond,
+      durationSeconds,
+      format
+    });
+    if(!event)return null;
+    return {teamId:scoringContext.team.id,event};
   }
 
-  #overtimeAttackRating(teamContext){
+  #buildSingleOvertimeGoalEvent(teamContext,opponentContext,overtimeConfig){
+    for(let attempt=0;attempt<8;attempt++){
+      const result=this.#buildGoalEvents(teamContext,opponentContext,1,[],[],true,overtimeConfig);
+      if(result.events?.[0])return result.events[0];
+    }
+    return null;
+  }
+
+  #overtimeAttackRating(teamContext,overtimeFormat="regular"){
     const bestSkaters=(teamContext.activeProfiles||[])
       .filter(profile=>profile.player.identity?.primaryPosition!=="ВРТ")
       .sort((a,b)=>{
@@ -367,21 +450,23 @@ export class MatchSimulator{
         const sb=b.effectiveOvr+(ab.skill||0)*0.35+(ab.speed||0)*0.35+(ab.shot||0)*0.25;
         return sb-sa;
       })
-      .slice(0,4);
-    return this.#averageWeighted(bestSkaters,profile=>profile.effectiveOvr)+this.#averageWeighted(bestSkaters,profile=>{
+      .slice(0,overtimeFormat==="playoffs"?6:4);
+    const paceBoost=overtimeFormat==="playoffs"?0.96:1;
+    return (this.#averageWeighted(bestSkaters,profile=>profile.effectiveOvr)+this.#averageWeighted(bestSkaters,profile=>{
       const attrs=this.#getMatchAttributes(profile.player);
       return ((attrs.skill||0)+(attrs.speed||0)+(attrs.shot||0))/3;
-    });
+    }))*paceBoost;
   }
 
-  #goalSecondWeight(teamContext,opponentContext,gameSecond,opponentPenalties,ownPenalties,releasedPenaltyIds,isOvertime){
+  #goalSecondWeight(teamContext,opponentContext,gameSecond,opponentPenalties,ownPenalties,releasedPenaltyIds,overtimeFormat){
     const sharesByLineIndex=new Map((teamContext.iceTimeByLine||[]).map(item=>[item.lineIndex,item.share]));
     const avgShare=teamContext.lines.length?sum(teamContext.lines.map(line=>sharesByLineIndex.get(line.lineIndex)||line.weight||0.5))/teamContext.lines.length:0.25;
     const matchup=clamp((this.#averageLineOffense(teamContext.lines)-this.#averageLineDefense(opponentContext.lines))/120,-0.12,0.22);
-    const ownSkaters=this.#getSkatersOnIce(this.#getActivePenalties(ownPenalties,gameSecond).length);
-    const oppSkaters=this.#getSkatersOnIce(this.#getActivePenalties(opponentPenalties,gameSecond,releasedPenaltyIds).length);
+    const baseSkaters=overtimeFormat==="regular"?3:BASE_SKATERS;
+    const ownSkaters=this.#getSkatersOnIce(this.#getActivePenalties(ownPenalties,gameSecond).length,baseSkaters);
+    const oppSkaters=this.#getSkatersOnIce(this.#getActivePenalties(opponentPenalties,gameSecond,releasedPenaltyIds).length,baseSkaters);
     const manpowerBoost=this.#manpowerMultiplier(ownSkaters,oppSkaters);
-    const periodBias=isOvertime?1.2:this.#regulationPeriodBias(gameSecond);
+    const periodBias=overtimeFormat?(overtimeFormat==="playoffs"?1.08:1.2):this.#regulationPeriodBias(gameSecond);
     return Math.max(0.05,(avgShare||0.25)*(1+matchup)*manpowerBoost*periodBias);
   }
 
@@ -401,9 +486,9 @@ export class MatchSimulator{
     });
   }
 
-  #getSkatersOnIce(activePenaltyCount){
+  #getSkatersOnIce(activePenaltyCount,baseSkaters=BASE_SKATERS){
     const activeMinors=Math.max(0,Number(activePenaltyCount)||0);
-    return Math.max(3,BASE_SKATERS-Math.min(2,activeMinors));
+    return Math.max(3,baseSkaters-Math.min(2,activeMinors));
   }
 
   #manpowerMultiplier(ownSkaters,oppSkaters){
@@ -615,8 +700,9 @@ export class MatchSimulator{
     return {scorer,assists:[firstAssist,secondAssist].filter(Boolean),momentType};
   }
 
-  #estimateShots(goals,xg,wentToOvertime){
-    const otBonus=wentToOvertime?rand(1,4):0;
+  #estimateShots(goals,xg,durationSeconds){
+    const overtimeSeconds=Math.max(0,(Number(durationSeconds)||REGULATION_SECONDS)-REGULATION_SECONDS);
+    const otBonus=(overtimeSeconds/PERIOD_SECONDS)*rand(2.2,4.8);
     return Math.max(goals+8,Math.round((xg*8.2)+rand(0,5)+otBonus));
   }
 
@@ -629,7 +715,7 @@ export class MatchSimulator{
     return stats;
   }
 
-  #applyIceTimeStats(teamContext,statsMap,durationSeconds,ownPenalties,opponentPenalties,releasedOwnPenaltyIds=new Set(),releasedOpponentPenaltyIds=new Set()){
+  #applyIceTimeStats(teamContext,statsMap,durationSeconds,ownPenalties,opponentPenalties,releasedOwnPenaltyIds=new Set(),releasedOpponentPenaltyIds=new Set(),overtimeFormat=null){
     const scheduleSeconds=Math.min(durationSeconds,REGULATION_SECONDS);
     for(let second=0;second<scheduleSeconds;second+=SHOT_BIN_SECONDS){
       const activeState=this.#getOnIceState(
@@ -654,7 +740,7 @@ export class MatchSimulator{
           opponentPenalties,
           releasedOwnPenaltyIds,
           releasedOpponentPenaltyIds,
-          true,
+          overtimeFormat,
           true
         );
         this.#assignShiftBinIceTime(activeState.profiles,statsMap,Math.min(SHOT_BIN_SECONDS,durationSeconds-second),teamContext.playerUsageFactors);
@@ -736,8 +822,18 @@ export class MatchSimulator{
   #formatEvent(data){
     const gameSecond=Math.max(0,Math.floor(data.gameSecond));
     const inOt=gameSecond>=REGULATION_SECONDS;
-    const period=inOt?4:(Math.floor(gameSecond/PERIOD_SECONDS)+1);
-    const periodSecond=inOt?(gameSecond-REGULATION_SECONDS):(gameSecond%PERIOD_SECONDS);
+    const overtimeFormat=data.overtimeFormat||null;
+    const overtimePeriodLength=overtimeFormat==="playoffs"?PLAYOFF_OT_SECONDS:REGULAR_OT_SECONDS;
+    const period=inOt
+      ? (overtimeFormat==="playoffs"
+        ? (4+Math.floor((gameSecond-REGULATION_SECONDS)/overtimePeriodLength))
+        : 4)
+      : (Math.floor(gameSecond/PERIOD_SECONDS)+1);
+    const periodSecond=inOt
+      ? (overtimeFormat==="playoffs"
+        ? ((gameSecond-REGULATION_SECONDS)%overtimePeriodLength)
+        : (gameSecond-REGULATION_SECONDS))
+      : (gameSecond%PERIOD_SECONDS);
     const minuteAbsolute=Math.floor(gameSecond/60)+1;
     const secondInMinute=periodSecond%60;
     const elapsed=Math.max(0,periodSecond);
@@ -805,11 +901,12 @@ export class MatchSimulator{
     };
   }
 
-  #getOnIceState(teamContext,gameSecond,ownPenalties,opponentPenalties,releasedOwnPenaltyIds=new Set(),releasedOpponentPenaltyIds=new Set(),isOvertime=false,lateGamePush=false){
+  #getOnIceState(teamContext,gameSecond,ownPenalties,opponentPenalties,releasedOwnPenaltyIds=new Set(),releasedOpponentPenaltyIds=new Set(),overtimeFormat=null,lateGamePush=false){
     const ownActivePenalties=this.#getActivePenalties(ownPenalties,gameSecond,releasedOwnPenaltyIds);
     const opponentActivePenalties=this.#getActivePenalties(opponentPenalties,gameSecond,releasedOpponentPenaltyIds);
-    const ownSkaters=this.#getSkatersOnIce(ownActivePenalties.length);
-    const opponentSkaters=this.#getSkatersOnIce(opponentActivePenalties.length);
+    const baseSkaters=overtimeFormat==="regular"?3:BASE_SKATERS;
+    const ownSkaters=this.#getSkatersOnIce(ownActivePenalties.length,baseSkaters);
+    const opponentSkaters=this.#getSkatersOnIce(opponentActivePenalties.length,baseSkaters);
     if(ownSkaters!==opponentSkaters){
       const mode=ownSkaters>opponentSkaters?"pp":"pk";
       return {
@@ -821,38 +918,46 @@ export class MatchSimulator{
         defenseLineIndex:0
       };
     }
-    if(isOvertime){
+    if(overtimeFormat){
       return {
         mode:"ot",
         ownSkaters,
         opponentSkaters,
-        ...this.#pickScheduledProfiles(teamContext,gameSecond,true,true)
+        ...this.#pickScheduledProfiles(teamContext,gameSecond,overtimeFormat,true)
       };
     }
     return {
       mode:gameSecond>=REGULATION_SECONDS-LATE_GAME_PUSH_SECONDS&&lateGamePush?"push":"ev",
       ownSkaters,
       opponentSkaters,
-      ...this.#pickScheduledProfiles(teamContext,gameSecond,false,gameSecond>=REGULATION_SECONDS-LATE_GAME_PUSH_SECONDS&&lateGamePush)
+      ...this.#pickScheduledProfiles(teamContext,gameSecond,null,gameSecond>=REGULATION_SECONDS-LATE_GAME_PUSH_SECONDS&&lateGamePush)
     };
   }
 
-  #pickScheduledProfiles(teamContext,gameSecond,isOvertime=false,lateGamePush=false){
-    const schedule=isOvertime?teamContext.shiftSchedule?.overtime:teamContext.shiftSchedule?.regulation;
-    const scheduleSecond=isOvertime?(gameSecond-REGULATION_SECONDS):gameSecond;
-    const binIndex=Math.max(0,Math.floor(scheduleSecond/SHOT_BIN_SECONDS));
-    let forwardIndex=schedule?.forwards?.[binIndex]??0;
-    let defenseIndex=schedule?.defenders?.[binIndex]??0;
+  #pickScheduledProfiles(teamContext,gameSecond,overtimeFormat=null,lateGamePush=false){
+    const schedule=overtimeFormat==="regular"
+      ? teamContext.shiftSchedule?.overtime
+      : overtimeFormat==="playoffs"
+        ? teamContext.shiftSchedule?.playoffOvertime
+        : teamContext.shiftSchedule?.regulation;
+    const scheduleSecond=overtimeFormat?(gameSecond-REGULATION_SECONDS):gameSecond;
+    const forwardLength=Math.max(1,schedule?.forwards?.length||1);
+    const defenseLength=Math.max(1,schedule?.defenders?.length||1);
+    const forwardBinIndex=Math.max(0,Math.floor(scheduleSecond/SHOT_BIN_SECONDS)%forwardLength);
+    const defenseBinIndex=Math.max(0,Math.floor(scheduleSecond/SHOT_BIN_SECONDS)%defenseLength);
+    let forwardIndex=schedule?.forwards?.[forwardBinIndex]??0;
+    let defenseIndex=schedule?.defenders?.[defenseBinIndex]??0;
     if(lateGamePush && teamContext.lines.length>1){
       if(Math.random()<0.32)forwardIndex=0;
       if(Math.random()<0.24)defenseIndex=0;
     }
     const forwardProfiles=teamContext.lines[forwardIndex]?.forwards||teamContext.lines[forwardIndex]?.skaters||[];
     const defenseProfiles=teamContext.lines[defenseIndex]?.defenders||[];
-    const profiles=isOvertime
+    const isRegularOvertime=overtimeFormat==="regular";
+    const profiles=isRegularOvertime
       ? [...forwardProfiles.slice(0,2),...defenseProfiles.slice(0,1)]
       : [...forwardProfiles.slice(0,3),...defenseProfiles.slice(0,2)];
-    const resolvedProfiles=profiles.length?profiles:(teamContext.activeProfiles||[]).slice(0,isOvertime?3:5);
+    const resolvedProfiles=profiles.length?profiles:(teamContext.activeProfiles||[]).slice(0,isRegularOvertime?3:5);
     return {
       forwardLineIndex:forwardIndex,
       defenseLineIndex:defenseIndex,

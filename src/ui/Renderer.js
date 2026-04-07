@@ -479,9 +479,15 @@ export class Renderer{
     const fmtClock=seconds=>{
       const safe=Math.max(0,Number(seconds)||0);
       const isOt=safe>=3600;
-      const period=isOt?4:Math.min(3,Math.floor(safe/1200)+1);
-      const periodLen=isOt?300:1200;
-      const inPeriod=isOt?(safe-3600):(safe%1200);
+      const overtimeFormat=playback.match.summary?.overtimeFormat||null;
+      const overtimePeriodLen=overtimeFormat==="playoffs"?1200:300;
+      const period=isOt
+        ? (overtimeFormat==="playoffs" ? (4+Math.floor((safe-3600)/overtimePeriodLen)) : 4)
+        : Math.min(3,Math.floor(safe/1200)+1);
+      const periodLen=isOt?overtimePeriodLen:1200;
+      const inPeriod=isOt
+        ? (overtimeFormat==="playoffs" ? ((safe-3600)%overtimePeriodLen) : (safe-3600))
+        : (safe%1200);
       const down=Math.max(0,periodLen-inPeriod);
       const mm=String(Math.floor(down/60)).padStart(2,"0");
       const ss=String(down%60).padStart(2,"0");
@@ -652,7 +658,10 @@ export class Renderer{
         </div>
       </div>
     </div>`;
-    const periodsLabel=clock.period===4?"\u041e\u0422 3x3":"\u041f\u0435\u0440\u0438\u043e\u0434";
+    const overtimeFormat=playback.match.summary?.overtimeFormat||null;
+    const periodsLabel=clock.period>=4
+      ? (overtimeFormat==="playoffs"?`\u041e\u0422 ${clock.period-3} 5x5`:"\u041e\u0422 3x3")
+      : "\u041f\u0435\u0440\u0438\u043e\u0434";
     const contentLabel=playback.view==="stats"?"\u0421\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u0430 \u043c\u0430\u0442\u0447\u0430":"\u0421\u043e\u0431\u044b\u0442\u0438\u044f \u043c\u0430\u0442\u0447\u0430";
     const contentBody=playback.view==="stats"
       ? statsTable
@@ -660,7 +669,7 @@ export class Renderer{
     const controls=playback.isFinished
       ? `<button class="btn secondary${playback.view==="events"?" active":""}" data-action="sim-view-events">\u0421\u043e\u0431\u044b\u0442\u0438\u044f</button><button class="btn secondary${playback.view==="stats"?" active":""}" data-action="sim-view-stats">\u0421\u0442\u0430\u0442\u0438\u043a\u0430 \u043c\u0430\u0442\u0447\u0430</button><button class="btn secondary" data-action="sim-close">\u0417\u0430\u043a\u0440\u044b\u0442\u044c</button>`
       : `<button class="btn secondary" data-action="sim-skip">\u041f\u0440\u043e\u043f\u0443\u0441\u0442\u0438\u0442\u044c \u0441\u0438\u043c\u0443\u043b\u044f\u0446\u0438\u044e</button><button class="btn secondary" data-action="sim-close">\u0417\u0430\u043a\u0440\u044b\u0442\u044c</button>`;
-    this.#teamEl.insertAdjacentHTML("beforeend",`<div class="modal sim-modal"><div class="sim-modal-card sim-eafc"><button type="button" class="sim-modal-close" data-action="sim-close" aria-label="\u0417\u0430\u043a\u0440\u044b\u0442\u044c">\u00d7</button><div class="sim-top-head"><div class="sim-top-team"><span class="sim-top-team-name">${playback.match.home.name}</span><img class="sim-team-logo" src="${playback.match.home.logoUrl}" alt="${playback.match.home.name}"/></div><div class="sim-top-center"><div class="sim-top-score">${score.home}:${score.away}</div><div class="sim-period">${periodsLabel}${clock.period===4?"":" \u2022 "+clock.period+"/3"}</div><div class="sim-clock">${clock.label}</div></div><div class="sim-top-team sim-top-team-right"><img class="sim-team-logo" src="${playback.match.away.logoUrl}" alt="${playback.match.away.name}"/><span class="sim-top-team-name">${playback.match.away.name}</span></div></div><div class="sim-stage"><aside class="sim-side-panel"><div class="sim-side-stat"><div class="sim-side-label">\u0411\u0440\u043e\u0441\u043a\u0438</div><div class="sim-side-value">${homeShots}</div></div><div class="sim-side-stat"><div class="sim-side-label">\u0423\u0434\u0430\u043b\u0435\u043d\u0438\u044f</div><div class="sim-side-value">${visibleHomePens}</div></div><div class="sim-side-stat"><div class="sim-side-label">\u0413\u043e\u043b\u044b</div><div class="sim-side-value">${score.home}</div></div></aside><section class="sim-board"><div class="sim-board-overlay"></div><div class="sim-progress sim-progress-eafc"><span style="width:${Math.min(100,Math.round(progressRatio*100))}%"></span></div><div class="sim-timeline-header"><span>${contentLabel}</span><span>${playback.match.summary?.wentToOvertime?"\u0421 \u041e\u0422":"\u041e\u0441\u043d\u043e\u0432\u043d\u043e\u0435 \u0432\u0440\u0435\u043c\u044f"}</span></div>${contentBody}<div class="sim-center-actions sim-center-actions-eafc">${controls}</div></section><aside class="sim-side-panel sim-side-panel-right"><div class="sim-side-stat"><div class="sim-side-label">\u0411\u0440\u043e\u0441\u043a\u0438</div><div class="sim-side-value">${awayShots}</div></div><div class="sim-side-stat"><div class="sim-side-label">\u0423\u0434\u0430\u043b\u0435\u043d\u0438\u044f</div><div class="sim-side-value">${visibleAwayPens}</div></div><div class="sim-side-stat"><div class="sim-side-label">\u0413\u043e\u043b\u044b</div><div class="sim-side-value">${score.away}</div></div></aside></div></div></div>`);
+    this.#teamEl.insertAdjacentHTML("beforeend",`<div class="modal sim-modal"><div class="sim-modal-card sim-eafc"><button type="button" class="sim-modal-close" data-action="sim-close" aria-label="\u0417\u0430\u043a\u0440\u044b\u0442\u044c">\u00d7</button><div class="sim-top-head"><div class="sim-top-team"><span class="sim-top-team-name">${playback.match.home.name}</span><img class="sim-team-logo" src="${playback.match.home.logoUrl}" alt="${playback.match.home.name}"/></div><div class="sim-top-center"><div class="sim-top-score">${score.home}:${score.away}</div><div class="sim-period">${periodsLabel}${clock.period>=4?"":" \u2022 "+clock.period+"/3"}</div><div class="sim-clock">${clock.label}</div></div><div class="sim-top-team sim-top-team-right"><img class="sim-team-logo" src="${playback.match.away.logoUrl}" alt="${playback.match.away.name}"/><span class="sim-top-team-name">${playback.match.away.name}</span></div></div><div class="sim-stage"><aside class="sim-side-panel"><div class="sim-side-stat"><div class="sim-side-label">\u0411\u0440\u043e\u0441\u043a\u0438</div><div class="sim-side-value">${homeShots}</div></div><div class="sim-side-stat"><div class="sim-side-label">\u0423\u0434\u0430\u043b\u0435\u043d\u0438\u044f</div><div class="sim-side-value">${visibleHomePens}</div></div><div class="sim-side-stat"><div class="sim-side-label">\u0413\u043e\u043b\u044b</div><div class="sim-side-value">${score.home}</div></div></aside><section class="sim-board"><div class="sim-board-overlay"></div><div class="sim-progress sim-progress-eafc"><span style="width:${Math.min(100,Math.round(progressRatio*100))}%"></span></div><div class="sim-timeline-header"><span>${contentLabel}</span><span>${playback.match.summary?.wentToOvertime?(overtimeFormat==="playoffs"?"\u041f\u043b\u0435\u0439-\u043e\u0444\u0444 \u041e\u0422":"\u0421 \u041e\u0422"):"\u041e\u0441\u043d\u043e\u0432\u043d\u043e\u0435 \u0432\u0440\u0435\u043c\u044f"}</span></div>${contentBody}<div class="sim-center-actions sim-center-actions-eafc">${controls}</div></section><aside class="sim-side-panel sim-side-panel-right"><div class="sim-side-stat"><div class="sim-side-label">\u0411\u0440\u043e\u0441\u043a\u0438</div><div class="sim-side-value">${awayShots}</div></div><div class="sim-side-stat"><div class="sim-side-label">\u0423\u0434\u0430\u043b\u0435\u043d\u0438\u044f</div><div class="sim-side-value">${visibleAwayPens}</div></div><div class="sim-side-stat"><div class="sim-side-label">\u0413\u043e\u043b\u044b</div><div class="sim-side-value">${score.away}</div></div></aside></div></div></div>`);
     const timelineEl=this.#teamEl.querySelector(".sim-timeline");
     if(timelineEl && playback.view!=="stats"){
       timelineEl.scrollTop=timelineEl.scrollHeight;

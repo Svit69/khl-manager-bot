@@ -280,9 +280,9 @@ export class AppState{
     const focusedMatches=[];
     const playedTeams=new Set();
     matches.forEach(match=>{
-      const simulated=this.#sim.simulateMatch(match.home,match.away);
+      const simulated=this.#sim.simulateMatch(match.home,match.away,{phase:day?.phase||"regular"});
       this.#calendar.recordResult(day.day,match.id,simulated);
-      this.#standings.recordMatch(simulated);
+      if(day?.phase!=="playoffs")this.#standings.recordMatch(simulated);
       this.#stats.recordMatch(simulated);
       this.#applyMatchPlayerStats(simulated);
       const homeDevelopmentEvents=this.#development.applyMatchDevelopment(simulated.home,simulated.summary?.home,{teamGamesPlayed:(this.#standings.getTeamStats(simulated.home.id)?.gp||0)});
