@@ -1,6 +1,6 @@
-import { calculateAge, clamp } from "../contracts/SeasonUtils.js";
+﻿import { calculateAge, clamp } from "../contracts/SeasonUtils.js";
 
-const ATTRIBUTE_STEP_THRESHOLD = 2.8;
+const ATTRIBUTE_STEP_THRESHOLD = 2.4;
 const POTENTIAL_STEP_THRESHOLD = 1.4;
 const FORWARD_POSITIONS = new Set(["\u041b\u041d\u041f", "\u0426\u0422\u0420", "\u041f\u041d\u041f"]);
 
