@@ -38,7 +38,8 @@ export class AppController{
         activeTeamId:this.#state.activeTeamId,
         standings:this.#state.getStandingsTable(),
         scorers:this.#state.getTopScorers(10),
-        schedule:this.#state.getCalendarScheduleRows()
+        schedule:this.#state.getCalendarScheduleRows(),
+        playoffs:this.#state.getPlayoffBracketData()
       });
       this.#renderer.renderResetButton();
       if(this.#activeTab==="contracts"){
@@ -74,7 +75,8 @@ export class AppController{
         activeTeamId:this.#state.activeTeamId,
         standings:this.#state.getStandingsTable(),
         scorers:this.#state.getTopScorers(10),
-        schedule:this.#state.getCalendarScheduleRows()
+        schedule:this.#state.getCalendarScheduleRows(),
+        playoffs:this.#state.getPlayoffBracketData()
       });
       this.#renderer.renderResetButton();
       return;
@@ -87,7 +89,8 @@ export class AppController{
         activeTeamId:this.#state.activeTeamId,
         standings:this.#state.getStandingsTable(),
         scorers:this.#state.getTopScorers(10),
-        schedule:this.#state.getCalendarScheduleRows()
+        schedule:this.#state.getCalendarScheduleRows(),
+        playoffs:this.#state.getPlayoffBracketData()
       });
       this.#renderer.renderResetButton();
       return;
@@ -98,7 +101,8 @@ export class AppController{
       activeTeamId:this.#state.activeTeamId,
       standings:this.#state.getStandingsTable(),
       scorers:this.#state.getTopScorers(10),
-      schedule:this.#state.getCalendarScheduleRows()
+      schedule:this.#state.getCalendarScheduleRows(),
+      playoffs:this.#state.getPlayoffBracketData()
     });
     this.#renderer.renderResetButton();
     this.#renderer.renderMatch(this.#state.lastMatch,this.#state.seasonStats);

@@ -386,41 +386,48 @@ export class Renderer{
   }  renderCalendar(day,info,isLocked,panelData={}){
     const activeTab=panelData?.tab||"standings";
     const activeTeamId=panelData?.activeTeamId||null;
+    const playoffs=panelData?.playoffs||{active:false,rounds:[]};
     const currentMatch=info?.matches?.find(match=>activeTeamId&&(match.home?.id===activeTeamId||match.away?.id===activeTeamId))||info?.matches?.[0]||null;
     const text=isLocked
-      ? "Сначала выберите команду"
+      ? "\u0421\u043d\u0430\u0447\u0430\u043b\u0430 \u0432\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043a\u043e\u043c\u0430\u043d\u0434\u0443"
       : (!info?.matches?.length
-        ? "День отдыха"
+        ? "\u0414\u0435\u043d\u044c \u043e\u0442\u0434\u044b\u0445\u0430"
         : (activeTeamId&&currentMatch
-          ? `${currentMatch.home.name} — ${currentMatch.away.name}`
-          : `Игровой день: ${info.matches.length} ${this.#pluralizeMatches(info.matches.length)}`));
-    const standings=(panelData?.standings||[]).map((row,index)=>`<div class="calendar-table-row"><span>${index+1}</span><span>${row.shortName||row.name}</span><span>${row.gp||0}</span><span>${row.w||0}</span><span>${row.otl||0}</span><span>${row.l||0}</span><span>${row.pts||0}</span></div>`).join("")||`<div class="muted">Нет данных</div>`;
-    const scorers=(panelData?.scorers||[]).map((row,index)=>`<div class="calendar-scorer-row"><span>${index+1}</span><span>${row.name}</span><span>${row.team||"—"}</span><span>${row.points||((row.goals||0)+(row.assists||0))}</span><span>${row.goals||0}</span><span>${row.assists||0}</span></div>`).join("")||`<div class="muted">Нет данных</div>`;
+          ? `${info?.phase==="playoffs"&&info?.stageLabel?`${info.stageLabel} \u2022 `:""}${currentMatch.home.name} \u2014 ${currentMatch.away.name}`
+          : `${info?.phase==="playoffs"&&info?.stageLabel?`${info.stageLabel} \u2022 `:""}\u0418\u0433\u0440\u043e\u0432\u043e\u0439 \u0434\u0435\u043d\u044c: ${info.matches.length} ${this.#pluralizeMatches(info.matches.length)}`));
+    const standings=(panelData?.standings||[]).map((row,index)=>`<div class="calendar-table-row"><span>${index+1}</span><span>${row.shortName||row.name}</span><span>${row.gp||0}</span><span>${row.w||0}</span><span>${row.otl||0}</span><span>${row.l||0}</span><span>${row.pts||0}</span></div>`).join("")||`<div class="muted">\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445</div>`;
+    const scorers=(panelData?.scorers||[]).map((row,index)=>`<div class="calendar-scorer-row"><span>${index+1}</span><span>${row.name}</span><span>${row.team||"?"}</span><span>${row.points||((row.goals||0)+(row.assists||0))}</span><span>${row.goals||0}</span><span>${row.assists||0}</span></div>`).join("")||`<div class="muted">\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445</div>`;
     const scheduleRows=(panelData?.schedule||[]).map(row=>{
       if(row.isRestDay){
-        return `<div class="calendar-schedule-row${row.isCurrent?" current":""}"><span class="day">Д${row.day}</span><span class="teams"><strong>${row.isCurrent?"День отдыха (текущий)":"День отдыха"}</strong></span><span class="res">${row.isPlayed?"✓":"—"}</span></div>`;
+        return `<div class="calendar-schedule-row${row.isCurrent?" current":""}"><span class="day">\u0414${row.day}</span><span class="teams"><strong>${row.isCurrent?"\u0414\u0435\u043d\u044c \u043e\u0442\u0434\u044b\u0445\u0430 (\u0442\u0435\u043a\u0443\u0449\u0438\u0439)":"\u0414\u0435\u043d\u044c \u043e\u0442\u0434\u044b\u0445\u0430"}</strong></span><span class="res">${row.isPlayed?"\u2713":"\u2014"}</span></div>`;
       }
       const primaryMatch=row.myMatch||row.matches?.[0]||null;
       const extraMatches=Math.max(0,(row.matchCount||0)-(primaryMatch?1:0));
       const previewText=primaryMatch
-        ? `${primaryMatch.home?.shortName||primaryMatch.home?.name} — ${primaryMatch.away?.shortName||primaryMatch.away?.name}`
+        ? `${primaryMatch.home?.shortName||primaryMatch.home?.name} \u2014 ${primaryMatch.away?.shortName||primaryMatch.away?.name}`
         : `${row.matchCount||0} ${this.#pluralizeMatches(row.matchCount||0)}`;
+      const phasePrefix=row.phase==="playoffs"&&row.stageLabel?`${row.stageLabel} \u2022 `:"";
       const secondaryText=row.isMyMatch
-        ? (extraMatches>0?`Еще ${extraMatches} ${this.#pluralizeMatches(extraMatches)} в этот день`:"Матч вашей команды")
-        : `${(row.matches||[]).slice(0,2).map(match=>`${match.home?.shortName||match.home?.name} — ${match.away?.shortName||match.away?.name}`).join(" • ")}${(row.matchCount||0)>2?` • +${(row.matchCount||0)-2}`:""}`;
+        ? `${phasePrefix}${extraMatches>0?`\u0415\u0449\u0435 ${extraMatches} ${this.#pluralizeMatches(extraMatches)} \u0432 \u044d\u0442\u043e\u0442 \u0434\u0435\u043d\u044c`:"\u041c\u0430\u0442\u0447 \u0432\u0430\u0448\u0435\u0439 \u043a\u043e\u043c\u0430\u043d\u0434\u044b"}`
+        : `${phasePrefix}${(row.matches||[]).slice(0,2).map(match=>`${match.home?.shortName||match.home?.name} \u2014 ${match.away?.shortName||match.away?.name}`).join(" \u2022 ")}${(row.matchCount||0)>2?` \u2022 +${(row.matchCount||0)-2}`:""}`;
       const primaryResult=primaryMatch?.result
-        ? `${primaryMatch.result.homeGoals}:${primaryMatch.result.awayGoals}${primaryMatch.result.wentToOvertime?" ОТ":""}`
+        ? `${primaryMatch.result.homeGoals}:${primaryMatch.result.awayGoals}${primaryMatch.result.wentToOvertime?" \u041e\u0422":""}`
         : (row.isPlayed?`${row.playedMatchCount}/${row.matchCount}`:`${row.matchCount} vs`);
-      return `<div class="calendar-schedule-row${row.isCurrent?" current":""}${row.isMyMatch?" mine":""}"><span class="day">Д${row.day}</span><span class="teams"><strong>${previewText}</strong><small>${secondaryText}</small></span><span class="res">${primaryResult}</span></div>`;
-    }).join("")||`<div class="muted">Нет матчей</div>`;
-    const tabButtons=`<div class="calendar-tabs"><button class="calendar-tab-btn${activeTab==="standings"?" active":""}" data-action="calendar-tab" data-value="standings">Таблица</button><button class="calendar-tab-btn${activeTab==="scorers"?" active":""}" data-action="calendar-tab" data-value="scorers">Бомбардиры</button><button class="calendar-tab-btn${activeTab==="schedule"?" active":""}" data-action="calendar-tab" data-value="schedule">Расписание</button></div>`;
+      return `<div class="calendar-schedule-row${row.isCurrent?" current":""}${row.isMyMatch?" mine":""}"><span class="day">\u0414${row.day}</span><span class="teams"><strong>${previewText}</strong><small>${secondaryText}</small></span><span class="res">${primaryResult}</span></div>`;
+    }).join("")||`<div class="muted">\u041d\u0435\u0442 \u043c\u0430\u0442\u0447\u0435\u0439</div>`;
+    const playoffRows=playoffs.active
+      ? `<div class="calendar-playoff-bracket">${(playoffs.rounds||[]).map(round=>`<section class="calendar-playoff-round${round.isCurrent?" current":""}"><div class="calendar-playoff-round-title">${round.name}</div><div class="calendar-playoff-series-list">${(round.series||[]).map(series=>`<article class="calendar-playoff-series${series.winnerTeamId?" resolved":""}"><div class="calendar-playoff-team${series.winnerTeamId===series.higherSeed?.team?.id?" winner":""}"><span class="seed">#${series.higherSeed?.seed||"?"}</span><span class="name">${series.higherSeed?.team?.shortName||series.higherSeed?.team?.name||"?"}</span><span class="wins">${series.higherSeed?.wins||0}</span></div><div class="calendar-playoff-team${series.winnerTeamId===series.lowerSeed?.team?.id?" winner":""}"><span class="seed">#${series.lowerSeed?.seed||"?"}</span><span class="name">${series.lowerSeed?.team?.shortName||series.lowerSeed?.team?.name||"?"}</span><span class="wins">${series.lowerSeed?.wins||0}</span></div></article>`).join("")}</div></section>`).join("")}${playoffs.champion?`<div class="calendar-playoff-champion">\u041a\u0443\u0431\u043e\u043a \u0431\u0435\u0440\u0435\u0442 ${playoffs.champion.name}</div>`:""}</div>`
+      : `<div class="muted">\u041f\u043b\u0435\u0439-\u043e\u0444\u0444 \u0435\u0449\u0435 \u043d\u0435 \u043d\u0430\u0447\u0430\u043b\u0441\u044f</div>`;
+    const tabButtons=`<div class="calendar-tabs"><button class="calendar-tab-btn${activeTab==="standings"?" active":""}" data-action="calendar-tab" data-value="standings">\u0422\u0430\u0431\u043b\u0438\u0446\u0430</button><button class="calendar-tab-btn${activeTab==="scorers"?" active":""}" data-action="calendar-tab" data-value="scorers">\u0411\u043e\u043c\u0431\u0430\u0440\u0434\u0438\u0440\u044b</button><button class="calendar-tab-btn${activeTab==="schedule"?" active":""}" data-action="calendar-tab" data-value="schedule">\u0420\u0430\u0441\u043f\u0438\u0441\u0430\u043d\u0438\u0435</button><button class="calendar-tab-btn${activeTab==="playoffs"?" active":""}" data-action="calendar-tab" data-value="playoffs">\u041f\u043b\u0435\u0439-\u043e\u0444\u0444</button></div>`;
     const tableHeader=activeTab==="standings"
-      ? `<div class="calendar-table-header"><span>#</span><span>Команда</span><span>И</span><span>В</span><span>ПО</span><span>П</span><span>О</span></div>`
+      ? `<div class="calendar-table-header"><span>#</span><span>\u041a\u043e\u043c\u0430\u043d\u0434\u0430</span><span>\u0418</span><span>\u0412</span><span>\u041f\u041e</span><span>\u041f</span><span>\u041e</span></div>`
       : activeTab==="scorers"
-        ? `<div class="calendar-scorer-header"><span>#</span><span>Игрок</span><span>Команда</span><span>О</span><span>Г</span><span>П</span></div>`
-        : `<div class="calendar-schedule-header"><span>День</span><span>Игровой день</span><span>Счет</span></div>`;
-    const tableBody=activeTab==="standings"?standings:(activeTab==="scorers"?scorers:scheduleRows);
-    this.#calEl.innerHTML=`<h2>Календарь • День ${day}</h2><div class="row"><div>${text}</div><button id="playBtn" class="btn" ${isLocked?"disabled":""}>${isLocked?"Выбрать команду":"Дальше"}</button></div>${tabButtons}<div class="calendar-panel-list">${tableHeader}<div class="calendar-panel-scroll">${tableBody}</div></div>`;
+        ? `<div class="calendar-scorer-header"><span>#</span><span>\u0418\u0433\u0440\u043e\u043a</span><span>\u041a\u043e\u043c\u0430\u043d\u0434\u0430</span><span>\u041e</span><span>\u0413</span><span>\u041f</span></div>`
+        : activeTab==="schedule"
+          ? `<div class="calendar-schedule-header"><span>\u0414\u0435\u043d\u044c</span><span>\u0418\u0433\u0440\u043e\u0432\u043e\u0439 \u0434\u0435\u043d\u044c</span><span>\u0421\u0447\u0435\u0442</span></div>`
+          : "";
+    const tableBody=activeTab==="standings"?standings:(activeTab==="scorers"?scorers:(activeTab==="schedule"?scheduleRows:playoffRows));
+    this.#calEl.innerHTML=`<h2>\u041a\u0430\u043b\u0435\u043d\u0434\u0430\u0440\u044c \u2022 \u0414\u0435\u043d\u044c ${day}</h2><div class="row"><div>${text}</div><button id="playBtn" class="btn" ${isLocked?"disabled":""}>${isLocked?"\u0412\u044b\u0431\u0440\u0430\u0442\u044c \u043a\u043e\u043c\u0430\u043d\u0434\u0443":"\u0414\u0430\u043b\u044c\u0448\u0435"}</button></div>${tabButtons}<div class="calendar-panel-list${activeTab==="playoffs"?" playoffs":""}">${tableHeader}<div class="calendar-panel-scroll${activeTab==="playoffs"?" playoffs":""}">${tableBody}</div></div>`;
   }
   #pluralizeMatches(count){
     const mod10=count%10;

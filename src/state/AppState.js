@@ -21,6 +21,7 @@ export class AppState{
   get lastMatch(){return this.#lastMatch}
   get seasonStats(){return this.#stats.getSeasonStats()}
   getStandingsTable(){return this.#standings.getTable(this.#teams)}
+  getPlayoffBracketData(){return this.#calendar.getPlayoffBracketData()}
   getTopScorers(limit=10){
     const playersById=new Map(this.getAllPlayers().map(player=>[player.id,player]));
     return this.#stats.getSeasonStats().map(row=>{
@@ -136,8 +137,7 @@ export class AppState{
       reservePlayerIds:team.reservePlayers.map(player=>player.id)
     }));
     return {
-      calendarIndex:this.#calendar.index,
-      calendarResults:this.#calendar.exportResults(),
+      calendar:this.#calendar.exportState(),
       players,
       stats:this.#stats.getSeasonStats(),
       activeTeamId:this.#activeTeamId,
@@ -150,9 +150,12 @@ export class AppState{
   importState(saved){
     if(!saved)return;
     const allPlayers=[...new Map(this.getAllPlayers().map(player=>[player.id,player])).values()];
-    this.#calendar.index=saved.calendarIndex||0;
     this.#activeTeamId=saved.activeTeamId||null;
-    if(saved.calendarResults)this.#calendar.importResults(saved.calendarResults);
+    if(saved.calendar)this.#calendar.importState(saved.calendar);
+    else{
+      this.#calendar.index=saved.calendarIndex||0;
+      if(saved.calendarResults)this.#calendar.importResults(saved.calendarResults);
+    }
     if(saved.rosters)this.#importRosters(saved.rosters);
     const map=new Map((saved.players||[]).map(player=>[player.id,player]));
     allPlayers.forEach(player=>{
@@ -171,6 +174,7 @@ export class AppState{
     this.#freeAgents=allPlayers.filter(player=>!player.affiliation?.teamId);
     if(saved.contracts)this.#contracts.importContracts(saved.contracts);
     if(saved.standings)this.#standings.importSnapshot(saved.standings);
+    this.#calendar.ensurePlayoffs(this.getStandingsTable());
     this.#stats.importStats(saved.stats);
     this.#notifications=(saved.notifications||[]).map(notification=>({
       id:notification.id,
@@ -299,6 +303,7 @@ export class AppState{
     if(playedTeamList.length)this.#applyFatigue(playedTeamList,12);
     if(idleTeamList.length)this.#applyFatigue(idleTeamList,-8);
     this.#calendar.advanceDay();
+    this.#calendar.ensurePlayoffs(this.getStandingsTable());
     this.#lastMatch=focusedMatches[0]||null;
     return this.#lastMatch;
   }

@@ -1,24 +1,27 @@
-const createMatchId = (roundIndex, matchIndex) => `round-${roundIndex + 1}-match-${matchIndex + 1}`;
+const REGULAR_MATCH_ID = (roundIndex, matchIndex) => `regular-round-${roundIndex + 1}-match-${matchIndex + 1}`;
+const PLAYOFF_SERIES_ID = (roundIndex, seriesIndex) => `playoff-round-${roundIndex + 1}-series-${seriesIndex + 1}`;
+const PLAYOFF_MATCH_ID = (roundIndex, seriesIndex, gameNumber) => `playoff-round-${roundIndex + 1}-series-${seriesIndex + 1}-game-${gameNumber}`;
+const PLAYOFF_HOME_PATTERN = ["higher", "higher", "lower", "lower", "higher", "lower", "higher"];
 
 const toResultSnapshot = (matchResult) => ({
   homeGoals: Number(matchResult?.homeGoals) || 0,
   awayGoals: Number(matchResult?.awayGoals) || 0,
-  wentToOvertime: Boolean(matchResult?.summary?.wentToOvertime)
+  wentToOvertime: Boolean(matchResult?.summary?.wentToOvertime),
 });
 
 const buildRoundRobinPairings = (teams) => {
   const rotation = [...teams];
   const hasBye = rotation.length % 2 === 1;
-  if(hasBye)rotation.push(null);
+  if (hasBye) rotation.push(null);
 
   const rounds = [];
   const halfSize = rotation.length / 2;
-  for(let roundIndex = 0; roundIndex < rotation.length - 1; roundIndex++){
+  for (let roundIndex = 0; roundIndex < rotation.length - 1; roundIndex++) {
     const matches = [];
-    for(let slotIndex = 0; slotIndex < halfSize; slotIndex++){
+    for (let slotIndex = 0; slotIndex < halfSize; slotIndex++) {
       const left = rotation[slotIndex];
       const right = rotation[rotation.length - 1 - slotIndex];
-      if(!left || !right)continue;
+      if (!left || !right) continue;
       const shouldFlipHome = roundIndex % 2 === 1;
       const home = shouldFlipHome ? right : left;
       const away = shouldFlipHome ? left : right;
@@ -34,20 +37,70 @@ const buildRoundRobinPairings = (teams) => {
   return rounds;
 };
 
-export class SeasonCalendar{
-  #days;
-  #index = 0;
+const groupMatchesByDay = (matches) => {
+  const byDay = new Map();
+  matches.forEach((match) => {
+    if (!byDay.has(match.day)) {
+      byDay.set(match.day, {
+        day: match.day,
+        phase: "playoffs",
+        stageLabel: match.roundName,
+        roundIndex: match.roundIndex,
+        matches: [],
+      });
+    }
+    byDay.get(match.day).matches.push(match);
+  });
+  return [...byDay.values()].sort((left, right) => left.day - right.day);
+};
 
-  constructor(teams){
-    this.#days = this.#buildSchedule(teams);
+const getPlayoffTeamCount = (teamCount) => {
+  if (teamCount >= 16) return 16;
+  if (teamCount >= 8) return 8;
+  const fallback = 2 ** Math.floor(Math.log2(Math.max(2, teamCount)));
+  return Math.max(2, fallback);
+};
+
+export class SeasonCalendar {
+  #teamsById;
+  #days;
+  #regularSeasonDaysCount;
+  #index = 0;
+  #playoffs;
+
+  constructor(teams) {
+    this.#teamsById = new Map((teams || []).map((team) => [team.id, team]));
+    this.#days = this.#buildRegularSeason(teams);
+    this.#regularSeasonDaysCount = this.#days.length;
+    this.#playoffs = this.#createEmptyPlayoffState();
   }
 
-  get index(){return this.#index}
-  set index(value){this.#index = Math.max(0, Math.min(this.#days.length, value))}
-  get currentDay(){return Math.min(this.#index + 1, Math.max(1, this.#days.length))}
-  getCurrent(){return this.#days[this.#index] || null}
+  get index() { return this.#index; }
+  set index(value) {
+    this.#index = Math.max(0, Math.min(this.#days.length, Number(value) || 0));
+  }
 
-  getScheduleRows(activeTeamId = null){
+  get currentDay() {
+    return Math.min(this.#index + 1, Math.max(1, this.#days.length));
+  }
+
+  getCurrent() {
+    return this.#days[this.#index] || null;
+  }
+
+  getCurrentForTeam(teamId) {
+    if (!teamId) return this.getCurrent();
+    for (let index = this.#index; index < this.#days.length; index++) {
+      const day = this.#days[index];
+      if (day.matches.length === 0) return day;
+      if (day.matches.some((match) => match.home?.id === teamId || match.away?.id === teamId)) {
+        return day;
+      }
+    }
+    return this.getCurrent();
+  }
+
+  getScheduleRows(activeTeamId = null) {
     return this.#days.map((day, index) => {
       const myMatch = activeTeamId
         ? day.matches.find((match) => match.home?.id === activeTeamId || match.away?.id === activeTeamId) || null
@@ -57,10 +110,12 @@ export class SeasonCalendar{
         id: match.id,
         home: { id: match.home.id, name: match.home.name, shortName: match.home.shortName },
         away: { id: match.away.id, name: match.away.name, shortName: match.away.shortName },
-        result: match.result ? { ...match.result } : null
+        result: match.result ? { ...match.result } : null,
       }));
       return {
         day: day.day,
+        phase: day.phase || "regular",
+        stageLabel: day.stageLabel || "",
         isPlayed: day.matches.length > 0 && playedMatches === day.matches.length,
         isCurrent: index === this.#index,
         isMyMatch: Boolean(myMatch),
@@ -72,77 +127,361 @@ export class SeasonCalendar{
           id: myMatch.id,
           home: { id: myMatch.home.id, name: myMatch.home.name, shortName: myMatch.home.shortName },
           away: { id: myMatch.away.id, name: myMatch.away.name, shortName: myMatch.away.shortName },
-          result: myMatch.result ? { ...myMatch.result } : null
-        } : null
+          result: myMatch.result ? { ...myMatch.result } : null,
+        } : null,
       };
     });
   }
 
-  getCurrentForTeam(teamId){
-    if(!teamId)return this.getCurrent();
-    for(let i = this.#index; i < this.#days.length; i++){
-      const day = this.#days[i];
-      if(day.matches.length === 0)return day;
-      if(day.matches.some((match) => match.home?.id === teamId || match.away?.id === teamId)){
-        return day;
-      }
+  getPlayoffBracketData() {
+    if (!this.#playoffs.active) {
+      return {
+        active: false,
+        status: "not-started",
+        rounds: [],
+        champion: null,
+      };
     }
-    return null;
+
+    return {
+      active: true,
+      status: this.#playoffs.status,
+      participantCount: this.#playoffs.participantCount,
+      champion: this.#playoffs.championTeamId ? this.#teamsById.get(this.#playoffs.championTeamId) || null : null,
+      rounds: this.#playoffs.rounds.map((round, roundIndex) => ({
+        name: round.name,
+        isCurrent: roundIndex === this.#playoffs.currentRoundIndex && this.#playoffs.status !== "complete",
+        series: round.series.map((series) => ({
+          id: series.id,
+          higherSeed: {
+            seed: series.higherSeed.seed,
+            team: series.higherSeed.team,
+            wins: series.higherSeed.wins,
+          },
+          lowerSeed: {
+            seed: series.lowerSeed.seed,
+            team: series.lowerSeed.team,
+            wins: series.lowerSeed.wins,
+          },
+          winnerTeamId: series.winnerTeamId,
+        })),
+      })),
+    };
   }
 
-  advanceDay(){
-    if(this.#index < this.#days.length)this.#index++;
+  ensurePlayoffs(standingsTable) {
+    if (!this.#playoffs.active && this.#index >= this.#regularSeasonDaysCount) {
+      return this.#startPlayoffs(standingsTable);
+    }
+    return false;
   }
 
-  recordResult(dayNumber, matchId, matchResult){
+  advanceDay() {
+    if (this.#index < this.#days.length) this.#index += 1;
+    this.#ensurePlayoffSchedule();
+  }
+
+  recordResult(dayNumber, matchId, matchResult) {
     const day = this.#days.find((entry) => entry.day === dayNumber);
-    if(!day || !matchId || !matchResult)return;
+    if (!day || !matchId || !matchResult) return;
     const match = day.matches.find((entry) => entry.id === matchId);
-    if(!match)return;
+    if (!match || match.result) return;
+
     match.result = toResultSnapshot(matchResult);
+    if (match.phase === "playoffs") {
+      this.#applyPlayoffResult(match);
+    }
   }
 
-  exportResults(){
-    return this.#days.flatMap((day) => day.matches
-      .filter((match) => match.result)
-      .map((match) => ({
-        day: day.day,
-        matchId: match.id,
-        ...match.result
-      })));
+  exportState() {
+    return {
+      index: this.#index,
+      regularResults: this.#days
+        .slice(0, this.#regularSeasonDaysCount)
+        .flatMap((day) => day.matches.filter((match) => match.result).map((match) => ({
+          day: day.day,
+          matchId: match.id,
+          ...match.result,
+        }))),
+      playoffs: this.#serializePlayoffs(),
+    };
   }
 
-  importResults(results){
+  importState(payload) {
+    this.#days = this.#days.slice(0, this.#regularSeasonDaysCount);
+    this.#playoffs = this.#createEmptyPlayoffState();
+    this.#index = Math.max(0, Math.min(this.#days.length, Number(payload?.index) || 0));
+    this.#importRegularResults(payload?.regularResults || []);
+    if (payload?.playoffs?.active) {
+      this.#importPlayoffs(payload.playoffs);
+    }
+    this.#index = Math.max(0, Math.min(this.#days.length, Number(payload?.index) || 0));
+  }
+
+  exportResults() {
+    return this.exportState();
+  }
+
+  importResults(payload) {
+    this.importState(payload);
+  }
+
+  isFinished() {
+    return this.#index >= this.#days.length && (!this.#playoffs.active || this.#playoffs.status === "complete");
+  }
+
+  #buildRegularSeason(teams) {
+    const firstLeg = buildRoundRobinPairings(teams);
+    const secondLeg = firstLeg.map((round) => round.map((match) => ({
+      home: match.away,
+      away: match.home,
+    })));
+    const rounds = [...firstLeg, ...secondLeg];
+    return rounds.map((round, roundIndex) => ({
+      day: roundIndex + 1,
+      phase: "regular",
+      stageLabel: "Регулярный сезон",
+      matches: round.map((match, matchIndex) => ({
+        id: REGULAR_MATCH_ID(roundIndex, matchIndex),
+        home: match.home,
+        away: match.away,
+        result: null,
+        phase: "regular",
+      })),
+    }));
+  }
+
+  #createEmptyPlayoffState() {
+    return {
+      active: false,
+      status: "not-started",
+      participantCount: 0,
+      currentRoundIndex: -1,
+      rounds: [],
+      championTeamId: null,
+    };
+  }
+
+  #startPlayoffs(standingsTable) {
+    const orderedTeams = (standingsTable || []).map((row, index) => ({
+      seed: index + 1,
+      team: this.#teamsById.get(row.teamId),
+    })).filter((entry) => entry.team);
+    const participantCount = Math.min(getPlayoffTeamCount(orderedTeams.length), orderedTeams.length);
+    if (participantCount < 2) return false;
+
+    const seededTeams = orderedTeams.slice(0, participantCount);
+    this.#playoffs = {
+      active: true,
+      status: "active",
+      participantCount,
+      currentRoundIndex: 0,
+      rounds: [this.#createPlayoffRound(0, seededTeams, participantCount)],
+      championTeamId: null,
+    };
+    this.#ensurePlayoffSchedule();
+    return true;
+  }
+
+  #createPlayoffRound(roundIndex, seededTeams, participantCount) {
+    const roundNamesByTotal = {
+      8: ["Четвертьфинал", "Полуфинал", "Финал"],
+      16: ["1/8 финала", "Четвертьфинал", "Полуфинал", "Финал"],
+    };
+    const totalRounds = Math.log2(participantCount);
+    const names = roundNamesByTotal[participantCount] || Array.from({ length: totalRounds }, (_, index) => `Раунд ${index + 1}`);
+    const series = [];
+    for (let seriesIndex = 0; seriesIndex < seededTeams.length / 2; seriesIndex++) {
+      const higherSeed = seededTeams[seriesIndex];
+      const lowerSeed = seededTeams[seededTeams.length - 1 - seriesIndex];
+      series.push({
+        id: PLAYOFF_SERIES_ID(roundIndex, seriesIndex),
+        higherSeed: { ...higherSeed, wins: 0 },
+        lowerSeed: { ...lowerSeed, wins: 0 },
+        winnerTeamId: null,
+        games: [],
+      });
+    }
+    return {
+      roundIndex,
+      name: names[Math.min(roundIndex, names.length - 1)],
+      series,
+    };
+  }
+
+  #ensurePlayoffSchedule() {
+    if (!this.#playoffs.active || this.#playoffs.status === "complete") return;
+
+    while (this.#index >= this.#days.length) {
+      const round = this.#playoffs.rounds[this.#playoffs.currentRoundIndex];
+      if (!round) return;
+
+      const unfinishedSeries = round.series.filter((series) => !series.winnerTeamId && series.games.length < 7);
+      if (unfinishedSeries.length) {
+        this.#schedulePlayoffDay(round, unfinishedSeries);
+        return;
+      }
+
+      const winners = round.series
+        .map((series) => ({
+          seed: series.winnerTeamId === series.higherSeed.team.id ? series.higherSeed.seed : series.lowerSeed.seed,
+          team: this.#teamsById.get(series.winnerTeamId),
+        }))
+        .filter((entry) => entry.team)
+        .sort((left, right) => left.seed - right.seed);
+
+      if (winners.length <= 1) {
+        this.#playoffs.status = "complete";
+        this.#playoffs.championTeamId = winners[0]?.team?.id || null;
+        return;
+      }
+
+      this.#playoffs.currentRoundIndex += 1;
+      this.#playoffs.rounds.push(this.#createPlayoffRound(this.#playoffs.currentRoundIndex, winners, this.#playoffs.participantCount));
+    }
+  }
+
+  #schedulePlayoffDay(round, unfinishedSeries) {
+    const dayNumber = this.#days.length + 1;
+    const matches = unfinishedSeries.map((series, seriesIndex) => {
+      const gameNumber = series.games.length + 1;
+      const homeRole = PLAYOFF_HOME_PATTERN[gameNumber - 1] || "higher";
+      const homeTeam = homeRole === "higher" ? series.higherSeed.team : series.lowerSeed.team;
+      const awayTeam = homeRole === "higher" ? series.lowerSeed.team : series.higherSeed.team;
+      const match = {
+        id: PLAYOFF_MATCH_ID(round.roundIndex, seriesIndex, gameNumber),
+        home: homeTeam,
+        away: awayTeam,
+        result: null,
+        phase: "playoffs",
+        roundIndex: round.roundIndex,
+        roundName: round.name,
+        seriesId: series.id,
+        gameNumber,
+        day: dayNumber,
+      };
+      series.games.push(match);
+      return match;
+    });
+
+    this.#days.push({
+      day: dayNumber,
+      phase: "playoffs",
+      stageLabel: round.name,
+      roundIndex: round.roundIndex,
+      matches,
+    });
+  }
+
+  #applyPlayoffResult(match) {
+    const round = this.#playoffs.rounds[match.roundIndex];
+    const series = round?.series.find((entry) => entry.id === match.seriesId);
+    if (!series || !match.result) return;
+
+    const winnerTeamId = match.result.homeGoals > match.result.awayGoals ? match.home.id : match.away.id;
+    if (winnerTeamId === series.higherSeed.team.id) series.higherSeed.wins += 1;
+    else if (winnerTeamId === series.lowerSeed.team.id) series.lowerSeed.wins += 1;
+
+    if (series.higherSeed.wins >= 4) series.winnerTeamId = series.higherSeed.team.id;
+    if (series.lowerSeed.wins >= 4) series.winnerTeamId = series.lowerSeed.team.id;
+  }
+
+  #serializePlayoffs() {
+    if (!this.#playoffs.active) return { active: false };
+    return {
+      active: true,
+      status: this.#playoffs.status,
+      participantCount: this.#playoffs.participantCount,
+      currentRoundIndex: this.#playoffs.currentRoundIndex,
+      championTeamId: this.#playoffs.championTeamId,
+      rounds: this.#playoffs.rounds.map((round) => ({
+        roundIndex: round.roundIndex,
+        name: round.name,
+        series: round.series.map((series) => ({
+          id: series.id,
+          higherSeed: {
+            teamId: series.higherSeed.team.id,
+            seed: series.higherSeed.seed,
+            wins: series.higherSeed.wins,
+          },
+          lowerSeed: {
+            teamId: series.lowerSeed.team.id,
+            seed: series.lowerSeed.seed,
+            wins: series.lowerSeed.wins,
+          },
+          winnerTeamId: series.winnerTeamId,
+          games: series.games.map((game) => ({
+            id: game.id,
+            homeTeamId: game.home.id,
+            awayTeamId: game.away.id,
+            day: game.day,
+            gameNumber: game.gameNumber,
+            roundIndex: game.roundIndex,
+            roundName: game.roundName,
+            seriesId: game.seriesId,
+            result: game.result ? { ...game.result } : null,
+          })),
+        })),
+      })),
+    };
+  }
+
+  #importRegularResults(results) {
     const resultMap = new Map((results || []).map((entry) => [`${entry.day}:${entry.matchId}`, entry]));
-    this.#days.forEach((day) => {
+    this.#days.slice(0, this.#regularSeasonDaysCount).forEach((day) => {
       day.matches.forEach((match) => {
         const snapshot = resultMap.get(`${day.day}:${match.id}`);
         match.result = snapshot ? {
           homeGoals: Number(snapshot.homeGoals) || 0,
           awayGoals: Number(snapshot.awayGoals) || 0,
-          wentToOvertime: Boolean(snapshot.wentToOvertime)
+          wentToOvertime: Boolean(snapshot.wentToOvertime),
         } : null;
       });
     });
   }
 
-  isFinished(){return this.#index >= this.#days.length}
-
-  #buildSchedule(teams){
-    const firstLeg = buildRoundRobinPairings(teams);
-    const secondLeg = firstLeg.map((round) => round.map((match) => ({
-      home: match.away,
-      away: match.home
-    })));
-    const rounds = [...firstLeg, ...secondLeg];
-    return rounds.map((round, roundIndex) => ({
-      day: roundIndex + 1,
-      matches: round.map((match, matchIndex) => ({
-        id: createMatchId(roundIndex, matchIndex),
-        home: match.home,
-        away: match.away,
-        result: null
-      }))
+  #importPlayoffs(payload) {
+    const rounds = (payload?.rounds || []).map((round) => ({
+      roundIndex: Number(round.roundIndex) || 0,
+      name: round.name || `Раунд ${(Number(round.roundIndex) || 0) + 1}`,
+      series: (round.series || []).map((series) => ({
+        id: series.id,
+        higherSeed: {
+          team: this.#teamsById.get(series.higherSeed.teamId),
+          seed: Number(series.higherSeed.seed) || 1,
+          wins: Number(series.higherSeed.wins) || 0,
+        },
+        lowerSeed: {
+          team: this.#teamsById.get(series.lowerSeed.teamId),
+          seed: Number(series.lowerSeed.seed) || 1,
+          wins: Number(series.lowerSeed.wins) || 0,
+        },
+        winnerTeamId: series.winnerTeamId || null,
+        games: (series.games || []).map((game) => ({
+          id: game.id,
+          home: this.#teamsById.get(game.homeTeamId),
+          away: this.#teamsById.get(game.awayTeamId),
+          result: game.result ? { ...game.result } : null,
+          phase: "playoffs",
+          roundIndex: Number(game.roundIndex) || 0,
+          roundName: game.roundName || round.name,
+          seriesId: game.seriesId || series.id,
+          gameNumber: Number(game.gameNumber) || 1,
+          day: Number(game.day) || this.#days.length + 1,
+        })).filter((game) => game.home && game.away),
+      })).filter((series) => series.higherSeed.team && series.lowerSeed.team),
     }));
+
+    this.#playoffs = {
+      active: true,
+      status: payload.status || "active",
+      participantCount: Number(payload.participantCount) || 0,
+      currentRoundIndex: Number(payload.currentRoundIndex) || 0,
+      rounds,
+      championTeamId: payload.championTeamId || null,
+    };
+
+    const playoffDays = groupMatchesByDay(rounds.flatMap((round) => round.series.flatMap((series) => series.games)));
+    this.#days.push(...playoffDays);
   }
 }
