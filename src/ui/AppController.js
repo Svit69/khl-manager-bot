@@ -33,7 +33,7 @@ export class AppController{
         unreadCount:this.#state.getUnreadNotificationCount(),
         unreadItems:this.#state.getUnreadNotifications()
       });
-      this.#renderer.renderCalendar(dayInfo?.day||this.#calendar.currentDay,dayInfo,false,{
+      this.#renderer.renderCalendar(dayInfo?.dateLabel||this.#state.currentSeasonDateLabel,dayInfo,false,{
         tab:this.#calendarPanelTab,
         activeTeamId:this.#state.activeTeamId,
         standings:this.#state.getStandingsTable(),
@@ -70,7 +70,7 @@ export class AppController{
         draftView.selectedPlayerId=this.#draftState.selectedPlayerId;
         this.#renderer.renderFantasyDraft(draftView,selectedTeam);
       }
-      this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,true,{
+      this.#renderer.renderCalendar(dayInfo?.dateLabel||this.#state.currentSeasonDateLabel,dayInfo,true,{
         tab:this.#calendarPanelTab,
         activeTeamId:this.#state.activeTeamId,
         standings:this.#state.getStandingsTable(),
@@ -84,7 +84,7 @@ export class AppController{
     if(this.#draftIntroTeamId){
       const selectedTeam=this.#teams.find(team=>team.id===this.#draftIntroTeamId);
       if(selectedTeam)this.#renderer.renderFantasyDraftIntro(selectedTeam);
-      this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,true,{
+      this.#renderer.renderCalendar(dayInfo?.dateLabel||this.#state.currentSeasonDateLabel,dayInfo,true,{
         tab:this.#calendarPanelTab,
         activeTeamId:this.#state.activeTeamId,
         standings:this.#state.getStandingsTable(),
@@ -96,7 +96,7 @@ export class AppController{
       return;
     }
     this.#renderer.renderTeamSelection(this.#teams,this.#state.activeTeamId,this.#pendingTeamId);
-    this.#renderer.renderCalendar(this.#calendar.currentDay,dayInfo,true,{
+    this.#renderer.renderCalendar(dayInfo?.dateLabel||this.#state.currentSeasonDateLabel,dayInfo,true,{
       tab:this.#calendarPanelTab,
       activeTeamId:this.#state.activeTeamId,
       standings:this.#state.getStandingsTable(),

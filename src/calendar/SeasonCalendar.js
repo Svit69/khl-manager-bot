@@ -1,7 +1,28 @@
+import { formatCalendarDate } from "../contracts/SeasonUtils.js";
+
 const REGULAR_MATCH_ID = (roundIndex, matchIndex) => `regular-round-${roundIndex + 1}-match-${matchIndex + 1}`;
 const PLAYOFF_SERIES_ID = (roundIndex, seriesIndex) => `playoff-round-${roundIndex + 1}-series-${seriesIndex + 1}`;
 const PLAYOFF_MATCH_ID = (roundIndex, seriesIndex, gameNumber) => `playoff-round-${roundIndex + 1}-series-${seriesIndex + 1}-game-${gameNumber}`;
 const PLAYOFF_HOME_PATTERN = ["higher", "higher", "lower", "lower", "higher", "lower", "higher"];
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const createUtcDate = (year, monthIndex, day) => new Date(Date.UTC(year, monthIndex, day));
+const addDays = (date, days) => new Date(date.getTime() + days * DAY_MS);
+const diffDays = (left, right) => Math.round((right.getTime() - left.getTime()) / DAY_MS);
+const toIsoDate = (date) => {
+  const safeDate = date instanceof Date ? date : new Date(date);
+  return Number.isNaN(safeDate.getTime()) ? "" : safeDate.toISOString().slice(0, 10);
+};
+const toDateSnapshot = (date) => ({
+  dateIso: toIsoDate(date),
+  dateLabel: formatCalendarDate(date),
+  shortDateLabel: formatCalendarDate(date, { day: "numeric", month: "short" }),
+});
+const createCalendarDay = (day, date, payload = {}) => ({
+  day,
+  ...toDateSnapshot(date),
+  ...payload,
+});
 
 const toResultSnapshot = (matchResult) => ({
   homeGoals: Number(matchResult?.homeGoals) || 0,
@@ -41,13 +62,12 @@ const groupMatchesByDay = (matches) => {
   const byDay = new Map();
   matches.forEach((match) => {
     if (!byDay.has(match.day)) {
-      byDay.set(match.day, {
-        day: match.day,
+      byDay.set(match.day, createCalendarDay(match.day, match.dateIso, {
         phase: "playoffs",
         stageLabel: match.roundName,
         roundIndex: match.roundIndex,
         matches: [],
-      });
+      }));
     }
     byDay.get(match.day).matches.push(match);
   });
@@ -67,9 +87,17 @@ export class SeasonCalendar {
   #regularSeasonDaysCount;
   #index = 0;
   #playoffs;
+  #seasonStartYear;
+  #regularSeasonStartDate;
+  #playoffStartDate;
+  #nextPlayoffDate;
 
-  constructor(teams) {
+  constructor(teams, seasonStartYear = 2025) {
     this.#teamsById = new Map((teams || []).map((team) => [team.id, team]));
+    this.#seasonStartYear = Number(seasonStartYear) || 2025;
+    this.#regularSeasonStartDate = createUtcDate(this.#seasonStartYear, 8, 1);
+    this.#playoffStartDate = createUtcDate(this.#seasonStartYear + 1, 2, 23);
+    this.#nextPlayoffDate = this.#playoffStartDate;
     this.#days = this.#buildRegularSeason(teams);
     this.#regularSeasonDaysCount = this.#days.length;
     this.#playoffs = this.#createEmptyPlayoffState();
@@ -82,6 +110,14 @@ export class SeasonCalendar {
 
   get currentDay() {
     return Math.min(this.#index + 1, Math.max(1, this.#days.length));
+  }
+
+  get currentDate() {
+    return this.#resolveDateForIndex(this.#index)?.dateIso || toIsoDate(this.#regularSeasonStartDate);
+  }
+
+  get currentDateLabel() {
+    return this.#resolveDateForIndex(this.#index)?.dateLabel || formatCalendarDate(this.#regularSeasonStartDate);
   }
 
   getCurrent() {
@@ -114,6 +150,9 @@ export class SeasonCalendar {
       }));
       return {
         day: day.day,
+        dateIso: day.dateIso,
+        dateLabel: day.dateLabel,
+        shortDateLabel: day.shortDateLabel,
         phase: day.phase || "regular",
         stageLabel: day.stageLabel || "",
         isPlayed: day.matches.length > 0 && playedMatches === day.matches.length,
@@ -196,6 +235,7 @@ export class SeasonCalendar {
   exportState() {
     return {
       index: this.#index,
+      seasonStartYear: this.#seasonStartYear,
       regularResults: this.#days
         .slice(0, this.#regularSeasonDaysCount)
         .flatMap((day) => day.matches.filter((match) => match.result).map((match) => ({
@@ -210,6 +250,7 @@ export class SeasonCalendar {
   importState(payload) {
     this.#days = this.#days.slice(0, this.#regularSeasonDaysCount);
     this.#playoffs = this.#createEmptyPlayoffState();
+    this.#nextPlayoffDate = this.#playoffStartDate;
     this.#index = Math.max(0, Math.min(this.#days.length, Number(payload?.index) || 0));
     this.#importRegularResults(payload?.regularResults || []);
     if (payload?.playoffs?.active) {
@@ -230,6 +271,12 @@ export class SeasonCalendar {
     return this.#index >= this.#days.length && (!this.#playoffs.active || this.#playoffs.status === "complete");
   }
 
+  #resolveDateForIndex(index) {
+    if (!this.#days.length) return null;
+    const safeIndex = Math.max(0, Math.min(this.#days.length - 1, Number(index) || 0));
+    return this.#days[safeIndex];
+  }
+
   #buildRegularSeason(teams) {
     const firstLeg = buildRoundRobinPairings(teams);
     const secondLeg = firstLeg.map((round) => round.map((match) => ({
@@ -237,18 +284,25 @@ export class SeasonCalendar {
       away: match.home,
     })));
     const rounds = [...firstLeg, ...secondLeg];
-    return rounds.map((round, roundIndex) => ({
-      day: roundIndex + 1,
-      phase: "regular",
-      stageLabel: "Регулярный сезон",
-      matches: round.map((match, matchIndex) => ({
-        id: REGULAR_MATCH_ID(roundIndex, matchIndex),
-        home: match.home,
-        away: match.away,
-        result: null,
+    const regularSeasonEndDate = addDays(this.#playoffStartDate, -1);
+    const totalSpanDays = Math.max(0, diffDays(this.#regularSeasonStartDate, regularSeasonEndDate));
+
+    return rounds.map((round, roundIndex) => {
+      const offset = rounds.length <= 1 ? 0 : Math.floor((totalSpanDays * roundIndex) / Math.max(1, rounds.length - 1));
+      const roundDate = addDays(this.#regularSeasonStartDate, offset);
+      return createCalendarDay(roundIndex + 1, roundDate, {
         phase: "regular",
-      })),
-    }));
+        stageLabel: "Регулярный сезон",
+        matches: round.map((match, matchIndex) => ({
+          id: REGULAR_MATCH_ID(roundIndex, matchIndex),
+          home: match.home,
+          away: match.away,
+          result: null,
+          phase: "regular",
+          dateIso: toIsoDate(roundDate),
+        })),
+      });
+    });
   }
 
   #createEmptyPlayoffState() {
@@ -279,6 +333,7 @@ export class SeasonCalendar {
       rounds: [this.#createPlayoffRound(0, seededTeams, participantCount)],
       championTeamId: null,
     };
+    this.#nextPlayoffDate = this.#playoffStartDate;
     this.#ensurePlayoffSchedule();
     return true;
   }
@@ -343,6 +398,7 @@ export class SeasonCalendar {
 
   #schedulePlayoffDay(round, unfinishedSeries) {
     const dayNumber = this.#days.length + 1;
+    const scheduledDate = this.#nextPlayoffDate;
     const matches = unfinishedSeries.map((series, seriesIndex) => {
       const gameNumber = series.games.length + 1;
       const homeRole = PLAYOFF_HOME_PATTERN[gameNumber - 1] || "higher";
@@ -359,18 +415,19 @@ export class SeasonCalendar {
         seriesId: series.id,
         gameNumber,
         day: dayNumber,
+        dateIso: toIsoDate(scheduledDate),
       };
       series.games.push(match);
       return match;
     });
 
-    this.#days.push({
-      day: dayNumber,
+    this.#days.push(createCalendarDay(dayNumber, scheduledDate, {
       phase: "playoffs",
       stageLabel: round.name,
       roundIndex: round.roundIndex,
       matches,
-    });
+    }));
+    this.#nextPlayoffDate = addDays(scheduledDate, 2);
   }
 
   #applyPlayoffResult(match) {
@@ -419,6 +476,7 @@ export class SeasonCalendar {
             roundIndex: game.roundIndex,
             roundName: game.roundName,
             seriesId: game.seriesId,
+            dateIso: game.dateIso,
             result: game.result ? { ...game.result } : null,
           })),
         })),
@@ -468,6 +526,7 @@ export class SeasonCalendar {
           seriesId: game.seriesId || series.id,
           gameNumber: Number(game.gameNumber) || 1,
           day: Number(game.day) || this.#days.length + 1,
+          dateIso: game.dateIso || this.#playoffStartDate,
         })).filter((game) => game.home && game.away),
       })).filter((series) => series.higherSeed.team && series.lowerSeed.team),
     }));
@@ -483,5 +542,7 @@ export class SeasonCalendar {
 
     const playoffDays = groupMatchesByDay(rounds.flatMap((round) => round.series.flatMap((series) => series.games)));
     this.#days.push(...playoffDays);
+    const lastPlayoffDate = playoffDays.length ? new Date(playoffDays[playoffDays.length - 1].dateIso) : this.#playoffStartDate;
+    this.#nextPlayoffDate = addDays(lastPlayoffDate, 2);
   }
 }

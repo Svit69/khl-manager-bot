@@ -3,7 +3,7 @@ import { StatsTracker } from "../stats/StatsTracker.js";
 import { ContractService } from "../contracts/ContractService.js";
 import { StandingsTracker } from "../stats/StandingsTracker.js";
 import { buildCompetitiveLines } from "../data/lineupBuilder.js";
-import { calculateAge } from "../contracts/SeasonUtils.js";
+import { calculateAge, setSeasonReferenceDate } from "../contracts/SeasonUtils.js";
 import { PlayerDevelopmentService } from "../progression/PlayerDevelopmentService.js";
 import { TradeService } from "../trade/TradeService.js";
 
@@ -15,9 +15,12 @@ export class AppState{
     this.#teams=teams;this.#calendar=calendar;this.#freeAgents=freeAgents;
     this.#contracts=new ContractService(contracts);
     this.#trade=new TradeService(playerId=>this.#contracts.getContractsForPlayer(playerId));
+    this.#syncSeasonReferenceDate();
   }
   get teams(){return this.#teams}
   get calendar(){return this.#calendar}
+  get currentSeasonDate(){return this.#calendar.currentDate}
+  get currentSeasonDateLabel(){return this.#calendar.currentDateLabel}
   get lastMatch(){return this.#lastMatch}
   get seasonStats(){return this.#stats.getSeasonStats()}
   getStandingsTable(){return this.#standings.getTable(this.#teams)}
@@ -176,6 +179,7 @@ export class AppState{
     if(saved.standings)this.#standings.importSnapshot(saved.standings);
     this.#calendar.ensurePlayoffs(this.getStandingsTable());
     this.#stats.importStats(saved.stats);
+    this.#syncSeasonReferenceDate();
     this.#notifications=(saved.notifications||[]).map(notification=>({
       id:notification.id,
       type:notification.type,
@@ -213,6 +217,7 @@ export class AppState{
     this.#contracts.releasePlayers(undraftedPlayers.map(player=>player.id));
     this.#freeAgents=undraftedPlayers;
     this.#calendar.index=0;
+    this.#syncSeasonReferenceDate();
     this.#lastMatch=null;
     this.#stats.importStats([]);
     this.#standings.importSnapshot([]);
@@ -274,6 +279,7 @@ export class AppState{
       this.#lastMatch=null;
       this.#applyFatigue(this.#teams,-8);
       this.#calendar.advanceDay();
+      this.#syncSeasonReferenceDate();
       return null;
     }
 
@@ -304,6 +310,7 @@ export class AppState{
     if(idleTeamList.length)this.#applyFatigue(idleTeamList,-8);
     this.#calendar.advanceDay();
     this.#calendar.ensurePlayoffs(this.getStandingsTable());
+    this.#syncSeasonReferenceDate();
     this.#lastMatch=focusedMatches[0]||null;
     return this.#lastMatch;
   }
@@ -379,11 +386,13 @@ export class AppState{
       teamRank:rank,
       teamsCount,
       teamGamesPlayed,
+      currentDate:this.#calendar.currentDate,
       isInTop8:rank!==null && rank<=8,
       teamRoster:team.getRoster(),
       allPlayers:this.getAllPlayers()
     };
   }
+  #syncSeasonReferenceDate(){setSeasonReferenceDate(this.#calendar.currentDate)}
   #pushDevelopmentNotifications(team,events,day){
     if(!this.#activeTeamId || team?.id!==this.#activeTeamId || !events?.length)return;
     events.forEach(event=>{

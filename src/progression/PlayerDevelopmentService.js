@@ -37,7 +37,8 @@ export class PlayerDevelopmentService {
     const usageComponent = this.#getUsageDevelopmentComponent(player, age, games, avgIceTime, matchStat, context);
     const performanceComponent = this.#getPerformanceDevelopmentComponent(player, age, pointsPerGame, shotsPerGame, expected);
     const ceilingComponent = this.#getPotentialGapComponent(potentialGap);
-    const developmentDelta = clamp(ageComponent + usageComponent + performanceComponent + ceilingComponent, -0.18, 0.22);
+    const peakAgeComponent = this.#getPeakAgeRealizationComponent(player, age, potentialGap, games, avgIceTime, pointsPerGame, shotsPerGame, expected);
+    const developmentDelta = clamp(ageComponent + usageComponent + performanceComponent + ceilingComponent + peakAgeComponent, -0.18, 0.22);
 
     player.potential.addDevelopmentProgress(developmentDelta);
     const attributeDirection = player.potential.consumeDevelopmentStep(ATTRIBUTE_STEP_THRESHOLD);
@@ -121,6 +122,24 @@ export class PlayerDevelopmentService {
     if (potentialGap >= 1) return 0.01;
     if (potentialGap <= -2) return -0.02;
     return 0;
+  }
+
+  #getPeakAgeRealizationComponent(player, age, potentialGap, games, avgIceTime, pointsPerGame, shotsPerGame, expected) {
+    const peakAge = Number(player.potential?.peakAge) || 27;
+    if (potentialGap <= 0 || games < 12 || avgIceTime < 10 || age < peakAge - 3 || age > peakAge + 1) return 0;
+
+    const growthRate = Number(player.potential?.growthRate) || 1;
+    const distance = Math.abs(age - peakAge);
+    const proximityBonus = distance === 0 ? 0.026 : distance === 1 ? 0.02 : distance === 2 ? 0.013 : 0.007;
+    const usageFactor = clamp((avgIceTime - 10) / 10, 0, 1);
+    const productionSignal = clamp(
+      Math.max(0, pointsPerGame - expected.pointsPerGame) * 0.08 +
+      Math.max(0, shotsPerGame - expected.shotsPerGame) * 0.015,
+      0,
+      0.025,
+    );
+    const gapFactor = clamp(potentialGap / 6, 0.2, 1);
+    return clamp((proximityBonus + productionSignal) * growthRate * (0.55 + usageFactor * 0.45) * gapFactor, 0, 0.04);
   }
 
   #getPotentialDevelopmentDelta(player, age, games, avgIceTime, pointsPerGame, shotsPerGame, expected, matchStat) {
