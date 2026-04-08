@@ -1,5 +1,6 @@
 import { MatchSimulator } from "../sim/MatchSimulator.js";
 import { StatsTracker } from "../stats/StatsTracker.js";
+import { AiRenewalService } from "../contracts/AiRenewalService.js";
 import { ContractService } from "../contracts/ContractService.js";
 import { StandingsTracker } from "../stats/StandingsTracker.js";
 import { buildCompetitiveLines } from "../data/lineupBuilder.js";
@@ -9,11 +10,13 @@ import { TradeService } from "../trade/TradeService.js";
 
 export class AppState{
   #teams;#calendar;#freeAgents;#stats=new StatsTracker();#standings=new StandingsTracker();#sim=new MatchSimulator();#contracts;#development=new PlayerDevelopmentService();#trade;
+  #aiRenewals;
   #lastMatch=null;#activeTeamId=null;
   #notifications=[];
   constructor(teams,calendar,contracts,freeAgents=[]){
     this.#teams=teams;this.#calendar=calendar;this.#freeAgents=freeAgents;
     this.#contracts=new ContractService(contracts);
+    this.#aiRenewals=new AiRenewalService(this.#contracts);
     this.#trade=new TradeService(playerId=>this.#contracts.getContractsForPlayer(playerId));
     this.#syncSeasonReferenceDate();
   }
@@ -274,12 +277,14 @@ export class AppState{
     return true;
   }
   #simulateCalendarDay(day,focusTeamId){
+    const previousDate=this.#calendar.currentDate;
     const matches=day?.matches||[];
     if(matches.length===0){
       this.#lastMatch=null;
       this.#applyFatigue(this.#teams,-8);
       this.#calendar.advanceDay();
       this.#syncSeasonReferenceDate();
+      this.#runMonthlyAiRenewals(previousDate,this.#calendar.currentDate);
       return null;
     }
 
@@ -311,6 +316,7 @@ export class AppState{
     this.#calendar.advanceDay();
     this.#calendar.ensurePlayoffs(this.getStandingsTable());
     this.#syncSeasonReferenceDate();
+    this.#runMonthlyAiRenewals(previousDate,this.#calendar.currentDate);
     this.#lastMatch=focusedMatches[0]||null;
     return this.#lastMatch;
   }
@@ -393,11 +399,35 @@ export class AppState{
     };
   }
   #syncSeasonReferenceDate(){setSeasonReferenceDate(this.#calendar.currentDate)}
+  #runMonthlyAiRenewals(previousDate,currentDate){
+    if(!this.#didMonthChange(previousDate,currentDate))return;
+    const notifications=this.#aiRenewals.processMonthlyRenewals({
+      teams:this.#teams,
+      activeTeamId:this.#activeTeamId,
+      standingsTable:this.getStandingsTable(),
+      currentDate,
+      currentDay:this.#calendar.currentDay,
+      allPlayers:this.getAllPlayers(),
+      buildContext:(team)=>this.#buildNegotiationContext(team)
+    });
+    notifications.forEach(notification=>this.#pushNotification(notification));
+  }
+  #didMonthChange(previousDate,currentDate){
+    const left=new Date(previousDate);
+    const right=new Date(currentDate);
+    if(Number.isNaN(left.getTime())||Number.isNaN(right.getTime()))return false;
+    return left.getUTCFullYear()!==right.getUTCFullYear()||left.getUTCMonth()!==right.getUTCMonth();
+  }
+  #pushNotification(notification){
+    if(!notification)return;
+    this.#notifications.unshift(notification);
+    this.#notifications=this.#notifications.slice(0,60);
+  }
   #pushDevelopmentNotifications(team,events,day){
     if(!this.#activeTeamId || team?.id!==this.#activeTeamId || !events?.length)return;
     events.forEach(event=>{
       const isUpgrade=event.type==="upgrade";
-      this.#notifications.unshift({
+      this.#pushNotification({
         id:`notification-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,
         type:event.type,
         title:isUpgrade?"Рост рейтинга":"Снижение рейтинга",
