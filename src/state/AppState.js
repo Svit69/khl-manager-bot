@@ -89,7 +89,11 @@ export class AppState {
   }
 
   getUnreadNotifications(limit = 6) {
-    return this.#notifications.filter((notification) => !notification.read).slice(0, limit);
+    return this.#getSortedUnreadNotifications().slice(0, limit);
+  }
+
+  getUnreadNotificationTotal() {
+    return this.#getSortedUnreadNotifications().length;
   }
 
   markNotificationsRead() {
@@ -631,6 +635,27 @@ export class AppState {
     if (!notification) return;
     this.#notifications.unshift(notification);
     this.#notifications = this.#notifications.slice(0, 80);
+  }
+
+  #getSortedUnreadNotifications() {
+    const priorityByType = {
+      upgrade: 0,
+      downgrade: 0,
+      "ai-renewal": 1,
+      "ai-signing": 1,
+    };
+    return this.#notifications
+      .filter((notification) => !notification.read)
+      .slice()
+      .sort((left, right) => {
+        const leftPriority = priorityByType[left.type] ?? 2;
+        const rightPriority = priorityByType[right.type] ?? 2;
+        return (
+          leftPriority - rightPriority ||
+          (Number(right.day) || 0) - (Number(left.day) || 0) ||
+          String(right.createdAt || "").localeCompare(String(left.createdAt || ""))
+        );
+      });
   }
 
   #pushDevelopmentNotifications(team, events, day) {

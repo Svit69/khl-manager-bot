@@ -116,6 +116,16 @@
 }
 .team-notifications{
   position:relative;
+  padding-bottom:18px;
+  margin-bottom:-18px;
+}
+.team-notifications::after{
+  content:"";
+  position:absolute;
+  top:100%;
+  right:0;
+  width:min(360px,calc(100vw - 64px));
+  height:18px;
 }
 .team-notifications-trigger{
   position:relative;
@@ -163,7 +173,7 @@
 }
 .team-notifications-popover{
   position:absolute;
-  top:calc(100% + 10px);
+  top:calc(100% + 4px);
   right:0;
   width:min(360px,calc(100vw - 64px));
   padding:14px;
@@ -177,7 +187,8 @@
   transition:opacity .16s ease,transform .16s ease;
   z-index:8;
 }
-.team-notifications:hover .team-notifications-popover{
+.team-notifications:hover .team-notifications-popover,
+.team-notifications:focus-within .team-notifications-popover{
   opacity:1;
   pointer-events:auto;
   transform:translateY(0);
@@ -225,13 +236,38 @@
 }
 .team-notifications-item-meta,
 .team-notifications-more,
+.team-notifications-mark,
 .team-notifications-empty{
   color:#8ea2ba;
   font-size:11px;
   font-weight:700;
 }
-.team-notifications-more{
+.team-notifications-actions{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
   margin-top:10px;
+}
+.team-notifications-more,
+.team-notifications-mark{
+  border:none;
+  background:none;
+  padding:0;
+  font:inherit;
+  cursor:pointer;
+  transition:color .16s ease,opacity .16s ease;
+}
+.team-notifications-more{
+  color:#80f7ca;
+}
+.team-notifications-mark{
+  color:#d8ff6d;
+  margin-left:auto;
+}
+.team-notifications-more:hover,
+.team-notifications-mark:hover{
+  opacity:.85;
 }
 .team-club-shell{
   display:grid;

@@ -5,31 +5,31 @@ const FORWARD_POSITIONS = new Set(["ЛНП", "ЦТР", "ПНП"]);
 export const POSITION_SCARCITY_TARGETS = { FWD: 9, DEF: 6, G: 2 };
 
 export const STRATEGY_NEGOTIATION_CHANCE = {
-  contender: 0.9,
-  competitive: 0.78,
-  balanced: 0.62,
-  rebuild: 0.38,
+  contender: 0.74,
+  competitive: 0.62,
+  balanced: 0.47,
+  rebuild: 0.26,
 };
 
 export const STRATEGY_MONTHLY_SLOTS = {
-  contender: 4,
-  competitive: 3,
+  contender: 3,
+  competitive: 2,
   balanced: 2,
   rebuild: 1,
 };
 
 export const OFFSEASON_RENEWAL_SLOTS_BY_STRATEGY = {
-  contender: 8,
-  competitive: 7,
-  balanced: 6,
-  rebuild: 4,
+  contender: 5,
+  competitive: 4,
+  balanced: 3,
+  rebuild: 2,
 };
 
 export const OFFSEASON_SIGNINGS_BY_STRATEGY = {
-  contender: 6,
-  competitive: 6,
-  balanced: 5,
-  rebuild: 4,
+  contender: 4,
+  competitive: 4,
+  balanced: 3,
+  rebuild: 2,
 };
 
 export const average = (values) =>

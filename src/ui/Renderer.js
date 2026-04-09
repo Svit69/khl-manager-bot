@@ -173,20 +173,24 @@ const renderTeamSidebar=(team,activeTab)=>`<aside class="team-sidebar"><img clas
 const renderNotificationCenter=notifications=>{
   const unreadCount=Math.max(0,Number(notifications?.unreadCount)||0);
   const unreadItems=notifications?.unreadItems||[];
-  const extraCount=Math.max(0,unreadCount-unreadItems.length);
+  const totalUnread=Math.max(unreadCount,Number(notifications?.totalUnread)||0);
+  const extraCount=Math.max(0,totalUnread-unreadItems.length);
   const listMarkup=unreadItems.length
-    ? unreadItems.map(item=>`<div class="team-notifications-item"><div class="team-notifications-item-title">${item.title||"Уведомление"}</div><div class="team-notifications-item-text">${item.message||""}</div><div class="team-notifications-item-meta">День ${item.day||"—"}</div></div>`).join("")
-    : `<div class="team-notifications-empty">Непрочитанных уведомлений нет</div>`;
+    ? unreadItems.map(item=>`<div class="team-notifications-item"><div class="team-notifications-item-title">${item.title||"\u0423\u0432\u0435\u0434\u043e\u043c\u043b\u0435\u043d\u0438\u0435"}</div><div class="team-notifications-item-text">${item.message||""}</div><div class="team-notifications-item-meta">\u0414\u0435\u043d\u044c ${item.day||"\u2014"}</div></div>`).join("")
+    : `<div class="team-notifications-empty">\u041d\u0435\u043f\u0440\u043e\u0447\u0438\u0442\u0430\u043d\u043d\u044b\u0445 \u0443\u0432\u0435\u0434\u043e\u043c\u043b\u0435\u043d\u0438\u0439 \u043d\u0435\u0442</div>`;
   return `<div class="team-notifications${unreadCount?" has-unread":""}">
-    <button type="button" class="team-notifications-trigger" data-action="mark-notifications-read" aria-label="Уведомления">
+    <button type="button" class="team-notifications-trigger" aria-label="\u0423\u0432\u0435\u0434\u043e\u043c\u043b\u0435\u043d\u0438\u044f">
       <span class="team-notifications-icon" aria-hidden="true">&#128276;</span>
-      <span class="team-notifications-label">Уведомления</span>
+      <span class="team-notifications-label">\u0423\u0432\u0435\u0434\u043e\u043c\u043b\u0435\u043d\u0438\u044f</span>
       ${unreadCount?`<span class="team-notifications-badge">${unreadCount>99?"99+":unreadCount}</span>`:""}
     </button>
     <div class="team-notifications-popover">
-      <div class="team-notifications-popover-head"><strong>Непрочитанные</strong><span>${unreadCount}</span></div>
+      <div class="team-notifications-popover-head"><strong>\u041d\u0435\u043f\u0440\u043e\u0447\u0438\u0442\u0430\u043d\u043d\u044b\u0435</strong><span>${totalUnread}</span></div>
       <div class="team-notifications-list">${listMarkup}</div>
-      ${extraCount?`<div class="team-notifications-more">И еще ${extraCount}</div>`:""}
+      <div class="team-notifications-actions">
+        ${extraCount?`<button type="button" class="team-notifications-more" data-action="show-more-notifications">\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u0435\u0449\u0435 ${extraCount}</button>`:""}
+        ${totalUnread?`<button type="button" class="team-notifications-mark" data-action="mark-notifications-read">\u041e\u0442\u043c\u0435\u0442\u0438\u0442\u044c \u043f\u0440\u043e\u0447\u0438\u0442\u0430\u043d\u043d\u044b\u043c\u0438</button>`:""}
+      </div>
     </div>
   </div>`;
 };

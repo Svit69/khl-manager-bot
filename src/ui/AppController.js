@@ -12,6 +12,7 @@ export class AppController{
   #matchPlayback=null;
   #matchPlaybackTimer=null;
   #calendarPanelTab="standings";
+  #notificationVisibleCount=6;
   constructor(state,calendar,teams,renderer,userStore){
     this.#state=state;this.#calendar=calendar;this.#teams=teams;this.#renderer=renderer;this.#userStore=userStore;
   }
@@ -35,7 +36,8 @@ export class AppController{
     if(this.#state.activeTeam){
       this.#renderer.renderTeam(this.#state.activeTeam,this.#activeTab,this.#activeRosterUnit,null,{
         unreadCount:this.#state.getUnreadNotificationCount(),
-        unreadItems:this.#state.getUnreadNotifications()
+        unreadItems:this.#state.getUnreadNotifications(this.#notificationVisibleCount),
+        totalUnread:this.#state.getUnreadNotificationTotal()
       });
       this.#renderer.renderCalendar(calendarDateLabel,dayInfo,false,{
         tab:this.#calendarPanelTab,
@@ -199,9 +201,15 @@ export class AppController{
     }
     if(action==="mark-notifications-read"){
       if(this.#state.markNotificationsRead()){
+        this.#notificationVisibleCount=6;
         this.#userStore.saveState(this.#state.exportState());
         this.#renderScreen();
       }
+      return;
+    }
+    if(action==="show-more-notifications"){
+      this.#notificationVisibleCount+=10;
+      this.#renderScreen();
       return;
     }
     if(action==="sim-skip" && this.#matchPlayback){
