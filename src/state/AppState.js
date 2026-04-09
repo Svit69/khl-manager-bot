@@ -3,11 +3,27 @@ import { StatsTracker } from "../stats/StatsTracker.js";
 import { AiRenewalService } from "../contracts/AiRenewalService.js";
 import { ContractService } from "../contracts/ContractService.js";
 import { StandingsTracker } from "../stats/StandingsTracker.js";
-import { buildCompetitiveLines } from "../data/lineupBuilder.js";
-import { calculateAge, setSeasonReferenceDate } from "../contracts/SeasonUtils.js";
+import { setSeasonReferenceDate } from "../contracts/SeasonUtils.js";
 import { PlayerDevelopmentService } from "../progression/PlayerDevelopmentService.js";
 import { TradeService } from "../trade/TradeService.js";
 import { SeasonTransitionService } from "../season/SeasonTransitionService.js";
+import {
+  createDevelopmentNotification,
+  markNotificationsRead,
+  normalizeNotifications,
+  sortUnreadNotifications,
+} from "./AppStateNotifications.js";
+import { applyMatchMood, applyMatchPlayerStats } from "./AppStateMatchEffects.js";
+import {
+  createPlayerSnapshots,
+  normalizeSeasonState,
+  restorePlayerSnapshots,
+} from "./AppStatePersistence.js";
+import {
+  applyFantasyDraftAssignments,
+  createRosterSnapshots,
+  importSavedRosters,
+} from "./AppStateRoster.js";
 
 export class AppState {
   #teams;
@@ -97,12 +113,8 @@ export class AppState {
   }
 
   markNotificationsRead() {
-    let changed = false;
-    this.#notifications = this.#notifications.map((notification) => {
-      if (notification.read) return notification;
-      changed = true;
-      return { ...notification, read: true };
-    });
+    const { changed, notifications } = markNotificationsRead(this.#notifications);
+    this.#notifications = notifications;
     return changed;
   }
 
@@ -264,34 +276,14 @@ export class AppState {
   }
 
   exportState() {
-    const players = [...new Map(this.getAllPlayers().map((player) => [player.id, player])).values()].map((player) => ({
-      id: player.id,
-      fatigueScore: player.fatigueScore,
-      form: player.form,
-      injuryUntilDay: player.condition.injuryUntilDay,
-      moodScore: player.moodScore,
-      attributes: player.attributes.exportSnapshot(),
-      potential: player.potential.exportSnapshot(),
-      career: player.career?.exportSnapshot?.() || null,
-      seasonStats: player.seasonStats.exportSnapshot(),
-      teamId: player.affiliation?.teamId || null,
-      contractId: player.affiliation?.contractId || null,
-      acquiredDay: player.affiliation?.acquiredDay ?? null,
-      expectedLineIndex: player.expectedLineIndex ?? null,
-    }));
-    const rosters = this.#teams.map((team) => ({
-      teamId: team.id,
-      linePlayerIds: team.lines.map((line) => line.players.map((player) => player?.id || null)),
-      reservePlayerIds: team.reservePlayers.map((player) => player.id),
-    }));
     return {
       calendar: this.#calendar.exportState(),
-      players,
+      players: createPlayerSnapshots(this.getAllPlayers()),
       stats: this.#stats.getSeasonStats(),
       activeTeamId: this.#activeTeamId,
       contracts: this.#contracts.exportContracts(),
       standings: this.#standings.getSnapshot(),
-      rosters,
+      rosters: createRosterSnapshots(this.#teams),
       notifications: this.#notifications,
       seasonHistory: this.#seasonHistory,
       seasonState: this.#seasonState,
@@ -307,24 +299,15 @@ export class AppState {
       this.#calendar.index = saved.calendarIndex || 0;
       if (saved.calendarResults) this.#calendar.importResults(saved.calendarResults);
     }
-    if (saved.rosters) this.#importRosters(saved.rosters);
-
-    const map = new Map((saved.players || []).map((player) => [player.id, player]));
-    allPlayers.forEach((player) => {
-      const snapshot = map.get(player.id);
-      if (!snapshot) return;
-      player.applyFatigue(snapshot.fatigueScore - player.fatigueScore);
-      player.applyFormDelta(snapshot.form - player.form);
-      if ("moodScore" in snapshot) player.applyMoodDelta(snapshot.moodScore - player.moodScore);
-      if (snapshot.attributes) player.attributes.importSnapshot(snapshot.attributes);
-      if (snapshot.potential) player.potential.importSnapshot(snapshot.potential);
-      if (snapshot.career) player.career?.importSnapshot?.(snapshot.career);
-      if (snapshot.seasonStats) player.seasonStats.importSnapshot(snapshot.seasonStats);
-      if ("teamId" in snapshot) player.affiliation.teamId = snapshot.teamId;
-      if ("contractId" in snapshot) player.affiliation.contractId = snapshot.contractId;
-      if ("acquiredDay" in snapshot) player.affiliation.acquiredDay = snapshot.acquiredDay;
-      if ("expectedLineIndex" in snapshot) player.expectedLineIndex = snapshot.expectedLineIndex;
-    });
+    if (saved.rosters) {
+      importSavedRosters({
+        teams: this.#teams,
+        rosters: saved.rosters,
+        allPlayers,
+        refreshExpectedRoles: (team) => this.#refreshExpectedRoles(team),
+      });
+    }
+    restorePlayerSnapshots(allPlayers, saved.players);
 
     this.#freeAgents = allPlayers.filter((player) => !player.affiliation?.teamId);
     if (saved.contracts) this.#contracts.importContracts(saved.contracts);
@@ -332,51 +315,20 @@ export class AppState {
     this.#calendar.ensurePlayoffs(this.getStandingsTable());
     this.#stats.importStats(saved.stats);
     this.#seasonHistory = Array.isArray(saved.seasonHistory) ? [...saved.seasonHistory] : [];
-    this.#seasonState = saved.seasonState && typeof saved.seasonState === "object"
-      ? { ...saved.seasonState, seasonLabel: saved.seasonState.seasonLabel || this.#calendar.seasonLabel }
-      : { phase: "preseason", seasonLabel: this.#calendar.seasonLabel, previousSeasonLabel: null, preseasonOpen: false };
-    this.#notifications = (saved.notifications || []).map((notification) => ({
-      id: notification.id,
-      type: notification.type,
-      title: notification.title,
-      message: notification.message,
-      day: Number(notification.day) || this.#calendar.currentDay,
-      createdAt: notification.createdAt || null,
-      playerId: notification.playerId || null,
-      read: Boolean(notification.read),
-    }));
+    this.#seasonState = normalizeSeasonState(saved.seasonState, this.#calendar.seasonLabel);
+    this.#notifications = normalizeNotifications(saved.notifications, this.#calendar.currentDay);
     this.#syncSeasonReferenceDate();
     this.#syncSeasonPhase();
   }
 
   applyFantasyDraft(assignmentsByTeamId) {
-    const allPlayers = [...new Map(this.getAllPlayers().map((player) => [player.id, player])).values()];
-    const draftedPlayersById = new Map();
-    Object.values(assignmentsByTeamId || {}).flat().forEach((player) => {
-      if (player?.id) draftedPlayersById.set(player.id, player);
+    const { undraftedPlayers } = applyFantasyDraftAssignments({
+      teams: this.#teams,
+      allPlayers: [...new Map(this.getAllPlayers().map((player) => [player.id, player])).values()],
+      assignmentsByTeamId,
+      contracts: this.#contracts,
+      refreshExpectedRoles: (team) => this.#refreshExpectedRoles(team),
     });
-    const undraftedPlayers = allPlayers.filter((player) => !draftedPlayersById.has(player.id));
-
-    this.#teams.forEach((team) => {
-      const picked = [...(assignmentsByTeamId?.[team.id] || [])];
-      picked.forEach((player) => {
-        player.affiliation.teamId = team.id;
-        player.affiliation.acquiredDay = null;
-        this.#contracts.reassignPlayerContracts(player.id, team.id);
-      });
-      const lineup = buildCompetitiveLines(picked);
-      team.lines.splice(0, team.lines.length, ...lineup.lines);
-      team.reservePlayers.splice(0, team.reservePlayers.length, ...lineup.reservePlayers);
-      this.#refreshExpectedRoles(team);
-    });
-
-    undraftedPlayers.forEach((player) => {
-      player.affiliation.teamId = null;
-      player.affiliation.contractId = null;
-      player.affiliation.acquiredDay = null;
-      player.expectedLineIndex = null;
-    });
-    this.#contracts.releasePlayers(undraftedPlayers.map((player) => player.id));
     this.#freeAgents = undraftedPlayers;
     this.#calendar.index = 0;
     this.#seasonState = { phase: "preseason", seasonLabel: this.#calendar.seasonLabel, previousSeasonLabel: null, preseasonOpen: false };
@@ -385,47 +337,6 @@ export class AppState {
     this.#stats.importStats([]);
     this.#standings.importSnapshot([]);
     this.getAllPlayers().forEach((player) => player.seasonStats.importSnapshot());
-  }
-
-  #importRosters(rosters) {
-    const playersById = new Map(this.getAllPlayers().map((player) => [player.id, player]));
-    (rosters || []).forEach((item) => {
-      const team = this.#teams.find((entry) => entry.id === item.teamId);
-      if (!team) return;
-      const restored = this.#restoreSavedRoster(team, item, playersById);
-      if (!restored) {
-        const picked = (item.playerIds || []).map((playerId) => playersById.get(playerId)).filter(Boolean);
-        picked.forEach((player) => { player.affiliation.teamId = team.id; });
-        const lineup = buildCompetitiveLines(picked);
-        team.lines.splice(0, team.lines.length, ...lineup.lines);
-        team.reservePlayers.splice(0, team.reservePlayers.length, ...lineup.reservePlayers);
-      }
-      this.#refreshExpectedRoles(team);
-    });
-  }
-
-  #restoreSavedRoster(team, item, playersById) {
-    const linePlayerIds = item?.linePlayerIds;
-    const reservePlayerIds = item?.reservePlayerIds;
-    if (!Array.isArray(linePlayerIds) || !Array.isArray(reservePlayerIds)) return false;
-    linePlayerIds.forEach((lineIds, lineIndex) => {
-      const line = team.lines[lineIndex];
-      if (!line || !Array.isArray(lineIds)) return;
-      const paddedLineIds = Array.from({ length: line.positions.length }, (_, slotIndex) => lineIds[slotIndex] || null);
-      line.players.splice(0, line.players.length, ...paddedLineIds.map((playerId) => {
-        const player = playerId ? playersById.get(playerId) : null;
-        if (player) player.affiliation.teamId = team.id;
-        return player || null;
-      }));
-    });
-    team.reservePlayers.splice(0, team.reservePlayers.length, ...reservePlayerIds
-      .map((playerId) => {
-        const player = playersById.get(playerId);
-        if (player) player.affiliation.teamId = team.id;
-        return player;
-      })
-      .filter(Boolean));
-    return true;
   }
 
   #simulateCalendarDay(day, focusTeamId) {
@@ -448,7 +359,7 @@ export class AppState {
       this.#calendar.recordResult(day.day, match.id, simulated);
       if (day?.phase !== "playoffs") this.#standings.recordMatch(simulated);
       this.#stats.recordMatch(simulated);
-      this.#applyMatchPlayerStats(simulated);
+      applyMatchPlayerStats(simulated);
       const homeDevelopmentEvents = this.#development.applyMatchDevelopment(simulated.home, simulated.summary?.home, {
         teamGamesPlayed: this.#standings.getTeamStats(simulated.home.id)?.gp || 0,
       });
@@ -457,8 +368,8 @@ export class AppState {
       });
       this.#pushDevelopmentNotifications(simulated.home, homeDevelopmentEvents, day.day);
       this.#pushDevelopmentNotifications(simulated.away, awayDevelopmentEvents, day.day);
-      this.#applyMatchMood(simulated.home, simulated.summary?.home);
-      this.#applyMatchMood(simulated.away, simulated.summary?.away);
+      applyMatchMood(simulated.home, simulated.summary?.home);
+      applyMatchMood(simulated.away, simulated.summary?.away);
       playedTeams.add(match.home.id);
       playedTeams.add(match.away.id);
       if (!focusTeamId || match.home.id === focusTeamId || match.away.id === focusTeamId) {
@@ -484,71 +395,6 @@ export class AppState {
       player.applyFatigue(delta);
       player.applyFormDelta(Math.random() * 0.02 - 0.01);
     });
-  }
-
-  #applyMatchPlayerStats(match) {
-    const applySide = (teamSummary, team) => {
-      const byId = new Map(team.getRoster().map((player) => [player.id, player]));
-      (teamSummary?.playerStats || []).forEach((stat) => {
-        const player = byId.get(stat.playerId);
-        if (player) player.seasonStats.applyMatch(stat);
-      });
-    };
-    applySide(match?.summary?.home, match?.home);
-    applySide(match?.summary?.away, match?.away);
-  }
-
-  #applyMatchMood(team, teamSummary) {
-    const roster = team?.getRoster?.() || [];
-    if (!roster.length) return;
-    const statsById = new Map((teamSummary?.playerStats || []).map((stat) => [stat.playerId, stat]));
-    const playedPlayers = roster.filter((player) => statsById.has(player.id));
-    const playedByGroup = new Map();
-    playedPlayers.forEach((player) => {
-      const group = this.#getPositionMoodGroup(player.identity?.primaryPosition);
-      if (!playedByGroup.has(group)) playedByGroup.set(group, []);
-      playedByGroup.get(group).push(player);
-    });
-
-    roster.forEach((player) => {
-      const stat = statsById.get(player.id);
-      if (stat) {
-        const iceMinutes = (Number(stat.totalIceTime) || 0) / 60;
-        let moodDelta = 1.1;
-        if (iceMinutes >= 18) moodDelta += 0.9;
-        else if (iceMinutes >= 12) moodDelta += 0.5;
-        else if (iceMinutes < 8) moodDelta -= 0.2;
-        if (player.moodState === "red" || player.moodState === "orange") moodDelta += 0.35;
-        player.applyMoodDelta(moodDelta);
-        return;
-      }
-
-      const groupPlayers = playedByGroup.get(this.#getPositionMoodGroup(player.identity?.primaryPosition)) || [];
-      const age = calculateAge(player.identity?.birthDate);
-      const sensitivity = age <= 19 ? 0.25 : (age <= 22 ? 0.55 : 1);
-      if (!groupPlayers.length) {
-        player.applyMoodDelta(-0.35 * sensitivity);
-        return;
-      }
-
-      const strongerThanSomeone = groupPlayers.some((activePlayer) => (player.ovr || 0) > (activePlayer.ovr || 0));
-      const averageActiveOvr = groupPlayers.reduce((total, activePlayer) => total + (activePlayer.ovr || 0), 0) / groupPlayers.length;
-      let moodDelta = -0.75;
-      if (strongerThanSomeone && (player.ovr || 0) >= averageActiveOvr + 1) {
-        moodDelta = -3.2;
-      } else if ((player.ovr || 0) >= averageActiveOvr - 1) {
-        moodDelta = -1.6;
-      } else if ((player.ovr || 0) <= averageActiveOvr - 4) {
-        moodDelta = -0.35;
-      }
-      player.applyMoodDelta(moodDelta * sensitivity);
-    });
-  }
-
-  #getPositionMoodGroup(position) {
-    if (position === "ЗАЩ") return "DEF";
-    if (position === "ВРТ") return "G";
-    return "FWD";
   }
 
   #buildNegotiationContext(team) {
@@ -638,40 +484,13 @@ export class AppState {
   }
 
   #getSortedUnreadNotifications() {
-    const priorityByType = {
-      upgrade: 0,
-      downgrade: 0,
-      "ai-renewal": 1,
-      "ai-signing": 1,
-    };
-    return this.#notifications
-      .filter((notification) => !notification.read)
-      .slice()
-      .sort((left, right) => {
-        const leftPriority = priorityByType[left.type] ?? 2;
-        const rightPriority = priorityByType[right.type] ?? 2;
-        return (
-          leftPriority - rightPriority ||
-          (Number(right.day) || 0) - (Number(left.day) || 0) ||
-          String(right.createdAt || "").localeCompare(String(left.createdAt || ""))
-        );
-      });
+    return sortUnreadNotifications(this.#notifications);
   }
 
   #pushDevelopmentNotifications(team, events, day) {
     if (!this.#activeTeamId || team?.id !== this.#activeTeamId || !events?.length) return;
     events.forEach((event) => {
-      const isUpgrade = event.type === "upgrade";
-      this.#pushNotification({
-        id: `notification-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        type: event.type,
-        title: isUpgrade ? "Рост рейтинга" : "Снижение рейтинга",
-        message: `${event.playerName}: OVR ${event.oldOvr} → ${event.newOvr}`,
-        day,
-        createdAt: new Date().toISOString(),
-        playerId: event.playerId,
-        read: false,
-      });
+      this.#pushNotification(createDevelopmentNotification(event, day));
     });
   }
 
