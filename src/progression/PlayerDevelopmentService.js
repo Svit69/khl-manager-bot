@@ -1,7 +1,7 @@
 ﻿import { calculateAge, clamp } from "../contracts/SeasonUtils.js";
 
-const ATTRIBUTE_STEP_THRESHOLD = 2.4;
-const POTENTIAL_STEP_THRESHOLD = 1.4;
+const ATTRIBUTE_STEP_THRESHOLD = 2.1;
+const POTENTIAL_STEP_THRESHOLD = 1.2;
 const FORWARD_POSITIONS = new Set(["\u041b\u041d\u041f", "\u0426\u0422\u0420", "\u041f\u041d\u041f"]);
 
 const average = (items) => items.length ? items.reduce((total, value) => total + value, 0) / items.length : 0;
@@ -74,13 +74,13 @@ export class PlayerDevelopmentService {
     const declineRate = Number(player.potential?.declineRate) || 1;
     const peakAge = Number(player.potential?.peakAge) || 27;
 
-    if (age <= 18) return 0.075 * growthRate;
-    if (age <= 20) return 0.06 * growthRate;
-    if (age <= 23) return 0.04 * growthRate;
-    if (age < peakAge) return 0.018 * growthRate;
+    if (age <= 18) return 0.086 * growthRate;
+    if (age <= 20) return 0.069 * growthRate;
+    if (age <= 23) return 0.046 * growthRate;
+    if (age < peakAge) return 0.021 * growthRate;
     if (age <= peakAge + 1) return 0.004;
-    if (age <= peakAge + 3) return -0.012 * declineRate;
-    return -0.022 * declineRate * (1 + Math.min(0.6, (age - peakAge - 3) * 0.08));
+    if (age <= peakAge + 3) return -0.014 * declineRate;
+    return -0.025 * declineRate * (1 + Math.min(0.6, (age - peakAge - 3) * 0.08));
   }
 
   #getUsageDevelopmentComponent(player, age, games, avgIceTime, matchStat, context) {
@@ -93,11 +93,11 @@ export class PlayerDevelopmentService {
     else if (avgIceTime >= 6) delta += 0.005;
     else delta -= 0.025;
 
-    if (teamGamesPlayed >= 12 && games >= teamGamesPlayed * 0.6) delta += 0.012;
+    if (teamGamesPlayed >= 12 && games >= teamGamesPlayed * 0.6) delta += 0.014;
     if (!matchStat && games >= 10 && avgIceTime < 7) delta -= 0.015;
-    if (age <= 21) delta += this.#getYoungPlayerUsageBoost(player, age, games, avgIceTime, teamGamesPlayed);
+    if (age <= 23) delta += this.#getYoungPlayerUsageBoost(player, age, games, avgIceTime, teamGamesPlayed);
 
-    return delta;
+    return delta * 1.15;
   }
 
   #getPerformanceDevelopmentComponent(player, age, pointsPerGame, shotsPerGame, expected) {
@@ -113,7 +113,7 @@ export class PlayerDevelopmentService {
     } else if (age <= 23 && delta > 0) {
       delta *= 1.12;
     }
-    return clamp(delta, -0.06, 0.11);
+    return clamp(delta * 1.15, -0.069, 0.126);
   }
 
   #getPotentialGapComponent(potentialGap) {
@@ -165,14 +165,18 @@ export class PlayerDevelopmentService {
     const growthRate = Number(player.potential?.growthRate) || 1;
     let delta = 0;
 
-    if (avgIceTime >= 20) delta += 0.03;
-    else if (avgIceTime >= 17) delta += 0.022;
-    else if (avgIceTime >= 14) delta += 0.015;
-    else if (avgIceTime >= 11) delta += 0.008;
+    if (avgIceTime >= 20) delta += 0.04;
+    else if (avgIceTime >= 17) delta += 0.03;
+    else if (avgIceTime >= 14) delta += 0.022;
+    else if (avgIceTime >= 11) delta += 0.012;
 
-    if (teamGamesPlayed >= 10 && games >= teamGamesPlayed * 0.75) delta += 0.012;
-    if (age <= 19 && avgIceTime >= 16) delta += 0.012;
-    if (age <= 20 && avgIceTime >= 18) delta += 0.008;
+    if (teamGamesPlayed >= 10 && games >= teamGamesPlayed * 0.75) delta += 0.016;
+    if (teamGamesPlayed >= 16 && games >= teamGamesPlayed * 0.85) delta += 0.01;
+    if (age <= 18) delta *= 1.3;
+    else if (age <= 20) delta *= 1.18;
+    else if (age <= 22) delta *= 1.08;
+    if (age <= 19 && avgIceTime >= 16) delta += 0.016;
+    if (age <= 20 && avgIceTime >= 18) delta += 0.01;
 
     return delta * Math.max(0.85, Math.min(1.3, growthRate));
   }
