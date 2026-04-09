@@ -433,7 +433,13 @@ export class Renderer{
           ? `<div class="calendar-schedule-header"><span>\u0414\u0430\u0442\u0430</span><span>\u0418\u0433\u0440\u043e\u0432\u043e\u0439 \u0434\u0435\u043d\u044c</span><span>\u0421\u0447\u0435\u0442</span></div>`
           : "";
     const tableBody=activeTab==="standings"?standings:(activeTab==="scorers"?scorers:(activeTab==="schedule"?scheduleRows:playoffRows));
-    const playButtonLabel=isLocked?"\u0412\u044b\u0431\u0440\u0430\u0442\u044c \u043a\u043e\u043c\u0430\u043d\u0434\u0443":(isSeasonComplete?"\u041d\u043e\u0432\u044b\u0439 \u0441\u0435\u0437\u043e\u043d":"\u0414\u0430\u043b\u044c\u0448\u0435");
+    const playButtonLabel=isLocked
+      ?"\u0412\u044b\u0431\u0440\u0430\u0442\u044c \u043a\u043e\u043c\u0430\u043d\u0434\u0443"
+      :(isSeasonComplete
+        ?"\u041d\u043e\u0432\u044b\u0439 \u0441\u0435\u0437\u043e\u043d"
+        :(seasonState?.phase==="preseason"&&seasonState?.preseasonOpen
+          ?"\u041d\u0430\u0447\u0430\u0442\u044c \u0441\u0435\u0437\u043e\u043d"
+          :"\u0414\u0430\u043b\u044c\u0448\u0435"));
     this.#calEl.innerHTML=`<h2>\u041a\u0430\u043b\u0435\u043d\u0434\u0430\u0440\u044c \u2022 ${currentDateLabel}</h2><div class="row"><div>${text}</div><button id="playBtn" class="btn" ${isLocked?"disabled":""}>${playButtonLabel}</button></div>${tabButtons}<div class="calendar-panel-list${activeTab==="playoffs"?" playoffs":""}">${tableHeader}<div class="calendar-panel-scroll${activeTab==="playoffs"?" playoffs":""}">${tableBody}</div></div>`;
   }
   #pluralizeMatches(count){

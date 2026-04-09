@@ -132,6 +132,7 @@ export class SeasonTransitionService {
         previousSeasonLabel: currentSeasonLabel,
         seasonLabel: nextSeasonLabel,
         preseasonDateIso: preseasonDate.toISOString().slice(0, 10),
+        preseasonOpen: true,
       },
       freeAgents: (allPlayers || []).filter((player) => !player.affiliation?.teamId),
     };

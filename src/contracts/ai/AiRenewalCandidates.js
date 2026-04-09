@@ -25,7 +25,7 @@ export const collectMonthlyCandidates = ({ contracts, team, context, plan, curre
   roster.forEach((player) => {
     const contractsForPlayer = contracts.getContractsForPlayer(player.id);
     const latestContract = contractsForPlayer[contractsForPlayer.length - 1] || null;
-    if (!latestContract || contracts.isRenewalLocked(player.id)) return;
+    if (!latestContract || contracts.isRenewalLocked(player.id, currentDate)) return;
 
     const contractEndYear = parseSeasonEnd(latestContract.season);
     const seasonsRemaining = contractEndYear - seasonEndYear;
@@ -113,7 +113,7 @@ export const getOffseasonSigningSlots = (team, plan) => {
 const buildOffseasonCandidate = ({ contracts, team, player, currentSeasonLabel, context, plan, currentDate }) => {
   const contractsForPlayer = contracts.getContractsForPlayer(player.id);
   const latestContract = contractsForPlayer[contractsForPlayer.length - 1] || null;
-  if (!latestContract || latestContract.season !== currentSeasonLabel || contracts.isRenewalLocked(player.id)) return null;
+  if (!latestContract || latestContract.season !== currentSeasonLabel || contracts.isRenewalLocked(player.id, currentDate)) return null;
 
   const lineInfo = getLineInfo(team, player);
   const age = calculateAge(player.identity?.birthDate, currentDate);

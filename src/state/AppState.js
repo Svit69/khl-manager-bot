@@ -46,8 +46,13 @@ export class AppState {
 
   get teams() { return this.#teams; }
   get calendar() { return this.#calendar; }
-  get currentSeasonDate() { return this.#calendar.currentDate; }
-  get currentSeasonDateLabel() { return this.#calendar.currentDateLabel; }
+  get currentSeasonDate() { return this.#getEffectiveNegotiationDate(); }
+  get currentSeasonDateLabel() {
+    const effectiveDate = new Date(this.#getEffectiveNegotiationDate());
+    return Number.isNaN(effectiveDate.getTime())
+      ? this.#calendar.currentDateLabel
+      : effectiveDate.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+  }
   get lastMatch() { return this.#lastMatch; }
   get seasonStats() { return this.#stats.getSeasonStats(); }
   get activeTeamId() { return this.#activeTeamId; }
@@ -114,7 +119,7 @@ export class AppState {
   }
 
   getActiveTeamContractRows() {
-    return this.activeTeam ? this.#contracts.getTeamContractRows(this.activeTeam) : [];
+    return this.activeTeam ? this.#contracts.getTeamContractRows(this.activeTeam, this.#getEffectiveNegotiationDate()) : [];
   }
 
   getTeamStatisticsRows(teamId = this.#activeTeamId, sortBy = "points") {
@@ -215,6 +220,21 @@ export class AppState {
     return this.#calendar.isFinished();
   }
 
+  canStartSeason() {
+    return Boolean(this.#seasonState?.phase === "preseason" && this.#seasonState?.preseasonOpen);
+  }
+
+  startSeason() {
+    if (!this.canStartSeason()) return false;
+    this.#seasonState = {
+      ...this.#seasonState,
+      preseasonOpen: false,
+      phase: "regular",
+    };
+    this.#syncSeasonReferenceDate();
+    return true;
+  }
+
   advanceToNextSeason() {
     if (!this.canAdvanceToNextSeason()) return null;
     const transition = this.#seasonTransition.advanceToNextSeason({
@@ -310,7 +330,7 @@ export class AppState {
     this.#seasonHistory = Array.isArray(saved.seasonHistory) ? [...saved.seasonHistory] : [];
     this.#seasonState = saved.seasonState && typeof saved.seasonState === "object"
       ? { ...saved.seasonState, seasonLabel: saved.seasonState.seasonLabel || this.#calendar.seasonLabel }
-      : { phase: "preseason", seasonLabel: this.#calendar.seasonLabel, previousSeasonLabel: null };
+      : { phase: "preseason", seasonLabel: this.#calendar.seasonLabel, previousSeasonLabel: null, preseasonOpen: false };
     this.#notifications = (saved.notifications || []).map((notification) => ({
       id: notification.id,
       type: notification.type,
@@ -338,6 +358,7 @@ export class AppState {
       picked.forEach((player) => {
         player.affiliation.teamId = team.id;
         player.affiliation.acquiredDay = null;
+        this.#contracts.reassignPlayerContracts(player.id, team.id);
       });
       const lineup = buildCompetitiveLines(picked);
       team.lines.splice(0, team.lines.length, ...lineup.lines);
@@ -354,7 +375,7 @@ export class AppState {
     this.#contracts.releasePlayers(undraftedPlayers.map((player) => player.id));
     this.#freeAgents = undraftedPlayers;
     this.#calendar.index = 0;
-    this.#seasonState = { phase: "preseason", seasonLabel: this.#calendar.seasonLabel, previousSeasonLabel: null };
+    this.#seasonState = { phase: "preseason", seasonLabel: this.#calendar.seasonLabel, previousSeasonLabel: null, preseasonOpen: false };
     this.#syncSeasonReferenceDate();
     this.#lastMatch = null;
     this.#stats.importStats([]);
@@ -385,8 +406,9 @@ export class AppState {
     if (!Array.isArray(linePlayerIds) || !Array.isArray(reservePlayerIds)) return false;
     linePlayerIds.forEach((lineIds, lineIndex) => {
       const line = team.lines[lineIndex];
-      if (!line || !Array.isArray(lineIds) || lineIds.length !== line.positions.length) return;
-      line.players.splice(0, line.players.length, ...lineIds.map((playerId) => {
+      if (!line || !Array.isArray(lineIds)) return;
+      const paddedLineIds = Array.from({ length: line.positions.length }, (_, slotIndex) => lineIds[slotIndex] || null);
+      line.players.splice(0, line.players.length, ...paddedLineIds.map((playerId) => {
         const player = playerId ? playersById.get(playerId) : null;
         if (player) player.affiliation.teamId = team.id;
         return player || null;
@@ -530,9 +552,7 @@ export class AppState {
     const teamsCount = this.#teams.length;
     const teamStats = this.#standings.getTeamStats(team.id);
     const teamGamesPlayed = teamStats?.gp || 0;
-    const currentDate = this.#calendar.isFinished()
-      ? new Date(Date.UTC(this.#calendar.seasonStartYear + 1, 6, 1)).toISOString().slice(0, 10)
-      : this.#calendar.currentDate;
+    const currentDate = this.#getEffectiveNegotiationDate();
     return {
       teamRank: rank,
       teamsCount,
@@ -545,7 +565,7 @@ export class AppState {
   }
 
   #syncSeasonReferenceDate() {
-    setSeasonReferenceDate(this.#calendar.currentDate);
+    setSeasonReferenceDate(this.#getEffectiveNegotiationDate());
   }
 
   #syncSeasonPhase() {
@@ -553,6 +573,7 @@ export class AppState {
       this.#seasonState = {
         ...this.#seasonState,
         phase: "offseason-ready",
+        preseasonOpen: false,
         seasonLabel: this.#calendar.seasonLabel,
       };
       return;
@@ -561,16 +582,28 @@ export class AppState {
       this.#seasonState = {
         ...this.#seasonState,
         phase: "playoffs",
+        preseasonOpen: false,
         seasonLabel: this.#calendar.seasonLabel,
       };
       return;
     }
     const totalGamesPlayed = this.getStandingsTable().reduce((sum, row) => sum + (row.gp || 0), 0);
+    const keepPreseason = totalGamesPlayed === 0 && this.#seasonState?.preseasonOpen;
     this.#seasonState = {
       ...this.#seasonState,
-      phase: totalGamesPlayed > 0 ? "regular" : "preseason",
+      phase: keepPreseason ? "preseason" : totalGamesPlayed > 0 ? "regular" : "preseason",
       seasonLabel: this.#calendar.seasonLabel,
     };
+  }
+
+  #getEffectiveNegotiationDate() {
+    if (this.#calendar.isFinished()) {
+      return new Date(Date.UTC(this.#calendar.seasonStartYear + 1, 6, 1)).toISOString().slice(0, 10);
+    }
+    if (this.#seasonState?.preseasonOpen && this.#seasonState?.preseasonDateIso) {
+      return this.#seasonState.preseasonDateIso;
+    }
+    return this.#calendar.currentDate;
   }
 
   #runMonthlyAiRenewals(previousDate, currentDate) {

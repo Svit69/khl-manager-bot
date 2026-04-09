@@ -20,7 +20,10 @@ export const buildCompetitiveLines=roster=>{
   const lines=LINE_SCHEMAS.map(schema=>{
     const players=[];
     schema.positions.forEach(position=>{
-      if(!pool.length)return;
+      if(!pool.length){
+        players.push(null);
+        return;
+      }
       const idx=takeBestPlayer(pool,position);
       players.push(pool.splice(idx,1)[0]);
     });

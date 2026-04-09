@@ -28,19 +28,23 @@ export class AppController{
   }
   #renderScreen(){
     const dayInfo=this.#state.activeTeam?this.#state.getVisibleCalendarDay():this.#calendar.getCurrent();
+    const seasonState=this.#state.getSeasonState();
+    const calendarDateLabel=seasonState?.phase==="preseason"&&seasonState?.preseasonOpen
+      ? this.#state.currentSeasonDateLabel
+      : (dayInfo?.dateLabel||this.#state.currentSeasonDateLabel);
     if(this.#state.activeTeam){
       this.#renderer.renderTeam(this.#state.activeTeam,this.#activeTab,this.#activeRosterUnit,null,{
         unreadCount:this.#state.getUnreadNotificationCount(),
         unreadItems:this.#state.getUnreadNotifications()
       });
-      this.#renderer.renderCalendar(dayInfo?.dateLabel||this.#state.currentSeasonDateLabel,dayInfo,false,{
+      this.#renderer.renderCalendar(calendarDateLabel,dayInfo,false,{
         tab:this.#calendarPanelTab,
         activeTeamId:this.#state.activeTeamId,
         standings:this.#state.getStandingsTable(),
         scorers:this.#state.getTopScorers(10),
         schedule:this.#state.getCalendarScheduleRows(),
         playoffs:this.#state.getPlayoffBracketData(),
-        seasonState:this.#state.getSeasonState()
+        seasonState
       });
       this.#renderer.renderResetButton();
       if(this.#activeTab==="contracts"){
@@ -71,14 +75,14 @@ export class AppController{
         draftView.selectedPlayerId=this.#draftState.selectedPlayerId;
         this.#renderer.renderFantasyDraft(draftView,selectedTeam);
       }
-      this.#renderer.renderCalendar(dayInfo?.dateLabel||this.#state.currentSeasonDateLabel,dayInfo,true,{
+      this.#renderer.renderCalendar(calendarDateLabel,dayInfo,true,{
         tab:this.#calendarPanelTab,
         activeTeamId:this.#state.activeTeamId,
         standings:this.#state.getStandingsTable(),
         scorers:this.#state.getTopScorers(10),
         schedule:this.#state.getCalendarScheduleRows(),
         playoffs:this.#state.getPlayoffBracketData(),
-        seasonState:this.#state.getSeasonState()
+        seasonState
       });
       this.#renderer.renderResetButton();
       return;
@@ -86,27 +90,27 @@ export class AppController{
     if(this.#draftIntroTeamId){
       const selectedTeam=this.#teams.find(team=>team.id===this.#draftIntroTeamId);
       if(selectedTeam)this.#renderer.renderFantasyDraftIntro(selectedTeam);
-      this.#renderer.renderCalendar(dayInfo?.dateLabel||this.#state.currentSeasonDateLabel,dayInfo,true,{
+      this.#renderer.renderCalendar(calendarDateLabel,dayInfo,true,{
         tab:this.#calendarPanelTab,
         activeTeamId:this.#state.activeTeamId,
         standings:this.#state.getStandingsTable(),
         scorers:this.#state.getTopScorers(10),
         schedule:this.#state.getCalendarScheduleRows(),
         playoffs:this.#state.getPlayoffBracketData(),
-        seasonState:this.#state.getSeasonState()
+        seasonState
       });
       this.#renderer.renderResetButton();
       return;
     }
     this.#renderer.renderTeamSelection(this.#teams,this.#state.activeTeamId,this.#pendingTeamId);
-    this.#renderer.renderCalendar(dayInfo?.dateLabel||this.#state.currentSeasonDateLabel,dayInfo,true,{
+    this.#renderer.renderCalendar(calendarDateLabel,dayInfo,true,{
       tab:this.#calendarPanelTab,
       activeTeamId:this.#state.activeTeamId,
       standings:this.#state.getStandingsTable(),
       scorers:this.#state.getTopScorers(10),
       schedule:this.#state.getCalendarScheduleRows(),
       playoffs:this.#state.getPlayoffBracketData(),
-      seasonState:this.#state.getSeasonState()
+      seasonState
     });
     this.#renderer.renderResetButton();
     this.#renderer.renderMatch(this.#state.lastMatch,this.#state.seasonStats);
@@ -457,6 +461,12 @@ export class AppController{
     if(clickable?.id!=="playBtn"||!this.#state.activeTeamId)return;
     if(this.#state.canAdvanceToNextSeason()){
       this.#state.advanceToNextSeason();
+      this.#userStore.saveState(this.#state.exportState());
+      this.#renderScreen();
+      return;
+    }
+    if(this.#state.canStartSeason()){
+      this.#state.startSeason();
       this.#userStore.saveState(this.#state.exportState());
       this.#renderScreen();
       return;
