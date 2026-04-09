@@ -20,6 +20,10 @@ export class PlayerDevelopmentService {
     return events;
   }
 
+  applyOffseasonDevelopment(players, context = {}) {
+    return (players || []).flatMap((player) => this.#applyOffseasonPlayerDevelopment(player, context));
+  }
+
   #applyPlayerDevelopment(player, matchStat, context) {
     const seasonStats = player.seasonStats;
     const games = Number(seasonStats?.games) || 0;
@@ -66,6 +70,61 @@ export class PlayerDevelopmentService {
         player.potential.adjustPotential(potentialDirection);
       }
     }
+    return events;
+  }
+
+  #applyOffseasonPlayerDevelopment(player, context) {
+    if (!player || player.identity?.isGoalie) return [];
+    const seasonStats = player.seasonStats;
+    const games = Number(seasonStats?.games) || 0;
+    if (!games) return [];
+
+    const age = calculateAge(player.identity?.birthDate, context?.seasonDate || null);
+    const avgIceTime = this.#getAverageIceTime(seasonStats);
+    const pointsPerGame = this.#getPointsPerGame(seasonStats);
+    const shotsPerGame = this.#getShotsPerGame(seasonStats);
+    const expected = this.#getExpectedProduction(player);
+    const potentialGap = (player.potential?.potential || player.ovr) - player.ovr;
+
+    const offseasonDelta = clamp(
+      this.#getAgeDevelopmentComponent(player, age) * 0.6 +
+      this.#getUsageDevelopmentComponent(player, age, games, avgIceTime, { games: 1 }, { teamGamesPlayed: games }) * 0.35 +
+      this.#getPerformanceDevelopmentComponent(player, age, pointsPerGame, shotsPerGame, expected) * 0.4 +
+      this.#getPotentialGapComponent(potentialGap) * 0.5 +
+      this.#getPeakAgeRealizationComponent(player, age, potentialGap, games, avgIceTime, pointsPerGame, shotsPerGame, expected) * 0.75,
+      -0.18,
+      0.24,
+    );
+
+    const events = [];
+    player.potential.addDevelopmentProgress(offseasonDelta);
+    const attributeDirection = player.potential.consumeDevelopmentStep(ATTRIBUTE_STEP_THRESHOLD);
+    if (attributeDirection !== 0) {
+      const beforeOvr = player.ovr;
+      const attributeKey = this.#applyAttributeStep(player, attributeDirection, pointsPerGame, shotsPerGame);
+      const afterOvr = player.ovr;
+      if (attributeKey && afterOvr !== beforeOvr) {
+        events.push({
+          type: afterOvr > beforeOvr ? "upgrade" : "downgrade",
+          teamId: player.affiliation?.teamId || null,
+          playerId: player.id,
+          playerName: player.name,
+          attributeKey,
+          oldOvr: beforeOvr,
+          newOvr: afterOvr,
+        });
+      }
+    }
+
+    const potentialDelta = this.#getPotentialDevelopmentDelta(player, age, games, avgIceTime, pointsPerGame, shotsPerGame, expected, { games: 1 }) * 0.7;
+    if (potentialDelta !== 0) {
+      player.potential.addPotentialProgress(potentialDelta);
+      const potentialDirection = player.potential.consumePotentialStep(POTENTIAL_STEP_THRESHOLD);
+      if (potentialDirection !== 0) {
+        player.potential.adjustPotential(potentialDirection);
+      }
+    }
+
     return events;
   }
 

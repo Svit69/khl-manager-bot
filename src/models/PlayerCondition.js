@@ -1,4 +1,4 @@
-export class PlayerCondition{
+﻿export class PlayerCondition{
   #playerId;#fatigueScore;#fatigueStatus;#form;#injuryUntilDay;#moodScore;#moodState;
   constructor({playerId,fatigueScore,form,injuryUntilDay=null,moodScore=65}){
     this.#playerId=playerId;this.#fatigueScore=0;this.#fatigueStatus="green";this.#form=form;this.#injuryUntilDay=injuryUntilDay;this.#moodScore=65;this.#moodState="yellow";
@@ -19,6 +19,13 @@ export class PlayerCondition{
   applyFormDelta(delta){this.#form=Math.max(0.95,Math.min(1.05,this.#form+delta))}
   applyMoodDelta(delta){
     this.#moodScore=Math.max(0,Math.min(100,this.#moodScore+(Number(delta)||0)));
+    this.#updateMoodState();
+  }
+  normalizeOffseason(){
+    this.#fatigueScore=Math.max(0,Math.round(this.#fatigueScore*0.2));
+    this.#form=0.99+(this.#form-0.99)*0.35;
+    this.#moodScore=Math.round(this.#moodScore+(65-this.#moodScore)*0.45);
+    this.#updateStatus();
     this.#updateMoodState();
   }
   #updateStatus(){

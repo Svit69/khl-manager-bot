@@ -120,6 +120,22 @@ export class SeasonCalendar {
     return this.#resolveDateForIndex(this.#index)?.dateLabel || formatCalendarDate(this.#regularSeasonStartDate);
   }
 
+  get seasonStartYear() {
+    return this.#seasonStartYear;
+  }
+
+  get seasonLabel() {
+    return `${this.#seasonStartYear}/${this.#seasonStartYear + 1}`;
+  }
+
+  get regularSeasonStartDate() {
+    return toIsoDate(this.#regularSeasonStartDate);
+  }
+
+  get playoffStartDate() {
+    return toIsoDate(this.#playoffStartDate);
+  }
+
   getCurrent() {
     return this.#days[this.#index] || null;
   }
@@ -248,6 +264,10 @@ export class SeasonCalendar {
   }
 
   importState(payload) {
+    const nextSeasonStartYear = Number(payload?.seasonStartYear) || this.#seasonStartYear;
+    if (nextSeasonStartYear !== this.#seasonStartYear) {
+      this.resetForNextSeason(nextSeasonStartYear);
+    }
     this.#days = this.#days.slice(0, this.#regularSeasonDaysCount);
     this.#playoffs = this.#createEmptyPlayoffState();
     this.#nextPlayoffDate = this.#playoffStartDate;
@@ -269,6 +289,17 @@ export class SeasonCalendar {
 
   isFinished() {
     return this.#index >= this.#days.length && (!this.#playoffs.active || this.#playoffs.status === "complete");
+  }
+
+  resetForNextSeason(seasonStartYear = this.#seasonStartYear + 1) {
+    this.#seasonStartYear = Number(seasonStartYear) || (this.#seasonStartYear + 1);
+    this.#regularSeasonStartDate = createUtcDate(this.#seasonStartYear, 8, 1);
+    this.#playoffStartDate = createUtcDate(this.#seasonStartYear + 1, 2, 23);
+    this.#nextPlayoffDate = this.#playoffStartDate;
+    this.#days = this.#buildRegularSeason([...this.#teamsById.values()]);
+    this.#regularSeasonDaysCount = this.#days.length;
+    this.#playoffs = this.#createEmptyPlayoffState();
+    this.#index = 0;
   }
 
   #resolveDateForIndex(index) {

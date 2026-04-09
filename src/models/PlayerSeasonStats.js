@@ -1,4 +1,4 @@
-export class PlayerSeasonStats{
+﻿export class PlayerSeasonStats{
   #seasonId;#playerId;#games;#goals;#assists;#points;#shots;#totalIceTime;#penaltyMinutes;
   constructor({seasonId,playerId,games=0,goals=0,assists=0,points=0,shots=0,totalIceTime=0,penaltyMinutes=0}){
     this.#seasonId=seasonId;this.#playerId=playerId;this.#games=games;this.#goals=goals;this.#assists=assists;this.#points=points;this.#shots=shots;this.#totalIceTime=totalIceTime;this.#penaltyMinutes=penaltyMinutes;
@@ -27,7 +27,12 @@ export class PlayerSeasonStats{
     this.#penaltyMinutes+=Math.max(0,Number(penaltyMinutes)||0);
     this.#points=this.#goals+this.#assists;
   }
-  importSnapshot({games=0,goals=0,assists=0,shots=0,totalIceTime=0,penaltyMinutes=0}={}){
+  resetForSeason(seasonId=this.#seasonId){
+    this.#seasonId=seasonId;
+    this.importSnapshot();
+  }
+  importSnapshot({seasonId,games=0,goals=0,assists=0,shots=0,totalIceTime=0,penaltyMinutes=0}={}){
+    if(seasonId)this.#seasonId=seasonId;
     this.#games=Math.max(0,Number(games)||0);
     this.#goals=Math.max(0,Number(goals)||0);
     this.#assists=Math.max(0,Number(assists)||0);
@@ -38,6 +43,7 @@ export class PlayerSeasonStats{
   }
   exportSnapshot(){
     return {
+      seasonId:this.#seasonId,
       games:this.#games,
       goals:this.#goals,
       assists:this.#assists,

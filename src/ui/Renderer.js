@@ -387,14 +387,20 @@ export class Renderer{
     const activeTab=panelData?.tab||"standings";
     const activeTeamId=panelData?.activeTeamId||null;
     const playoffs=panelData?.playoffs||{active:false,rounds:[]};
+    const seasonState=panelData?.seasonState||null;
+    const isSeasonComplete=Boolean(seasonState?.canAdvance);
     const currentMatch=info?.matches?.find(match=>activeTeamId&&(match.home?.id===activeTeamId||match.away?.id===activeTeamId))||info?.matches?.[0]||null;
     const text=isLocked
       ? "\u0421\u043d\u0430\u0447\u0430\u043b\u0430 \u0432\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043a\u043e\u043c\u0430\u043d\u0434\u0443"
-      : (!info?.matches?.length
+      : isSeasonComplete
+        ? `\u0421\u0435\u0437\u043e\u043d ${seasonState?.seasonLabel||""} \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d${seasonState?.latestArchive?.champion?.name?` \u2022 \u0427\u0435\u043c\u043f\u0438\u043e\u043d: ${seasonState.latestArchive.champion.name}`:""}`
+      : (seasonState?.phase==="preseason"
+        ? `\u041f\u0440\u0435\u0434\u0441\u0435\u0437\u043e\u043d\u043d\u043e\u0435 \u043e\u043a\u043d\u043e \u2022 ${seasonState?.seasonLabel||""}`
+        : (!info?.matches?.length
         ? "\u0414\u0435\u043d\u044c \u043e\u0442\u0434\u044b\u0445\u0430"
         : (activeTeamId&&currentMatch
           ? `${info?.phase==="playoffs"&&info?.stageLabel?`${info.stageLabel} \u2022 `:""}${currentMatch.home.name} \u2014 ${currentMatch.away.name}`
-          : `${info?.phase==="playoffs"&&info?.stageLabel?`${info.stageLabel} \u2022 `:""}\u0418\u0433\u0440\u043e\u0432\u043e\u0439 \u0434\u0435\u043d\u044c: ${info.matches.length} ${this.#pluralizeMatches(info.matches.length)}`));
+          : `${info?.phase==="playoffs"&&info?.stageLabel?`${info.stageLabel} \u2022 `:""}\u0418\u0433\u0440\u043e\u0432\u043e\u0439 \u0434\u0435\u043d\u044c: ${info.matches.length} ${this.#pluralizeMatches(info.matches.length)}`)));
     const standings=(panelData?.standings||[]).map((row,index)=>`<div class="calendar-table-row"><span>${index+1}</span><span>${row.shortName||row.name}</span><span>${row.gp||0}</span><span>${row.w||0}</span><span>${row.otl||0}</span><span>${row.l||0}</span><span>${row.pts||0}</span></div>`).join("")||`<div class="muted">\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445</div>`;
     const scorers=(panelData?.scorers||[]).map((row,index)=>`<div class="calendar-scorer-row"><span>${index+1}</span><span>${row.name}</span><span>${row.team||"?"}</span><span>${row.points||((row.goals||0)+(row.assists||0))}</span><span>${row.goals||0}</span><span>${row.assists||0}</span></div>`).join("")||`<div class="muted">\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445</div>`;
     const scheduleRows=(panelData?.schedule||[]).map(row=>{
@@ -427,7 +433,8 @@ export class Renderer{
           ? `<div class="calendar-schedule-header"><span>\u0414\u0430\u0442\u0430</span><span>\u0418\u0433\u0440\u043e\u0432\u043e\u0439 \u0434\u0435\u043d\u044c</span><span>\u0421\u0447\u0435\u0442</span></div>`
           : "";
     const tableBody=activeTab==="standings"?standings:(activeTab==="scorers"?scorers:(activeTab==="schedule"?scheduleRows:playoffRows));
-    this.#calEl.innerHTML=`<h2>\u041a\u0430\u043b\u0435\u043d\u0434\u0430\u0440\u044c \u2022 ${currentDateLabel}</h2><div class="row"><div>${text}</div><button id="playBtn" class="btn" ${isLocked?"disabled":""}>${isLocked?"\u0412\u044b\u0431\u0440\u0430\u0442\u044c \u043a\u043e\u043c\u0430\u043d\u0434\u0443":"\u0414\u0430\u043b\u044c\u0448\u0435"}</button></div>${tabButtons}<div class="calendar-panel-list${activeTab==="playoffs"?" playoffs":""}">${tableHeader}<div class="calendar-panel-scroll${activeTab==="playoffs"?" playoffs":""}">${tableBody}</div></div>`;
+    const playButtonLabel=isLocked?"\u0412\u044b\u0431\u0440\u0430\u0442\u044c \u043a\u043e\u043c\u0430\u043d\u0434\u0443":(isSeasonComplete?"\u041d\u043e\u0432\u044b\u0439 \u0441\u0435\u0437\u043e\u043d":"\u0414\u0430\u043b\u044c\u0448\u0435");
+    this.#calEl.innerHTML=`<h2>\u041a\u0430\u043b\u0435\u043d\u0434\u0430\u0440\u044c \u2022 ${currentDateLabel}</h2><div class="row"><div>${text}</div><button id="playBtn" class="btn" ${isLocked?"disabled":""}>${playButtonLabel}</button></div>${tabButtons}<div class="calendar-panel-list${activeTab==="playoffs"?" playoffs":""}">${tableHeader}<div class="calendar-panel-scroll${activeTab==="playoffs"?" playoffs":""}">${tableBody}</div></div>`;
   }
   #pluralizeMatches(count){
     const mod10=count%10;

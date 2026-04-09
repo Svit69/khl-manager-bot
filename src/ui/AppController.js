@@ -39,7 +39,8 @@ export class AppController{
         standings:this.#state.getStandingsTable(),
         scorers:this.#state.getTopScorers(10),
         schedule:this.#state.getCalendarScheduleRows(),
-        playoffs:this.#state.getPlayoffBracketData()
+        playoffs:this.#state.getPlayoffBracketData(),
+        seasonState:this.#state.getSeasonState()
       });
       this.#renderer.renderResetButton();
       if(this.#activeTab==="contracts"){
@@ -76,7 +77,8 @@ export class AppController{
         standings:this.#state.getStandingsTable(),
         scorers:this.#state.getTopScorers(10),
         schedule:this.#state.getCalendarScheduleRows(),
-        playoffs:this.#state.getPlayoffBracketData()
+        playoffs:this.#state.getPlayoffBracketData(),
+        seasonState:this.#state.getSeasonState()
       });
       this.#renderer.renderResetButton();
       return;
@@ -90,7 +92,8 @@ export class AppController{
         standings:this.#state.getStandingsTable(),
         scorers:this.#state.getTopScorers(10),
         schedule:this.#state.getCalendarScheduleRows(),
-        playoffs:this.#state.getPlayoffBracketData()
+        playoffs:this.#state.getPlayoffBracketData(),
+        seasonState:this.#state.getSeasonState()
       });
       this.#renderer.renderResetButton();
       return;
@@ -102,7 +105,8 @@ export class AppController{
       standings:this.#state.getStandingsTable(),
       scorers:this.#state.getTopScorers(10),
       schedule:this.#state.getCalendarScheduleRows(),
-      playoffs:this.#state.getPlayoffBracketData()
+      playoffs:this.#state.getPlayoffBracketData(),
+      seasonState:this.#state.getSeasonState()
     });
     this.#renderer.renderResetButton();
     this.#renderer.renderMatch(this.#state.lastMatch,this.#state.seasonStats);
@@ -450,7 +454,13 @@ export class AppController{
     }
     if(action==="cancel-team"){this.#pendingTeamId=null;this.#renderScreen();return;}
     if(clickable?.id==="resetBtn"){this.#resetGame();return;}
-    if(clickable?.id!=="playBtn"||this.#calendar.isFinished()||!this.#state.activeTeamId)return;
+    if(clickable?.id!=="playBtn"||!this.#state.activeTeamId)return;
+    if(this.#state.canAdvanceToNextSeason()){
+      this.#state.advanceToNextSeason();
+      this.#userStore.saveState(this.#state.exportState());
+      this.#renderScreen();
+      return;
+    }
     if(this.#matchPlayback)return;
     const day=this.#state.activeTeam?this.#state.getVisibleCalendarDay():this.#calendar.getCurrent();
     this.#state.activeTeam?this.#state.playDayForActiveTeam():this.#state.playDay();

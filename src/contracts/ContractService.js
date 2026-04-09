@@ -2,7 +2,7 @@ import { generateUuid } from "../utils/uuid.js";
 import { ContractType, contractTypeLabel } from "./ContractType.js";
 import { createContractNormalizer } from "./ContractNormalization.js";
 import { evaluateRenewalWillingness, getAcceptanceChance } from "./RenewalScoring.js";
-import { calculateAge, clamp, formatContractEndDate, formatNextSeason, parseSeasonEnd } from "./SeasonUtils.js";
+import { calculateAge, clamp, formatContractEndDate, formatNextSeason, parseSeasonEnd, parseSeasonStart } from "./SeasonUtils.js";
 
 const { normalizeType, normalizeContract } = createContractNormalizer(ContractType);
 const roundSalaryRub = (value) => Math.max(500000, Math.round((Number(value) || 0) / 500000) * 500000);
@@ -18,6 +18,14 @@ const getLatestContract = (contracts) =>
     if (!latest) return current;
     return parseSeasonEnd(current.season) >= parseSeasonEnd(latest.season) ? current : latest;
   }, null);
+
+const getSeasonLabelFromDate = (value) => {
+  const date = value ? new Date(value) : null;
+  if (!date || Number.isNaN(date.getTime())) return null;
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth();
+  return month >= 6 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+};
 
 const getMoodTone = (state) => {
   if (state === "green") return "positive";
@@ -132,6 +140,10 @@ export class ContractService {
       .sort((left, right) => parseSeasonEnd(left.season) - parseSeasonEnd(right.season));
   }
 
+  getContractForSeason(playerId, season) {
+    return this.getContractsForPlayer(playerId).find((contract) => contract.season === season) || null;
+  }
+
   getTeamContractRows(team) {
     return team
       .getRoster()
@@ -236,7 +248,9 @@ export class ContractService {
     return contractTypeLabel[normalizeType(type)];
   }
 
-  getSigningStartSeason() {
+  getSigningStartSeason(currentDate = null) {
+    const seasonFromDate = getSeasonLabelFromDate(currentDate);
+    if (seasonFromDate) return seasonFromDate;
     const seasons = this.#contracts.map((contract) => contract.season).filter(Boolean);
     const minSeason = seasons.sort((left, right) => parseSeasonEnd(left) - parseSeasonEnd(right))[0];
     return minSeason || "2025/2026";
@@ -352,7 +366,7 @@ export class ContractService {
     const decision = this.#getNegotiationDecision(preview, player);
 
     if (decision === "accept") {
-      let season = this.getSigningStartSeason();
+      let season = this.getSigningStartSeason(context?.currentDate);
       const newContracts = [];
       for (let index = 0; index < preview.offer.years; index++) {
         const contract = {
