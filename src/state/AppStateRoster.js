@@ -42,6 +42,7 @@ export const applyFantasyDraftAssignments = ({
     picked.forEach((player) => {
       player.affiliation.teamId = team.id;
       player.affiliation.acquiredDay = null;
+      player.potential?.resetFreeAgentInactivity?.();
       contracts.reassignPlayerContracts(player.id, team.id);
     });
 

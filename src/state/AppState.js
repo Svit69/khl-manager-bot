@@ -377,6 +377,13 @@ export class AppState {
       }
     });
 
+    if (matches.length && ["regular", "playoffs"].includes(String(day?.phase || ""))) {
+      this.#development.applyFreeAgentInactivity(this.getAvailableFreeAgents(), {
+        phase: day.phase,
+        opportunityCount: 1,
+      });
+    }
+
     const playedTeamList = this.#teams.filter((team) => playedTeams.has(team.id));
     const idleTeamList = this.#teams.filter((team) => !playedTeams.has(team.id));
     if (playedTeamList.length) this.#applyFatigue(playedTeamList, 12);

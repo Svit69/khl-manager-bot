@@ -24,6 +24,12 @@ export class PlayerDevelopmentService {
     return (players || []).flatMap((player) => this.#applyOffseasonPlayerDevelopment(player, context));
   }
 
+  applyFreeAgentInactivity(players, context = {}) {
+    if (!["regular", "playoffs"].includes(String(context?.phase || ""))) return [];
+    const opportunityCount = Math.max(1, Number(context?.opportunityCount) || 1);
+    return (players || []).flatMap((player) => this.#applyFreeAgentInactivityToPlayer(player, opportunityCount));
+  }
+
   #applyPlayerDevelopment(player, matchStat, context) {
     const seasonStats = player.seasonStats;
     const games = Number(seasonStats?.games) || 0;
@@ -135,6 +141,53 @@ export class PlayerDevelopmentService {
     return events;
   }
 
+  #applyFreeAgentInactivityToPlayer(player, opportunityCount) {
+    if (!player || player.identity?.isGoalie || player.affiliation?.teamId) {
+      player?.potential?.resetFreeAgentInactivity?.();
+      return [];
+    }
+
+    const age = calculateAge(player.identity?.birthDate);
+    const inactivityGames = player.potential.addFreeAgentInactivity(opportunityCount);
+    const graceGames = this.#getFreeAgentGraceGames(age);
+    if (inactivityGames <= graceGames) return [];
+
+    const inactivityPressure = inactivityGames - graceGames;
+    const ageDrivenRegression = this.#getFreeAgentAgeDrivenRegression(player, age, inactivityPressure);
+    const potentialDecay = this.#getFreeAgentPotentialDecay(player, age, inactivityPressure);
+    const events = [];
+
+    if (ageDrivenRegression !== 0) {
+      player.potential.addDevelopmentProgress(ageDrivenRegression);
+      const attributeDirection = player.potential.consumeDevelopmentStep(ATTRIBUTE_STEP_THRESHOLD);
+      if (attributeDirection !== 0) {
+        const beforeOvr = player.ovr;
+        const attributeKey = this.#applyAttributeStep(player, attributeDirection, 0, 0);
+        const afterOvr = player.ovr;
+        if (attributeKey && afterOvr !== beforeOvr) {
+          events.push({
+            type: afterOvr > beforeOvr ? "upgrade" : "downgrade",
+            playerId: player.id,
+            playerName: player.name,
+            attributeKey,
+            oldOvr: beforeOvr,
+            newOvr: afterOvr,
+          });
+        }
+      }
+    }
+
+    if (potentialDecay !== 0) {
+      player.potential.addPotentialProgress(potentialDecay);
+      const potentialDirection = player.potential.consumePotentialStep(POTENTIAL_STEP_THRESHOLD);
+      if (potentialDirection !== 0) {
+        player.potential.adjustPotential(potentialDirection);
+      }
+    }
+
+    return events;
+  }
+
   #getAgeDevelopmentComponent(player, age) {
     const growthRate = Number(player.potential?.growthRate) || 1;
     const declineRate = Number(player.potential?.declineRate) || 1;
@@ -232,6 +285,43 @@ export class PlayerDevelopmentService {
     if ((player.potential?.potential || 0) - player.ovr <= 2) delta += 0.01;
     delta *= Number(player.potential?.growthRate) || 1;
     return clamp(delta, 0, isYoungCore ? 0.16 : 0.12);
+  }
+
+  #getFreeAgentGraceGames(age) {
+    if (age <= 20) return 18;
+    if (age <= 24) return 15;
+    if (age <= 28) return 12;
+    return 10;
+  }
+
+  #getFreeAgentAgeDrivenRegression(player, age, inactivityPressure) {
+    const declineRate = Number(player.potential?.declineRate) || 0.3;
+    const growthRate = Number(player.potential?.growthRate) || 0.3;
+    let delta = 0;
+
+    if (age <= 20) delta = -0.003 - inactivityPressure * 0.0005;
+    else if (age <= 24) delta = -0.007 - inactivityPressure * 0.001;
+    else if (age <= 28) delta = -0.013 - inactivityPressure * 0.0016;
+    else if (age <= 31) delta = -0.02 - inactivityPressure * 0.0023;
+    else delta = -0.028 - inactivityPressure * 0.0032;
+
+    if (age <= 22) delta *= Math.max(0.7, 1 - growthRate * 0.2);
+    if (age >= 29) delta *= 1 + declineRate * 0.35;
+
+    return clamp(delta, -0.11, 0);
+  }
+
+  #getFreeAgentPotentialDecay(player, age, inactivityPressure) {
+    const growthRate = Number(player.potential?.growthRate) || 0.3;
+    let delta = 0;
+
+    if (age <= 19) delta = -0.028 - inactivityPressure * 0.0032;
+    else if (age <= 22) delta = -0.021 - inactivityPressure * 0.0024;
+    else if (age <= 25) delta = -0.012 - inactivityPressure * 0.0015;
+    else delta = -0.004 - inactivityPressure * 0.0006;
+
+    delta *= Math.max(0.85, Math.min(1.25, 1 + (growthRate - 0.3) * 0.45));
+    return clamp(delta, -0.12, 0);
   }
 
   #getYoungPlayerUsageBoost(player, age, games, avgIceTime, teamGamesPlayed) {

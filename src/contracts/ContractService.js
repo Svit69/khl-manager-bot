@@ -410,6 +410,7 @@ export class ContractService {
         this.#releasedPlayerIds.delete(player.id);
         season = formatNextSeason(season);
       }
+      player.potential?.resetFreeAgentInactivity?.();
       this.#clearBadOfferCount(player.id);
       this.#clearLastOffer(player.id);
       return { decision: "accept", preview, newContracts };
