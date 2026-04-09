@@ -163,6 +163,7 @@ export class PlayerDevelopmentService {
     if (!matchStat && games >= 10 && avgIceTime < 7) delta -= 0.015;
     if (age <= 23) delta += this.#getYoungPlayerUsageBoost(player, age, games, avgIceTime, teamGamesPlayed);
     delta += this.#getQualityOfMinutesBoost(player, age, avgIceTime, matchStat);
+    delta += this.#getYoungDefenseTopFourBoost(player, age, avgIceTime);
 
     return delta * 1.15;
   }
@@ -293,6 +294,23 @@ export class PlayerDevelopmentService {
     else if (lineIndex === 2) delta += 0.003;
 
     return clamp(delta, 0, 0.04);
+  }
+
+  #getYoungDefenseTopFourBoost(player, age, avgIceTime) {
+    if (FORWARD_POSITIONS.has(player.identity?.primaryPosition) || player.identity?.isGoalie || age > 23) return 0;
+
+    const lineIndex = Number(player.expectedLineIndex) || null;
+    let delta = 0;
+
+    if (lineIndex === 1 || lineIndex === 2) delta += 0.008;
+    if (avgIceTime >= 22) delta += 0.018;
+    else if (avgIceTime >= 19) delta += 0.012;
+    else if (avgIceTime >= 16) delta += 0.006;
+
+    if (age <= 20 && lineIndex && lineIndex <= 2) delta += 0.008;
+    else if (age <= 22 && lineIndex && lineIndex <= 2) delta += 0.004;
+
+    return clamp(delta, 0, 0.03);
   }
 
   #getDefensePerformanceSignal(player, avgIceTime) {
