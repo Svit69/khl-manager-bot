@@ -37,12 +37,18 @@ export class PlayerDevelopmentService {
     const expected = this.#getExpectedProduction(player);
     const potentialGap = (player.potential?.potential || player.ovr) - player.ovr;
 
+    const volatility = this.#getPlayerVolatility(player, age);
     const ageComponent = this.#getAgeDevelopmentComponent(player, age);
     const usageComponent = this.#getUsageDevelopmentComponent(player, age, games, avgIceTime, matchStat, context);
-    const performanceComponent = this.#getPerformanceDevelopmentComponent(player, age, pointsPerGame, shotsPerGame, expected);
+    const performanceComponent = this.#getPerformanceDevelopmentComponent(player, age, pointsPerGame, shotsPerGame, expected, avgIceTime, volatility);
     const ceilingComponent = this.#getPotentialGapComponent(potentialGap);
     const peakAgeComponent = this.#getPeakAgeRealizationComponent(player, age, potentialGap, games, avgIceTime, pointsPerGame, shotsPerGame, expected);
-    const developmentDelta = clamp(ageComponent + usageComponent + performanceComponent + ceilingComponent + peakAgeComponent, -0.18, 0.22);
+    const youngLoadBonus = this.#getYoungMatchLoadBonus(player, age, matchStat);
+    const developmentDelta = clamp(
+      ageComponent + usageComponent + performanceComponent + ceilingComponent + peakAgeComponent + youngLoadBonus,
+      -0.18,
+      0.22,
+    );
 
     player.potential.addDevelopmentProgress(developmentDelta);
     const attributeDirection = player.potential.consumeDevelopmentStep(ATTRIBUTE_STEP_THRESHOLD);
@@ -86,10 +92,11 @@ export class PlayerDevelopmentService {
     const expected = this.#getExpectedProduction(player);
     const potentialGap = (player.potential?.potential || player.ovr) - player.ovr;
 
+    const volatility = this.#getPlayerVolatility(player, age);
     const offseasonDelta = clamp(
       this.#getAgeDevelopmentComponent(player, age) * 0.6 +
       this.#getUsageDevelopmentComponent(player, age, games, avgIceTime, { games: 1 }, { teamGamesPlayed: games }) * 0.35 +
-      this.#getPerformanceDevelopmentComponent(player, age, pointsPerGame, shotsPerGame, expected) * 0.4 +
+      this.#getPerformanceDevelopmentComponent(player, age, pointsPerGame, shotsPerGame, expected, avgIceTime, volatility) * 0.4 +
       this.#getPotentialGapComponent(potentialGap) * 0.5 +
       this.#getPeakAgeRealizationComponent(player, age, potentialGap, games, avgIceTime, pointsPerGame, shotsPerGame, expected) * 0.75,
       -0.18,
@@ -155,22 +162,28 @@ export class PlayerDevelopmentService {
     if (teamGamesPlayed >= 12 && games >= teamGamesPlayed * 0.6) delta += 0.014;
     if (!matchStat && games >= 10 && avgIceTime < 7) delta -= 0.015;
     if (age <= 23) delta += this.#getYoungPlayerUsageBoost(player, age, games, avgIceTime, teamGamesPlayed);
+    delta += this.#getQualityOfMinutesBoost(player, age, avgIceTime, matchStat);
 
     return delta * 1.15;
   }
 
-  #getPerformanceDevelopmentComponent(player, age, pointsPerGame, shotsPerGame, expected) {
+  #getPerformanceDevelopmentComponent(player, age, pointsPerGame, shotsPerGame, expected, avgIceTime, volatility) {
     const ppgGap = pointsPerGame - expected.pointsPerGame;
     const shotsGap = shotsPerGame - expected.shotsPerGame;
-    let delta = ppgGap * 0.22 + shotsGap * 0.045;
+    const isForward = FORWARD_POSITIONS.has(player.identity?.primaryPosition);
+    let delta = isForward
+      ? ppgGap * 0.22 + shotsGap * 0.045
+      : ppgGap * 0.12 + shotsGap * 0.025 + this.#getDefensePerformanceSignal(player, avgIceTime);
     if (age <= 21) {
-      if (delta > 0) delta *= 1.28;
-      else delta *= 0.8;
+      if (delta > 0) delta *= 1.28 + (volatility - 1) * 0.6;
+      else delta *= 0.8 + Math.max(0, 1 - volatility) * 0.4;
       if (pointsPerGame >= expected.pointsPerGame * 0.95) {
         delta += 0.01 * (Number(player.potential?.growthRate) || 1);
       }
     } else if (age <= 23 && delta > 0) {
-      delta *= 1.12;
+      delta *= 1.12 + Math.max(0, volatility - 1) * 0.35;
+    } else if (delta > 0) {
+      delta *= 0.98 + Math.max(0, volatility - 1) * 0.2;
     }
     return clamp(delta * 1.15, -0.069, 0.126);
   }
@@ -238,6 +251,81 @@ export class PlayerDevelopmentService {
     if (age <= 20 && avgIceTime >= 18) delta += 0.01;
 
     return delta * Math.max(0.85, Math.min(1.3, growthRate));
+  }
+
+  #getQualityOfMinutesBoost(player, age, avgIceTime, matchStat) {
+    const lineIndex = Number(player.expectedLineIndex) || null;
+    let delta = 0;
+    if (lineIndex === 1) delta += 0.012;
+    else if (lineIndex === 2) delta += 0.007;
+    else if (lineIndex === 3) delta += 0.003;
+    else if (lineIndex === 4) delta -= 0.004;
+
+    if (age <= 22 && avgIceTime >= 15 && lineIndex && lineIndex <= 2) delta += 0.008;
+    if (age <= 20 && avgIceTime >= 17 && lineIndex === 1) delta += 0.01;
+
+    const matchMinutes = ((Number(matchStat?.totalIceTime) || 0) / 60);
+    if (age <= 21 && matchMinutes >= 18) delta += 0.008;
+    else if (age <= 21 && matchMinutes >= 14) delta += 0.004;
+
+    return delta;
+  }
+
+  #getYoungMatchLoadBonus(player, age, matchStat) {
+    if (!matchStat || age > 23) return 0;
+    const matchMinutes = (Number(matchStat?.totalIceTime) || 0) / 60;
+    const gamesSignal = Number(matchStat?.games) || 0;
+    if (gamesSignal <= 0 || matchMinutes <= 0) return 0;
+
+    let delta = 0;
+    if (matchMinutes >= 20) delta += 0.028;
+    else if (matchMinutes >= 17) delta += 0.022;
+    else if (matchMinutes >= 14) delta += 0.016;
+    else if (matchMinutes >= 10) delta += 0.009;
+    else if (matchMinutes >= 6) delta += 0.003;
+
+    if (age <= 18) delta *= 1.35;
+    else if (age <= 20) delta *= 1.2;
+    else if (age <= 22) delta *= 1.08;
+
+    const lineIndex = Number(player.expectedLineIndex) || null;
+    if (lineIndex === 1) delta += 0.006;
+    else if (lineIndex === 2) delta += 0.003;
+
+    return clamp(delta, 0, 0.04);
+  }
+
+  #getDefensePerformanceSignal(player, avgIceTime) {
+    const attrs = player.attributes?.attributesJson || {};
+    const defense = Number(attrs.defense) || 0;
+    const physical = Number(attrs.physical) || 0;
+    const lineIndex = Number(player.expectedLineIndex) || null;
+    let delta = 0;
+
+    if (avgIceTime >= 21) delta += 0.035;
+    else if (avgIceTime >= 18) delta += 0.024;
+    else if (avgIceTime >= 15) delta += 0.012;
+
+    if (lineIndex === 1) delta += 0.012;
+    else if (lineIndex === 2) delta += 0.006;
+
+    if (defense >= 80) delta += 0.014;
+    else if (defense >= 75) delta += 0.008;
+    if (physical >= 80) delta += 0.007;
+
+    return clamp(delta, -0.01, 0.055);
+  }
+
+  #getPlayerVolatility(player, age) {
+    const seedSource = `${player.id || player.name || ""}`;
+    let hash = 0;
+    for (let index = 0; index < seedSource.length; index++) {
+      hash = ((hash * 31) + seedSource.charCodeAt(index)) % 9973;
+    }
+    const normalized = (hash % 1000) / 1000;
+    let amplitude = age <= 19 ? 0.16 : age <= 22 ? 0.11 : 0.06;
+    amplitude += Math.max(0, (Number(player.potential?.growthRate) || 0.3) - 0.3) * 0.08;
+    return 1 + (normalized - 0.5) * amplitude * 2;
   }
 
   #getExpectedProduction(player) {
