@@ -42,16 +42,37 @@ export class PlayerDevelopmentService {
     const shotsPerGame = this.#getShotsPerGame(seasonStats);
     const expected = this.#getExpectedProduction(player);
     const potentialGap = (player.potential?.potential || player.ovr) - player.ovr;
+    const teamGamesPlayed = Math.max(games, Number(context?.teamGamesPlayed) || 0);
+    const reserveRegression = this.#getReserveInactivityRegression(player, age, games, avgIceTime, teamGamesPlayed);
 
     const volatility = this.#getPlayerVolatility(player, age);
     const ageComponent = this.#getAgeDevelopmentComponent(player, age);
     const usageComponent = this.#getUsageDevelopmentComponent(player, age, games, avgIceTime, matchStat, context);
-    const performanceComponent = this.#getPerformanceDevelopmentComponent(player, age, pointsPerGame, shotsPerGame, expected, avgIceTime, volatility);
+    const performanceComponent = this.#getPerformanceDevelopmentComponent(
+      player,
+      age,
+      pointsPerGame,
+      shotsPerGame,
+      expected,
+      avgIceTime,
+      volatility,
+      games,
+    );
     const ceilingComponent = this.#getPotentialGapComponent(potentialGap);
     const peakAgeComponent = this.#getPeakAgeRealizationComponent(player, age, potentialGap, games, avgIceTime, pointsPerGame, shotsPerGame, expected);
     const youngLoadBonus = this.#getYoungMatchLoadBonus(player, age, matchStat);
+    const roleRegressionComponent = this.#getRoleRegressionComponent(player, age, games, avgIceTime);
+    const rehabilitationComponent = this.#getRehabilitationComponent(player, matchStat, avgIceTime);
     const developmentDelta = clamp(
-      ageComponent + usageComponent + performanceComponent + ceilingComponent + peakAgeComponent + youngLoadBonus,
+      ageComponent +
+      usageComponent +
+      performanceComponent +
+      ceilingComponent +
+      peakAgeComponent +
+      youngLoadBonus +
+      reserveRegression.development +
+      roleRegressionComponent +
+      rehabilitationComponent,
       -0.18,
       0.22,
     );
@@ -60,7 +81,7 @@ export class PlayerDevelopmentService {
     const attributeDirection = player.potential.consumeDevelopmentStep(ATTRIBUTE_STEP_THRESHOLD);
     if (attributeDirection !== 0) {
       const beforeOvr = player.ovr;
-      const attributeKey = this.#applyAttributeStep(player, attributeDirection, pointsPerGame, shotsPerGame);
+      const attributeKey = this.#applyAttributeStep(player, attributeDirection, pointsPerGame, shotsPerGame, age);
       const afterOvr = player.ovr;
       if (attributeKey && afterOvr !== beforeOvr) {
         events.push({
@@ -74,7 +95,9 @@ export class PlayerDevelopmentService {
       }
     }
 
-    const potentialDelta = this.#getPotentialDevelopmentDelta(player, age, games, avgIceTime, pointsPerGame, shotsPerGame, expected, matchStat);
+    const potentialDelta =
+      this.#getPotentialDevelopmentDelta(player, age, games, avgIceTime, pointsPerGame, shotsPerGame, expected, matchStat) +
+      reserveRegression.potential;
     if (potentialDelta !== 0) {
       player.potential.addPotentialProgress(potentialDelta);
       const potentialDirection = player.potential.consumePotentialStep(POTENTIAL_STEP_THRESHOLD);
@@ -102,7 +125,7 @@ export class PlayerDevelopmentService {
     const offseasonDelta = clamp(
       this.#getAgeDevelopmentComponent(player, age) * 0.6 +
       this.#getUsageDevelopmentComponent(player, age, games, avgIceTime, { games: 1 }, { teamGamesPlayed: games }) * 0.35 +
-      this.#getPerformanceDevelopmentComponent(player, age, pointsPerGame, shotsPerGame, expected, avgIceTime, volatility) * 0.4 +
+      this.#getPerformanceDevelopmentComponent(player, age, pointsPerGame, shotsPerGame, expected, avgIceTime, volatility, games) * 0.4 +
       this.#getPotentialGapComponent(potentialGap) * 0.5 +
       this.#getPeakAgeRealizationComponent(player, age, potentialGap, games, avgIceTime, pointsPerGame, shotsPerGame, expected) * 0.75,
       -0.18,
@@ -114,7 +137,7 @@ export class PlayerDevelopmentService {
     const attributeDirection = player.potential.consumeDevelopmentStep(ATTRIBUTE_STEP_THRESHOLD);
     if (attributeDirection !== 0) {
       const beforeOvr = player.ovr;
-      const attributeKey = this.#applyAttributeStep(player, attributeDirection, pointsPerGame, shotsPerGame);
+      const attributeKey = this.#applyAttributeStep(player, attributeDirection, pointsPerGame, shotsPerGame, age);
       const afterOvr = player.ovr;
       if (attributeKey && afterOvr !== beforeOvr) {
         events.push({
@@ -197,9 +220,15 @@ export class PlayerDevelopmentService {
     if (age <= 20) return 0.069 * growthRate;
     if (age <= 23) return 0.046 * growthRate;
     if (age < peakAge) return 0.021 * growthRate;
-    if (age <= peakAge + 1) return 0.004;
+    if (age === peakAge) return 0.004;
+    if (age === peakAge + 1) return -0.004 * declineRate;
     if (age <= peakAge + 3) return -0.014 * declineRate;
-    return -0.025 * declineRate * (1 + Math.min(0.6, (age - peakAge - 3) * 0.08));
+    if (age <= peakAge + 6) {
+      const yearsPast = age - peakAge - 3;
+      return -0.024 * declineRate * (1 + yearsPast * 0.12);
+    }
+    const lateYearsPast = age - peakAge - 6;
+    return -0.034 * declineRate * (1 + Math.min(0.85, lateYearsPast * 0.14));
   }
 
   #getUsageDevelopmentComponent(player, age, games, avgIceTime, matchStat, context) {
@@ -221,12 +250,12 @@ export class PlayerDevelopmentService {
     return delta * 1.15;
   }
 
-  #getPerformanceDevelopmentComponent(player, age, pointsPerGame, shotsPerGame, expected, avgIceTime, volatility) {
+  #getPerformanceDevelopmentComponent(player, age, pointsPerGame, shotsPerGame, expected, avgIceTime, volatility, games) {
     const ppgGap = pointsPerGame - expected.pointsPerGame;
     const shotsGap = shotsPerGame - expected.shotsPerGame;
     const isForward = FORWARD_POSITIONS.has(player.identity?.primaryPosition);
     let delta = isForward
-      ? ppgGap * 0.22 + shotsGap * 0.045
+      ? ppgGap * 0.22 + shotsGap * 0.06
       : ppgGap * 0.12 + shotsGap * 0.025 + this.#getDefensePerformanceSignal(player, avgIceTime);
     if (age <= 21) {
       if (delta > 0) delta *= 1.28 + (volatility - 1) * 0.6;
@@ -238,6 +267,13 @@ export class PlayerDevelopmentService {
       delta *= 1.12 + Math.max(0, volatility - 1) * 0.35;
     } else if (delta > 0) {
       delta *= 0.98 + Math.max(0, volatility - 1) * 0.2;
+    }
+    if (delta < 0) {
+      const isLongSample = games >= 18 && avgIceTime >= 9;
+      delta *= isLongSample ? 0.9 : 0.55;
+      if (isForward && games >= 20 && avgIceTime >= 11 && shotsPerGame <= expected.shotsPerGame * 0.72) {
+        delta -= 0.012;
+      }
     }
     return clamp(delta * 1.15, -0.069, 0.126);
   }
@@ -285,6 +321,55 @@ export class PlayerDevelopmentService {
     if ((player.potential?.potential || 0) - player.ovr <= 2) delta += 0.01;
     delta *= Number(player.potential?.growthRate) || 1;
     return clamp(delta, 0, isYoungCore ? 0.16 : 0.12);
+  }
+
+  #getReserveInactivityRegression(player, age, games, avgIceTime, teamGamesPlayed) {
+    if (teamGamesPlayed < 12) return { development: 0, potential: 0 };
+
+    const participationRate = games / Math.max(1, teamGamesPlayed);
+    let development = 0;
+    let potential = 0;
+
+    if (participationRate < 0.5 && avgIceTime < 9) {
+      development -= age >= 28 ? 0.018 : age >= 24 ? 0.011 : 0.006;
+    }
+    if (participationRate < 0.35 && avgIceTime < 7) {
+      development -= age >= 30 ? 0.022 : age >= 25 ? 0.014 : 0.008;
+    }
+    if (age <= 23 && participationRate < 0.42 && avgIceTime < 8) {
+      potential -= age <= 20 ? 0.03 : 0.018;
+    }
+    if (age <= 21 && participationRate < 0.28 && teamGamesPlayed >= 20) {
+      potential -= 0.022;
+    }
+
+    return {
+      development: clamp(development, -0.05, 0),
+      potential: clamp(potential, -0.065, 0),
+    };
+  }
+
+  #getRoleRegressionComponent(player, age, games, avgIceTime) {
+    if (games < 15) return 0;
+    const lineIndex = Number(player.expectedLineIndex) || null;
+    if (!lineIndex) return age >= 26 ? -0.02 : -0.01;
+    if (lineIndex === 4 && avgIceTime < 9) {
+      if ((player.ovr || 0) >= 79 || age >= 28) return -0.02;
+      return -0.01;
+    }
+    if (lineIndex === 3 && avgIceTime < 11 && ((player.ovr || 0) >= 81 || age >= 30)) {
+      return -0.012;
+    }
+    return 0;
+  }
+
+  #getRehabilitationComponent(player, matchStat, avgIceTime) {
+    if (!matchStat || (player.potential?.developmentProgress || 0) >= 0) return 0;
+    const matchMinutes = (Number(matchStat.totalIceTime) || 0) / 60;
+    if (matchMinutes >= 18) return 0.016;
+    if (matchMinutes >= 14) return 0.01;
+    if (avgIceTime >= 12 && matchMinutes >= 10) return 0.006;
+    return 0;
   }
 
   #getFreeAgentGraceGames(age) {
@@ -451,15 +536,15 @@ export class PlayerDevelopmentService {
     };
   }
 
-  #applyAttributeStep(player, direction, pointsPerGame, shotsPerGame) {
-    const weights = this.#getAttributeWeights(player, direction, pointsPerGame, shotsPerGame);
+  #applyAttributeStep(player, direction, pointsPerGame, shotsPerGame, age) {
+    const weights = this.#getAttributeWeights(player, direction, pointsPerGame, shotsPerGame, age);
     const attributeKey = this.#pickWeightedAttribute(weights);
     if (!attributeKey) return null;
     player.attributes.applyAttributeDelta(attributeKey, direction);
     return attributeKey;
   }
 
-  #getAttributeWeights(player, direction, pointsPerGame, shotsPerGame) {
+  #getAttributeWeights(player, direction, pointsPerGame, shotsPerGame, age) {
     const isForward = FORWARD_POSITIONS.has(player.identity?.primaryPosition);
     if (direction > 0) {
       if (isForward) {
@@ -480,10 +565,24 @@ export class PlayerDevelopmentService {
       };
     }
 
+    const peakAge = Number(player.potential?.peakAge) || 27;
+    const yearsPastPeak = Math.max(0, age - peakAge);
     if (isForward) {
-      return { shot: 0.95, speed: 1.2, physical: 0.8, defense: 0.5, skill: 1.0 };
+      return {
+        speed: 1.2 + yearsPastPeak * 0.12,
+        physical: 0.78 + Math.max(0, yearsPastPeak - 1) * 0.06,
+        shot: 0.92 + Math.max(0, 2.2 - shotsPerGame) * 0.05,
+        skill: 0.86 + Math.max(0, yearsPastPeak - 2) * 0.03,
+        defense: 0.48,
+      };
     }
-    return { defense: 1.05, physical: 0.95, speed: 1.1, skill: 0.9, shot: 0.55 };
+    return {
+      speed: 1.08 + yearsPastPeak * 0.1,
+      physical: 0.96 + Math.max(0, yearsPastPeak - 1) * 0.05,
+      defense: 0.94 + Math.max(0, yearsPastPeak - 2) * 0.04,
+      skill: 0.82 + Math.max(0, yearsPastPeak - 3) * 0.03,
+      shot: 0.5,
+    };
   }
 
   #pickWeightedAttribute(weightMap) {
