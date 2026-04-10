@@ -5,10 +5,10 @@ const FORWARD_POSITIONS = new Set(["\u041b\u041d\u041f", "\u0426\u0422\u0420", "
 export const POSITION_SCARCITY_TARGETS = { FWD: 9, DEF: 6, G: 2 };
 
 export const STRATEGY_NEGOTIATION_CHANCE = {
-  contender: 0.34,
-  competitive: 0.27,
-  balanced: 0.2,
-  rebuild: 0.08,
+  contender: 0.39,
+  competitive: 0.31,
+  balanced: 0.23,
+  rebuild: 0.09,
 };
 
 export const STRATEGY_MONTHLY_SLOTS = {

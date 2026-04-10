@@ -4,6 +4,14 @@ import { createPreseasonDates, getPreseasonDateAt } from "./PreseasonSchedule.js
 const createUtcDate = (year, monthIndex, day) => new Date(Date.UTC(year, monthIndex, day));
 const formatSeasonLabel = (startYear) => `${startYear}/${startYear + 1}`;
 const seasonTag = (startYear) => `season-${startYear}`;
+const collectUniqueFreeAgents = (players) => {
+  const uniqueById = new Map();
+  (players || []).forEach((player) => {
+    if (!player?.id || player.affiliation?.teamId) return;
+    uniqueById.set(player.id, player);
+  });
+  return [...uniqueById.values()];
+};
 
 export class SeasonTransitionService {
   #contracts;
@@ -105,7 +113,7 @@ export class SeasonTransitionService {
         preseasonOpen: true,
         preseasonOffers: [],
       },
-      freeAgents: (allPlayers || []).filter((player) => !player.affiliation?.teamId),
+      freeAgents: collectUniqueFreeAgents(allPlayers),
     };
   }
 
@@ -138,7 +146,7 @@ export class SeasonTransitionService {
     const MIN_ROSTER_SIZE = 19;
     const positionTargets = { FWD: 9, DEF: 6 };
     const getGroup = (position) => (position === "ЗАЩ" ? "DEF" : "FWD");
-    const getAvailableFreeAgents = () => (allPlayers || []).filter((player) => !player.affiliation?.teamId);
+    const getAvailableFreeAgents = () => collectUniqueFreeAgents(allPlayers);
 
     (teams || [])
       .filter((team) => team?.id && team.id !== activeTeamId)

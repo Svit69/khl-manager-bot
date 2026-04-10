@@ -32,6 +32,15 @@ import {
   importSavedRosters,
 } from "./AppStateRoster.js";
 
+const dedupeFreeAgents = (players = []) => {
+  const uniqueById = new Map();
+  (players || []).forEach((player) => {
+    if (!player?.id || player.affiliation?.teamId) return;
+    uniqueById.set(player.id, player);
+  });
+  return [...uniqueById.values()];
+};
+
 export class AppState {
   #teams;
   #calendar;
@@ -53,7 +62,7 @@ export class AppState {
   constructor(teams, calendar, contracts, freeAgents = []) {
     this.#teams = teams;
     this.#calendar = calendar;
-    this.#freeAgents = freeAgents;
+    this.#freeAgents = dedupeFreeAgents(freeAgents);
     this.#contracts = new ContractService(contracts);
     this.#aiRenewals = new AiRenewalService(this.#contracts);
     this.#seasonTransition = new SeasonTransitionService(this.#contracts, this.#aiRenewals, this.#development);
@@ -172,7 +181,7 @@ export class AppState {
   }
 
   getAvailableFreeAgents() {
-    return this.#freeAgents.filter((player) => !player.affiliation?.teamId);
+    return dedupeFreeAgents(this.#freeAgents);
   }
 
   evaluateTradeWithTeam(teamId, givePlayerIds, receivePlayerIds) {
@@ -212,7 +221,7 @@ export class AppState {
     if (result?.decision === "accept") {
       player.affiliation.acquiredDay = this.#calendar.currentDay;
       this.activeTeam.reservePlayers.push(player);
-      this.#freeAgents = this.#freeAgents.filter((entry) => entry.id !== player.id);
+      this.#freeAgents = dedupeFreeAgents(this.#freeAgents.filter((entry) => entry.id !== player.id));
       this.#refreshExpectedRoles(this.activeTeam);
     }
     return result;
@@ -330,7 +339,7 @@ export class AppState {
     });
     this.#seasonHistory.unshift(transition.archive);
     this.#seasonHistory = this.#seasonHistory.slice(0, 12);
-    this.#freeAgents = transition.freeAgents;
+    this.#freeAgents = dedupeFreeAgents(transition.freeAgents);
     this.#stats.importStats([]);
     this.#standings.importSnapshot([]);
     this.#lastMatch = null;
@@ -374,7 +383,7 @@ export class AppState {
     }
     restorePlayerSnapshots(allPlayers, saved.players);
 
-    this.#freeAgents = allPlayers.filter((player) => !player.affiliation?.teamId);
+    this.#freeAgents = dedupeFreeAgents(allPlayers);
     if (saved.contracts) this.#contracts.importContracts(saved.contracts);
     if (saved.standings) this.#standings.importSnapshot(saved.standings);
     this.#calendar.ensurePlayoffs(this.getStandingsTable());
@@ -394,7 +403,7 @@ export class AppState {
       contracts: this.#contracts,
       refreshExpectedRoles: (team) => this.#refreshExpectedRoles(team),
     });
-    this.#freeAgents = undraftedPlayers;
+    this.#freeAgents = dedupeFreeAgents(undraftedPlayers);
     this.#calendar.index = 0;
     this.#seasonState = {
       phase: "preseason",
@@ -618,7 +627,7 @@ export class AppState {
     if (!team.getRoster().some((entry) => entry?.id === player.id)) {
       team.reservePlayers.push(player);
     }
-    this.#freeAgents = this.#freeAgents.filter((entry) => entry.id !== player.id);
+    this.#freeAgents = dedupeFreeAgents(this.#freeAgents.filter((entry) => entry.id !== player.id));
     this.#refreshExpectedRoles(team);
 
     const signedContract = newContracts?.[newContracts.length - 1] || null;
