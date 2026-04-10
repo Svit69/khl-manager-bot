@@ -60,7 +60,7 @@ export class PlayerDevelopmentService {
     const teamGamesPlayed = Math.max(games, Number(context?.teamGamesPlayed) || 0);
     const reserveRegression = getReserveInactivityRegression(player, age, games, avgIceTime, teamGamesPlayed);
 
-    const developmentDelta = clamp(
+    const developmentDelta = this.#scaleDevelopmentDelta(age, clamp(
       getAgeDevelopmentComponent(player, age) +
         getUsageDevelopmentComponent(player, age, games, avgIceTime, matchStat, context) +
         getPerformanceDevelopmentComponent(
@@ -90,14 +90,14 @@ export class PlayerDevelopmentService {
         getRehabilitationComponent(player, matchStat, avgIceTime),
       -0.18,
       0.22,
-    );
+    ));
 
     player.potential.addDevelopmentProgress(developmentDelta);
     const events = this.#applyAttributeThreshold(player, pointsPerGame, shotsPerGame, age, {});
 
-    const potentialDelta =
+    const potentialDelta = this.#scalePotentialDelta(age,
       getPotentialDevelopmentDelta(player, age, games, avgIceTime, pointsPerGame, shotsPerGame, expected, matchStat) +
-      reserveRegression.potential;
+      reserveRegression.potential);
     this.#applyPotentialThreshold(player, potentialDelta);
 
     return events;
@@ -117,7 +117,7 @@ export class PlayerDevelopmentService {
     const potentialGap = (player.potential?.potential || player.ovr) - player.ovr;
     const volatility = getPlayerVolatility(player, age);
 
-    const offseasonDelta = clamp(
+    const offseasonDelta = this.#scaleDevelopmentDelta(age, clamp(
       getAgeDevelopmentComponent(player, age) * 0.6 +
         getUsageDevelopmentComponent(player, age, games, avgIceTime, { games: 1 }, { teamGamesPlayed: games }) * 0.35 +
         getPerformanceDevelopmentComponent(player, age, pointsPerGame, shotsPerGame, expected, avgIceTime, volatility, games) *
@@ -127,15 +127,17 @@ export class PlayerDevelopmentService {
           0.75,
       -0.18,
       0.24,
-    );
+    ));
 
     player.potential.addDevelopmentProgress(offseasonDelta);
     const events = this.#applyAttributeThreshold(player, pointsPerGame, shotsPerGame, age, {
       teamId: player.affiliation?.teamId || null,
     });
 
-    const potentialDelta =
-      getPotentialDevelopmentDelta(player, age, games, avgIceTime, pointsPerGame, shotsPerGame, expected, { games: 1 }) * 0.7;
+    const potentialDelta = this.#scalePotentialDelta(
+      age,
+      getPotentialDevelopmentDelta(player, age, games, avgIceTime, pointsPerGame, shotsPerGame, expected, { games: 1 }) * 0.7,
+    );
     this.#applyPotentialThreshold(player, potentialDelta);
 
     return events;
@@ -153,8 +155,8 @@ export class PlayerDevelopmentService {
     if (inactivityGames <= graceGames) return [];
 
     const inactivityPressure = inactivityGames - graceGames;
-    const ageDrivenRegression = getFreeAgentAgeDrivenRegression(player, age, inactivityPressure);
-    const potentialDecay = getFreeAgentPotentialDecay(player, age, inactivityPressure);
+    const ageDrivenRegression = this.#scaleDevelopmentDelta(age, getFreeAgentAgeDrivenRegression(player, age, inactivityPressure));
+    const potentialDecay = this.#scalePotentialDelta(age, getFreeAgentPotentialDecay(player, age, inactivityPressure));
 
     if (ageDrivenRegression !== 0) {
       player.potential.addDevelopmentProgress(ageDrivenRegression);
@@ -217,5 +219,20 @@ export class PlayerDevelopmentService {
     else if (lineIndex === 2) delta += 0.003;
 
     return clamp(delta, 0, 0.04);
+  }
+
+  #getDevelopmentPaceMultiplier(age) {
+    if (age <= 23) return 1.5;
+    return 1.3;
+  }
+
+  #scaleDevelopmentDelta(age, value) {
+    const multiplier = this.#getDevelopmentPaceMultiplier(age);
+    return clamp(value * multiplier, -0.18 * multiplier, 0.22 * multiplier);
+  }
+
+  #scalePotentialDelta(age, value) {
+    const multiplier = this.#getDevelopmentPaceMultiplier(age);
+    return value * multiplier;
   }
 }

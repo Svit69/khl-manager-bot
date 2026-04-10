@@ -1,4 +1,4 @@
-const FORWARD_POSITIONS = new Set(["ЛНП", "ЦТР", "ПНП"]);
+﻿const FORWARD_POSITIONS = new Set(["\u041b\u041d\u041f", "\u0426\u0422\u0420", "\u041f\u041d\u041f"]);
 
 export const ATTRIBUTE_STEP_THRESHOLD = 2.1;
 export const POTENTIAL_STEP_THRESHOLD = 1.2;
