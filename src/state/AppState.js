@@ -50,7 +50,11 @@ export class AppState {
     this.#contracts = new ContractService(contracts);
     this.#aiRenewals = new AiRenewalService(this.#contracts);
     this.#seasonTransition = new SeasonTransitionService(this.#contracts, this.#aiRenewals, this.#development);
-    this.#trade = new TradeService((playerId) => this.#contracts.getContractsForPlayer(playerId));
+    this.#trade = new TradeService({
+      getPlayerContracts: (playerId) => this.#contracts.getContractsForPlayer(playerId),
+      reassignPlayerContracts: (playerId, teamId) => this.#contracts.reassignPlayerContracts(playerId, teamId),
+      getCurrentDay: () => this.#calendar.currentDay,
+    });
     this.#seasonState = {
       phase: "preseason",
       seasonLabel: this.#calendar.seasonLabel,

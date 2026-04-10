@@ -33,9 +33,13 @@ const rebuildTeamRoster = (team, roster) => {
 
 export class TradeService {
   #getPlayerContracts;
+  #reassignPlayerContracts;
+  #getCurrentDay;
 
-  constructor(getPlayerContracts) {
+  constructor({ getPlayerContracts, reassignPlayerContracts = null, getCurrentDay = null } = {}) {
     this.#getPlayerContracts = getPlayerContracts;
+    this.#reassignPlayerContracts = reassignPlayerContracts;
+    this.#getCurrentDay = getCurrentDay;
   }
 
   evaluateTrade(userTeam, aiTeam, givePlayerIds, receivePlayerIds) {
@@ -108,8 +112,17 @@ export class TradeService {
       ...evaluation.givePlayers
     ];
 
-    evaluation.givePlayers.forEach((player) => { player.affiliation.teamId = aiTeam.id; });
-    evaluation.receivePlayers.forEach((player) => { player.affiliation.teamId = userTeam.id; });
+    const acquiredDay = typeof this.#getCurrentDay === "function" ? this.#getCurrentDay() : null;
+    evaluation.givePlayers.forEach((player) => {
+      player.affiliation.teamId = aiTeam.id;
+      player.affiliation.acquiredDay = acquiredDay;
+      this.#reassignPlayerContracts?.(player.id, aiTeam.id);
+    });
+    evaluation.receivePlayers.forEach((player) => {
+      player.affiliation.teamId = userTeam.id;
+      player.affiliation.acquiredDay = acquiredDay;
+      this.#reassignPlayerContracts?.(player.id, userTeam.id);
+    });
     rebuildTeamRoster(userTeam, nextUserRoster);
     rebuildTeamRoster(aiTeam, nextAiRoster);
 
