@@ -1,4 +1,5 @@
 ﻿import { buildCompetitiveLines } from "../data/lineupBuilder.js";
+import { createPreseasonDates, getPreseasonDateAt } from "./PreseasonSchedule.js";
 
 const createUtcDate = (year, monthIndex, day) => new Date(Date.UTC(year, monthIndex, day));
 const formatSeasonLabel = (startYear) => `${startYear}/${startYear + 1}`;
@@ -6,38 +7,27 @@ const seasonTag = (startYear) => `season-${startYear}`;
 
 export class SeasonTransitionService {
   #contracts;
-  #aiRenewals;
   #development;
 
   constructor(contractService, aiRenewalService, developmentService) {
     this.#contracts = contractService;
-    this.#aiRenewals = aiRenewalService;
+    void aiRenewalService;
     this.#development = developmentService;
   }
 
-  advanceToNextSeason({ teams, calendar, activeTeamId, standingsTable, scorerTable, allPlayers, buildContext, pushNotification }) {
+  advanceToNextSeason({ teams, calendar, activeTeamId, standingsTable, scorerTable, allPlayers, pushNotification }) {
     const currentSeasonLabel = calendar.seasonLabel;
     const nextSeasonStartYear = calendar.seasonStartYear + 1;
     const nextSeasonLabel = formatSeasonLabel(nextSeasonStartYear);
-    const offseasonDate = createUtcDate(nextSeasonStartYear, 6, 1);
-    const preseasonDate = createUtcDate(nextSeasonStartYear, 7, 15);
+    const offseasonDate = createUtcDate(nextSeasonStartYear, 4, 31);
+    const preseasonDates = createPreseasonDates(nextSeasonStartYear);
+    const preseasonDateIso = getPreseasonDateAt(preseasonDates, 0) || offseasonDate.toISOString().slice(0, 10);
     const archive = this.#buildArchive({ calendar, standingsTable, scorerTable, teams, activeTeamId, currentSeasonLabel });
 
     (allPlayers || []).forEach((player) => {
       player.career?.addGames?.(player.seasonStats?.games || 0);
       player.career?.addSeason?.(1);
     });
-
-    this.#aiRenewals.processOffseasonRenewals({
-      teams,
-      activeTeamId,
-      standingsTable,
-      currentSeasonLabel,
-      negotiationDate: offseasonDate,
-      currentDay: calendar.currentDay,
-      allPlayers,
-      buildContext,
-    }).forEach((notification) => pushNotification(notification));
 
     const playerMap = new Map((allPlayers || []).map((player) => [player.id, player]));
     const releasedPlayerIds = [];
@@ -63,29 +53,7 @@ export class SeasonTransitionService {
       this.#contracts.releasePlayers(releasedPlayerIds);
     }
 
-    const freeAgents = (allPlayers || []).filter((player) => !player.affiliation?.teamId);
-    this.#aiRenewals.processOffseasonFreeAgency({
-      teams,
-      activeTeamId,
-      standingsTable,
-      freeAgents,
-      negotiationDate: preseasonDate,
-      currentDay: calendar.currentDay,
-      allPlayers,
-      buildContext,
-    }).forEach((notification) => pushNotification(notification));
-
-    this.#ensureMinimumRosterDepth({
-      teams,
-      activeTeamId,
-      allPlayers,
-      buildContext,
-      negotiationDate: preseasonDate,
-      currentDay: calendar.currentDay,
-      pushNotification,
-    });
-
-    const offseasonEvents = this.#development.applyOffseasonDevelopment(allPlayers, { seasonDate: preseasonDate });
+    const offseasonEvents = this.#development.applyOffseasonDevelopment(allPlayers, { seasonDate: offseasonDate });
     offseasonEvents
       .filter((event) => event.teamId === activeTeamId)
       .forEach((event) => pushNotification(this.#buildDevelopmentNotification(event, calendar.currentDay)));
@@ -117,7 +85,7 @@ export class SeasonTransitionService {
       id: `notification-new-season-${nextSeasonLabel}-${Date.now()}`,
       type: "season-transition",
       title: "Новый сезон",
-      message: `Стартует сезон ${nextSeasonLabel}. Регулярный чемпионат откроется 1 сентября.`,
+      message: `31 мая контракты завершены. С 1 июня открывается рынок свободных агентов, сезон ${nextSeasonLabel} стартует 1 сентября.`,
       day: calendar.currentDay,
       createdAt: new Date().toISOString(),
       read: false,
@@ -131,11 +99,22 @@ export class SeasonTransitionService {
         phase: "preseason",
         previousSeasonLabel: currentSeasonLabel,
         seasonLabel: nextSeasonLabel,
-        preseasonDateIso: preseasonDate.toISOString().slice(0, 10),
+        preseasonDates,
+        preseasonIndex: 0,
+        preseasonDateIso,
         preseasonOpen: true,
+        preseasonOffers: [],
       },
       freeAgents: (allPlayers || []).filter((player) => !player.affiliation?.teamId),
     };
+  }
+
+  ensureMinimumRosterDepth(args) {
+    this.#ensureMinimumRosterDepth(args);
+  }
+
+  rebuildRosters(teams, allPlayers) {
+    this.#rebuildRosters(teams, new Map((allPlayers || []).map((player) => [player.id, player])));
   }
 
   #buildArchive({ calendar, standingsTable, scorerTable, teams, activeTeamId, currentSeasonLabel }) {
@@ -158,7 +137,7 @@ export class SeasonTransitionService {
   #ensureMinimumRosterDepth({ teams, activeTeamId, allPlayers, buildContext, negotiationDate, currentDay, pushNotification }) {
     const MIN_ROSTER_SIZE = 19;
     const positionTargets = { FWD: 9, DEF: 6 };
-    const getGroup = (position) => position === "ЗАЩ" ? "DEF" : "FWD";
+    const getGroup = (position) => (position === "ЗАЩ" ? "DEF" : "FWD");
     const getAvailableFreeAgents = () => (allPlayers || []).filter((player) => !player.affiliation?.teamId);
 
     (teams || [])
@@ -176,10 +155,11 @@ export class SeasonTransitionService {
           }, { FWD: 0, DEF: 0 });
 
           const preferredGroup = groupCounts.DEF < positionTargets.DEF ? "DEF" : "FWD";
-          const candidate = getAvailableFreeAgents()
-            .sort((left, right) => (right.ovr - left.ovr) || left.name.localeCompare(right.name, "ru"))
-            .find((player) => getGroup(player.identity?.primaryPosition) === preferredGroup)
-            || getAvailableFreeAgents()[0];
+          const candidate =
+            getAvailableFreeAgents()
+              .sort((left, right) => (right.ovr - left.ovr) || left.name.localeCompare(right.name, "ru"))
+              .find((player) => getGroup(player.identity?.primaryPosition) === preferredGroup) ||
+            getAvailableFreeAgents()[0];
           if (!candidate) break;
 
           const preview = this.#contracts.getFreeAgentPreview(team, candidate, { years: 1, salaryRub: Math.max(500000, candidate.ovr * 1000000) }, context);
@@ -189,6 +169,7 @@ export class SeasonTransitionService {
             result = this.#contracts.submitFreeAgentOffer(team, candidate, result.counter, context);
           }
           if (result?.decision === "accept") {
+            team.reservePlayers.push(candidate);
             pushNotification(this.#buildDepthSigningNotification(team, candidate, result.newContracts?.[result.newContracts.length - 1], currentDay));
             roster = (allPlayers || []).filter((player) => player.affiliation?.teamId === team.id);
             continue;
@@ -196,6 +177,7 @@ export class SeasonTransitionService {
           const fallbackOffer = { years: 1, salaryRub: Math.round((preview.teamAdjustedDemand * 1.2) / 500000) * 500000 };
           result = this.#contracts.submitFreeAgentOffer(team, candidate, fallbackOffer, context);
           if (result?.decision === "accept") {
+            team.reservePlayers.push(candidate);
             pushNotification(this.#buildDepthSigningNotification(team, candidate, result.newContracts?.[result.newContracts.length - 1], currentDay));
             roster = (allPlayers || []).filter((player) => player.affiliation?.teamId === team.id);
             continue;

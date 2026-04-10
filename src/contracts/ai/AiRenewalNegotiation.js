@@ -1,4 +1,4 @@
-import { calculateAge, parseSeasonEnd } from "../SeasonUtils.js";
+﻿import { calculateAge, parseSeasonEnd } from "../SeasonUtils.js";
 import { roundSalaryRub } from "./AiRenewalShared.js";
 
 export const runRenewalNegotiation = ({ contracts, team, candidate, context, plan }) => {

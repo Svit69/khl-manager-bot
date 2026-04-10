@@ -1,35 +1,35 @@
-import { calculateAge } from "../SeasonUtils.js";
+﻿import { calculateAge } from "../SeasonUtils.js";
 
-const FORWARD_POSITIONS = new Set(["ЛНП", "ЦТР", "ПНП"]);
+const FORWARD_POSITIONS = new Set(["\u041b\u041d\u041f", "\u0426\u0422\u0420", "\u041f\u041d\u041f"]);
 
 export const POSITION_SCARCITY_TARGETS = { FWD: 9, DEF: 6, G: 2 };
 
 export const STRATEGY_NEGOTIATION_CHANCE = {
-  contender: 0.74,
-  competitive: 0.62,
-  balanced: 0.47,
-  rebuild: 0.26,
+  contender: 0.34,
+  competitive: 0.27,
+  balanced: 0.2,
+  rebuild: 0.08,
 };
 
 export const STRATEGY_MONTHLY_SLOTS = {
-  contender: 3,
-  competitive: 2,
-  balanced: 2,
+  contender: 2,
+  competitive: 1,
+  balanced: 1,
   rebuild: 1,
 };
 
 export const OFFSEASON_RENEWAL_SLOTS_BY_STRATEGY = {
-  contender: 5,
-  competitive: 4,
-  balanced: 3,
-  rebuild: 2,
+  contender: 4,
+  competitive: 3,
+  balanced: 2,
+  rebuild: 1,
 };
 
 export const OFFSEASON_SIGNINGS_BY_STRATEGY = {
-  contender: 4,
-  competitive: 4,
-  balanced: 3,
-  rebuild: 2,
+  contender: 3,
+  competitive: 3,
+  balanced: 2,
+  rebuild: 1,
 };
 
 export const average = (values) =>
@@ -39,8 +39,8 @@ export const roundSalaryRub = (value) =>
   Math.max(500000, Math.round((Number(value) || 0) / 500000) * 500000);
 
 export const getPositionGroup = (position) => {
-  if (position === "ЗАЩ") return "DEF";
-  if (position === "ВРТ") return "G";
+  if (position === "\u0417\u0410\u0429") return "DEF";
+  if (position === "\u0412\u0420\u0422") return "G";
   if (FORWARD_POSITIONS.has(position)) return "FWD";
   return "FWD";
 };

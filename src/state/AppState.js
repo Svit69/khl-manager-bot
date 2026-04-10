@@ -6,6 +6,13 @@ import { StandingsTracker } from "../stats/StandingsTracker.js";
 import { setSeasonReferenceDate } from "../contracts/SeasonUtils.js";
 import { PlayerDevelopmentService } from "../progression/PlayerDevelopmentService.js";
 import { TradeService } from "../trade/TradeService.js";
+import {
+  buildCompetitiveOfferDecision,
+  collectResolvableOfferGroups,
+  formatSalaryMillions,
+  upsertCompetitiveOffer,
+} from "../season/OffseasonFreeAgencyMarket.js";
+import { getPreseasonDateAt, getPreseasonNextDate } from "../season/PreseasonSchedule.js";
 import { SeasonTransitionService } from "../season/SeasonTransitionService.js";
 import {
   createDevelopmentNotification,
@@ -59,6 +66,9 @@ export class AppState {
       phase: "preseason",
       seasonLabel: this.#calendar.seasonLabel,
       previousSeasonLabel: null,
+      preseasonDates: [],
+      preseasonOffers: [],
+      preseasonIndex: 0,
     };
     this.#syncSeasonReferenceDate();
     this.#syncSeasonPhase();
@@ -82,6 +92,8 @@ export class AppState {
     return {
       ...this.#seasonState,
       canAdvance: this.canAdvanceToNextSeason(),
+      canAdvancePreseason: this.canAdvancePreseasonDay(),
+      canStartSeason: this.canStartSeason(),
       latestArchive: this.#seasonHistory[0] || null,
     };
   }
@@ -193,6 +205,9 @@ export class AppState {
   submitFreeAgentSigning(playerId, offer) {
     const player = this.getAvailableFreeAgents().find((entry) => entry.id === playerId);
     if (!this.activeTeam || !player) return null;
+    if (this.#seasonState?.phase === "preseason" && this.#seasonState?.preseasonOpen) {
+      return this.#queuePreseasonFreeAgentOffer(player, offer);
+    }
     const result = this.#contracts.submitFreeAgentOffer(this.activeTeam, player, offer, this.#buildNegotiationContext(this.activeTeam));
     if (result?.decision === "accept") {
       player.affiliation.acquiredDay = this.#calendar.currentDay;
@@ -241,15 +256,61 @@ export class AppState {
   }
 
   canStartSeason() {
-    return Boolean(this.#seasonState?.phase === "preseason" && this.#seasonState?.preseasonOpen);
+    if (!(this.#seasonState?.phase === "preseason" && this.#seasonState?.preseasonOpen)) return false;
+    const dates = this.#seasonState?.preseasonDates || [];
+    return (Number(this.#seasonState?.preseasonIndex) || 0) >= Math.max(0, dates.length - 1);
+  }
+
+  canAdvancePreseasonDay() {
+    if (!(this.#seasonState?.phase === "preseason" && this.#seasonState?.preseasonOpen)) return false;
+    const dates = this.#seasonState?.preseasonDates || [];
+    return (Number(this.#seasonState?.preseasonIndex) || 0) < Math.max(0, dates.length - 1);
   }
 
   startSeason() {
     if (!this.canStartSeason()) return false;
+    const preseasonDate = this.#seasonState?.preseasonDateIso || this.#calendar.currentDate;
+    this.#resolvePreseasonFreeAgencyWindow({
+      decisionIndex: Number(this.#seasonState?.preseasonIndex) || 0,
+      decisionDate: preseasonDate,
+    });
+    this.#seasonTransition.ensureMinimumRosterDepth({
+      teams: this.#teams,
+      activeTeamId: this.#activeTeamId,
+      allPlayers: this.getAllPlayers(),
+      buildContext: (team) => this.#buildNegotiationContext(team),
+      negotiationDate: preseasonDate,
+      currentDay: this.#calendar.currentDay,
+      pushNotification: (notification) => this.#pushNotification(notification),
+    });
+    this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
     this.#seasonState = {
       ...this.#seasonState,
       preseasonOpen: false,
       phase: "regular",
+      preseasonOffers: [],
+    };
+    this.#syncSeasonReferenceDate();
+    return true;
+  }
+
+  advancePreseasonDay() {
+    if (!this.canAdvancePreseasonDay()) return false;
+    const preseasonDates = this.#seasonState?.preseasonDates || [];
+    const currentIndex = Number(this.#seasonState?.preseasonIndex) || 0;
+    const nextIndex = Math.min(preseasonDates.length - 1, currentIndex + 1);
+    const nextDate = getPreseasonDateAt(preseasonDates, nextIndex);
+
+    this.#queueAiPreseasonFreeAgentOffers(currentIndex, nextDate);
+    this.#resolvePreseasonFreeAgencyWindow({
+      decisionIndex: nextIndex,
+      decisionDate: nextDate,
+    });
+
+    this.#seasonState = {
+      ...this.#seasonState,
+      preseasonIndex: nextIndex,
+      preseasonDateIso: nextDate || this.#seasonState?.preseasonDateIso,
     };
     this.#syncSeasonReferenceDate();
     return true;
@@ -335,7 +396,15 @@ export class AppState {
     });
     this.#freeAgents = undraftedPlayers;
     this.#calendar.index = 0;
-    this.#seasonState = { phase: "preseason", seasonLabel: this.#calendar.seasonLabel, previousSeasonLabel: null, preseasonOpen: false };
+    this.#seasonState = {
+      phase: "preseason",
+      seasonLabel: this.#calendar.seasonLabel,
+      previousSeasonLabel: null,
+      preseasonOpen: false,
+      preseasonDates: [],
+      preseasonOffers: [],
+      preseasonIndex: 0,
+    };
     this.#syncSeasonReferenceDate();
     this.#lastMatch = null;
     this.#stats.importStats([]);
@@ -423,6 +492,169 @@ export class AppState {
       teamRoster: team.getRoster(),
       allPlayers: this.getAllPlayers(),
     };
+  }
+
+  #queuePreseasonFreeAgentOffer(player, offer) {
+    const preview = this.#contracts.getFreeAgentPreview(this.activeTeam, player, offer, this.#buildNegotiationContext(this.activeTeam));
+    const nextDecisionIndex = Math.min(
+      (this.#seasonState?.preseasonDates || []).length - 1,
+      (Number(this.#seasonState?.preseasonIndex) || 0) + 1,
+    );
+    const nextDecisionDate = getPreseasonNextDate(this.#seasonState?.preseasonDates || [], this.#seasonState?.preseasonIndex || 0);
+    this.#seasonState = {
+      ...this.#seasonState,
+      preseasonOffers: upsertCompetitiveOffer(this.#seasonState?.preseasonOffers, {
+        playerId: player.id,
+        teamId: this.activeTeam.id,
+        offer: { ...preview.offer },
+        source: "user",
+        createdAtDay: this.#calendar.currentDay,
+        decisionIndex: nextDecisionIndex,
+        submittedDateIso: this.#seasonState?.preseasonDateIso || this.#calendar.currentDate,
+      }),
+    };
+    return {
+      decision: "queued",
+      preview,
+      resolvesOn: nextDecisionDate,
+    };
+  }
+
+  #queueAiPreseasonFreeAgentOffers(currentIndex, decisionDate) {
+    const aiOffers = this.#aiRenewals.buildPreseasonFreeAgencyOffers({
+      teams: this.#teams,
+      activeTeamId: this.#activeTeamId,
+      standingsTable: this.getStandingsTable(),
+      freeAgents: this.getAvailableFreeAgents(),
+      negotiationDate: this.#seasonState?.preseasonDateIso || this.#calendar.currentDate,
+      currentDay: this.#calendar.currentDay,
+      allPlayers: this.getAllPlayers(),
+      buildContext: (team) => this.#buildNegotiationContext(team),
+      existingOffers: this.#seasonState?.preseasonOffers || [],
+    });
+    if (!aiOffers.length) return;
+
+    const decisionIndex = Math.min(
+      (this.#seasonState?.preseasonDates || []).length - 1,
+      currentIndex + 1,
+    );
+    let preseasonOffers = [...(this.#seasonState?.preseasonOffers || [])];
+    aiOffers.forEach((entry) => {
+      preseasonOffers = upsertCompetitiveOffer(preseasonOffers, {
+        ...entry,
+        decisionIndex,
+        submittedDateIso: this.#seasonState?.preseasonDateIso || decisionDate,
+      });
+    });
+    this.#seasonState = {
+      ...this.#seasonState,
+      preseasonOffers,
+    };
+  }
+
+  #resolvePreseasonFreeAgencyWindow({ decisionIndex, decisionDate }) {
+    const groupedOffers = collectResolvableOfferGroups(this.#seasonState?.preseasonOffers || [], decisionIndex);
+    if (!groupedOffers.size) return;
+
+    groupedOffers.forEach((offerEntries, playerId) => {
+      const player = this.getAvailableFreeAgents().find((entry) => entry.id === playerId);
+      if (!player) return;
+
+      const previewByTeamId = new Map();
+      offerEntries.forEach((entry) => {
+        const team = this.#teams.find((candidate) => candidate.id === entry.teamId);
+        if (!team) return;
+        previewByTeamId.set(
+          entry.teamId,
+          this.#contracts.getFreeAgentPreview(team, player, entry.offer, {
+            ...this.#buildNegotiationContext(team),
+            currentDate: decisionDate,
+            allPlayers: this.getAllPlayers(),
+          }),
+        );
+      });
+
+      const decision = buildCompetitiveOfferDecision({
+        player,
+        offerEntries,
+        previewByTeamId,
+      });
+
+      if (decision.decision === "accept" && decision.winningOffer) {
+        this.#finalizeCompetitiveFreeAgentSigning(player, decision.winningOffer, decisionDate, offerEntries);
+        return;
+      }
+
+      offerEntries
+        .filter((entry) => entry.teamId === this.#activeTeamId)
+        .forEach(() => {
+          this.#pushNotification({
+            id: `notification-fa-reject-${player.id}-${decisionIndex}-${Math.random().toString(36).slice(2, 8)}`,
+            type: "free-agent-market",
+            title: "Свободные агенты",
+            message: `${player.name} отклонил предложения на этом окне рынка`,
+            day: this.#calendar.currentDay,
+            createdAt: new Date().toISOString(),
+            playerId: player.id,
+            read: false,
+          });
+        });
+    });
+
+    this.#seasonState = {
+      ...this.#seasonState,
+      preseasonOffers: (this.#seasonState?.preseasonOffers || []).filter(
+        (entry) => Number(entry?.decisionIndex) !== Number(decisionIndex),
+      ),
+    };
+  }
+
+  #finalizeCompetitiveFreeAgentSigning(player, winningOffer, decisionDate, competingOffers) {
+    const team = this.#teams.find((entry) => entry.id === winningOffer.teamId);
+    if (!team) return;
+
+    const newContracts = this.#contracts.finalizeFreeAgentSigning(team, player, winningOffer.offer, { currentDate: decisionDate });
+    player.affiliation.acquiredDay = this.#calendar.currentDay;
+    if (!team.getRoster().some((entry) => entry?.id === player.id)) {
+      team.reservePlayers.push(player);
+    }
+    this.#freeAgents = this.#freeAgents.filter((entry) => entry.id !== player.id);
+    this.#refreshExpectedRoles(team);
+
+    const signedContract = newContracts?.[newContracts.length - 1] || null;
+    const seasonEnd = signedContract?.season ? Number(String(signedContract.season).split("/")[1]) || "" : "";
+    const salaryLabel = formatSalaryMillions(winningOffer.offer.salaryRub);
+
+    if (winningOffer.teamId !== this.#activeTeamId) {
+      this.#pushNotification({
+        id: `notification-fa-win-ai-${player.id}-${Math.random().toString(36).slice(2, 8)}`,
+        type: "ai-signing",
+        title: "Рынок свободных агентов",
+        message: `${team.name} подписал ${player.name} ${player.ovr} до ${seasonEnd} с зарплатой ${salaryLabel} млн`,
+        day: this.#calendar.currentDay,
+        createdAt: new Date().toISOString(),
+        playerId: player.id,
+        read: false,
+      });
+    }
+
+    (competingOffers || [])
+      .filter((entry) => entry.teamId === this.#activeTeamId)
+      .forEach(() => {
+        const message = winningOffer.teamId === this.#activeTeamId
+          ? `${player.name} принял ваше предложение: ${winningOffer.offer.years} г. • ${salaryLabel} млн`
+          : `${player.name} выбрал ${team.name} вместо вашего предложения`;
+        this.#pushNotification({
+          id: `notification-fa-user-result-${player.id}-${Math.random().toString(36).slice(2, 8)}`,
+          type: winningOffer.teamId === this.#activeTeamId ? "user-signing" : "free-agent-market",
+          title: "Свободные агенты",
+          message,
+          day: this.#calendar.currentDay,
+          createdAt: new Date().toISOString(),
+          playerId: player.id,
+          read: false,
+        });
+      });
   }
 
   #syncSeasonReferenceDate() {

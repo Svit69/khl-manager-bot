@@ -37,5 +37,19 @@ export const restorePlayerSnapshots = (players, snapshots) => {
 
 export const normalizeSeasonState = (savedSeasonState, seasonLabel) =>
   savedSeasonState && typeof savedSeasonState === "object"
-    ? { ...savedSeasonState, seasonLabel: savedSeasonState.seasonLabel || seasonLabel }
-    : { phase: "preseason", seasonLabel, previousSeasonLabel: null, preseasonOpen: false };
+    ? {
+      ...savedSeasonState,
+      seasonLabel: savedSeasonState.seasonLabel || seasonLabel,
+      preseasonDates: Array.isArray(savedSeasonState.preseasonDates) ? savedSeasonState.preseasonDates : [],
+      preseasonOffers: Array.isArray(savedSeasonState.preseasonOffers) ? savedSeasonState.preseasonOffers : [],
+      preseasonIndex: Number(savedSeasonState.preseasonIndex) || 0,
+    }
+    : {
+      phase: "preseason",
+      seasonLabel,
+      previousSeasonLabel: null,
+      preseasonOpen: false,
+      preseasonDates: [],
+      preseasonOffers: [],
+      preseasonIndex: 0,
+    };

@@ -383,14 +383,16 @@ export class AppController{
       if(result){
         const label=result.decision==="accept"
           ?"\u2705 \u0421\u043e\u0433\u043b\u0430\u0441\u0435\u043d"
+          :(result.decision==="queued"
+            ?`\ud83d\udfe6 \u041e\u0444\u0444\u0435\u0440 \u043e\u0442\u043f\u0440\u0430\u0432\u043b\u0435\u043d${result.resolvesOn?`: \u0440\u0435\u0448\u0435\u043d\u0438\u0435 ${result.resolvesOn}`:""}`
           :(result.decision==="counter"
             ?`\ud83d\udfe1 ${result.counter?.summary||"\u0425\u043e\u0447\u0435\u0442 \u0438\u0437\u043c\u0435\u043d\u0438\u0442\u044c \u0443\u0441\u043b\u043e\u0432\u0438\u044f"}`
             :(result.decision==="locked"
               ?"\u26d4 \u041a\u043e\u043d\u0442\u0440\u0430\u043a\u0442 \u0443\u0436\u0435 \u043f\u0440\u043e\u0434\u043b\u0435\u043d"
-              :"\u274c \u041e\u0442\u043a\u0430\u0437\u044b\u0432\u0430\u0435\u0442\u0441\u044f"));
+              :"\u274c \u041e\u0442\u043a\u0430\u0437\u044b\u0432\u0430\u0435\u0442\u0441\u044f")));
         this.#outcomeByPlayerId.set(playerId,label);
         this.#userStore.saveState(this.#state.exportState());
-        if(result.decision==="accept"||result.decision==="locked"){
+        if(result.decision==="accept"||result.decision==="locked"||result.decision==="queued"){
           this.#selectedNegotiationPlayerId=null;
         }
       }
@@ -469,6 +471,12 @@ export class AppController{
     if(clickable?.id!=="playBtn"||!this.#state.activeTeamId)return;
     if(this.#state.canAdvanceToNextSeason()){
       this.#state.advanceToNextSeason();
+      this.#userStore.saveState(this.#state.exportState());
+      this.#renderScreen();
+      return;
+    }
+    if(this.#state.canAdvancePreseasonDay()){
+      this.#state.advancePreseasonDay();
       this.#userStore.saveState(this.#state.exportState());
       this.#renderScreen();
       return;

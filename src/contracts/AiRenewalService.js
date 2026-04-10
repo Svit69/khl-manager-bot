@@ -21,6 +21,7 @@ export class AiRenewalService {
   }
 
   processMonthlyRenewals({ teams, activeTeamId, standingsTable, currentDate, currentDay, allPlayers, buildContext }) {
+    if (!shouldRunMonthlyRenewals(currentDate)) return [];
     const standingsIndex = createStandingsIndex(standingsTable);
     const notifications = [];
 
@@ -62,6 +63,64 @@ export class AiRenewalService {
     }
 
     return notifications;
+  }
+
+  buildPreseasonFreeAgencyOffers({
+    teams,
+    activeTeamId,
+    standingsTable,
+    freeAgents,
+    negotiationDate,
+    currentDay,
+    allPlayers,
+    buildContext,
+    existingOffers = [],
+  }) {
+    const standingsIndex = createStandingsIndex(standingsTable);
+    const existingOfferKeys = new Set(
+      (existingOffers || [])
+        .map((entry) => (entry?.playerId && entry?.teamId ? `${entry.teamId}:${entry.playerId}` : null))
+        .filter(Boolean),
+    );
+    const offers = [];
+
+    for (const team of getManagedAiTeams(teams, activeTeamId)) {
+      const plan = buildTeamPlan(team, standingsIndex.get(team.id), standingsTable, negotiationDate);
+      const roster = team?.getRoster?.() || [];
+      const sizeNeed = Math.max(0, 20 - roster.length);
+      if (!sizeNeed) continue;
+
+      const context = { ...buildContext(team), currentDate: negotiationDate, allPlayers };
+      const candidates = buildOffseasonFreeAgentCandidates({
+        contracts: this.#contracts,
+        team,
+        freeAgents,
+        context,
+        plan,
+      });
+      if (!candidates.length) continue;
+
+      const maxOffers = sizeNeed >= 3 ? 2 : 1;
+      let remainingOffers = Math.min(maxOffers, candidates.length);
+      for (const candidate of candidates) {
+        if (remainingOffers <= 0) break;
+        if (candidate.priorityScore < 14) continue;
+        const offerKey = `${team.id}:${candidate.player.id}`;
+        if (existingOfferKeys.has(offerKey)) continue;
+
+        offers.push({
+          playerId: candidate.player.id,
+          teamId: team.id,
+          offer: { ...candidate.openingOffer },
+          source: "ai",
+          createdAtDay: currentDay,
+        });
+        existingOfferKeys.add(offerKey);
+        remainingOffers -= 1;
+      }
+    }
+
+    return offers;
   }
 
   processOffseasonRenewals({ teams, activeTeamId, standingsTable, currentSeasonLabel, negotiationDate, currentDay, allPlayers, buildContext }) {
@@ -158,3 +217,10 @@ const getManagedAiTeams = (teams, activeTeamId) =>
 
 const createStandingsIndex = (standingsTable) =>
   new Map((standingsTable || []).map((row, index) => [row.teamId, { ...row, rank: index + 1 }]));
+
+const shouldRunMonthlyRenewals = (currentDate) => {
+  const safeDate = new Date(currentDate);
+  if (Number.isNaN(safeDate.getTime())) return false;
+  const month = safeDate.getUTCMonth();
+  return month >= 0 && month <= 2;
+};

@@ -137,14 +137,25 @@ const buildOffseasonCandidate = ({ contracts, team, player, currentSeasonLabel, 
     ),
   };
   const finalPreview = contracts.getRenewalPreview(team, player, openingOffer, context);
-  const priorityScore = scoreCandidate(team, player, finalPreview, plan, {
+  let priorityScore = scoreCandidate(team, player, finalPreview, plan, {
     currentDate,
     seasonsRemaining: 0,
     isCore,
     isYoungCore,
     lineInfo,
   });
-  if (priorityScore < 10) return null;
+  let threshold = 10;
+
+  if (finalPreview.ufaStatus === "NSA") {
+    threshold = 15;
+    if (!isCore) priorityScore -= 12;
+    if (!isYoungCore && age >= 29) priorityScore -= 8;
+    if ((player.ovr || 0) < 80) priorityScore -= 7;
+    if (plan.strategy === "rebuild") priorityScore -= 6;
+    if (!isCore && (player.ovr || 0) < 82) threshold = 19;
+  }
+
+  if (priorityScore < threshold) return null;
   return { player, latestContract, lineInfo, preview: finalPreview, openingOffer, seasonsRemaining: 0, isCore, isYoungCore, priorityScore };
 };
 

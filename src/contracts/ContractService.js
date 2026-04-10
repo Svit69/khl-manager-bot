@@ -248,25 +248,34 @@ export class ContractService {
     const decision = getNegotiationDecision(preview, player);
 
     if (decision === "accept") {
-      const newContracts = this.#createFutureContracts({
-        player,
-        teamId: team.id,
-        years: preview.offer.years,
-        salaryRub: preview.offer.salaryRub,
-        startSeason: this.getSigningStartSeason(context?.currentDate),
-        type: ContractType.ONE_WAY,
-      });
-
-      player.affiliation.teamId = team.id;
-      this.#releasedPlayerIds.delete(player.id);
-      player.potential?.resetFreeAgentInactivity?.();
-      this.#clearBadOfferCount(player.id);
-      this.#clearLastOffer(player.id);
+      const newContracts = this.finalizeFreeAgentSigning(team, player, preview.offer, context);
       return { decision: "accept", preview, newContracts };
     }
 
     this.#handleRejectedNegotiation(player.id, preview);
     return { decision, preview, counter: buildCounterOffer(preview) };
+  }
+
+  finalizeFreeAgentSigning(team, player, offer, context = null) {
+    const normalizedOffer = {
+      years: clamp(Number(offer?.years) || 1, 1, 4),
+      salaryRub: roundSalaryRub(offer?.salaryRub),
+    };
+    const newContracts = this.#createFutureContracts({
+      player,
+      teamId: team.id,
+      years: normalizedOffer.years,
+      salaryRub: normalizedOffer.salaryRub,
+      startSeason: this.getSigningStartSeason(context?.currentDate),
+      type: ContractType.ONE_WAY,
+    });
+
+    player.affiliation.teamId = team.id;
+    this.#releasedPlayerIds.delete(player.id);
+    player.potential?.resetFreeAgentInactivity?.();
+    this.#clearBadOfferCount(player.id);
+    this.#clearLastOffer(player.id);
+    return newContracts;
   }
 
   extendContract(player, mode) {

@@ -37,14 +37,14 @@ export const getAgeDevelopmentComponent = (player, age) => {
   if (age <= 23) return 0.046 * growthRate;
   if (age < peakAge) return 0.021 * growthRate;
   if (age === peakAge) return 0.004;
-  if (age === peakAge + 1) return -0.004 * declineRate;
-  if (age <= peakAge + 3) return -0.014 * declineRate;
+  if (age === peakAge + 1) return -0.007 * declineRate;
+  if (age <= peakAge + 3) return -0.018 * declineRate;
   if (age <= peakAge + 6) {
     const yearsPast = age - peakAge - 3;
-    return -0.024 * declineRate * (1 + yearsPast * 0.12);
+    return -0.03 * declineRate * (1 + yearsPast * 0.14);
   }
   const lateYearsPast = age - peakAge - 6;
-  return -0.034 * declineRate * (1 + Math.min(0.85, lateYearsPast * 0.14));
+  return -0.043 * declineRate * (1 + Math.min(0.95, lateYearsPast * 0.16));
 };
 
 export const getUsageDevelopmentComponent = (player, age, games, avgIceTime, matchStat, context) => {
@@ -62,6 +62,7 @@ export const getUsageDevelopmentComponent = (player, age, games, avgIceTime, mat
   if (age <= 23) delta += getYoungPlayerUsageBoost(player, age, games, avgIceTime, teamGamesPlayed);
   delta += getQualityOfMinutesBoost(player, age, avgIceTime, matchStat);
   delta += getYoungDefenseTopFourBoost(player, age, avgIceTime);
+  delta += getVeteranUsageRetention(player, age, avgIceTime, games, teamGamesPlayed);
 
   return delta * 1.15;
 };
@@ -100,6 +101,10 @@ export const getPerformanceDevelopmentComponent = (
     delta *= isLongSample ? 0.9 : 0.55;
     if (isForward && games >= 20 && avgIceTime >= 11 && shotsPerGame <= expected.shotsPerGame * 0.72) {
       delta -= 0.012;
+    }
+    if (age >= 31) {
+      delta *= avgIceTime >= 15 ? 1.06 : 1.2;
+      if (pointsPerGame < expected.pointsPerGame * 0.75) delta -= 0.01;
     }
   }
 
@@ -231,13 +236,14 @@ export const getFreeAgentAgeDrivenRegression = (player, age, inactivityPressure)
   let delta = 0;
 
   if (age <= 20) delta = -0.003 - inactivityPressure * 0.0005;
-  else if (age <= 24) delta = -0.007 - inactivityPressure * 0.001;
-  else if (age <= 28) delta = -0.013 - inactivityPressure * 0.0016;
-  else if (age <= 31) delta = -0.02 - inactivityPressure * 0.0023;
-  else delta = -0.028 - inactivityPressure * 0.0032;
+  else if (age <= 24) delta = -0.008 - inactivityPressure * 0.0011;
+  else if (age <= 28) delta = -0.016 - inactivityPressure * 0.0019;
+  else if (age <= 31) delta = -0.025 - inactivityPressure * 0.0029;
+  else if (age <= 34) delta = -0.036 - inactivityPressure * 0.0042;
+  else delta = -0.046 - inactivityPressure * 0.0054;
 
   if (age <= 22) delta *= Math.max(0.7, 1 - growthRate * 0.2);
-  if (age >= 29) delta *= 1 + declineRate * 0.35;
+  if (age >= 29) delta *= 1 + declineRate * 0.52;
 
   return clamp(delta, -0.11, 0);
 };
@@ -308,6 +314,25 @@ const getYoungDefenseTopFourBoost = (player, age, avgIceTime) => {
   else if (age <= 22 && lineIndex && lineIndex <= 2) delta += 0.004;
 
   return clamp(delta, 0, 0.03);
+};
+
+const getVeteranUsageRetention = (player, age, avgIceTime, games, teamGamesPlayed) => {
+  if (age < 31) return 0;
+
+  let delta = 0;
+  const participationRate = teamGamesPlayed > 0 ? games / teamGamesPlayed : 0;
+
+  if (avgIceTime >= 18) delta += 0.014;
+  else if (avgIceTime >= 15) delta += 0.008;
+  else if (avgIceTime < 12) delta -= 0.014;
+
+  if (participationRate < 0.62) delta -= 0.008;
+  if (participationRate < 0.45 && avgIceTime < 11) delta -= 0.012;
+
+  if (age >= 34 && avgIceTime < 14) delta -= 0.012;
+  if (!isForwardPosition(player.identity?.primaryPosition) && avgIceTime >= 19) delta += 0.004;
+
+  return clamp(delta, -0.032, 0.018);
 };
 
 const getDefensePerformanceSignal = (player, avgIceTime) => {

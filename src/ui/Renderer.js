@@ -399,7 +399,7 @@ export class Renderer{
       : isSeasonComplete
         ? `\u0421\u0435\u0437\u043e\u043d ${seasonState?.seasonLabel||""} \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d${seasonState?.latestArchive?.champion?.name?` \u2022 \u0427\u0435\u043c\u043f\u0438\u043e\u043d: ${seasonState.latestArchive.champion.name}`:""}`
       : (seasonState?.phase==="preseason"
-        ? `\u041f\u0440\u0435\u0434\u0441\u0435\u0437\u043e\u043d\u043d\u043e\u0435 \u043e\u043a\u043d\u043e \u2022 ${seasonState?.seasonLabel||""}`
+        ? `\u041f\u0440\u0435\u0434\u0441\u0435\u0437\u043e\u043d\u043d\u043e\u0435 \u043e\u043a\u043d\u043e \u2022 ${currentDateLabel}`
         : (!info?.matches?.length
         ? "\u0414\u0435\u043d\u044c \u043e\u0442\u0434\u044b\u0445\u0430"
         : (activeTeamId&&currentMatch
@@ -442,7 +442,7 @@ export class Renderer{
       :(isSeasonComplete
         ?"\u041d\u043e\u0432\u044b\u0439 \u0441\u0435\u0437\u043e\u043d"
         :(seasonState?.phase==="preseason"&&seasonState?.preseasonOpen
-          ?"\u041d\u0430\u0447\u0430\u0442\u044c \u0441\u0435\u0437\u043e\u043d"
+          ?(seasonState?.canStartSeason?"\u041d\u0430\u0447\u0430\u0442\u044c \u0441\u0435\u0437\u043e\u043d":"\u0414\u0430\u043b\u044c\u0448\u0435")
           :"\u0414\u0430\u043b\u044c\u0448\u0435"));
     this.#calEl.innerHTML=`<h2>\u041a\u0430\u043b\u0435\u043d\u0434\u0430\u0440\u044c \u2022 ${currentDateLabel}</h2><div class="row"><div>${text}</div><button id="playBtn" class="btn" ${isLocked?"disabled":""}>${playButtonLabel}</button></div>${tabButtons}<div class="calendar-panel-list${activeTab==="playoffs"?" playoffs":""}">${tableHeader}<div class="calendar-panel-scroll${activeTab==="playoffs"?" playoffs":""}">${tableBody}</div></div>`;
   }
