@@ -1,8 +1,9 @@
-﻿import { calculateAge } from "../SeasonUtils.js";
+import { calculateAge } from "../SeasonUtils.js";
+import { TEAM_ROSTER_POSITION_TARGETS } from "../../season/RosterTargets.js";
 
-const FORWARD_POSITIONS = new Set(["\u041b\u041d\u041f", "\u0426\u0422\u0420", "\u041f\u041d\u041f"]);
+const FORWARD_POSITIONS = new Set(["ЛНП", "ЦТР", "ПНП"]);
 
-export const POSITION_SCARCITY_TARGETS = { FWD: 12, DEF: 6, G: 2 };
+export const POSITION_SCARCITY_TARGETS = TEAM_ROSTER_POSITION_TARGETS;
 
 export const STRATEGY_NEGOTIATION_CHANCE = {
   contender: 0.39,
@@ -39,8 +40,8 @@ export const roundSalaryRub = (value) =>
   Math.max(500000, Math.round((Number(value) || 0) / 500000) * 500000);
 
 export const getPositionGroup = (position) => {
-  if (position === "\u0417\u0410\u0429") return "DEF";
-  if (position === "\u0412\u0420\u0422") return "G";
+  if (position === "ЗАЩ") return "DEF";
+  if (position === "ВРТ") return "G";
   if (FORWARD_POSITIONS.has(position)) return "FWD";
   return "FWD";
 };
