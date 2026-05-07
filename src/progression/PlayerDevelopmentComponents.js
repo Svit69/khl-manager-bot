@@ -158,6 +158,7 @@ export const getPotentialDevelopmentDelta = (
 ) => {
   if (age > 24 || !matchStat) return 0;
   const isYoungCore = age <= 21;
+  const lineIndex = Number(player.expectedLineIndex) || null;
   if (games < (isYoungCore ? 8 : 12) || avgIceTime < (isYoungCore ? 9 : 10)) return 0;
 
   const pointsGap = Math.max(0, pointsPerGame - expected.pointsPerGame);
@@ -169,6 +170,9 @@ export const getPotentialDevelopmentDelta = (
   let delta = breakoutSignal + 0.01;
   if (age <= 21 && avgIceTime >= 14) delta += 0.015;
   if (age <= 20 && avgIceTime >= 17) delta += 0.015;
+  if (age <= 20 && lineIndex) {
+    delta += lineIndex === 1 ? 0.018 : lineIndex === 2 ? 0.012 : 0.007;
+  }
   if ((player.potential?.potential || 0) - player.ovr <= 2) delta += 0.01;
   delta *= Number(player.potential?.growthRate) || 1;
   return clamp(delta, 0, isYoungCore ? 0.16 : 0.12);
@@ -263,6 +267,7 @@ export const getFreeAgentPotentialDecay = (player, age, inactivityPressure) => {
 
 const getYoungPlayerUsageBoost = (player, age, games, avgIceTime, teamGamesPlayed) => {
   const growthRate = Number(player.potential?.growthRate) || 1;
+  const lineIndex = Number(player.expectedLineIndex) || null;
   let delta = 0;
 
   if (avgIceTime >= 20) delta += 0.04;
@@ -272,8 +277,12 @@ const getYoungPlayerUsageBoost = (player, age, games, avgIceTime, teamGamesPlaye
 
   if (teamGamesPlayed >= 10 && games >= teamGamesPlayed * 0.75) delta += 0.016;
   if (teamGamesPlayed >= 16 && games >= teamGamesPlayed * 0.85) delta += 0.01;
+  if (age <= 20 && lineIndex) {
+    delta += lineIndex === 1 ? 0.022 : lineIndex === 2 ? 0.016 : lineIndex === 3 ? 0.01 : 0.005;
+    if (avgIceTime >= 15) delta += 0.01;
+  }
   if (age <= 18) delta *= 1.3;
-  else if (age <= 20) delta *= 1.18;
+  else if (age <= 20) delta *= lineIndex ? 1.34 : 1.18;
   else if (age <= 22) delta *= 1.08;
   if (age <= 19 && avgIceTime >= 16) delta += 0.016;
   if (age <= 20 && avgIceTime >= 18) delta += 0.01;
