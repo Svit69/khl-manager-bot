@@ -143,30 +143,75 @@ export class SeasonTransitionService {
   }
 
   #ensureMinimumRosterDepth({ teams, activeTeamId, allPlayers, buildContext, negotiationDate, currentDay, pushNotification }) {
-    const MIN_ROSTER_SIZE = 19;
-    const positionTargets = { FWD: 9, DEF: 6 };
-    const getGroup = (position) => (position === "ЗАЩ" ? "DEF" : "FWD");
+    const MIN_ROSTER_SIZE = 20;
+    const positionTargets = { FWD: 12, DEF: 6, G: 2 };
+    const getGroup = (playerOrPosition) => {
+      const position = typeof playerOrPosition === "string"
+        ? playerOrPosition
+        : playerOrPosition?.identity?.primaryPosition;
+      if (position === "ВРТ") return "G";
+      if (position === "ЗАЩ") return "DEF";
+      return "FWD";
+    };
     const getAvailableFreeAgents = () => collectUniqueFreeAgents(allPlayers);
+    const createCounts = (roster) =>
+      roster.reduce((acc, player) => {
+        const group = getGroup(player);
+        acc[group] = (acc[group] || 0) + 1;
+        return acc;
+      }, { FWD: 0, DEF: 0, G: 0 });
+    const getPreferredGroup = (roster) => {
+      const counts = createCounts(roster);
+      return Object.entries(positionTargets)
+        .map(([group, target]) => ({ group, deficit: Math.max(0, target - (counts[group] || 0)) }))
+        .sort((left, right) => right.deficit - left.deficit)[0];
+    };
+    const getSurplusPlayer = (roster) => {
+      const counts = createCounts(roster);
+      const surplusGroups = Object.entries(positionTargets)
+        .map(([group, target]) => ({ group, surplus: Math.max(0, (counts[group] || 0) - target) }))
+        .filter((entry) => entry.surplus > 0)
+        .sort((left, right) => right.surplus - left.surplus);
+      if (!surplusGroups.length) return null;
+      const surplusGroup = surplusGroups[0].group;
+      return roster
+        .filter((player) => getGroup(player) === surplusGroup)
+        .sort((left, right) => (left.ovr - right.ovr) || left.name.localeCompare(right.name, "ru"))[0] || null;
+    };
+    const isRosterReady = (roster) => {
+      const counts = createCounts(roster);
+      return roster.length >= MIN_ROSTER_SIZE &&
+        Object.entries(positionTargets).every(([group, target]) => (counts[group] || 0) >= target);
+    };
 
     (teams || [])
       .filter((team) => team?.id && team.id !== activeTeamId)
       .forEach((team) => {
         let roster = (allPlayers || []).filter((player) => player.affiliation?.teamId === team.id);
         let safety = 0;
-        while (roster.length < MIN_ROSTER_SIZE && safety < 12) {
+        while (!isRosterReady(roster) && safety < 32) {
           safety += 1;
           const context = { ...buildContext(team), currentDate: negotiationDate, allPlayers };
-          const groupCounts = roster.reduce((acc, player) => {
-            const group = getGroup(player.identity?.primaryPosition);
-            acc[group] = (acc[group] || 0) + 1;
-            return acc;
-          }, { FWD: 0, DEF: 0 });
+          const preferred = getPreferredGroup(roster);
+          const preferredGroup = preferred?.deficit > 0 ? preferred.group : null;
 
-          const preferredGroup = groupCounts.DEF < positionTargets.DEF ? "DEF" : "FWD";
+          if (preferredGroup && roster.length >= MIN_ROSTER_SIZE) {
+            const surplusPlayer = getSurplusPlayer(roster);
+            if (surplusPlayer) {
+              surplusPlayer.affiliation.teamId = null;
+              surplusPlayer.affiliation.contractId = null;
+              surplusPlayer.affiliation.acquiredDay = null;
+              surplusPlayer.expectedLineIndex = null;
+              this.#contracts.releasePlayers([surplusPlayer.id]);
+              roster = (allPlayers || []).filter((player) => player.affiliation?.teamId === team.id);
+              continue;
+            }
+          }
+
           const candidate =
             getAvailableFreeAgents()
               .sort((left, right) => (right.ovr - left.ovr) || left.name.localeCompare(right.name, "ru"))
-              .find((player) => getGroup(player.identity?.primaryPosition) === preferredGroup) ||
+              .find((player) => !preferredGroup || getGroup(player) === preferredGroup) ||
             getAvailableFreeAgents()[0];
           if (!candidate) break;
 

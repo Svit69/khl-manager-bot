@@ -2,7 +2,7 @@
 
 const FORWARD_POSITIONS = new Set(["\u041b\u041d\u041f", "\u0426\u0422\u0420", "\u041f\u041d\u041f"]);
 
-export const POSITION_SCARCITY_TARGETS = { FWD: 9, DEF: 6, G: 2 };
+export const POSITION_SCARCITY_TARGETS = { FWD: 12, DEF: 6, G: 2 };
 
 export const STRATEGY_NEGOTIATION_CHANCE = {
   contender: 0.39,

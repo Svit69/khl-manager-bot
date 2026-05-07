@@ -160,12 +160,12 @@ const buildOffseasonCandidate = ({ contracts, team, player, currentSeasonLabel, 
 };
 
 const buildOffseasonFreeAgentCandidate = ({ contracts, team, player, context, plan }) => {
-  if (player.identity?.isGoalie) return null;
   const roster = team?.getRoster?.() || [];
   const positionGroup = getPositionGroup(player.identity?.primaryPosition);
   const sameGroup = roster.filter((candidate) => getPositionGroup(candidate.identity?.primaryPosition) === positionGroup);
   const averageGroupOvr = sameGroup.length ? sameGroup.reduce((sum, candidate) => sum + (candidate.ovr || 0), 0) / sameGroup.length : 0;
   const rosterNeed = Math.max(0, (POSITION_SCARCITY_TARGETS[positionGroup] || 5) - sameGroup.length);
+  if (rosterNeed <= 0 && roster.length >= 20) return null;
   const isUpgrade = !sameGroup.length || (player.ovr || 0) >= averageGroupOvr + 1;
   const years = getFreeAgentYears(player, plan, rosterNeed);
   const preview = contracts.getFreeAgentPreview(
@@ -183,11 +183,12 @@ const buildOffseasonFreeAgentCandidate = ({ contracts, team, player, context, pl
   };
   const finalPreview = contracts.getFreeAgentPreview(team, player, openingOffer, context);
   let priorityScore = 0;
-  priorityScore += rosterNeed * 5;
+  priorityScore += rosterNeed * 7;
   priorityScore += isUpgrade ? 6 : 1;
   priorityScore += clamp((player.ovr || 0) - averageGroupOvr, -4, 8);
   priorityScore += clamp(finalPreview.projectedRoleScore || 0, -4, 10);
   priorityScore += clamp(finalPreview.teamStrengthAppeal || 0, -4, 8);
+  if (positionGroup === "G" && rosterNeed > 0) priorityScore += 12;
   if (plan.strategy === "rebuild" && calculateAge(player.identity?.birthDate, context.currentDate) >= 29 && (player.ovr || 0) < 79) {
     priorityScore -= 8;
   }

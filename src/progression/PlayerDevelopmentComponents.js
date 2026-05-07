@@ -36,15 +36,15 @@ export const getAgeDevelopmentComponent = (player, age) => {
   if (age <= 20) return 0.069 * growthRate;
   if (age <= 23) return 0.046 * growthRate;
   if (age < peakAge) return 0.021 * growthRate;
-  if (age === peakAge) return 0.004;
-  if (age === peakAge + 1) return -0.007 * declineRate;
-  if (age <= peakAge + 3) return -0.018 * declineRate;
+  if (age === peakAge) return 0.002;
+  if (age === peakAge + 1) return -0.011 * declineRate;
+  if (age <= peakAge + 3) return -0.026 * declineRate;
   if (age <= peakAge + 6) {
     const yearsPast = age - peakAge - 3;
-    return -0.03 * declineRate * (1 + yearsPast * 0.14);
+    return -0.04 * declineRate * (1 + yearsPast * 0.18);
   }
   const lateYearsPast = age - peakAge - 6;
-  return -0.043 * declineRate * (1 + Math.min(0.95, lateYearsPast * 0.16));
+  return -0.058 * declineRate * (1 + Math.min(1.1, lateYearsPast * 0.2));
 };
 
 export const getUsageDevelopmentComponent = (player, age, games, avgIceTime, matchStat, context) => {
@@ -224,10 +224,10 @@ export const getRehabilitationComponent = (player, matchStat, avgIceTime) => {
 };
 
 export const getFreeAgentGraceGames = (age) => {
-  if (age <= 20) return 18;
-  if (age <= 24) return 15;
-  if (age <= 28) return 12;
-  return 10;
+  if (age <= 20) return 16;
+  if (age <= 24) return 13;
+  if (age <= 28) return 10;
+  return 8;
 };
 
 export const getFreeAgentAgeDrivenRegression = (player, age, inactivityPressure) => {
@@ -235,15 +235,15 @@ export const getFreeAgentAgeDrivenRegression = (player, age, inactivityPressure)
   const growthRate = Number(player.potential?.growthRate) || 0.3;
   let delta = 0;
 
-  if (age <= 20) delta = -0.003 - inactivityPressure * 0.0005;
-  else if (age <= 24) delta = -0.008 - inactivityPressure * 0.0011;
-  else if (age <= 28) delta = -0.016 - inactivityPressure * 0.0019;
-  else if (age <= 31) delta = -0.025 - inactivityPressure * 0.0029;
-  else if (age <= 34) delta = -0.036 - inactivityPressure * 0.0042;
-  else delta = -0.046 - inactivityPressure * 0.0054;
+  if (age <= 20) delta = -0.004 - inactivityPressure * 0.0007;
+  else if (age <= 24) delta = -0.011 - inactivityPressure * 0.0015;
+  else if (age <= 28) delta = -0.022 - inactivityPressure * 0.0025;
+  else if (age <= 31) delta = -0.033 - inactivityPressure * 0.0038;
+  else if (age <= 34) delta = -0.047 - inactivityPressure * 0.0052;
+  else delta = -0.061 - inactivityPressure * 0.0068;
 
   if (age <= 22) delta *= Math.max(0.7, 1 - growthRate * 0.2);
-  if (age >= 29) delta *= 1 + declineRate * 0.52;
+  if (age >= 29) delta *= 1 + declineRate * 0.72;
 
   return clamp(delta, -0.11, 0);
 };
