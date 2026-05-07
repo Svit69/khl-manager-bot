@@ -76,10 +76,12 @@ export const getPerformanceDevelopmentComponent = (
   avgIceTime,
   volatility,
   games,
+  matchStat,
 ) => {
   const ppgGap = pointsPerGame - expected.pointsPerGame;
   const shotsGap = shotsPerGame - expected.shotsPerGame;
   const isForward = isForwardPosition(player.identity?.primaryPosition);
+  const matchPointsBoost = getYoungPointBurstDevelopment(age, games, matchStat);
   let delta = isForward
     ? ppgGap * 0.22 + shotsGap * 0.06
     : ppgGap * 0.12 + shotsGap * 0.025 + getDefensePerformanceSignal(player, avgIceTime);
@@ -108,6 +110,7 @@ export const getPerformanceDevelopmentComponent = (
     }
   }
 
+  delta += matchPointsBoost;
   return clamp(delta * 1.15, -0.069, 0.126);
 };
 
@@ -346,6 +349,21 @@ const getVeteranUsageRetention = (player, age, avgIceTime, games, teamGamesPlaye
   if (!isForwardPosition(player.identity?.primaryPosition) && avgIceTime >= 19) delta += 0.004;
 
   return clamp(delta, -0.032, 0.018);
+};
+
+const getYoungPointBurstDevelopment = (age, games, matchStat) => {
+  const matchPoints = getMatchPoints(matchStat);
+  if (matchPoints <= 0 || games <= 0) return 0;
+
+  if (age >= 16 && age <= 19) return Math.min(0.06, matchPoints * 0.02);
+  if (age <= 21) return Math.min(0.018, matchPoints * 0.006);
+  return 0;
+};
+
+const getMatchPoints = (matchStat) => {
+  const goals = Number(matchStat?.goals) || 0;
+  const assists = Number(matchStat?.assists) || 0;
+  return goals + assists;
 };
 
 const getDefensePerformanceSignal = (player, avgIceTime) => {

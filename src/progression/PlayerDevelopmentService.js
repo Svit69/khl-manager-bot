@@ -72,6 +72,7 @@ export class PlayerDevelopmentService {
           avgIceTime,
           getPlayerVolatility(player, age),
           games,
+          matchStat,
         ) +
         getPotentialGapComponent(potentialGap) +
         getPeakAgeRealizationComponent(
@@ -120,7 +121,17 @@ export class PlayerDevelopmentService {
     const offseasonDelta = this.#scaleDevelopmentDelta(age, clamp(
       getAgeDevelopmentComponent(player, age) * 0.6 +
         getUsageDevelopmentComponent(player, age, games, avgIceTime, { games: 1 }, { teamGamesPlayed: games }) * 0.35 +
-        getPerformanceDevelopmentComponent(player, age, pointsPerGame, shotsPerGame, expected, avgIceTime, volatility, games) *
+        getPerformanceDevelopmentComponent(
+          player,
+          age,
+          pointsPerGame,
+          shotsPerGame,
+          expected,
+          avgIceTime,
+          volatility,
+          games,
+          { goals: 0, assists: 0 },
+        ) *
           0.4 +
         getPotentialGapComponent(potentialGap) * 0.5 +
         getPeakAgeRealizationComponent(player, age, potentialGap, games, avgIceTime, pointsPerGame, shotsPerGame, expected) *
