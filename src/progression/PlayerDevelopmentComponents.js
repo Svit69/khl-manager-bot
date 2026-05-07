@@ -321,8 +321,12 @@ const getYoungDefenseTopFourBoost = (player, age, avgIceTime) => {
 
   if (age <= 20 && lineIndex && lineIndex <= 2) delta += 0.008;
   else if (age <= 22 && lineIndex && lineIndex <= 2) delta += 0.004;
+  if (age <= 20 && lineIndex === 1) delta += 0.012;
+  else if (age <= 20 && lineIndex === 2) delta += 0.008;
+  if (age <= 20 && avgIceTime >= 20) delta += 0.01;
+  else if (age <= 20 && avgIceTime >= 17) delta += 0.006;
 
-  return clamp(delta, 0, 0.03);
+  return clamp(delta, 0, 0.045);
 };
 
 const getVeteranUsageRetention = (player, age, avgIceTime, games, teamGamesPlayed) => {
