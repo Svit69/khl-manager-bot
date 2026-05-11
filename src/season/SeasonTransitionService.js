@@ -1,5 +1,7 @@
 import { buildCompetitiveLines } from "../data/lineupBuilder.js";
 import { getFallbackMarketSalaryRub } from "../contracts/ContractServiceShared.js";
+import { getUfaStatus } from "../contracts/RenewalScoring.js";
+import { calculateAge } from "../contracts/SeasonUtils.js";
 import { createSkater } from "../data/playerFactory.js";
 import { PlayerPosition } from "../models/PlayerPosition.js";
 import { generateUuid } from "../utils/uuid.js";
@@ -29,7 +31,7 @@ export class SeasonTransitionService {
     this.#development = developmentService;
   }
 
-  advanceToNextSeason({ teams, calendar, activeTeamId, standingsTable, scorerTable, allPlayers, pushNotification }) {
+  advanceToNextSeason({ teams, calendar, activeTeamId, standingsTable, scorerTable, allPlayers, buildContext, pushNotification }) {
     const currentSeasonLabel = calendar.seasonLabel;
     const nextSeasonStartYear = calendar.seasonStartYear + 1;
     const nextSeasonLabel = formatSeasonLabel(nextSeasonStartYear);
@@ -46,12 +48,38 @@ export class SeasonTransitionService {
     const playerMap = new Map((allPlayers || []).map((player) => [player.id, player]));
     const releasedPlayerIds = [];
     const userDepartures = [];
+    const userRestrictedRetentions = [];
+    const restrictedRightsOffers = [];
 
     (allPlayers || []).forEach((player) => {
       const nextContract = this.#contracts.getContractForSeason(player.id, nextSeasonLabel);
       if (nextContract) {
         player.affiliation.teamId = nextContract.teamId;
         player.affiliation.contractId = nextContract.id;
+        return;
+      }
+      const currentTeamId = player.affiliation?.teamId || null;
+      const ufaStatus = getUfaStatus(
+        calculateAge(player.identity?.birthDate, offseasonDate),
+        player.career?.khlGamesPlayed || 0,
+      );
+      if (currentTeamId && ufaStatus === "OSA") {
+        const retainedContract = this.#contracts.retainRestrictedFreeAgent(player, currentTeamId, nextSeasonLabel);
+        player.affiliation.teamId = currentTeamId;
+        player.affiliation.contractId = retainedContract?.id || player.affiliation.contractId || null;
+        player.affiliation.acquiredDay = null;
+        if (currentTeamId === activeTeamId) {
+          userRestrictedRetentions.push(player);
+          const offerSheet = this.#buildRestrictedRightsOfferSheet({
+            teams,
+            activeTeamId,
+            player,
+            nextSeasonLabel,
+            allPlayers,
+            buildContext,
+          });
+          if (offerSheet) restrictedRightsOffers.push(offerSheet);
+        }
         return;
       }
       if (player.affiliation?.teamId === activeTeamId) {
@@ -95,6 +123,19 @@ export class SeasonTransitionService {
       });
     });
 
+    userRestrictedRetentions.forEach((player) => {
+      pushNotification({
+        id: `notification-offseason-osa-retain-${player.id}-${Date.now()}`,
+        type: "offseason-retention",
+        title: "РњРµР¶СЃРµР·РѕРЅСЊРµ",
+        message: `${player.name} СЃРѕС…СЂР°РЅРµРЅ РєР»СѓР±РѕРј РєР°Рє РћРЎРђ`,
+        day: calendar.currentDay,
+        createdAt: new Date().toISOString(),
+        playerId: player.id,
+        read: false,
+      });
+    });
+
     pushNotification({
       id: `notification-new-season-${nextSeasonLabel}-${Date.now()}`,
       type: "season-transition",
@@ -118,6 +159,7 @@ export class SeasonTransitionService {
         preseasonDateIso,
         preseasonOpen: true,
         preseasonOffers: [],
+        restrictedRightsOffers,
       },
       freeAgents: collectUniqueFreeAgents(allPlayers),
     };
@@ -306,6 +348,81 @@ export class SeasonTransitionService {
       playerId: event.playerId,
       read: false,
     };
+  }
+
+  #buildRestrictedRightsOfferSheet({ teams, activeTeamId, player, nextSeasonLabel, allPlayers, buildContext }) {
+    if (!player || (player.ovr || 0) < 71) return null;
+    const rightsTeam = (teams || []).find((team) => team.id === activeTeamId) || null;
+    const candidates = (teams || [])
+      .filter((team) => team?.id && team.id !== activeTeamId)
+      .map((team) => {
+        const context = {
+          ...(typeof buildContext === "function" ? buildContext(team) : {}),
+          allPlayers,
+        };
+        const preview = this.#contracts.getFreeAgentPreview(
+          team,
+          player,
+          {
+            years: this.#getOfferSheetYears(player),
+            salaryRub: this.#getOfferSheetSalary(player, team, rightsTeam),
+          },
+          context,
+        );
+        const roleScore = Number(preview?.projectedRoleScore ?? preview?.roleScore) || 0;
+        const salaryRatio = Number(preview?.salaryRatio) || 0;
+        const score = (Number(player.ovr) || 0) + roleScore * 1.8 + salaryRatio * 8 + this.#stableOfferSheetNoise(player, team);
+        return { team, preview, score };
+      })
+      .filter((entry) => entry.preview && Number(entry.preview.willingness) >= 38)
+      .sort((left, right) => right.score - left.score);
+
+    const best = candidates[0] || null;
+    if (!best) return null;
+
+    return {
+      id: `osa-offer-${player.id}-${best.team.id}-${nextSeasonLabel}`,
+      playerId: player.id,
+      rightsTeamId: activeTeamId,
+      offerTeamId: best.team.id,
+      offerTeamName: best.team.name,
+      season: nextSeasonLabel,
+      offer: {
+        years: best.preview.offer.years,
+        salaryRub: best.preview.offer.salaryRub,
+      },
+      status: "pending",
+      createdAt: new Date().toISOString(),
+    };
+  }
+
+  #getOfferSheetYears(player) {
+    const age = calculateAge(player.identity?.birthDate);
+    if (age <= 22 && (player.potential?.potential || player.ovr) - player.ovr >= 3) return 3;
+    if ((player.ovr || 0) >= 79) return 2;
+    return 1;
+  }
+
+  #getOfferSheetSalary(player, team, rightsTeam) {
+    const base = getFallbackMarketSalaryRub(player);
+    let factor = 1.08;
+    const roster = team?.getRoster?.() || [];
+    const rightsRoster = rightsTeam?.getRoster?.() || [];
+    const samePositionCount = roster.filter((candidate) => candidate.identity?.primaryPosition === player.identity?.primaryPosition).length;
+    const rightsSamePositionCount = rightsRoster.filter((candidate) => candidate.identity?.primaryPosition === player.identity?.primaryPosition).length;
+    if (samePositionCount <= rightsSamePositionCount - 1) factor += 0.08;
+    if ((player.potential?.potential || player.ovr) - player.ovr >= 4) factor += 0.06;
+    if ((player.ovr || 0) >= 80) factor += 0.08;
+    return Math.round((base * factor) / 500000) * 500000;
+  }
+
+  #stableOfferSheetNoise(player, team) {
+    const source = `${player?.id || ""}:${team?.id || ""}`;
+    let hash = 0;
+    for (let index = 0; index < source.length; index++) {
+      hash = (hash * 31 + source.charCodeAt(index)) % 9973;
+    }
+    return ((hash % 21) - 10) / 10;
   }
 
   #buildDepthSigningNotification(team, player, contract, day) {

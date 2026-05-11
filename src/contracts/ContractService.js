@@ -11,6 +11,7 @@ import {
   parseSeasonStart,
 } from "./SeasonUtils.js";
 import {
+  getFallbackMarketSalaryRub,
   getLatestContract,
   getSeasonLabelFromDate,
   isFutureSeason,
@@ -122,6 +123,66 @@ export class ContractService {
         (contract) => !(contract.playerId === playerId && !this.#baseContractIds.has(contract.id)),
       );
     });
+  }
+
+  retainRestrictedFreeAgent(player, teamId, season) {
+    if (!player?.id || !teamId || !season) return null;
+    const contracts = this.getContractsForPlayer(player.id);
+    const lastContract = contracts[contracts.length - 1] || null;
+    const salaryRub = roundSalaryRub(
+      Math.max(getFallbackMarketSalaryRub(player), Number(lastContract?.salaryRub || 0) * 0.9),
+    );
+    const [contract] = this.#createFutureContracts({
+      player,
+      teamId,
+      years: 1,
+      salaryRub,
+      startSeason: season,
+      type: lastContract?.type || ContractType.ONE_WAY,
+    });
+
+    player.affiliation.teamId = teamId;
+    this.#releasedPlayerIds.delete(player.id);
+    this.#clearBadOfferCount(player.id);
+    this.#clearLastOffer(player.id);
+    return contract || null;
+  }
+
+  matchRestrictedFreeAgentOffer(player, teamId, offer, season) {
+    if (!player?.id || !teamId || !offer || !season) return null;
+    const contracts = this.getContractsForPlayer(player.id);
+    const lastContract = contracts[contracts.length - 1] || null;
+    const [contract] = this.#replaceContractForSeason({
+      player,
+      teamId,
+      season,
+      years: clamp(Number(offer.years) || 1, 1, 4),
+      salaryRub: roundSalaryRub(offer.salaryRub),
+      type: lastContract?.type || ContractType.ONE_WAY,
+    });
+    player.affiliation.teamId = teamId;
+    this.#releasedPlayerIds.delete(player.id);
+    this.#clearBadOfferCount(player.id);
+    this.#clearLastOffer(player.id);
+    return contract || null;
+  }
+
+  signRestrictedFreeAgentOfferSheet(player, teamId, offer, season) {
+    if (!player?.id || !teamId || !offer || !season) return null;
+    this.releasePlayers([player.id]);
+    const [contract] = this.#replaceContractForSeason({
+      player,
+      teamId,
+      season,
+      years: clamp(Number(offer.years) || 1, 1, 4),
+      salaryRub: roundSalaryRub(offer.salaryRub),
+      type: ContractType.ONE_WAY,
+    });
+    player.affiliation.teamId = teamId;
+    this.#releasedPlayerIds.delete(player.id);
+    this.#clearBadOfferCount(player.id);
+    this.#clearLastOffer(player.id);
+    return contract || null;
   }
 
   reassignPlayerContracts(playerId, teamId) {
@@ -354,6 +415,24 @@ export class ContractService {
     }
 
     return newContracts;
+  }
+
+  #replaceContractForSeason({ player, teamId, season, years, salaryRub, type }) {
+    const seasonSet = new Set();
+    let nextSeason = season;
+    for (let index = 0; index < years; index++) {
+      seasonSet.add(nextSeason);
+      nextSeason = formatNextSeason(nextSeason);
+    }
+    this.#contracts = this.#contracts.filter(
+      (contract) =>
+        !(
+          contract.playerId === player.id &&
+          seasonSet.has(contract.season) &&
+          !this.#baseContractIds.has(contract.id)
+        ),
+    );
+    return this.#createFutureContracts({ player, teamId, years, salaryRub, startSeason: season, type });
   }
 
   #handleRejectedNegotiation(playerId, preview) {

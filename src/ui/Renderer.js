@@ -256,10 +256,10 @@ export class Renderer{
       this.#matchEl.innerHTML=`<h2>Состав</h2><div class="roster-grid roster-grid-cards">${cards}</div>`;
     }
   }
-  renderContracts(rows,negotiation){
+  renderContracts(rows,negotiation,restrictedRights=[]){
     const container=document.getElementById("teamTabContent");
-    if(container){container.innerHTML=this.#contractTab.render(rows,negotiation);return;}
-    this.#matchEl.innerHTML=this.#contractTab.render(rows,negotiation);
+    if(container){container.innerHTML=this.#contractTab.render(rows,negotiation,restrictedRights);return;}
+    this.#matchEl.innerHTML=this.#contractTab.render(rows,negotiation,restrictedRights);
   }
   renderTeamStatistics(rows,sortBy="points",selectedTeamId=null,teams=[],activeTeamId=null){
     const container=document.getElementById("teamTabContent");

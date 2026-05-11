@@ -77,6 +77,7 @@ export class AppState {
       previousSeasonLabel: null,
       preseasonDates: [],
       preseasonOffers: [],
+      restrictedRightsOffers: [],
       preseasonIndex: 0,
     };
     this.#syncSeasonReferenceDate();
@@ -163,6 +164,24 @@ export class AppState {
     return this.activeTeam ? this.#contracts.getTeamContractRows(this.activeTeam, this.#getEffectiveNegotiationDate()) : [];
   }
 
+  getActiveTeamRestrictedRightsRows() {
+    if (!this.#activeTeamId) return [];
+    const playersById = new Map(this.getAllPlayers().map((player) => [player.id, player]));
+    return (this.#seasonState?.restrictedRightsOffers || [])
+      .filter((entry) => entry?.status === "pending" && entry.rightsTeamId === this.#activeTeamId)
+      .map((entry) => {
+        const player = playersById.get(entry.playerId);
+        if (!player) return null;
+        return {
+          ...entry,
+          playerName: player.name,
+          position: player.identity?.primaryPosition || "",
+          ovr: player.ovr,
+        };
+      })
+      .filter(Boolean);
+  }
+
   getTeamStatisticsRows(teamId = this.#activeTeamId, sortBy = "points") {
     const team = this.#teams.find((entry) => entry.id === teamId) || null;
     return team ? this.#contracts.getTeamStatisticsRows(team, this.#buildNegotiationContext(team), sortBy) : [];
@@ -202,6 +221,72 @@ export class AppState {
   submitActiveTeamNegotiation(playerId, offer) {
     const player = this.activeTeam?.getRoster().find((entry) => entry.id === playerId);
     return player ? this.#contracts.submitRenewalOffer(this.activeTeam, player, offer, this.#buildNegotiationContext(this.activeTeam)) : null;
+  }
+
+  matchRestrictedRightsOffer(offerId, offer) {
+    const entry = (this.#seasonState?.restrictedRightsOffers || []).find(
+      (candidate) => candidate.id === offerId && candidate.rightsTeamId === this.#activeTeamId && candidate.status === "pending",
+    );
+    if (!entry || !this.activeTeam) return { accepted: false, message: "Предложение ОСА не найдено." };
+    const player = this.activeTeam.getRoster().find((candidate) => candidate.id === entry.playerId);
+    if (!player) return { accepted: false, message: "Игрок уже не находится в системе клуба." };
+
+    const bestOffer = entry.offer || {};
+    const submittedOffer = {
+      years: Math.max(Number(bestOffer.years) || 1, Number(offer?.years) || 1),
+      salaryRub: this.#roundSalaryRub(Math.max(Number(bestOffer.salaryRub) || 0, Number(offer?.salaryRub) || 0)),
+    };
+    const contract = this.#contracts.matchRestrictedFreeAgentOffer(
+      player,
+      this.#activeTeamId,
+      submittedOffer,
+      entry.season || this.#seasonState?.seasonLabel,
+    );
+    this.#resolveRestrictedRightsOffer(entry.id, "matched");
+    this.#pushNotification({
+      id: `notification-osa-match-${player.id}-${Date.now()}`,
+      type: "offseason-retention",
+      title: "Права ОСА",
+      message: `${player.name} остался в клубе: ${submittedOffer.years} г. • ${formatSalaryMillions(submittedOffer.salaryRub)} млн`,
+      day: this.#calendar.currentDay,
+      createdAt: new Date().toISOString(),
+      playerId: player.id,
+      read: false,
+    });
+    return { accepted: true, decision: "matched", contract };
+  }
+
+  releaseRestrictedRightsOffer(offerId) {
+    const entry = (this.#seasonState?.restrictedRightsOffers || []).find(
+      (candidate) => candidate.id === offerId && candidate.rightsTeamId === this.#activeTeamId && candidate.status === "pending",
+    );
+    if (!entry) return { accepted: false, message: "Предложение ОСА не найдено." };
+    const player = this.getAllPlayers().find((candidate) => candidate.id === entry.playerId);
+    const newTeam = this.#teams.find((candidate) => candidate.id === entry.offerTeamId);
+    if (!player || !newTeam) return { accepted: false, message: "Не удалось завершить переход ОСА." };
+
+    const contract = this.#contracts.signRestrictedFreeAgentOfferSheet(
+      player,
+      newTeam.id,
+      entry.offer,
+      entry.season || this.#seasonState?.seasonLabel,
+    );
+    player.affiliation.acquiredDay = this.#calendar.currentDay;
+    this.#resolveRestrictedRightsOffer(entry.id, "released");
+    this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
+    this.#refreshExpectedRoles(newTeam);
+    if (this.activeTeam) this.#refreshExpectedRoles(this.activeTeam);
+    this.#pushNotification({
+      id: `notification-osa-release-${player.id}-${Date.now()}`,
+      type: "offseason-departure",
+      title: "Права ОСА",
+      message: `${player.name} перешел в ${newTeam.name}: ${entry.offer.years} г. • ${formatSalaryMillions(entry.offer.salaryRub)} млн`,
+      day: this.#calendar.currentDay,
+      createdAt: new Date().toISOString(),
+      playerId: player.id,
+      read: false,
+    });
+    return { accepted: true, decision: "released", contract };
   }
 
   getFreeAgentSigningPreview(playerId, offer) {
@@ -266,6 +351,7 @@ export class AppState {
 
   canStartSeason() {
     if (!(this.#seasonState?.phase === "preseason" && this.#seasonState?.preseasonOpen)) return false;
+    if ((this.#seasonState?.restrictedRightsOffers || []).some((entry) => entry?.status === "pending" && entry.rightsTeamId === this.#activeTeamId)) return false;
     const dates = this.#seasonState?.preseasonDates || [];
     return (Number(this.#seasonState?.preseasonIndex) || 0) >= Math.max(0, dates.length - 1);
   }
@@ -412,6 +498,7 @@ export class AppState {
       preseasonOpen: false,
       preseasonDates: [],
       preseasonOffers: [],
+      restrictedRightsOffers: [],
       preseasonIndex: 0,
     };
     this.#syncSeasonReferenceDate();
@@ -756,5 +843,18 @@ export class AppState {
     team.reservePlayers.forEach((player) => {
       if (player) player.expectedLineIndex = null;
     });
+  }
+
+  #resolveRestrictedRightsOffer(offerId, status) {
+    this.#seasonState = {
+      ...this.#seasonState,
+      restrictedRightsOffers: (this.#seasonState?.restrictedRightsOffers || []).map((entry) =>
+        entry.id === offerId ? { ...entry, status } : entry,
+      ),
+    };
+  }
+
+  #roundSalaryRub(value) {
+    return Math.max(500000, Math.round((Number(value) || 0) / 500000) * 500000);
   }
 }

@@ -50,7 +50,11 @@ export class AppController{
       });
       this.#renderer.renderResetButton();
       if(this.#activeTab==="contracts"){
-        this.#renderer.renderContracts(this.#state.getActiveTeamContractRows(),this.#buildNegotiationState());
+        this.#renderer.renderContracts(
+          this.#state.getActiveTeamContractRows(),
+          this.#buildNegotiationState(),
+          this.#buildRestrictedRightsState()
+        );
       }else if(this.#activeTab==="teamStats"){
         const selectedTeamId=this.#teamStatsTeamId||this.#state.activeTeamId;
         this.#renderer.renderTeamStatistics(
@@ -138,6 +142,15 @@ export class AppController{
       this.#renderScreen();
       return;
     }
+    if(action==="set-osa-salary-input"){
+      const offerId=changed.dataset.offerId;
+      const salaryRub=this.#parseSalaryMillions(changed.value);
+      if(!offerId||!salaryRub)return;
+      const current=this.#offerByPlayerId.get(offerId)||{years:1,salaryRub};
+      this.#offerByPlayerId.set(offerId,{...current,salaryRub});
+      this.#renderScreen();
+      return;
+    }
     if(action==="team-stats-team-select"){
       this.#teamStatsTeamId=changed.value||this.#state.activeTeamId;
       this.#renderScreen();
@@ -153,6 +166,13 @@ export class AppController{
     const outcome=this.#outcomeByPlayerId.get(this.#selectedNegotiationPlayerId)||null;
     this.#offerByPlayerId.set(this.#selectedNegotiationPlayerId,preview.offer);
     return {playerId:this.#selectedNegotiationPlayerId,preview,offer:preview.offer,outcome};
+  }
+  #buildRestrictedRightsState(){
+    return this.#state.getActiveTeamRestrictedRightsRows().map(row=>{
+      const current=this.#offerByPlayerId.get(row.id)||row.offer;
+      this.#offerByPlayerId.set(row.id,current);
+      return {...row,userOffer:current};
+    });
   }
   #buildTradeState(){
     const partners=this.#state.getTradePartnerTeams();
@@ -315,6 +335,44 @@ export class AppController{
       const years=Number(clickable.dataset.years)||1;
       const current=this.#offerByPlayerId.get(playerId)||{years:1,salaryRub:0};
       this.#offerByPlayerId.set(playerId,{...current,years});
+      this.#renderScreen();
+      return;
+    }
+    if(action==="set-osa-years"){
+      const offerId=clickable.dataset.offerId;
+      const years=Number(clickable.dataset.years)||1;
+      const current=this.#offerByPlayerId.get(offerId)||{years:1,salaryRub:0};
+      this.#offerByPlayerId.set(offerId,{...current,years});
+      this.#renderScreen();
+      return;
+    }
+    if(action==="adjust-osa-salary"){
+      const offerId=clickable.dataset.offerId;
+      const deltaMillion=Number(clickable.dataset.deltaMillion)||0;
+      if(!offerId||!deltaMillion)return;
+      const current=this.#offerByPlayerId.get(offerId)||{years:1,salaryRub:0};
+      const salaryRub=this.#roundSalaryRub(Math.max(500000,current.salaryRub+Math.round(deltaMillion*1000000)));
+      this.#offerByPlayerId.set(offerId,{...current,salaryRub});
+      this.#renderScreen();
+      return;
+    }
+    if(action==="match-osa-offer"){
+      const offerId=clickable.dataset.offerId;
+      const result=this.#state.matchRestrictedRightsOffer(offerId,this.#offerByPlayerId.get(offerId));
+      if(result?.accepted){
+        this.#offerByPlayerId.delete(offerId);
+        this.#userStore.saveState(this.#state.exportState());
+      }
+      this.#renderScreen();
+      return;
+    }
+    if(action==="release-osa-rights"){
+      const offerId=clickable.dataset.offerId;
+      const result=this.#state.releaseRestrictedRightsOffer(offerId);
+      if(result?.accepted){
+        this.#offerByPlayerId.delete(offerId);
+        this.#userStore.saveState(this.#state.exportState());
+      }
       this.#renderScreen();
       return;
     }

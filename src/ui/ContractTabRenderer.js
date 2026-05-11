@@ -1,5 +1,6 @@
 export class ContractTabRenderer {
-  render(rows, negotiation) {
+  render(rows, negotiation, restrictedRights = []) {
+    const restrictedMarkup = this.#renderRestrictedRights(restrictedRights);
     const content = rows
       .map((row) => {
         const contractInfo = row.contractEndDate ? `До ${row.contractEndDate}` : "Контракт не найден";
@@ -18,7 +19,35 @@ export class ContractTabRenderer {
       })
       .join("");
 
-    return `<h2>Контракты</h2><div class="contract-grid">${content || '<div class="muted">Игроки не найдены</div>'}</div>`;
+    return `<h2>Контракты</h2>${restrictedMarkup}<div class="contract-grid">${content || '<div class="muted">Игроки не найдены</div>'}</div>`;
+  }
+
+  #renderRestrictedRights(rows) {
+    if (!rows?.length) return "";
+    const cards = rows.map((row) => {
+      const offer = row.userOffer || row.offer;
+      const bestOffer = row.offer || {};
+      const yearsButtons = [1, 2, 3, 4]
+        .map((years) => {
+          const disabled = years < (Number(bestOffer.years) || 1) ? "disabled" : "";
+          return `<button class="btn secondary ${offer.years === years ? "active" : ""}" ${disabled} data-action="set-osa-years" data-offer-id="${row.id}" data-years="${years}">${years} г.</button>`;
+        })
+        .join("");
+      const salaryControls = `<div class="negotiation-salary-box"><label class="muted" for="osa-salary-${row.id}">Ваше предложение, млн руб.</label><div class="negotiation-salary-row"><button class="btn secondary compact" data-action="adjust-osa-salary" data-offer-id="${row.id}" data-delta-million="-5">-5</button><button class="btn secondary compact" data-action="adjust-osa-salary" data-offer-id="${row.id}" data-delta-million="-1">-1</button><input id="osa-salary-${row.id}" class="negotiation-salary-input" type="number" min="${this.#formatMillionsInput(bestOffer.salaryRub)}" step="0.5" value="${this.#formatMillionsInput(offer.salaryRub)}" data-action="set-osa-salary-input" data-offer-id="${row.id}"><span class="muted">млн</span><button class="btn secondary compact" data-action="adjust-osa-salary" data-offer-id="${row.id}" data-delta-million="1">+1</button><button class="btn secondary compact" data-action="adjust-osa-salary" data-offer-id="${row.id}" data-delta-million="5">+5</button></div></div>`;
+      return `<div class="osa-rights-card">
+        <div class="osa-rights-top">
+          <div><span class="contract-chip warning">ОСА</span><strong>${row.playerName}</strong><span>${row.position} • OVR ${row.ovr}</span></div>
+          <div class="osa-rights-offer"><span>Лучший оффер</span><strong>${row.offerTeamName}</strong><span>${bestOffer.years} г. • ${this.#formatMillions(bestOffer.salaryRub)} млн</span></div>
+        </div>
+        <div class="osa-rights-body">
+          <div class="muted">Агент игрока принес оффер от другого клуба. Чтобы сохранить игрока, нужно повторить или улучшить условия.</div>
+          <div class="row">${yearsButtons}</div>
+          ${salaryControls}
+          <div class="row"><button class="btn" data-action="match-osa-offer" data-offer-id="${row.id}">Повторить оффер</button><button class="btn secondary danger" data-action="release-osa-rights" data-offer-id="${row.id}">Отпустить игрока</button></div>
+        </div>
+      </div>`;
+    }).join("");
+    return `<section class="osa-rights-panel"><div class="osa-rights-head"><h3>Права на ОСА</h3><span>${rows.length}</span></div>${cards}</section>`;
   }
 
   #renderNegotiationPanel(negotiation) {
