@@ -1,5 +1,5 @@
 import { buildCompetitiveLines } from "../data/lineupBuilder.js";
-import { getFallbackMarketSalaryRub } from "../contracts/ContractServiceShared.js";
+import { getFallbackMarketSalaryRub } from "../contracts/FallbackMarketSalary.js";
 import { getUfaStatus } from "../contracts/RenewalScoring.js";
 import { calculateAge } from "../contracts/SeasonUtils.js";
 import { createSkater } from "../data/playerFactory.js";

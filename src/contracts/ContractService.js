@@ -11,12 +11,12 @@ import {
   parseSeasonStart,
 } from "./SeasonUtils.js";
 import {
-  getFallbackMarketSalaryRub,
   getLatestContract,
   getSeasonLabelFromDate,
   isFutureSeason,
   roundSalaryRub,
 } from "./ContractServiceShared.js";
+import { getFallbackMarketSalaryRub } from "./FallbackMarketSalary.js";
 import {
   buildFreeAgentRows,
   buildTeamContractRows,

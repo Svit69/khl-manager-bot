@@ -1,6 +1,6 @@
 import { getTermMod, getTermPreference, termPreferenceLabel } from "./TermPreference.js";
 import { calculateAge, clamp } from "./SeasonUtils.js";
-import { getFallbackMarketSalaryRub } from "./ContractServiceShared.js";
+import { getFallbackMarketSalaryRub } from "./FallbackMarketSalary.js";
 
 const MIN_GAMES_FOR_ROLE_EVAL = 5;
 const MIN_GAMES_FOR_IMPACT_EVAL = 5;

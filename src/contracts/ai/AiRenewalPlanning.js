@@ -1,5 +1,5 @@
 import { calculateAge, clamp } from "../SeasonUtils.js";
-import { getFallbackMarketSalaryRub } from "../ContractServiceShared.js";
+import { getFallbackMarketSalaryRub } from "../FallbackMarketSalary.js";
 import {
   POSITION_SCARCITY_TARGETS,
   STRATEGY_MONTHLY_SLOTS,

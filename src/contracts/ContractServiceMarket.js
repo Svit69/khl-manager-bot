@@ -1,5 +1,6 @@
 ﻿import { clamp } from "./SeasonUtils.js";
-import { getFallbackMarketSalaryRub, getPositionMarketGroup, roundSalaryRub } from "./ContractServiceShared.js";
+import { getFallbackMarketSalaryRub } from "./FallbackMarketSalary.js";
+import { getPositionMarketGroup, roundSalaryRub } from "./ContractServiceShared.js";
 
 const getMarketGroupLabel = (group) => {
   if (group === "DEF") return "\u0417\u0430\u0449\u0438\u0442\u043d\u0438\u043a\u0438";

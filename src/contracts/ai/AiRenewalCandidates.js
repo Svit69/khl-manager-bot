@@ -1,5 +1,5 @@
 import { calculateAge, clamp, parseSeasonEnd } from "../SeasonUtils.js";
-import { getFallbackMarketSalaryRub } from "../ContractServiceShared.js";
+import { getFallbackMarketSalaryRub } from "../FallbackMarketSalary.js";
 import {
   OFFSEASON_SIGNINGS_BY_STRATEGY,
   POSITION_SCARCITY_TARGETS,
