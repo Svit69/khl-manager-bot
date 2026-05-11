@@ -1,4 +1,4 @@
-const CACHE_NAME="khl-manager-v99";
+const CACHE_NAME="khl-manager-v100";
 const ASSETS=[
   "./",
   "./index.html",
@@ -26,7 +26,9 @@ const ASSETS=[
   "./src/state/AppStatePersistence.js",
   "./src/state/AppStateRoster.js",
   "./src/ui/TeamStatsTabRenderer.js",
+  "./src/ui/JuniorTeamTabRenderer.js",
   "./src/season/SeasonTransitionService.js",
+  "./src/season/JuniorTeamService.js",
   "./src/season/PlayerRetirementService.js",
   "./src/contracts/AiRenewalService.js",
   "./src/contracts/ai/AiRenewalShared.js",
@@ -34,6 +36,7 @@ const ASSETS=[
   "./src/contracts/ai/AiRenewalCandidates.js",
   "./src/contracts/ai/AiRenewalNegotiation.js",
   "./src/data/freeAgents.js",
+  "./src/data/juniorTeams.js",
   "./src/data/teams.js",
   "./manifest.json",
   "./khl-logo/avangard.png",

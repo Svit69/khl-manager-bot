@@ -1,9 +1,9 @@
 ﻿export class Team{
-  #id;#name;#shortName;#city;#country;#logoUrl;#isPlayable;#createdAt;#lines;#reservePlayers;
-  constructor(info,lines,reservePlayers=[]){
+  #id;#name;#shortName;#city;#country;#logoUrl;#isPlayable;#createdAt;#lines;#reservePlayers;#juniorTeam;#juniorPlayers;
+  constructor(info,lines,reservePlayers=[],juniorTeam=null,juniorPlayers=[]){
     this.#id=info.id;this.#name=info.name;this.#shortName=info.shortName;this.#city=info.city;
     this.#country=info.country;this.#logoUrl=info.logoUrl;this.#isPlayable=info.isPlayable;
-    this.#createdAt=info.createdAt;this.#lines=lines;this.#reservePlayers=reservePlayers;
+    this.#createdAt=info.createdAt;this.#lines=lines;this.#reservePlayers=reservePlayers;this.#juniorTeam=juniorTeam;this.#juniorPlayers=juniorPlayers;
   }
   get id(){return this.#id}
   get name(){return this.#name}
@@ -15,6 +15,8 @@
   get createdAt(){return this.#createdAt}
   get lines(){return this.#lines}
   get reservePlayers(){return this.#reservePlayers}
+  get juniorTeam(){return this.#juniorTeam}
+  get juniorPlayers(){return this.#juniorPlayers}
   getStrength(){return this.#lines.reduce((a,l)=>a+l.getStrength(),0)}
   getRoster(){return [...this.#lines.flatMap(l=>l.players).filter(Boolean),...this.#reservePlayers.filter(Boolean)]}
   swapRosterSlots(source,target){

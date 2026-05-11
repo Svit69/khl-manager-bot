@@ -67,6 +67,7 @@ export const createRosterSnapshots = (teams) =>
     teamId: team.id,
     linePlayerIds: team.lines.map((line) => line.players.map((player) => player?.id || null)),
     reservePlayerIds: team.reservePlayers.map((player) => player.id),
+    juniorPlayerIds: (team.juniorPlayers || []).map((player) => player.id),
   }));
 
 const restoreSavedRoster = (team, item, playersById) => {
@@ -101,6 +102,20 @@ const restoreSavedRoster = (team, item, playersById) => {
       })
       .filter(Boolean),
   );
+
+  if (Array.isArray(item.juniorPlayerIds)) {
+    team.juniorPlayers.splice(
+      0,
+      team.juniorPlayers.length,
+      ...item.juniorPlayerIds
+        .map((playerId) => {
+          const player = playersById.get(playerId);
+          if (player) player.affiliation.teamId = team.id;
+          return player;
+        })
+        .filter(Boolean),
+    );
+  }
 
   return true;
 };

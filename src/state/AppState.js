@@ -14,6 +14,7 @@ import {
 } from "../season/OffseasonFreeAgencyMarket.js";
 import { getPreseasonDateAt, getPreseasonNextDate } from "../season/PreseasonSchedule.js";
 import { SeasonTransitionService } from "../season/SeasonTransitionService.js";
+import { JuniorTeamService } from "../season/JuniorTeamService.js";
 import {
   createDevelopmentNotification,
   markNotificationsRead,
@@ -50,6 +51,7 @@ export class AppState {
   #sim = new MatchSimulator();
   #contracts;
   #development = new PlayerDevelopmentService();
+  #juniors = new JuniorTeamService();
   #trade;
   #aiRenewals;
   #seasonTransition;
@@ -65,6 +67,7 @@ export class AppState {
     this.#calendar = calendar;
     this.#freeAgents = dedupeFreeAgents(freeAgents);
     this.#contracts = new ContractService(contracts);
+    this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#calendar.seasonLabel });
     this.#aiRenewals = new AiRenewalService(this.#contracts);
     this.#seasonTransition = new SeasonTransitionService(this.#contracts, this.#aiRenewals, this.#development);
     this.#trade = new TradeService({
@@ -158,6 +161,12 @@ export class AppState {
   }
 
   getAllPlayers() {
+    return [...this.#teams.flatMap((team) => [...team.getRoster(), ...(team.juniorPlayers || [])]), ...this.#freeAgents].filter(
+      (player) => !this.#retiredPlayerIds.has(player.id),
+    );
+  }
+
+  getFantasyDraftPlayerPool() {
     return [...this.#teams.flatMap((team) => team.getRoster()), ...this.#freeAgents].filter(
       (player) => !this.#retiredPlayerIds.has(player.id),
     );
@@ -196,6 +205,19 @@ export class AppState {
 
   getActiveTeamFreeAgentRows() {
     return this.#contracts.getFreeAgentRows(this.getAvailableFreeAgents());
+  }
+
+  getActiveTeamJuniorView() {
+    if (!this.activeTeam) return null;
+    return {
+      juniorTeam: this.activeTeam.juniorTeam,
+      players: [...(this.activeTeam.juniorPlayers || [])].sort((left, right) => (right.ovr - left.ovr) || left.name.localeCompare(right.name, "ru")),
+      mainPlayers: this.activeTeam.getRoster().map((player) => ({
+        player,
+        canSend: this.#contracts.hasThreeWayContract(player.id, this.#seasonState?.seasonLabel || this.#calendar.seasonLabel),
+      })),
+      targetSize: 22,
+    };
   }
 
   getTradePartnerTeams() {
@@ -332,6 +354,41 @@ export class AppState {
     return moved;
   }
 
+  sendPlayerToJunior(playerId) {
+    if (!this.activeTeam || !playerId || !this.#contracts.hasThreeWayContract(playerId, this.#seasonState?.seasonLabel || this.#calendar.seasonLabel)) return false;
+    const team = this.activeTeam;
+    let player = null;
+    team.lines.forEach((line) => {
+      line.players.forEach((entry, index) => {
+        if (entry?.id === playerId) {
+          player = entry;
+          line.players[index] = null;
+        }
+      });
+    });
+    if (!player) {
+      const reserveIndex = team.reservePlayers.findIndex((entry) => entry.id === playerId);
+      if (reserveIndex >= 0) player = team.reservePlayers.splice(reserveIndex, 1)[0];
+    }
+    if (!player || team.juniorPlayers.some((entry) => entry.id === player.id)) return false;
+    player.expectedLineIndex = null;
+    team.juniorPlayers.push(player);
+    this.#refreshExpectedRoles(team);
+    return true;
+  }
+
+  promoteJuniorPlayer(playerId) {
+    if (!this.activeTeam || !playerId) return false;
+    const team = this.activeTeam;
+    const juniorIndex = team.juniorPlayers.findIndex((entry) => entry.id === playerId);
+    if (juniorIndex < 0) return false;
+    const [player] = team.juniorPlayers.splice(juniorIndex, 1);
+    team.reservePlayers.push(player);
+    player.expectedLineIndex = null;
+    this.#refreshExpectedRoles(team);
+    return true;
+  }
+
   playDay() {
     const day = this.#calendar.getCurrent();
     return day ? this.#simulateCalendarDay(day, null) : null;
@@ -434,6 +491,8 @@ export class AppState {
     this.#standings.importSnapshot([]);
     this.#lastMatch = null;
     this.#seasonState = transition.seasonState;
+    this.#juniors.applyOffseasonDevelopment(this.#teams, this.#getEffectiveNegotiationDate());
+    this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#seasonState.seasonLabel });
     this.#syncSeasonReferenceDate();
     this.#syncSeasonPhase();
     return transition;
@@ -458,13 +517,25 @@ export class AppState {
   importState(saved) {
     if (!saved) return;
     this.#retiredPlayerIds = new Set(Array.isArray(saved.retiredPlayerIds) ? saved.retiredPlayerIds : []);
-    const basePlayers = [...new Map([...this.#teams.flatMap((team) => team.getRoster()), ...this.#freeAgents].map((player) => [player.id, player])).values()];
     this.#activeTeamId = saved.activeTeamId || null;
     if (saved.calendar) this.#calendar.importState(saved.calendar);
     else {
       this.#calendar.index = saved.calendarIndex || 0;
       if (saved.calendarResults) this.#calendar.importResults(saved.calendarResults);
     }
+    if (saved.contracts) this.#contracts.importContracts(saved.contracts);
+    if (saved.rosters) {
+      this.#juniors.ensureSavedJuniorPlayers({
+        teams: this.#teams,
+        rosters: saved.rosters,
+        contracts: this.#contracts,
+        seasonLabel: this.#calendar.seasonLabel,
+      });
+    }
+    let basePlayers = [...new Map([
+      ...this.#teams.flatMap((team) => [...team.getRoster(), ...(team.juniorPlayers || [])]),
+      ...this.#freeAgents,
+    ].map((player) => [player.id, player])).values()];
     if (saved.rosters) {
       importSavedRosters({
         teams: this.#teams,
@@ -472,27 +543,32 @@ export class AppState {
         allPlayers: basePlayers,
         refreshExpectedRoles: (team) => this.#refreshExpectedRoles(team),
       });
+      basePlayers = [...new Map([
+        ...this.#teams.flatMap((team) => [...team.getRoster(), ...(team.juniorPlayers || [])]),
+        ...this.#freeAgents,
+      ].map((player) => [player.id, player])).values()];
     }
     restorePlayerSnapshots(basePlayers, saved.players);
 
     const activePlayers = basePlayers.filter((player) => !this.#retiredPlayerIds.has(player.id));
     this.#freeAgents = dedupeFreeAgents(activePlayers);
     this.#seasonTransition.rebuildRosters(this.#teams, activePlayers);
-    if (saved.contracts) this.#contracts.importContracts(saved.contracts);
     if (saved.standings) this.#standings.importSnapshot(saved.standings);
     this.#calendar.ensurePlayoffs(this.getStandingsTable());
     this.#stats.importStats(saved.stats);
     this.#seasonHistory = Array.isArray(saved.seasonHistory) ? [...saved.seasonHistory] : [];
     this.#seasonState = normalizeSeasonState(saved.seasonState, this.#calendar.seasonLabel);
     this.#notifications = normalizeNotifications(saved.notifications, this.#calendar.currentDay);
+    this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#seasonState.seasonLabel });
     this.#syncSeasonReferenceDate();
     this.#syncSeasonPhase();
   }
 
   applyFantasyDraft(assignmentsByTeamId) {
+    this.#teams.forEach((team) => team.juniorPlayers?.splice?.(0, team.juniorPlayers.length));
     const { undraftedPlayers } = applyFantasyDraftAssignments({
       teams: this.#teams,
-      allPlayers: [...new Map(this.getAllPlayers().map((player) => [player.id, player])).values()],
+      allPlayers: [...new Map(this.getFantasyDraftPlayerPool().map((player) => [player.id, player])).values()],
       assignmentsByTeamId,
       contracts: this.#contracts,
       refreshExpectedRoles: (team) => this.#refreshExpectedRoles(team),
@@ -513,6 +589,7 @@ export class AppState {
     this.#lastMatch = null;
     this.#stats.importStats([]);
     this.#standings.importSnapshot([]);
+    this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#seasonState.seasonLabel });
     this.getAllPlayers().forEach((player) => player.seasonStats.importSnapshot());
   }
 

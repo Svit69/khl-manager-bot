@@ -22,6 +22,8 @@ const collectUniqueFreeAgents = (players) => {
   return [...uniqueById.values()];
 };
 
+const getJuniorPlayerIds = (team) => new Set((team?.juniorPlayers || []).map((player) => player.id));
+
 export class SeasonTransitionService {
   #contracts;
   #development;
@@ -256,7 +258,8 @@ export class SeasonTransitionService {
     (teams || [])
       .filter((team) => team?.id && team.id !== activeTeamId)
       .forEach((team) => {
-        let roster = (allPlayers || []).filter((player) => player.affiliation?.teamId === team.id);
+        const juniorIds = getJuniorPlayerIds(team);
+        let roster = (allPlayers || []).filter((player) => player.affiliation?.teamId === team.id && !juniorIds.has(player.id));
         const attemptedPlayerIds = new Set();
         let safety = 0;
 
@@ -274,7 +277,7 @@ export class SeasonTransitionService {
               surplusPlayer.affiliation.acquiredDay = null;
               surplusPlayer.expectedLineIndex = null;
               this.#contracts.releasePlayers([surplusPlayer.id]);
-              roster = (allPlayers || []).filter((player) => player.affiliation?.teamId === team.id);
+              roster = (allPlayers || []).filter((player) => player.affiliation?.teamId === team.id && !juniorIds.has(player.id));
               continue;
             }
           }
@@ -337,14 +340,15 @@ export class SeasonTransitionService {
             );
           }
 
-          roster = (allPlayers || []).filter((player) => player.affiliation?.teamId === team.id);
+          roster = (allPlayers || []).filter((player) => player.affiliation?.teamId === team.id && !juniorIds.has(player.id));
         }
       });
   }
 
   #rebuildRosters(teams, playerMap) {
     (teams || []).forEach((team) => {
-      const roster = [...playerMap.values()].filter((player) => player.affiliation?.teamId === team.id);
+      const juniorIds = getJuniorPlayerIds(team);
+      const roster = [...playerMap.values()].filter((player) => player.affiliation?.teamId === team.id && !juniorIds.has(player.id));
       const lineup = buildCompetitiveLines(roster);
       team.lines.splice(0, team.lines.length, ...lineup.lines);
       team.reservePlayers.splice(0, team.reservePlayers.length, ...lineup.reservePlayers);

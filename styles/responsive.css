@@ -107,6 +107,34 @@
   .team-stats-mood-wrap{
     justify-content:flex-start;
   }
+  .junior-hero{
+    flex-direction:column;
+  }
+  .junior-hero-main{
+    align-items:flex-start;
+  }
+  .junior-hero-stats{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .junior-grid{
+    grid-template-columns:1fr;
+  }
+  .junior-list{
+    max-height:none;
+  }
+  .junior-row{
+    grid-template-columns:1fr;
+  }
+  .junior-row-metrics{
+    flex-wrap:wrap;
+  }
+  .junior-contract-pill{
+    min-width:0;
+    justify-self:start;
+  }
+  .junior-action-btn{
+    width:100%;
+  }
   .line-view-panel{grid-template-columns:1fr}
   .line-unit-buttons{flex-direction:row;gap:10px;padding-top:0}
   .line-card-row{gap:10px}

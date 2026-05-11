@@ -135,6 +135,30 @@ export class ContractService {
     });
   }
 
+  createJuniorContract(player, teamId, season) {
+    if (!player?.id || !teamId || !season) return null;
+    const existing = this.getContractForSeason(player.id, season);
+    if (existing) return existing;
+    const years = 1 + ((String(player.id).charCodeAt(0) || 0) % 3);
+    const salaryRub = roundSalaryRub(Math.max(500000, 500000 + ((player.ovr || 55) - 50) * 50000));
+    const [contract] = this.#createFutureContracts({
+      player,
+      teamId,
+      years,
+      salaryRub,
+      startSeason: season,
+      type: ContractType.THREE_WAY,
+    });
+    return contract || null;
+  }
+
+  hasThreeWayContract(playerId, season = null) {
+    if (season) return this.getContractForSeason(playerId, season)?.type === ContractType.THREE_WAY;
+    const contracts = this.getContractsForPlayer(playerId);
+    const latest = getLatestContract(contracts, (contract) => parseSeasonEnd(contract.season));
+    return latest?.type === ContractType.THREE_WAY;
+  }
+
   retainRestrictedFreeAgent(player, teamId, season) {
     if (!player?.id || !teamId || !season) return null;
     const contracts = this.getContractsForPlayer(player.id);

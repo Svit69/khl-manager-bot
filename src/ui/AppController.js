@@ -68,6 +68,8 @@ export class AppController{
         this.#renderer.renderFreeAgents(this.#state.getActiveTeamFreeAgentRows(),this.#buildNegotiationState());
       }else if(this.#activeTab==="trades"){
         this.#renderer.renderTrades(this.#buildTradeState());
+      }else if(this.#activeTab==="junior"){
+        this.#renderer.renderJuniorTeam(this.#state.getActiveTeamJuniorView());
       }else{
         this.#renderer.renderMyTeamRoster(this.#state.activeTeam);
       }
@@ -338,6 +340,22 @@ export class AppController{
       this.#renderScreen();
       return;
     }
+    if(action==="send-to-junior"){
+      const playerId=clickable.dataset.playerId;
+      if(this.#state.sendPlayerToJunior(playerId)){
+        this.#userStore.saveState(this.#state.exportState());
+      }
+      this.#renderScreen();
+      return;
+    }
+    if(action==="promote-junior"){
+      const playerId=clickable.dataset.playerId;
+      if(this.#state.promoteJuniorPlayer(playerId)){
+        this.#userStore.saveState(this.#state.exportState());
+      }
+      this.#renderScreen();
+      return;
+    }
     if(action==="set-osa-years"){
       const offerId=clickable.dataset.offerId;
       const years=Number(clickable.dataset.years)||1;
@@ -553,7 +571,7 @@ export class AppController{
     this.#renderScreen();
   }
   #startFantasyDraft(selectedTeamId){
-    const allPlayers=this.#state.getAllPlayers();
+    const allPlayers=this.#state.getFantasyDraftPlayerPool();
     const service=new FantasyDraftService(this.#teams,allPlayers,selectedTeamId,20);
     this.#draftState={service,selectedTeamId,sortBy:"ovr",filterPosition:"ALL",selectedPlayerId:null};
     this.#draftIntroTeamId=null;
