@@ -122,6 +122,81 @@ export const getPotentialGapComponent = (potentialGap) => {
   return 0;
 };
 
+export const getRatingGrowthDifficulty = (player, age, potentialGap, avgIceTime) => {
+  const ovr = Number(player?.ovr) || 70;
+  const lineIndex = Number(player?.expectedLineIndex) || null;
+  let difficulty = 1;
+
+  if (ovr < 68) difficulty = 0.68;
+  else if (ovr < 72) difficulty = 0.78;
+  else if (ovr < 76) difficulty = 0.92;
+  else if (ovr < 80) difficulty = 1.12;
+  else if (ovr < 84) difficulty = 1.42;
+  else if (ovr < 88) difficulty = 1.85;
+  else difficulty = 2.35;
+
+  if (potentialGap >= 8) difficulty *= 0.76;
+  else if (potentialGap >= 4) difficulty *= 0.86;
+  else if (potentialGap <= 0) difficulty *= 1.35;
+  else if (potentialGap <= 2) difficulty *= 1.15;
+
+  if (age <= 20) difficulty *= 0.86;
+  else if (age <= 23) difficulty *= 0.95;
+  else if (age >= 34) difficulty *= 1.22;
+  else if (age >= 31) difficulty *= 1.1;
+
+  if (lineIndex === 1 && avgIceTime >= 17) difficulty *= 0.88;
+  else if (lineIndex === 2 && avgIceTime >= 14) difficulty *= 0.94;
+  else if (lineIndex === 4) difficulty *= 1.08;
+  else if (!lineIndex) difficulty *= 1.15;
+
+  return clamp(difficulty, 0.55, 2.8);
+};
+
+export const getRoleExpectationComponent = (player, age, games, avgIceTime, teamGamesPlayed) => {
+  const ovr = Number(player?.ovr) || 70;
+  const lineIndex = Number(player?.expectedLineIndex) || null;
+  const teamGames = Math.max(games, Number(teamGamesPlayed) || 0);
+  if (teamGames < 10 || games < 5) return 0;
+
+  const participationRate = games / Math.max(1, teamGames);
+  const expectedLine = ovr >= 85 ? 1 : ovr >= 81 ? 2 : ovr >= 77 ? 3 : 4;
+  let delta = 0;
+
+  if (!lineIndex) {
+    if (ovr >= 84) delta -= 0.065;
+    else if (ovr >= 80) delta -= 0.048;
+    else if (ovr >= 76) delta -= 0.026;
+    else delta -= age >= 24 ? 0.014 : 0.006;
+  } else {
+    const roleGap = lineIndex - expectedLine;
+    if (roleGap > 0) {
+      delta -= roleGap * (ovr >= 85 ? 0.022 : ovr >= 81 ? 0.017 : 0.01);
+    }
+    if (ovr >= 85 && lineIndex >= 3) delta -= 0.022;
+    if (ovr >= 82 && lineIndex === 4) delta -= 0.024;
+    if (ovr >= 80 && lineIndex <= 2 && avgIceTime >= 16) delta += 0.01;
+  }
+
+  if (ovr >= 85 && avgIceTime < 16) delta -= 0.028;
+  else if (ovr >= 82 && avgIceTime < 14) delta -= 0.021;
+  else if (ovr >= 78 && avgIceTime < 11) delta -= 0.012;
+
+  if (participationRate < 0.58 && ovr >= 80) delta -= 0.016;
+  if (participationRate < 0.42 && ovr >= 76) delta -= 0.018;
+
+  if (age >= 30 && ovr >= 80 && avgIceTime < 14) delta -= 0.012;
+  if (age >= 34 && avgIceTime < 15) delta -= 0.014;
+
+  if (age <= 22 && ovr <= 76 && lineIndex && lineIndex <= 2 && avgIceTime >= 14) {
+    delta += ovr <= 72 ? 0.032 : 0.022;
+  } else if (age <= 23 && ovr <= 78 && lineIndex && lineIndex <= 3 && avgIceTime >= 12) {
+    delta += 0.012;
+  }
+
+  return clamp(delta, -0.095, 0.04);
+};
+
 export const getPeakAgeRealizationComponent = (
   player,
   age,
