@@ -13,6 +13,11 @@ export class AppController{
   #matchPlaybackTimer=null;
   #calendarPanelTab="standings";
   #notificationVisibleCount=6;
+  #seasonContractDecisionOpen=false;
+  #seasonContractDecisionFilter="pending";
+  #seasonContractDecisionSelectedPlayerId=null;
+  #seasonContractReleasePlayerIds=new Set();
+  #seasonContractOutcomes=new Map();
   constructor(state,calendar,teams,renderer,userStore){
     this.#state=state;this.#calendar=calendar;this.#teams=teams;this.#renderer=renderer;this.#userStore=userStore;
   }
@@ -73,6 +78,7 @@ export class AppController{
       }else{
         this.#renderer.renderMyTeamRoster(this.#state.activeTeam);
       }
+      this.#renderer.renderSeasonContractDecision(this.#buildSeasonContractDecisionView());
       if(this.#matchPlayback)this.#renderer.renderMatchSimulationPopup(this.#matchPlayback);
       return;
     }
@@ -157,6 +163,15 @@ export class AppController{
       this.#teamStatsTeamId=changed.value||this.#state.activeTeamId;
       this.#renderScreen();
     }
+    if(action==="season-contract-salary-input"){
+      const playerId=changed.dataset.playerId;
+      const salaryRub=this.#parseSalaryMillions(changed.value);
+      if(!playerId||!salaryRub)return;
+      const current=this.#offerByPlayerId.get(playerId)||this.#getSeasonContractDefaultOffer(playerId)||{years:1,salaryRub};
+      this.#offerByPlayerId.set(playerId,{...current,salaryRub});
+      this.#seasonContractReleasePlayerIds.delete(playerId);
+      this.#renderScreen();
+    }
   }
   #buildNegotiationState(){
     if(!this.#selectedNegotiationPlayerId)return null;
@@ -196,6 +211,43 @@ export class AppController{
       message:this.#tradeMessage
     };
   }
+  #buildSeasonContractDecisionView(){
+    if(!this.#seasonContractDecisionOpen || !this.#state.activeTeam)return {isOpen:false};
+    const offersByPlayerId=Object.fromEntries(this.#offerByPlayerId);
+    const rows=this.#state.getSeasonContractDecisionRows(offersByPlayerId);
+    const pendingRows=rows.filter(row=>!row.hasFutureContract&&!this.#seasonContractReleasePlayerIds.has(row.playerId));
+    const visibleRows=rows.filter(row=>{
+      if(this.#seasonContractDecisionFilter==="pending")return !row.hasFutureContract&&!this.#seasonContractReleasePlayerIds.has(row.playerId);
+      if(this.#seasonContractDecisionFilter==="osa")return row.ufaStatus==="OSA"||row.ufaStatus==="ОСА";
+      if(this.#seasonContractDecisionFilter==="nsa")return row.ufaStatus==="NSA"||row.ufaStatus==="НСА";
+      if(this.#seasonContractDecisionFilter==="renewed")return row.hasFutureContract;
+      if(this.#seasonContractDecisionFilter==="release")return this.#seasonContractReleasePlayerIds.has(row.playerId);
+      return true;
+    });
+    const selectedRow=visibleRows.find(row=>row.playerId===this.#seasonContractDecisionSelectedPlayerId) || visibleRows[0] || rows.find(row=>row.playerId===this.#seasonContractDecisionSelectedPlayerId) || rows[0] || null;
+    if(selectedRow?.preview&&!this.#offerByPlayerId.has(selectedRow.playerId)){
+      this.#offerByPlayerId.set(selectedRow.playerId,selectedRow.preview.offer);
+    }
+    return {
+      isOpen:true,
+      rows,
+      filteredRows:visibleRows,
+      selectedRow,
+      selectedPlayerId:selectedRow?.playerId||null,
+      filter:this.#seasonContractDecisionFilter,
+      releasePlayerIds:this.#seasonContractReleasePlayerIds,
+      offersByPlayerId:Object.fromEntries(this.#offerByPlayerId),
+      outcomesByPlayerId:Object.fromEntries(this.#seasonContractOutcomes),
+      totalCount:rows.length,
+      resolvedCount:rows.filter(row=>row.hasFutureContract||this.#seasonContractReleasePlayerIds.has(row.playerId)).length,
+      pendingCount:pendingRows.length,
+      osaCount:rows.filter(row=>row.ufaStatus==="OSA"||row.ufaStatus==="ОСА").length
+    };
+  }
+  #getSeasonContractDefaultOffer(playerId){
+    const rows=this.#state.getSeasonContractDecisionRows(Object.fromEntries(this.#offerByPlayerId));
+    return rows.find(row=>row.playerId===playerId)?.preview?.offer||null;
+  }
   #handleClick(event){
     const clickable=event.target?.closest?.("[data-team-id],[data-tab],[data-action],#resetBtn,#playBtn");
     const teamId=clickable?.dataset?.teamId;
@@ -231,6 +283,104 @@ export class AppController{
     }
     if(action==="show-more-notifications"){
       this.#notificationVisibleCount+=10;
+      this.#renderScreen();
+      return;
+    }
+    if(action==="season-contract-close"){
+      this.#seasonContractDecisionOpen=false;
+      this.#renderScreen();
+      return;
+    }
+    if(action==="season-contract-filter"){
+      this.#seasonContractDecisionFilter=clickable.dataset.filter||"pending";
+      this.#renderScreen();
+      return;
+    }
+    if(action==="season-contract-select"){
+      this.#seasonContractDecisionSelectedPlayerId=clickable.dataset.playerId||null;
+      this.#renderScreen();
+      return;
+    }
+    if(action==="season-contract-years"){
+      const playerId=clickable.dataset.playerId;
+      const years=Number(clickable.dataset.years)||1;
+      const current=this.#offerByPlayerId.get(playerId)||this.#getSeasonContractDefaultOffer(playerId)||{years:1,salaryRub:0};
+      this.#offerByPlayerId.set(playerId,{...current,years});
+      this.#seasonContractReleasePlayerIds.delete(playerId);
+      this.#renderScreen();
+      return;
+    }
+    if(action==="season-contract-adjust-salary"){
+      const playerId=clickable.dataset.playerId;
+      const deltaMillion=Number(clickable.dataset.deltaMillion)||0;
+      const current=this.#offerByPlayerId.get(playerId)||this.#getSeasonContractDefaultOffer(playerId);
+      if(!playerId||!current)return;
+      this.#offerByPlayerId.set(playerId,{...current,salaryRub:this.#roundSalaryRub(current.salaryRub+Math.round(deltaMillion*1000000))});
+      this.#seasonContractReleasePlayerIds.delete(playerId);
+      this.#renderScreen();
+      return;
+    }
+    if(action==="season-contract-market-salary"||action==="season-contract-demand-salary"){
+      const playerId=clickable.dataset.playerId;
+      const preview=this.#state.getSeasonContractDecisionRows(Object.fromEntries(this.#offerByPlayerId)).find(row=>row.playerId===playerId)?.preview;
+      if(preview){
+        const current=this.#offerByPlayerId.get(playerId)||preview.offer;
+        const salaryRub=action==="season-contract-market-salary"?preview.marketSalary:preview.teamAdjustedDemand;
+        this.#offerByPlayerId.set(playerId,{...current,salaryRub:this.#roundSalaryRub(salaryRub)});
+        this.#seasonContractReleasePlayerIds.delete(playerId);
+      }
+      this.#renderScreen();
+      return;
+    }
+    if(action==="season-contract-submit-offer"){
+      const playerId=clickable.dataset.playerId;
+      const result=this.#state.submitActiveTeamNegotiation(playerId,this.#offerByPlayerId.get(playerId));
+      if(result){
+        const label=result.decision==="accept"
+          ?"Игрок согласился и продлен"
+          :(result.decision==="counter"
+            ?`Игрок просит изменить условия: ${result.counter?.summary||"контрпредложение"}`
+            :(result.decision==="locked"?"Контракт уже продлен":"Игрок отказался от предложения"));
+        this.#seasonContractOutcomes.set(playerId,label);
+        if(result.decision==="counter"&&result.counter)this.#offerByPlayerId.set(playerId,result.counter);
+        if(result.decision==="accept"||result.decision==="locked"){
+          this.#seasonContractReleasePlayerIds.delete(playerId);
+          this.#userStore.saveState(this.#state.exportState());
+        }
+      }
+      this.#renderScreen();
+      return;
+    }
+    if(action==="season-contract-release"){
+      const playerId=clickable.dataset.playerId;
+      if(playerId){
+        this.#seasonContractReleasePlayerIds.add(playerId);
+        this.#seasonContractOutcomes.set(playerId,"Игрок будет отпущен после окончания сезона");
+      }
+      this.#renderScreen();
+      return;
+    }
+    if(action==="season-contract-undo-release"){
+      const playerId=clickable.dataset.playerId;
+      if(playerId)this.#seasonContractReleasePlayerIds.delete(playerId);
+      this.#renderScreen();
+      return;
+    }
+    if(action==="season-contract-release-pending"){
+      this.#state.getSeasonContractDecisionRows(Object.fromEntries(this.#offerByPlayerId))
+        .filter(row=>!row.hasFutureContract)
+        .forEach(row=>this.#seasonContractReleasePlayerIds.add(row.playerId));
+      this.#renderScreen();
+      return;
+    }
+    if(action==="season-contract-confirm"){
+      const view=this.#buildSeasonContractDecisionView();
+      if(view.pendingCount>0)return;
+      this.#seasonContractDecisionOpen=false;
+      this.#state.advanceToNextSeason({releaseRightsPlayerIds:[...this.#seasonContractReleasePlayerIds]});
+      this.#seasonContractReleasePlayerIds.clear();
+      this.#seasonContractOutcomes.clear();
+      this.#userStore.saveState(this.#state.exportState());
       this.#renderScreen();
       return;
     }
@@ -546,6 +696,14 @@ export class AppController{
     if(clickable?.id==="resetBtn"){this.#resetGame();return;}
     if(clickable?.id!=="playBtn"||!this.#state.activeTeamId)return;
     if(this.#state.canAdvanceToNextSeason()){
+      const rows=this.#state.getSeasonContractDecisionRows(Object.fromEntries(this.#offerByPlayerId));
+      if(rows.some(row=>!row.hasFutureContract)){
+        this.#seasonContractDecisionOpen=true;
+        this.#seasonContractDecisionFilter="pending";
+        this.#seasonContractDecisionSelectedPlayerId=rows.find(row=>!row.hasFutureContract)?.playerId||rows[0]?.playerId||null;
+        this.#renderScreen();
+        return;
+      }
       this.#state.advanceToNextSeason();
       this.#userStore.saveState(this.#state.exportState());
       this.#renderScreen();

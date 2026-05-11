@@ -78,6 +78,55 @@
   align-items:start;
 }
 .osa-rights-top>div:first-child,.osa-rights-offer{display:grid;gap:3px}
+
+.season-contract-modal{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:22px;background:rgba(2,6,12,.72);backdrop-filter:blur(14px)}
+.season-contract-card{width:min(1180px,100%);max-height:min(92vh,920px);display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto;gap:14px;overflow:hidden;border-radius:24px;border:1px solid rgba(255,255,255,.1);background:linear-gradient(135deg,rgba(118,243,186,.08),rgba(111,212,255,.06) 45%,rgba(255,255,255,.02)),linear-gradient(180deg,rgba(18,23,30,.98),rgba(9,13,20,.98));box-shadow:0 34px 80px rgba(0,0,0,.44);padding:18px}
+.season-contract-header,.season-contract-footer{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.season-contract-header h2{margin:4px 0 6px;color:#f4f8f4;font-size:30px;line-height:1.05}
+.season-contract-header p{margin:0;color:#9fb0c6;font-size:14px;font-weight:700}
+.season-contract-kicker{color:#80f7ca;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+.season-contract-close{width:40px;height:40px;border:none;border-radius:14px;background:rgba(255,255,255,.06);color:#edf6ef;font-size:28px;line-height:1;cursor:pointer}
+.season-contract-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.season-contract-summary div,.season-contract-detail-grid div,.season-contract-market div{display:grid;gap:4px;padding:11px 12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)}
+.season-contract-summary span,.season-contract-detail-grid span,.season-contract-market span{color:#8fa0b8;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.season-contract-summary strong,.season-contract-detail-grid strong,.season-contract-market strong{color:#edf6ef;font-size:18px;line-height:1}
+.season-contract-filters{display:flex;flex-wrap:wrap;gap:8px}
+.season-contract-filter,.season-contract-chip,.season-contract-step{min-height:34px;border:none;border-radius:999px;padding:0 13px;background:rgba(255,255,255,.06);color:#dce7e5;font:inherit;font-size:12px;font-weight:900;cursor:pointer}
+.season-contract-filter.active,.season-contract-chip.active{background:linear-gradient(135deg,#80f7ca,#d8ff6d);color:#071018}
+.season-contract-layout{display:grid;grid-template-columns:minmax(320px,.78fr) minmax(0,1.22fr);gap:14px;min-height:0}
+.season-contract-list{display:grid;align-content:start;gap:8px;min-height:0;overflow:auto;padding-right:4px}
+.season-contract-player{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;padding:10px;border-radius:16px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.035);color:#edf6ef;font:inherit;text-align:left;cursor:pointer}
+.season-contract-player.active{border-color:rgba(128,247,202,.34);background:rgba(128,247,202,.08)}
+.season-contract-player img,.season-contract-detail-head img{width:44px;height:44px;border-radius:13px;object-fit:cover;background:#101923}
+.season-contract-player-main{display:grid;gap:3px;min-width:0}
+.season-contract-player-main strong{overflow:hidden;color:#f4f8f4;font-size:14px;font-weight:900;text-overflow:ellipsis;white-space:nowrap}
+.season-contract-player-main small{color:#8fa0b8;font-size:12px;font-weight:700}
+.season-contract-badge{padding:7px 9px;border-radius:999px;font-size:10px;font-weight:900;text-transform:uppercase;white-space:nowrap}
+.season-contract-badge.good{background:rgba(128,247,202,.13);color:#dffdfa}
+.season-contract-badge.pending{background:rgba(255,255,255,.07);color:#cbd6e4}
+.season-contract-badge.danger{background:rgba(255,117,117,.14);color:#ffd6d6}
+.season-contract-detail{display:grid;align-content:start;gap:12px;min-width:0;overflow:auto;padding:16px;border-radius:20px;border:1px solid rgba(255,255,255,.08);background:rgba(5,9,16,.46)}
+.season-contract-detail-head{display:grid;grid-template-columns:64px minmax(0,1fr) auto;align-items:center;gap:14px}
+.season-contract-detail-head img{width:64px;height:64px;border-radius:18px}
+.season-contract-detail-head h3{margin:3px 0;color:#f4f8f4;font-size:24px;line-height:1.08}
+.season-contract-detail-head p{margin:0;color:#8fa0b8;font-size:13px;font-weight:700}
+.season-contract-detail-grid,.season-contract-market{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.season-contract-market{grid-template-columns:repeat(3,minmax(0,1fr))}
+.season-contract-chance{height:8px;overflow:hidden;border-radius:999px;background:rgba(255,255,255,.07)}
+.season-contract-chance span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#ff7575,#e7f56b,#80f7ca)}
+.season-contract-reasons{display:grid;gap:7px}
+.season-contract-reason{padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.04);color:#cbd6e4;font-size:12px;font-weight:700}
+.season-contract-reason.pos{color:#dffdfa}
+.season-contract-reason.neg{color:#ffd6d6}
+.season-contract-offer{display:grid;gap:10px}
+.season-contract-years,.season-contract-salary,.season-contract-actions,.season-contract-footer-main{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.season-contract-input{width:92px;min-height:36px;border:none;border-radius:12px;padding:0 10px;background:rgba(255,255,255,.08);color:#edf6ef;font:inherit;font-weight:900}
+.season-contract-step{border-radius:12px}
+.season-contract-step.wide{min-width:86px}
+.season-contract-outcome,.season-contract-locked,.season-contract-empty{padding:14px;border-radius:14px;background:rgba(255,255,255,.04);color:#cbd6e4;font-weight:700}
+.season-contract-footer{align-items:center;padding-top:2px}
+.season-contract-footer-main{justify-content:flex-end}
+.season-contract-footer-main span{color:#9fb0c6;font-size:13px;font-weight:800}
 .osa-rights-top strong{font-size:17px}
 .osa-rights-top span,.osa-rights-offer span{font-size:13px;color:var(--muted)}
 .osa-rights-body{display:grid;gap:8px}

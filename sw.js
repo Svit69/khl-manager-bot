@@ -1,4 +1,4 @@
-const CACHE_NAME="khl-manager-v100";
+const CACHE_NAME="khl-manager-v101";
 const ASSETS=[
   "./",
   "./index.html",
@@ -27,6 +27,7 @@ const ASSETS=[
   "./src/state/AppStateRoster.js",
   "./src/ui/TeamStatsTabRenderer.js",
   "./src/ui/JuniorTeamTabRenderer.js",
+  "./src/ui/SeasonContractDecisionRenderer.js",
   "./src/season/SeasonTransitionService.js",
   "./src/season/JuniorTeamService.js",
   "./src/season/PlayerRetirementService.js",

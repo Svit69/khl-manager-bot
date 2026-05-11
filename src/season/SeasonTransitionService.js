@@ -35,7 +35,7 @@ export class SeasonTransitionService {
     this.#development = developmentService;
   }
 
-  advanceToNextSeason({ teams, calendar, activeTeamId, standingsTable, scorerTable, allPlayers, buildContext, pushNotification }) {
+  advanceToNextSeason({ teams, calendar, activeTeamId, standingsTable, scorerTable, allPlayers, buildContext, pushNotification, releaseRightsPlayerIds = [] }) {
     const currentSeasonLabel = calendar.seasonLabel;
     const nextSeasonStartYear = calendar.seasonStartYear + 1;
     const nextSeasonLabel = formatSeasonLabel(nextSeasonStartYear);
@@ -70,6 +70,7 @@ export class SeasonTransitionService {
     const userDepartures = [];
     const userRestrictedRetentions = [];
     const restrictedRightsOffers = [];
+    const releasedRightsPlayerIds = new Set(releaseRightsPlayerIds || []);
 
     activePlayers.forEach((player) => {
       const nextContract = this.#contracts.getContractForSeason(player.id, nextSeasonLabel);
@@ -83,7 +84,7 @@ export class SeasonTransitionService {
         calculateAge(player.identity?.birthDate, offseasonDate),
         player.career?.khlGamesPlayed || 0,
       );
-      if (currentTeamId && ufaStatus === "OSA") {
+      if (currentTeamId && ufaStatus === "OSA" && !(currentTeamId === activeTeamId && releasedRightsPlayerIds.has(player.id))) {
         const retainedContract = this.#contracts.retainRestrictedFreeAgent(player, currentTeamId, nextSeasonLabel);
         player.affiliation.teamId = currentTeamId;
         player.affiliation.contractId = retainedContract?.id || player.affiliation.contractId || null;

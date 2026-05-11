@@ -3,7 +3,7 @@ import { StatsTracker } from "../stats/StatsTracker.js";
 import { AiRenewalService } from "../contracts/AiRenewalService.js";
 import { ContractService } from "../contracts/ContractService.js";
 import { StandingsTracker } from "../stats/StandingsTracker.js";
-import { setSeasonReferenceDate } from "../contracts/SeasonUtils.js";
+import { calculateAge, formatContractEndDate, parseSeasonEnd, setSeasonReferenceDate } from "../contracts/SeasonUtils.js";
 import { PlayerDevelopmentService } from "../progression/PlayerDevelopmentService.js";
 import { TradeService } from "../trade/TradeService.js";
 import {
@@ -15,6 +15,7 @@ import {
 import { getPreseasonDateAt, getPreseasonNextDate } from "../season/PreseasonSchedule.js";
 import { SeasonTransitionService } from "../season/SeasonTransitionService.js";
 import { JuniorTeamService } from "../season/JuniorTeamService.js";
+import { getUfaStatus } from "../contracts/RenewalScoring.js";
 import {
   createDevelopmentNotification,
   markNotificationsRead,
@@ -207,6 +208,52 @@ export class AppState {
     return this.#contracts.getFreeAgentRows(this.getAvailableFreeAgents());
   }
 
+  getSeasonContractDecisionRows(offersByPlayerId = {}) {
+    const team = this.activeTeam;
+    if (!team) return [];
+    const seasonLabel = this.#calendar.seasonLabel;
+    const context = this.#buildNegotiationContext(team);
+    const players = [
+      ...team.getRoster().map((player) => ({ player, location: "main" })),
+      ...(team.juniorPlayers || []).map((player) => ({ player, location: "junior" })),
+    ];
+
+    return players
+      .map(({ player, location }) => {
+        const contracts = this.#contracts.getContractsForPlayer(player.id);
+        const currentContract = contracts.find((contract) => contract.season === seasonLabel) || null;
+        if (!currentContract) return null;
+        const latestContract = contracts[contracts.length - 1] || currentContract;
+        const hasFutureContract = parseSeasonEnd(latestContract.season) > parseSeasonEnd(seasonLabel);
+        const age = calculateAge(player.identity?.birthDate, this.#getEffectiveNegotiationDate());
+        const preview = hasFutureContract
+          ? null
+          : this.#contracts.getRenewalPreview(team, player, offersByPlayerId[player.id] || null, context);
+        return {
+          playerId: player.id,
+          displayName: player.name,
+          position: player.identity?.primaryPosition || "",
+          age,
+          ovr: player.currentOvr ?? player.ovr,
+          photoUrl: player.identity?.photoUrl || "./player-photo/placeholder.png",
+          khlGamesPlayed: player.career?.khlGamesPlayed || 0,
+          ufaStatus: getUfaStatus(age, player.career?.khlGamesPlayed || 0),
+          location,
+          salaryRub: currentContract.salaryRub || 0,
+          contractType: this.#contracts.getContractTypeLabel(currentContract.type),
+          contractEndDate: formatContractEndDate(currentContract.season),
+          hasFutureContract,
+          preview,
+        };
+      })
+      .filter(Boolean)
+      .sort((left, right) =>
+        Number(left.hasFutureContract) - Number(right.hasFutureContract) ||
+        (right.ovr - left.ovr) ||
+        left.displayName.localeCompare(right.displayName, "ru"),
+      );
+  }
+
   getActiveTeamJuniorView() {
     if (!this.activeTeam) return null;
     return {
@@ -239,12 +286,12 @@ export class AppState {
   }
 
   getActiveTeamNegotiationPreview(playerId, offer) {
-    const player = this.activeTeam?.getRoster().find((entry) => entry.id === playerId);
+    const player = this.#findActiveTeamPlayer(playerId);
     return player ? this.#contracts.getRenewalPreview(this.activeTeam, player, offer, this.#buildNegotiationContext(this.activeTeam)) : null;
   }
 
   submitActiveTeamNegotiation(playerId, offer) {
-    const player = this.activeTeam?.getRoster().find((entry) => entry.id === playerId);
+    const player = this.#findActiveTeamPlayer(playerId);
     return player ? this.#contracts.submitRenewalOffer(this.activeTeam, player, offer, this.#buildNegotiationContext(this.activeTeam)) : null;
   }
 
@@ -471,7 +518,7 @@ export class AppState {
     return true;
   }
 
-  advanceToNextSeason() {
+  advanceToNextSeason(options = {}) {
     if (!this.canAdvanceToNextSeason()) return null;
     const transition = this.#seasonTransition.advanceToNextSeason({
       teams: this.#teams,
@@ -482,6 +529,7 @@ export class AppState {
       allPlayers: this.getAllPlayers(),
       buildContext: (team) => this.#buildNegotiationContext(team),
       pushNotification: (notification) => this.#pushNotification(notification),
+      releaseRightsPlayerIds: options.releaseRightsPlayerIds || [],
     });
     this.#seasonHistory.unshift(transition.archive);
     this.#seasonHistory = this.#seasonHistory.slice(0, 12);
@@ -649,6 +697,11 @@ export class AppState {
     this.#lastMatch = focusedMatches[0] || null;
     this.#syncSeasonPhase();
     return this.#lastMatch;
+  }
+
+  #findActiveTeamPlayer(playerId) {
+    if (!this.activeTeam || !playerId) return null;
+    return [...this.activeTeam.getRoster(), ...(this.activeTeam.juniorPlayers || [])].find((entry) => entry.id === playerId) || null;
   }
 
   #applyFatigue(teams, delta) {

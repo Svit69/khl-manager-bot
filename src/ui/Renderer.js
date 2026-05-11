@@ -3,6 +3,7 @@ import { FreeAgentTabRenderer } from "./FreeAgentTabRenderer.js";
 import { TeamStatsTabRenderer } from "./TeamStatsTabRenderer.js";
 import { TradeTabRenderer } from "./TradeTabRenderer.js";
 import { JuniorTeamTabRenderer } from "./JuniorTeamTabRenderer.js";
+import { SeasonContractDecisionRenderer } from "./SeasonContractDecisionRenderer.js";
 import { calculateAge } from "../contracts/SeasonUtils.js";
 import { adjustedOvrForPosition } from "../utils/positionFit.js";
 const NATION_FLAG_ASSET_BY_CODE=Object.freeze({
@@ -196,7 +197,7 @@ const renderNotificationCenter=notifications=>{
   </div>`;
 };
 export class Renderer{
-  #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();#teamStatsTab=new TeamStatsTabRenderer();#freeAgentTab=new FreeAgentTabRenderer();#tradeTab=new TradeTabRenderer();#juniorTab=new JuniorTeamTabRenderer();
+  #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();#teamStatsTab=new TeamStatsTabRenderer();#freeAgentTab=new FreeAgentTabRenderer();#tradeTab=new TradeTabRenderer();#juniorTab=new JuniorTeamTabRenderer();#seasonContractDecision=new SeasonContractDecisionRenderer();
   constructor(){
     this.#teamEl=document.getElementById("teamPanel");
     this.#calEl=document.getElementById("calendarPanel");
@@ -276,6 +277,10 @@ export class Renderer{
     const container=document.getElementById("teamTabContent");
     if(container){container.innerHTML=this.#juniorTab.render(view);return;}
     this.#matchEl.innerHTML=this.#juniorTab.render(view);
+  }
+  renderSeasonContractDecision(view){
+    if(!view?.isOpen)return;
+    this.#teamEl.insertAdjacentHTML("beforeend",this.#seasonContractDecision.render(view));
   }
   renderFreeAgents(rows,negotiation){
     const container=document.getElementById("teamTabContent");
