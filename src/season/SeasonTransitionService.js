@@ -151,8 +151,8 @@ export class SeasonTransitionService {
       pushNotification({
         id: `notification-offseason-osa-retain-${player.id}-${Date.now()}`,
         type: "offseason-retention",
-        title: "РњРµР¶СЃРµР·РѕРЅСЊРµ",
-        message: `${player.name} СЃРѕС…СЂР°РЅРµРЅ РєР»СѓР±РѕРј РєР°Рє РћРЎРђ`,
+        title: "Межсезонье",
+        message: `${player.name} сохранен клубом как ОСА`,
         day: calendar.currentDay,
         createdAt: new Date().toISOString(),
         playerId: player.id,
