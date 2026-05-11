@@ -1,4 +1,5 @@
 import { calculateAge, clamp } from "../SeasonUtils.js";
+import { getFallbackMarketSalaryRub } from "../ContractServiceShared.js";
 import {
   POSITION_SCARCITY_TARGETS,
   STRATEGY_MONTHLY_SLOTS,
@@ -47,7 +48,7 @@ export const getPreferredYears = (player, plan, meta) => {
 };
 
 export const getSeedSalary = (player, latestContract, plan, seasonsRemaining) => {
-  const lastSalary = Number(latestContract?.salaryRub) || Math.max(1000000, (player.ovr || 70) * 1000000);
+  const lastSalary = Number(latestContract?.salaryRub) || getFallbackMarketSalaryRub(player);
   let factor = 1;
   if (plan.strategy === "contender") factor += 0.03;
   if (plan.strategy === "rebuild" && seasonsRemaining > 0) factor -= 0.03;

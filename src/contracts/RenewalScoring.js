@@ -1,5 +1,6 @@
 import { getTermMod, getTermPreference, termPreferenceLabel } from "./TermPreference.js";
 import { calculateAge, clamp } from "./SeasonUtils.js";
+import { getFallbackMarketSalaryRub } from "./ContractServiceShared.js";
 
 const MIN_GAMES_FOR_ROLE_EVAL = 5;
 const MIN_GAMES_FOR_IMPACT_EVAL = 5;
@@ -581,7 +582,7 @@ export const getUfaStatus = (age, khlGamesPlayed) => {
 export const estimateMarketSalary = (player, lastContract, marketSalaryOverride = null) => {
   if (Number.isFinite(marketSalaryOverride) && marketSalaryOverride > 0) return marketSalaryOverride;
   if (lastContract?.salaryRub) return roundSalaryRub(lastContract.salaryRub);
-  return roundSalaryRub(Math.max(1000000, Math.round((player.ovr || 0) * 1000000)));
+  return getFallbackMarketSalaryRub(player);
 };
 
 export const getAcceptanceChance = (willingness) => {

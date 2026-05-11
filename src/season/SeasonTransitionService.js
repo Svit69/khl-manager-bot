@@ -1,4 +1,5 @@
 import { buildCompetitiveLines } from "../data/lineupBuilder.js";
+import { getFallbackMarketSalaryRub } from "../contracts/ContractServiceShared.js";
 import { createSkater } from "../data/playerFactory.js";
 import { PlayerPosition } from "../models/PlayerPosition.js";
 import { generateUuid } from "../utils/uuid.js";
@@ -229,7 +230,7 @@ export class SeasonTransitionService {
             const preview = this.#contracts.getFreeAgentPreview(
               team,
               candidate,
-              { years: 1, salaryRub: Math.max(500000, candidate.ovr * 1000000) },
+              { years: 1, salaryRub: getFallbackMarketSalaryRub(candidate) },
               context,
             );
             const offer = { years: 1, salaryRub: Math.round((preview.teamAdjustedDemand * 1.08) / 500000) * 500000 };

@@ -1,5 +1,5 @@
 ﻿import { clamp } from "./SeasonUtils.js";
-import { getPositionMarketGroup, roundSalaryRub } from "./ContractServiceShared.js";
+import { getFallbackMarketSalaryRub, getPositionMarketGroup, roundSalaryRub } from "./ContractServiceShared.js";
 
 const getMarketGroupLabel = (group) => {
   if (group === "DEF") return "\u0417\u0430\u0449\u0438\u0442\u043d\u0438\u043a\u0438";
@@ -53,16 +53,17 @@ const getSeasonMarketModifier = ({ player, peers, context }) => {
 
 export const estimateMarketSalary = ({ player, context, lastContract, getReferenceSalary }) => {
   const allPlayers = Array.isArray(context?.allPlayers) ? context.allPlayers : [];
-  const minOvr = (player.ovr || 0) - 1;
-  const maxOvr = (player.ovr || 0) + 1;
+  const playerOvr = Number(player.ovr) || 0;
+  const minOvr = playerOvr - 1;
+  const maxOvr = playerOvr + 1;
   const marketGroup = getPositionMarketGroup(player.identity?.primaryPosition);
 
-  const peers = allPlayers.filter(
+  const sameGroupPlayers = allPlayers.filter(
     (candidate) =>
       candidate?.id !== player.id &&
-      Math.abs((candidate?.ovr || 0) - (player.ovr || 0)) <= 1 &&
       getPositionMarketGroup(candidate?.identity?.primaryPosition) === marketGroup,
   );
+  const peers = sameGroupPlayers.filter((candidate) => Math.abs((candidate?.ovr || 0) - playerOvr) <= 1);
 
   const peerSalaries = peers
     .map((candidate) => getReferenceSalary(candidate.id))
@@ -80,7 +81,27 @@ export const estimateMarketSalary = ({ player, context, lastContract, getReferen
     };
   }
 
-  const fallbackBase = lastContract?.salaryRub || Math.max(1000000, Math.round((player.ovr || 0) * 1000000));
+  const fallbackSalary = getFallbackMarketSalaryRub(player);
+  const expandedPeers = sameGroupPlayers.filter((candidate) => Math.abs((candidate?.ovr || 0) - playerOvr) <= 3);
+  const expandedPeerSalaries = expandedPeers
+    .map((candidate) => {
+      const salary = getReferenceSalary(candidate.id);
+      if (!Number.isFinite(salary) || salary <= 0) return null;
+      const candidateFallback = getFallbackMarketSalaryRub(candidate);
+      return salary * (fallbackSalary / Math.max(1, candidateFallback));
+    })
+    .filter((salary) => Number.isFinite(salary) && salary > 0);
+
+  if (expandedPeerSalaries.length) {
+    const averageSalary = expandedPeerSalaries.reduce((total, value) => total + value, 0) / expandedPeerSalaries.length;
+    return {
+      salaryRub: roundSalaryRub(Math.max(500000, averageSalary * marketModifier)),
+      sampleSize: expandedPeerSalaries.length,
+      rangeLabel: `${getMarketGroupLabel(marketGroup)} - OVR ${playerOvr - 3}-${playerOvr + 3}`,
+    };
+  }
+
+  const fallbackBase = lastContract?.salaryRub || fallbackSalary;
   return {
     salaryRub: roundSalaryRub(fallbackBase * marketModifier),
     sampleSize: 0,

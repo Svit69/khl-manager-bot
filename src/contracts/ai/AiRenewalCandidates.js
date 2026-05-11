@@ -1,4 +1,5 @@
 import { calculateAge, clamp, parseSeasonEnd } from "../SeasonUtils.js";
+import { getFallbackMarketSalaryRub } from "../ContractServiceShared.js";
 import {
   OFFSEASON_SIGNINGS_BY_STRATEGY,
   POSITION_SCARCITY_TARGETS,
@@ -173,7 +174,7 @@ const buildOffseasonFreeAgentCandidate = ({ contracts, team, player, context, pl
     player,
     {
       years,
-      salaryRub: Math.max(500000, Math.round((player.ovr || 70) * 1000000)),
+      salaryRub: getFallbackMarketSalaryRub(player),
     },
     context,
   );
