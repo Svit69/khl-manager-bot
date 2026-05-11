@@ -125,6 +125,16 @@ export class ContractService {
     });
   }
 
+  retirePlayers(playerIds) {
+    (playerIds || []).forEach((playerId) => {
+      if (!playerId) return;
+      this.#releasedPlayerIds.add(playerId);
+      this.#contracts = this.#contracts.filter((contract) => contract.playerId !== playerId);
+      this.#clearBadOfferCount(playerId);
+      this.#clearLastOffer(playerId);
+    });
+  }
+
   retainRestrictedFreeAgent(player, teamId, season) {
     if (!player?.id || !teamId || !season) return null;
     const contracts = this.getContractsForPlayer(player.id);

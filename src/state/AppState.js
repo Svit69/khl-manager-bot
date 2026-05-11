@@ -58,6 +58,7 @@ export class AppState {
   #notifications = [];
   #seasonHistory = [];
   #seasonState;
+  #retiredPlayerIds = new Set();
 
   constructor(teams, calendar, contracts, freeAgents = []) {
     this.#teams = teams;
@@ -157,7 +158,9 @@ export class AppState {
   }
 
   getAllPlayers() {
-    return [...this.#teams.flatMap((team) => team.getRoster()), ...this.#freeAgents];
+    return [...this.#teams.flatMap((team) => team.getRoster()), ...this.#freeAgents].filter(
+      (player) => !this.#retiredPlayerIds.has(player.id),
+    );
   }
 
   getActiveTeamContractRows() {
@@ -425,6 +428,7 @@ export class AppState {
     });
     this.#seasonHistory.unshift(transition.archive);
     this.#seasonHistory = this.#seasonHistory.slice(0, 12);
+    (transition.retiredPlayerIds || []).forEach((playerId) => this.#retiredPlayerIds.add(playerId));
     this.#freeAgents = dedupeFreeAgents(transition.freeAgents);
     this.#stats.importStats([]);
     this.#standings.importSnapshot([]);
@@ -447,12 +451,14 @@ export class AppState {
       notifications: this.#notifications,
       seasonHistory: this.#seasonHistory,
       seasonState: this.#seasonState,
+      retiredPlayerIds: [...this.#retiredPlayerIds],
     };
   }
 
   importState(saved) {
     if (!saved) return;
-    const allPlayers = [...new Map(this.getAllPlayers().map((player) => [player.id, player])).values()];
+    this.#retiredPlayerIds = new Set(Array.isArray(saved.retiredPlayerIds) ? saved.retiredPlayerIds : []);
+    const basePlayers = [...new Map([...this.#teams.flatMap((team) => team.getRoster()), ...this.#freeAgents].map((player) => [player.id, player])).values()];
     this.#activeTeamId = saved.activeTeamId || null;
     if (saved.calendar) this.#calendar.importState(saved.calendar);
     else {
@@ -463,13 +469,15 @@ export class AppState {
       importSavedRosters({
         teams: this.#teams,
         rosters: saved.rosters,
-        allPlayers,
+        allPlayers: basePlayers,
         refreshExpectedRoles: (team) => this.#refreshExpectedRoles(team),
       });
     }
-    restorePlayerSnapshots(allPlayers, saved.players);
+    restorePlayerSnapshots(basePlayers, saved.players);
 
-    this.#freeAgents = dedupeFreeAgents(allPlayers);
+    const activePlayers = basePlayers.filter((player) => !this.#retiredPlayerIds.has(player.id));
+    this.#freeAgents = dedupeFreeAgents(activePlayers);
+    this.#seasonTransition.rebuildRosters(this.#teams, activePlayers);
     if (saved.contracts) this.#contracts.importContracts(saved.contracts);
     if (saved.standings) this.#standings.importSnapshot(saved.standings);
     this.#calendar.ensurePlayoffs(this.getStandingsTable());

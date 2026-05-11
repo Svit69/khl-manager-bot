@@ -5,6 +5,7 @@ import { calculateAge } from "../contracts/SeasonUtils.js";
 import { createSkater } from "../data/playerFactory.js";
 import { PlayerPosition } from "../models/PlayerPosition.js";
 import { generateUuid } from "../utils/uuid.js";
+import { PlayerRetirementService } from "./PlayerRetirementService.js";
 import { createPreseasonDates, getPreseasonDateAt } from "./PreseasonSchedule.js";
 import { TEAM_ROSTER_POSITION_TARGETS, TEAM_ROSTER_TARGET_SIZE } from "./RosterTargets.js";
 
@@ -24,6 +25,7 @@ const collectUniqueFreeAgents = (players) => {
 export class SeasonTransitionService {
   #contracts;
   #development;
+  #retirements = new PlayerRetirementService();
 
   constructor(contractService, aiRenewalService, developmentService) {
     this.#contracts = contractService;
@@ -45,13 +47,29 @@ export class SeasonTransitionService {
       player.career?.addSeason?.(1);
     });
 
-    const playerMap = new Map((allPlayers || []).map((player) => [player.id, player]));
+    const retirementEntries = this.#retirements.evaluate(allPlayers, {
+      seasonLabel: currentSeasonLabel,
+      seasonDate: offseasonDate,
+      hasNextContract: (player) => Boolean(this.#contracts.getContractForSeason(player.id, nextSeasonLabel)),
+    });
+    const retiredPlayerIds = new Set(retirementEntries.map((entry) => entry.player.id));
+    if (retiredPlayerIds.size) {
+      this.#contracts.retirePlayers([...retiredPlayerIds]);
+      retirementEntries.forEach(({ player }) => {
+        player.affiliation.teamId = null;
+        player.affiliation.contractId = null;
+        player.affiliation.acquiredDay = null;
+      });
+    }
+
+    const activePlayers = (allPlayers || []).filter((player) => !retiredPlayerIds.has(player.id));
+    const playerMap = new Map(activePlayers.map((player) => [player.id, player]));
     const releasedPlayerIds = [];
     const userDepartures = [];
     const userRestrictedRetentions = [];
     const restrictedRightsOffers = [];
 
-    (allPlayers || []).forEach((player) => {
+    activePlayers.forEach((player) => {
       const nextContract = this.#contracts.getContractForSeason(player.id, nextSeasonLabel);
       if (nextContract) {
         player.affiliation.teamId = nextContract.teamId;
@@ -75,7 +93,7 @@ export class SeasonTransitionService {
             activeTeamId,
             player,
             nextSeasonLabel,
-            allPlayers,
+            allPlayers: activePlayers,
             buildContext,
           });
           if (offerSheet) restrictedRightsOffers.push(offerSheet);
@@ -95,19 +113,23 @@ export class SeasonTransitionService {
       this.#contracts.releasePlayers(releasedPlayerIds);
     }
 
-    const offseasonEvents = this.#development.applyOffseasonDevelopment(allPlayers, { seasonDate: offseasonDate });
+    const offseasonEvents = this.#development.applyOffseasonDevelopment(activePlayers, { seasonDate: offseasonDate });
     offseasonEvents
       .filter((event) => event.teamId === activeTeamId)
       .forEach((event) => pushNotification(this.#buildDevelopmentNotification(event, calendar.currentDay)));
 
-    (allPlayers || []).forEach((player) => {
+    activePlayers.forEach((player) => {
       player.condition?.normalizeOffseason?.();
     });
 
     this.#rebuildRosters(teams, playerMap);
 
-    (allPlayers || []).forEach((player) => {
+    activePlayers.forEach((player) => {
       player.seasonStats?.resetForSeason?.(seasonTag(nextSeasonStartYear));
+    });
+
+    retirementEntries.forEach((entry) => {
+      pushNotification(this.#buildRetirementNotification(entry, calendar.currentDay, entry.teamId === activeTeamId));
     });
 
     userDepartures.forEach((player) => {
@@ -161,7 +183,8 @@ export class SeasonTransitionService {
         preseasonOffers: [],
         restrictedRightsOffers,
       },
-      freeAgents: collectUniqueFreeAgents(allPlayers),
+      freeAgents: collectUniqueFreeAgents(activePlayers),
+      retiredPlayerIds: [...retiredPlayerIds],
     };
   }
 
@@ -346,6 +369,23 @@ export class SeasonTransitionService {
       day,
       createdAt: new Date().toISOString(),
       playerId: event.playerId,
+      read: false,
+    };
+  }
+
+  #buildRetirementNotification(entry, day, isUserTeamPlayer) {
+    const player = entry.player;
+    const games = Number(player.career?.khlGamesPlayed) || 0;
+    const seasons = Number(player.career?.seasonsPlayed) || 0;
+    const details = `${entry.age} лет • ${games} матчей КХЛ${seasons ? ` • ${seasons} сез.` : ""}`;
+    return {
+      id: `notification-retirement-${player.id}-${day}-${Math.random().toString(36).slice(2, 8)}`,
+      type: "retirement",
+      title: isUserTeamPlayer ? "Игрок завершил карьеру" : "Завершение карьеры",
+      message: `${player.name} завершил карьеру: ${details}. Причина: ${entry.reason}.`,
+      day,
+      createdAt: new Date().toISOString(),
+      playerId: player.id,
       read: false,
     };
   }
