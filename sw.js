@@ -1,4 +1,4 @@
-const CACHE_NAME="khl-manager-v97";
+const CACHE_NAME="khl-manager-v98";
 const ASSETS=[
   "./",
   "./index.html",
@@ -306,8 +306,20 @@ const ASSETS=[
   "./player-photo/pugachyov.png",
   "./player-photo/placeholder.png"
 ];
-self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS)))});
-self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==CACHE_NAME).map(x=>caches.delete(x))))) });
-self.addEventListener("fetch",e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))});
+self.addEventListener("install",e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS)))});
+self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==CACHE_NAME).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
+self.addEventListener("fetch",e=>{
+  const url=new URL(e.request.url);
+  const isModule=url.pathname.includes("/src/")&&url.pathname.endsWith(".js");
+  if(isModule){
+    e.respondWith(fetch(e.request).then(r=>{
+      const copy=r.clone();
+      caches.open(CACHE_NAME).then(c=>c.put(e.request,copy));
+      return r;
+    }).catch(()=>caches.match(e.request)));
+    return;
+  }
+  e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));
+});
 
 
