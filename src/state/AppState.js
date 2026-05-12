@@ -539,7 +539,28 @@ export class AppState {
     this.#standings.importSnapshot([]);
     this.#lastMatch = null;
     this.#seasonState = transition.seasonState;
-    this.#juniors.applyOffseasonDevelopment(this.#teams, this.#getEffectiveNegotiationDate());
+    const juniorReleaseDate = this.#getEffectiveNegotiationDate();
+    const overageJuniorReleases = this.#juniors.releaseOveragePlayers({ teams: this.#teams, seasonDate: juniorReleaseDate });
+    if (overageJuniorReleases.length) {
+      this.#contracts.releasePlayers(overageJuniorReleases.map(({ player }) => player.id));
+      this.#freeAgents = dedupeFreeAgents([...this.#freeAgents, ...overageJuniorReleases.map(({ player }) => player)]);
+      overageJuniorReleases
+        .filter(({ team }) => team.id === this.#activeTeamId)
+        .forEach(({ player }) => {
+          this.#pushNotification({
+            id: `notification-junior-release-${player.id}-${Date.now()}`,
+            type: "offseason-departure",
+            title: "Выпуск молодежки",
+            message: `${player.name} старше 20 лет и вышел на рынок свободных агентов`,
+            day: this.#calendar.currentDay,
+            createdAt: new Date().toISOString(),
+            playerId: player.id,
+            read: false,
+          });
+        });
+      this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
+    }
+    this.#juniors.applyOffseasonDevelopment(this.#teams, juniorReleaseDate);
     this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#seasonState.seasonLabel });
     this.#syncSeasonReferenceDate();
     this.#syncSeasonPhase();

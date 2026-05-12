@@ -135,6 +135,27 @@ export class JuniorTeamService {
     });
   }
 
+  releaseOveragePlayers({ teams, seasonDate = null }) {
+    const released = [];
+    (teams || []).forEach((team) => {
+      if (!team?.juniorTeam || !Array.isArray(team.juniorPlayers)) return;
+      const keep = [];
+      team.juniorPlayers.forEach((player) => {
+        const age = calculateAge(player.identity?.birthDate, seasonDate);
+        if (age <= 20) {
+          keep.push(player);
+          return;
+        }
+        player.affiliation.teamId = null;
+        player.affiliation.contractId = null;
+        player.affiliation.acquiredDay = null;
+        released.push({ player, team });
+      });
+      team.juniorPlayers.splice(0, team.juniorPlayers.length, ...keep);
+    });
+    return released;
+  }
+
   #createRegen(team, seasonLabel, index, forcedId = null) {
     const seed = hash(`${team.id}:${seasonLabel}:${index}`);
     const age = 16 + (seed % 5);
