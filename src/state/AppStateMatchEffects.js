@@ -63,8 +63,34 @@ export const applyMatchMood = (team, teamSummary) => {
   });
 };
 
+export const applyMatchFatigue = (team, teamSummary, referenceDate = null) => {
+  const roster = team?.getRoster?.() || [];
+  if (!roster.length) return;
+
+  const statsById = new Map((teamSummary?.playerStats || []).map((stat) => [stat.playerId, stat]));
+  roster.forEach((player) => {
+    const stat = statsById.get(player.id);
+    if (!stat) {
+      player.applyFatigue(-9);
+      return;
+    }
+
+    const minutes = Math.max(0, (Number(stat.totalIceTime) || 0) / 60);
+    const physical = Number(player.attributes?.attributesJson?.physical) || 65;
+    const age = calculateAge(player.identity?.birthDate, referenceDate);
+    const isGoalie = player.identity?.primaryPosition === "\u0412\u0420\u0422";
+    const primeBonus = age >= 24 && age <= 30 ? 1.2 : age <= 20 ? -1.3 : age >= 34 ? -1.6 : age >= 31 ? -0.7 : 0;
+    const enduranceBonus = ((physical - 68) * 0.11) + primeBonus;
+    const baseLoad = isGoalie
+      ? 4.6 + (minutes / 60) * 6.2
+      : 2.2 + Math.max(0, minutes - 8) * 0.22 + Math.max(0, minutes - 16) * 0.34 + Math.max(0, minutes - 22) * 0.42;
+    const delta = Math.max(0.8, Math.min(isGoalie ? 12 : 15, baseLoad - enduranceBonus));
+    player.applyFatigue(delta);
+  });
+};
+
 const getPositionMoodGroup = (position) => {
-  if (position === "ЗАЩ") return "DEF";
-  if (position === "ВРТ") return "G";
+  if (position === "\u0417\u0410\u0429") return "DEF";
+  if (position === "\u0412\u0420\u0422") return "G";
   return "FWD";
 };

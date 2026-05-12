@@ -22,7 +22,7 @@ import {
   normalizeNotifications,
   sortUnreadNotifications,
 } from "./AppStateNotifications.js";
-import { applyMatchMood, applyMatchPlayerStats } from "./AppStateMatchEffects.js";
+import { applyMatchFatigue, applyMatchMood, applyMatchPlayerStats } from "./AppStateMatchEffects.js";
 import {
   createPlayerSnapshots,
   normalizeSeasonState,
@@ -646,7 +646,7 @@ export class AppState {
     const matches = day?.matches || [];
     if (matches.length === 0) {
       this.#lastMatch = null;
-      this.#applyFatigue(this.#teams, -8);
+      this.#restTeams(this.#teams, -10);
       this.#calendar.advanceDay();
       this.#syncSeasonReferenceDate();
       this.#runMonthlyAiRenewals(previousDate, this.#calendar.currentDate);
@@ -672,6 +672,8 @@ export class AppState {
       this.#pushDevelopmentNotifications(simulated.away, awayDevelopmentEvents, day.day);
       applyMatchMood(simulated.home, simulated.summary?.home);
       applyMatchMood(simulated.away, simulated.summary?.away);
+      applyMatchFatigue(simulated.home, simulated.summary?.home, this.#calendar.currentDate);
+      applyMatchFatigue(simulated.away, simulated.summary?.away, this.#calendar.currentDate);
       playedTeams.add(match.home.id);
       playedTeams.add(match.away.id);
       if (!focusTeamId || match.home.id === focusTeamId || match.away.id === focusTeamId) {
@@ -688,8 +690,8 @@ export class AppState {
 
     const playedTeamList = this.#teams.filter((team) => playedTeams.has(team.id));
     const idleTeamList = this.#teams.filter((team) => !playedTeams.has(team.id));
-    if (playedTeamList.length) this.#applyFatigue(playedTeamList, 12);
-    if (idleTeamList.length) this.#applyFatigue(idleTeamList, -8);
+    if (playedTeamList.length) this.#randomizeForm(playedTeamList);
+    if (idleTeamList.length) this.#restTeams(idleTeamList, -8);
     this.#calendar.advanceDay();
     this.#calendar.ensurePlayoffs(this.getStandingsTable());
     this.#syncSeasonReferenceDate();
@@ -704,9 +706,15 @@ export class AppState {
     return [...this.activeTeam.getRoster(), ...(this.activeTeam.juniorPlayers || [])].find((entry) => entry.id === playerId) || null;
   }
 
-  #applyFatigue(teams, delta) {
+  #restTeams(teams, delta) {
     teams.flatMap((team) => team.getRoster()).forEach((player) => {
       player.applyFatigue(delta);
+      player.applyFormDelta(Math.random() * 0.02 - 0.01);
+    });
+  }
+
+  #randomizeForm(teams) {
+    teams.flatMap((team) => team.getRoster()).forEach((player) => {
       player.applyFormDelta(Math.random() * 0.02 - 0.01);
     });
   }

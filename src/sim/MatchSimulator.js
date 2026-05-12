@@ -882,7 +882,7 @@ export class MatchSimulator{
   }
 
   #getMatchAttributes(player){
-    const attrs=player?.attributes?.attributesJson||{};
+    const attrs=player?.effectiveAttributesJson||player?.attributes?.attributesJson||{};
     const moodModifier=player?.moodModifier??1;
     return {
       shot:(attrs.shot||0)*moodModifier,

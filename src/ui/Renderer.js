@@ -70,6 +70,12 @@ const getNationFlag=nationality=>{
   const code=String(nationality||"").trim().toUpperCase();
   return renderNationFlagIcon(code,`Флаг — ${code||"N/A"}`,"nation-flag-card");
 };
+const renderFatigueDot=player=>{
+  const status=player.fatigueStatus||"green";
+  const score=Math.round(Number(player.fatigueScore)||0);
+  const labels={green:"\u0421\u0432\u0435\u0436\u0438\u0439",yellow:"\u0423\u043c\u0435\u0440\u0435\u043d\u043d\u0430\u044f \u0443\u0441\u0442\u0430\u043b\u043e\u0441\u0442\u044c",orange:"\u0412\u044b\u0441\u043e\u043a\u0430\u044f \u0443\u0441\u0442\u0430\u043b\u043e\u0441\u0442\u044c",red:"\u0421\u0438\u043b\u044c\u043d\u0430\u044f \u0443\u0441\u0442\u0430\u043b\u043e\u0441\u0442\u044c",injured:"\u0422\u0440\u0430\u0432\u043c\u0430"};
+  return `<span class="hockey-card-fatigue hockey-card-fatigue--${status}" title="${labels[status]||"\u0423\u0441\u0442\u0430\u043b\u043e\u0441\u0442\u044c"} \u2022 ${score}" aria-label="${labels[status]||"\u0423\u0441\u0442\u0430\u043b\u043e\u0441\u0442\u044c"}"></span>`;
+};
 const renderRosterCard=(player,extraClass="",options={})=>{
   const photo=player.identity.photoUrl||"./player-photo/placeholder.png";
   const surname=getSurname(player).toUpperCase();
@@ -78,8 +84,10 @@ const renderRosterCard=(player,extraClass="",options={})=>{
   const nationFlag=getNationFlag(player.identity.nationality);
   const displayOvr=options.displayOvr??player.currentOvr??player.ovr;
   const displayPosition=options.displayPosition||player.identity.primaryPosition;
-  const penalizedClass=options.isPenalized?" hockey-card--penalized":"";
-  return `<article class="hockey-card${extraClass?` ${extraClass}`:""}${penalizedClass}"><div class="hockey-card-layers"><img class="hockey-card-bg" src="./card/card_background.svg" alt="" aria-hidden="true"/><img class="hockey-card-photo" src="${photo}" alt="${player.name}"/><img class="hockey-card-front" src="./card/card_front.svg" alt="" aria-hidden="true"/></div><div class="hockey-card-top"><span class="hockey-card-ovr-wrap"><span class="hockey-card-ovr">${displayOvr}</span></span><span class="hockey-card-pos">${displayPosition}</span></div><div class="hockey-card-name-band">${surname}</div><div class="hockey-card-meta-row"><span>${age} ЛЕТ</span><span>${nationFlag} ${nationCode}</span></div></article>`;
+  const isPenalized=options.isPenalized||displayOvr<(player.ovr||displayOvr);
+  const penalizedClass=isPenalized?" hockey-card--penalized":"";
+  const fatigueClass=(player.fatigueOvrPenalty||0)>0?" hockey-card--fatigued":"";
+  return `<article class="hockey-card${extraClass?` ${extraClass}`:""}${penalizedClass}${fatigueClass}"><div class="hockey-card-layers"><img class="hockey-card-bg" src="./card/card_background.svg" alt="" aria-hidden="true"/><img class="hockey-card-photo" src="${photo}" alt="${player.name}"/><img class="hockey-card-front" src="./card/card_front.svg" alt="" aria-hidden="true"/></div><div class="hockey-card-top"><span class="hockey-card-ovr-wrap"><span class="hockey-card-ovr">${displayOvr}</span></span><span class="hockey-card-pos">${displayPosition}</span></div><div class="hockey-card-name-band">${surname}</div><div class="hockey-card-meta-row"><span>${age} \u041b\u0415\u0422</span>${renderFatigueDot(player)}<span>${nationFlag} ${nationCode}</span></div></article>`;
 };
 const renderEmptyRosterSlot=slot=>{
   const attrs=[

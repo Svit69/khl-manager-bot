@@ -98,6 +98,23 @@
   align-items:center;
   gap:4px;
 }
+.hockey-card-fatigue{
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  border:2px solid rgba(255,255,255,.22);
+  box-shadow:0 0 0 3px rgba(255,255,255,.04);
+  justify-self:center;
+}
+.hockey-card-fatigue--green{background:#76f3ba}
+.hockey-card-fatigue--yellow{background:#e7f56b}
+.hockey-card-fatigue--orange{background:#ffb45f}
+.hockey-card-fatigue--red{background:#ff7575}
+.hockey-card-fatigue--injured{background:#9aa4b2}
+.hockey-card--fatigued .hockey-card-ovr{
+  color:#ffb45f;
+  text-shadow:0 0 12px rgba(255,180,95,.22);
+}
 .line-view-panel{
   display:grid;
   grid-template-columns:56px 1fr;
