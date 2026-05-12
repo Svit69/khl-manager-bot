@@ -1212,7 +1212,14 @@
   min-width:0;
 }
 .junior-manager-row--main{
-  grid-template-columns:40px minmax(0,1fr) 112px 128px;
+  grid-template-columns:40px minmax(0,1fr) 112px 148px;
+}
+.junior-manager-row--main .junior-manager-action{
+  height:auto;
+  min-height:34px;
+  padding:7px 10px;
+  line-height:1.12;
+  white-space:normal;
 }
 .junior-manager-empty{
   padding:24px 18px;

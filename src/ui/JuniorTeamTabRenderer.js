@@ -1,8 +1,10 @@
 import { calculateAge } from "../contracts/SeasonUtils.js";
+import { getJuniorSeasonAge } from "../season/JuniorEligibility.js";
 
 const getPosition = (player) => player?.identity?.primaryPosition || "-";
 const getPotential = (player) => player?.potential?.potential || player?.ovr || 0;
-const getAge = (player) => calculateAge(player?.identity?.birthDate);
+const getCurrentAge = (player) => calculateAge(player?.identity?.birthDate);
+const getSeasonAge = (player, seasonLabel) => getJuniorSeasonAge(player, seasonLabel);
 const getGrowth = (player) => Math.max(0, getPotential(player) - (player?.ovr || 0));
 
 const renderPhoto = (player) =>
@@ -11,19 +13,19 @@ const renderPhoto = (player) =>
 const renderSummary = (label, value, accent = false) =>
   `<div class="junior-manager-summary-card${accent ? " accent" : ""}"><span>${label}</span><strong>${value}</strong></div>`;
 
-const renderProspect = (player, index) => `
+const renderProspect = (seasonLabel) => (player, index) => `
   <article class="junior-manager-prospect">
     <div class="junior-manager-prospect-rank">#${index + 1}</div>
     ${renderPhoto(player)}
     <div class="junior-manager-player-copy">
       <strong>${player.name}</strong>
-      <span>${getPosition(player)} • ${getAge(player)} лет • OVR ${player.ovr}</span>
+      <span>${getPosition(player)} • ${getSeasonAge(player, seasonLabel)} лет на старт • OVR ${player.ovr}</span>
     </div>
     <div class="junior-manager-growth">+${getGrowth(player)}</div>
   </article>
 `;
 
-const renderJuniorRow = (player, index) => `
+const renderJuniorRow = (seasonLabel) => (player, index) => `
   <article class="junior-manager-row">
     <span class="junior-manager-rank">${index + 1}</span>
     <div class="junior-manager-player">
@@ -34,7 +36,7 @@ const renderJuniorRow = (player, index) => `
       </div>
     </div>
     <span class="junior-manager-cell" data-label="Поз.">${getPosition(player)}</span>
-    <span class="junior-manager-cell" data-label="Возраст">${getAge(player)}</span>
+    <span class="junior-manager-cell" data-label="Возраст">${getSeasonAge(player, seasonLabel)}</span>
     <span class="junior-manager-rating" data-label="OVR">${player.ovr || 0}</span>
     <span class="junior-manager-cell" data-label="POT">${getPotential(player)}</span>
     <span class="junior-manager-growth" data-label="Рост">+${getGrowth(player)}</span>
@@ -42,19 +44,19 @@ const renderJuniorRow = (player, index) => `
   </article>
 `;
 
-const renderMainRow = ({ player, canSend }) => `
+const renderMainRow = ({ player, canSend, reason }, seasonLabel) => `
   <article class="junior-manager-row junior-manager-row--main${canSend ? "" : " disabled"}">
     <span class="junior-manager-rank">${getPosition(player)}</span>
     <div class="junior-manager-player">
       ${renderPhoto(player)}
       <div class="junior-manager-player-copy">
         <strong>${player.name}</strong>
-        <span>${getAge(player)} лет • OVR ${player.currentOvr ?? player.ovr}</span>
+        <span>${getSeasonAge(player, seasonLabel)} лет на старт • сейчас ${getCurrentAge(player)} • OVR ${player.currentOvr ?? player.ovr}</span>
       </div>
     </div>
-    <span class="junior-manager-contract${canSend ? " eligible" : ""}">${canSend ? "3-сторонний" : "Недоступен"}</span>
+    <span class="junior-manager-contract${canSend ? " eligible" : ""}">${canSend ? "Доступен" : "Недоступен"}</span>
     <button class="junior-manager-action secondary" ${canSend ? "" : "disabled"} data-action="send-to-junior" data-player-id="${player.id}">
-      ${canSend ? "В молодежку" : "Нужен 3-сторонний"}
+      ${canSend ? "В молодежку" : reason || "Нельзя перевести"}
     </button>
   </article>
 `;
@@ -65,6 +67,7 @@ export class JuniorTeamTabRenderer {
       return `<section class="junior-manager"><div class="junior-manager-empty">У этой команды молодежная команда пока не настроена.</div></section>`;
     }
 
+    const seasonLabel = view.seasonLabel;
     const players = view.players || [];
     const mainPlayers = view.mainPlayers || [];
     const targetSize = view.targetSize || 22;
@@ -72,7 +75,7 @@ export class JuniorTeamTabRenderer {
       ? Math.round(players.reduce((sum, player) => sum + (Number(player.ovr) || 0), 0) / players.length)
       : "-";
     const averageAge = players.length
-      ? (players.reduce((sum, player) => sum + getAge(player), 0) / players.length).toFixed(1)
+      ? (players.reduce((sum, player) => sum + getSeasonAge(player, seasonLabel), 0) / players.length).toFixed(1)
       : "-";
     const topProspects = [...players]
       .sort((left, right) => (getPotential(right) - getPotential(left)) || ((right.ovr || 0) - (left.ovr || 0)))
@@ -91,7 +94,7 @@ export class JuniorTeamTabRenderer {
           <div>
             <span>Молодежная команда</span>
             <h2>${view.juniorTeam.name}</h2>
-            <p>${view.juniorTeam.city} • игроки 16-20 лет • перевод вниз только по трехстороннему контракту</p>
+            <p>${view.juniorTeam.city} • возраст считается на 1 сентября сезона • перевод вниз только по трехстороннему контракту</p>
           </div>
         </div>
         <div class="junior-manager-summary">
@@ -110,7 +113,7 @@ export class JuniorTeamTabRenderer {
           </div>
         </div>
         <div class="junior-manager-prospects">
-          ${topProspects.map(renderProspect).join("") || `<div class="junior-manager-empty">Проспектов пока нет</div>`}
+          ${topProspects.map(renderProspect(seasonLabel)).join("") || `<div class="junior-manager-empty">Проспектов пока нет</div>`}
         </div>
       </section>
 
@@ -119,7 +122,7 @@ export class JuniorTeamTabRenderer {
           <div class="junior-manager-section-head">
             <div>
               <h3>Состав молодежки</h3>
-              <span>Читаемый список всех игроков, которых можно поднять в запас основы</span>
+              <span>В молодежке могут быть только игроки, которым не больше 20 лет на старте сезона</span>
             </div>
           </div>
           <div class="junior-manager-table">
@@ -127,7 +130,7 @@ export class JuniorTeamTabRenderer {
               <span>#</span><span>Игрок</span><span>Поз.</span><span>Возраст</span><span>OVR</span><span>POT</span><span>Рост</span><span></span>
             </div>
             <div class="junior-manager-table-body">
-              ${players.map(renderJuniorRow).join("") || `<div class="junior-manager-empty">Состав пуст</div>`}
+              ${players.map(renderJuniorRow(seasonLabel)).join("") || `<div class="junior-manager-empty">Состав пуст</div>`}
             </div>
           </div>
         </section>
@@ -136,11 +139,11 @@ export class JuniorTeamTabRenderer {
           <div class="junior-manager-section-head">
             <div>
               <h3>Перевод из основы</h3>
-              <span>Сначала показаны игроки с трехсторонним контрактом</span>
+              <span>Доступны только игроки с трехсторонним контрактом и возрастом до 20 на 1 сентября</span>
             </div>
           </div>
           <div class="junior-manager-main-list">
-            ${sortedMainPlayers.map(renderMainRow).join("") || `<div class="junior-manager-empty">Игроков нет</div>`}
+            ${sortedMainPlayers.map((item) => renderMainRow(item, seasonLabel)).join("") || `<div class="junior-manager-empty">Игроков нет</div>`}
           </div>
         </section>
       </div>

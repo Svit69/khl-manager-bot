@@ -1,6 +1,7 @@
 import { createSkater } from "../data/playerFactory.js";
-import { calculateAge, parseSeasonEnd } from "../contracts/SeasonUtils.js";
+import { calculateAge } from "../contracts/SeasonUtils.js";
 import { PlayerPosition } from "../models/PlayerPosition.js";
+import { getJuniorSeasonAge, getJuniorSeasonStartDate } from "./JuniorEligibility.js";
 
 const TARGET_JUNIOR_SIZE = 22;
 const POSITION_TARGETS = Object.freeze({
@@ -71,7 +72,6 @@ const getNames = (nationality, seed) => {
 };
 
 const getSeasonKey = (seasonLabel) => String(seasonLabel || "season-1").replace(/[^0-9A-Za-z]+/g, "-");
-const getSeasonReferenceYear = (seasonLabel) => parseSeasonEnd(seasonLabel) || new Date().getUTCFullYear();
 const createJuniorPlayerId = (teamId, seasonLabel, index) => `junior-${teamId}-${getSeasonKey(seasonLabel)}-${index}`;
 
 export class JuniorTeamService {
@@ -135,15 +135,21 @@ export class JuniorTeamService {
     });
   }
 
-  releaseOveragePlayers({ teams, seasonDate = null }) {
+  releaseOveragePlayers({ teams, seasonLabel, hasMainContract = () => false }) {
     const released = [];
+    const promoted = [];
     (teams || []).forEach((team) => {
       if (!team?.juniorTeam || !Array.isArray(team.juniorPlayers)) return;
       const keep = [];
       team.juniorPlayers.forEach((player) => {
-        const age = calculateAge(player.identity?.birthDate, seasonDate);
+        const age = getJuniorSeasonAge(player, seasonLabel);
         if (age <= 20) {
           keep.push(player);
+          return;
+        }
+        if (hasMainContract(player, team)) {
+          player.expectedLineIndex = null;
+          promoted.push({ player, team });
           return;
         }
         player.affiliation.teamId = null;
@@ -153,13 +159,13 @@ export class JuniorTeamService {
       });
       team.juniorPlayers.splice(0, team.juniorPlayers.length, ...keep);
     });
-    return released;
+    return { released, promoted };
   }
 
   #createRegen(team, seasonLabel, index, forcedId = null) {
     const seed = hash(`${team.id}:${seasonLabel}:${index}`);
     const age = 16 + (seed % 5);
-    const birthYear = getSeasonReferenceYear(seasonLabel) - age;
+    const birthYear = getJuniorSeasonStartDate(seasonLabel).getUTCFullYear() - age;
     const position = getPositionNeed(team.juniorPlayers);
     const nationality = getNationality(team, seed);
     const { firstName, lastName } = getNames(nationality, seed);
