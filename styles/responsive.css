@@ -135,6 +135,76 @@
   .junior-action-btn{
     width:100%;
   }
+  .junior-manager-hero{
+    flex-direction:column;
+    align-items:stretch;
+  }
+  .junior-manager-title{
+    align-items:flex-start;
+  }
+  .junior-manager-title h2{
+    font-size:24px;
+  }
+  .junior-manager-summary{
+    min-width:0;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .junior-manager-prospects,
+  .junior-manager-board{
+    grid-template-columns:1fr;
+  }
+  .junior-manager-prospect{
+    grid-template-columns:34px 42px minmax(0,1fr) auto;
+  }
+  .junior-manager-table-head{
+    display:none;
+  }
+  .junior-manager-table-body,
+  .junior-manager-main-list{
+    max-height:none;
+  }
+  .junior-manager-row{
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .junior-manager-rank{
+    display:none;
+  }
+  .junior-manager-player{
+    grid-column:1 / -1;
+  }
+  .junior-manager-cell,
+  .junior-manager-rating,
+  .junior-manager-growth{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:9px 10px;
+    border-radius:10px;
+    background:rgba(255,255,255,.03);
+    border:1px solid rgba(255,255,255,.04);
+  }
+  .junior-manager-cell::before,
+  .junior-manager-rating::before,
+  .junior-manager-growth::before{
+    content:attr(data-label);
+    color:#8fa0b8;
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+  }
+  .junior-manager-action{
+    grid-column:1 / -1;
+    width:100%;
+  }
+  .junior-manager-row--main{
+    grid-template-columns:1fr;
+  }
+  .junior-manager-contract{
+    justify-self:start;
+  }
   .line-view-panel{grid-template-columns:1fr}
   .line-unit-buttons{flex-direction:row;gap:10px;padding-top:0}
   .line-card-row{gap:10px}
