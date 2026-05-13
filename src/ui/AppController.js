@@ -506,6 +506,14 @@ export class AppController{
       this.#renderScreen();
       return;
     }
+    if(action==="sign-junior-main"){
+      const playerId=clickable.dataset.playerId;
+      if(this.#state.signJuniorPlayerToMain(playerId)){
+        this.#userStore.saveState(this.#state.exportState());
+      }
+      this.#renderScreen();
+      return;
+    }
     if(action==="set-osa-years"){
       const offerId=clickable.dataset.offerId;
       const years=Number(clickable.dataset.years)||1;

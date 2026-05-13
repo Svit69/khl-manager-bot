@@ -16,7 +16,8 @@ import {
 import { getPreseasonDateAt, getPreseasonNextDate } from "../season/PreseasonSchedule.js";
 import { SeasonTransitionService } from "../season/SeasonTransitionService.js";
 import { JuniorTeamService } from "../season/JuniorTeamService.js";
-import { getJuniorIneligibilityReason } from "../season/JuniorEligibility.js";
+import { getJuniorIneligibilityReason, getJuniorSeasonAge } from "../season/JuniorEligibility.js";
+import { getJuniorPracticeProfile, getScoutedPotential } from "../season/JuniorScouting.js";
 import { getUfaStatus } from "../contracts/RenewalScoring.js";
 import {
   createDevelopmentNotification,
@@ -259,19 +260,45 @@ export class AppState {
   getActiveTeamJuniorView() {
     if (!this.activeTeam) return null;
     const seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
-    return {
-      juniorTeam: this.activeTeam.juniorTeam,
-      seasonLabel,
-      players: [...(this.activeTeam.juniorPlayers || [])].sort((left, right) => (right.ovr - left.ovr) || left.name.localeCompare(right.name, "ru")),
-      mainPlayers: this.activeTeam.getRoster().map((player) => {
+    const enrichJunior = (player) => {
+      player.juniorSeasonAge = getJuniorSeasonAge(player, seasonLabel);
+      const nextSeasonAge = getJuniorSeasonAge(player, `${parseSeasonEnd(seasonLabel)}/${parseSeasonEnd(seasonLabel) + 1}`);
+      const mainContract = this.#contracts.getContractForSeason(player.id, `${parseSeasonEnd(seasonLabel)}/${parseSeasonEnd(seasonLabel) + 1}`);
+      return {
+        player,
+        age: player.juniorSeasonAge,
+        nextSeasonAge,
+        isGraduating: nextSeasonAge > 20,
+        hasMainContract: Boolean(mainContract && mainContract.type !== ContractType.THREE_WAY),
+        mainContract,
+        practice: getJuniorPracticeProfile(player),
+        scoutedPotential: getScoutedPotential(player, seasonLabel),
+      };
+    };
+    const juniorEntries = [...(this.activeTeam.juniorPlayers || [])]
+      .sort((left, right) => (right.ovr - left.ovr) || left.name.localeCompare(right.name, "ru"))
+      .map(enrichJunior);
+    const eligibleMainPlayers = this.activeTeam.getRoster()
+      .map((player) => {
+        player.juniorSeasonAge = getJuniorSeasonAge(player, seasonLabel);
         const hasThreeWayContract = this.#contracts.hasThreeWayContract(player.id, seasonLabel);
         const reason = getJuniorIneligibilityReason({ player, seasonLabel, hasThreeWayContract });
         return {
           player,
           canSend: !reason,
           reason,
+          practice: getJuniorPracticeProfile(player),
+          scoutedPotential: getScoutedPotential(player, seasonLabel),
         };
-      }),
+      })
+      .filter((entry) => entry.canSend);
+    const graduationClass = juniorEntries.filter((entry) => entry.isGraduating);
+    return {
+      juniorTeam: this.activeTeam.juniorTeam,
+      seasonLabel,
+      players: juniorEntries,
+      graduationClass,
+      mainPlayers: eligibleMainPlayers,
       targetSize: 22,
     };
   }
@@ -449,6 +476,22 @@ export class AppState {
     return true;
   }
 
+  signJuniorPlayerToMain(playerId) {
+    if (!this.activeTeam || !playerId) return null;
+    const team = this.activeTeam;
+    const juniorIndex = team.juniorPlayers.findIndex((entry) => entry.id === playerId);
+    if (juniorIndex < 0) return null;
+    const player = team.juniorPlayers[juniorIndex];
+    const seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
+    const contract = this.#contracts.signJuniorToMainContract(player, team.id, seasonLabel);
+    if (!contract) return null;
+    team.juniorPlayers.splice(juniorIndex, 1);
+    team.reservePlayers.push(player);
+    player.expectedLineIndex = null;
+    this.#refreshExpectedRoles(team);
+    return contract;
+  }
+
   playDay() {
     const day = this.#calendar.getCurrent();
     return day ? this.#simulateCalendarDay(day, null) : null;
@@ -553,7 +596,7 @@ export class AppState {
     this.#lastMatch = null;
     this.#seasonState = transition.seasonState;
     this.#releaseIneligibleJuniorPlayers({ notify: true });
-    this.#juniors.applyOffseasonDevelopment(this.#teams, this.#getEffectiveNegotiationDate());
+    this.#juniors.applyOffseasonDevelopment(this.#teams, this.#getEffectiveNegotiationDate(), this.#seasonState.seasonLabel);
     this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#seasonState.seasonLabel });
     this.#syncSeasonReferenceDate();
     this.#syncSeasonPhase();

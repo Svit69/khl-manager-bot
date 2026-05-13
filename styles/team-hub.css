@@ -1034,7 +1034,7 @@
 }
 .junior-manager-prospects{
   display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
   gap:10px;
   min-width:0;
 }
@@ -1063,7 +1063,7 @@
 }
 .junior-manager-board{
   display:grid;
-  grid-template-columns:minmax(0,1.35fr) minmax(340px,.65fr);
+  grid-template-columns:minmax(0,1.45fr) minmax(280px,.55fr);
   gap:14px;
   min-width:0;
 }
@@ -1227,4 +1227,127 @@
   background:rgba(255,255,255,.03);
   color:#8fa0b8;
   font-weight:700;
+}
+.junior-manager-graduates,
+.junior-manager-card-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:10px;
+  min-width:0;
+}
+.junior-manager-graduate,
+.junior-manager-card{
+  display:grid;
+  gap:12px;
+  min-width:0;
+  padding:12px;
+  border-radius:14px;
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.06);
+}
+.junior-manager-graduate{
+  grid-template-columns:minmax(0,1.2fr) minmax(150px,.8fr) auto;
+  align-items:center;
+}
+.junior-manager-graduate.signed{
+  border-color:rgba(128,247,202,.18);
+  background:rgba(128,247,202,.055);
+}
+.junior-manager-graduate-status{
+  display:grid;
+  gap:3px;
+  min-width:0;
+}
+.junior-manager-graduate-status strong{
+  color:#edf6ef;
+  font-size:13px;
+}
+.junior-manager-graduate-status span{
+  color:#8fa0b8;
+  font-size:11px;
+  font-weight:700;
+}
+.junior-manager-card-top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  min-width:0;
+}
+.junior-manager-pill{
+  flex:0 0 auto;
+  padding:6px 8px;
+  border-radius:999px;
+  color:#80f7ca;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  background:rgba(128,247,202,.1);
+  border:1px solid rgba(128,247,202,.18);
+}
+.junior-manager-pill.warn{
+  color:#e7f56b;
+  background:rgba(231,245,107,.1);
+  border-color:rgba(231,245,107,.2);
+}
+.junior-manager-metrics{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:8px;
+  min-width:0;
+}
+.junior-manager-metric{
+  display:grid;
+  gap:3px;
+  min-width:0;
+  padding:8px;
+  border-radius:10px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.045);
+}
+.junior-manager-metric small{
+  color:#8fa0b8;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.junior-manager-metric strong{
+  min-width:0;
+  color:#edf6ef;
+  font-size:13px;
+  font-weight:900;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.junior-manager-metric.rating strong{
+  color:#e7f56b;
+}
+.junior-manager-metric.growth strong{
+  color:#80f7ca;
+}
+.junior-manager-card-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.junior-manager-card-actions .junior-manager-action{
+  flex:1 1 140px;
+}
+.junior-manager-transfer{
+  display:grid;
+  grid-template-columns:38px minmax(0,1fr);
+  gap:10px;
+  align-items:center;
+  min-width:0;
+  padding:11px;
+  border-radius:14px;
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.06);
+}
+.junior-manager-transfer .junior-manager-action{
+  grid-column:1 / -1;
+  width:100%;
 }

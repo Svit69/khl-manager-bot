@@ -2,6 +2,7 @@ import { createSkater } from "../data/playerFactory.js";
 import { calculateAge } from "../contracts/SeasonUtils.js";
 import { PlayerPosition } from "../models/PlayerPosition.js";
 import { getJuniorSeasonAge, getJuniorSeasonStartDate } from "./JuniorEligibility.js";
+import { getJuniorPracticeProfile } from "./JuniorScouting.js";
 
 const TARGET_JUNIOR_SIZE = 22;
 const POSITION_TARGETS = Object.freeze({
@@ -118,19 +119,26 @@ export class JuniorTeamService {
     return created;
   }
 
-  applyOffseasonDevelopment(teams, seasonDate = null) {
+  applyOffseasonDevelopment(teams, seasonDate = null, seasonLabel = null) {
     (teams || []).forEach((team) => {
       (team.juniorPlayers || []).forEach((player) => {
         if (player.identity?.isGoalie) return;
         const age = calculateAge(player.identity?.birthDate, seasonDate);
         const growth = age <= 18 ? 1 : age <= 20 ? 0.7 : 0.25;
         const potentialGap = Math.max(0, (player.potential?.potential || player.ovr) - player.ovr);
-        const chance = Math.min(0.75, 0.18 + potentialGap * 0.035 + growth * 0.16);
-        const roll = (hash(`${player.id}:junior-dev`) % 1000) / 1000;
+        const practice = getJuniorPracticeProfile(player);
+        const practiceBoost = Math.min(0.22, practice.khlGames * 0.014);
+        const noPracticePenalty = age >= 19 && practice.khlGames === 0 ? 0.08 : 0;
+        const chance = Math.min(0.82, 0.18 + potentialGap * 0.035 + growth * 0.16 + practiceBoost - noPracticePenalty);
+        const roll = (hash(`${player.id}:${seasonLabel || "season"}:junior-dev`) % 1000) / 1000;
         if (roll > chance) return;
         const attrs = Object.keys(player.attributes.attributesJson || {});
         const key = attrs[hash(`${player.id}:attr`) % attrs.length];
         player.attributes.applyAttributeDelta(key, 1);
+        if (practice.khlGames >= 18 && potentialGap >= 6) {
+          const bonusKey = attrs[hash(`${player.id}:${seasonLabel || "season"}:practice-attr`) % attrs.length];
+          player.attributes.applyAttributeDelta(bonusKey, 1);
+        }
       });
     });
   }

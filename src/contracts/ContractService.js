@@ -152,6 +152,28 @@ export class ContractService {
     return contract || null;
   }
 
+  signJuniorToMainContract(player, teamId, season) {
+    if (!player?.id || !teamId || !season) return null;
+    const startSeason = formatNextSeason(season);
+    const existing = this.getContractForSeason(player.id, startSeason);
+    if (existing?.teamId === teamId && existing.type !== ContractType.THREE_WAY) return existing;
+    const potential = Number(player.potential?.potential) || Number(player.ovr) || 60;
+    const years = potential >= 78 ? 3 : potential >= 68 ? 2 : 1;
+    const salaryRub = roundSalaryRub(Math.max(
+      getFallbackMarketSalaryRub(player),
+      750000 + Math.max(0, (Number(player.ovr) || 55) - 55) * 75000,
+    ));
+    const [contract] = this.#replaceContractForSeason({
+      player,
+      teamId,
+      season: startSeason,
+      years,
+      salaryRub,
+      type: ContractType.ONE_WAY,
+    });
+    return contract || null;
+  }
+
   hasThreeWayContract(playerId, season = null) {
     if (season) return this.getContractForSeason(playerId, season)?.type === ContractType.THREE_WAY;
     const contracts = this.getContractsForPlayer(playerId);

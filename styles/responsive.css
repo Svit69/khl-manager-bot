@@ -156,6 +156,19 @@
   .junior-manager-prospect{
     grid-template-columns:34px 42px minmax(0,1fr) auto;
   }
+  .junior-manager-graduates,
+  .junior-manager-card-grid{
+    grid-template-columns:1fr;
+  }
+  .junior-manager-graduate{
+    grid-template-columns:1fr;
+  }
+  .junior-manager-metrics{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .junior-manager-card-top{
+    flex-direction:column;
+  }
   .junior-manager-table-head{
     display:none;
   }
