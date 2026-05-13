@@ -538,8 +538,6 @@ export class AppState {
       allPlayers: this.getAllPlayers(),
       buildContext: (team) => this.#buildNegotiationContext(team),
       negotiationDate: preseasonDate,
-      currentDay: this.#calendar.currentDay,
-      pushNotification: (notification) => this.#pushNotification(notification),
     });
     this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
     this.#seasonState = {

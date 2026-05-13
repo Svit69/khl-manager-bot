@@ -12,6 +12,8 @@ import { TEAM_ROSTER_POSITION_TARGETS, TEAM_ROSTER_TARGET_SIZE } from "./RosterT
 const createUtcDate = (year, monthIndex, day) => new Date(Date.UTC(year, monthIndex, day));
 const formatSeasonLabel = (startYear) => `${startYear}/${startYear + 1}`;
 const seasonTag = (startYear) => `season-${startYear}`;
+const EMERGENCY_FIRST_NAMES = ["Алексей", "Дмитрий", "Илья", "Кирилл", "Максим", "Никита", "Павел", "Роман"];
+const EMERGENCY_LAST_NAMES = ["Андреев", "Васильев", "Егоров", "Ковалев", "Орлов", "Соколов", "Федоров", "Яковлев"];
 
 const collectUniqueFreeAgents = (players) => {
   const uniqueById = new Map();
@@ -216,7 +218,7 @@ export class SeasonTransitionService {
     };
   }
 
-  #ensureMinimumRosterDepth({ teams, activeTeamId, allPlayers, buildContext, negotiationDate, currentDay, pushNotification }) {
+  #ensureMinimumRosterDepth({ teams, activeTeamId, allPlayers, buildContext, negotiationDate }) {
     const positionTargets = TEAM_ROSTER_POSITION_TARGETS;
     const getGroup = (playerOrPosition) => {
       const position = typeof playerOrPosition === "string"
@@ -319,9 +321,6 @@ export class SeasonTransitionService {
               if (!team.getRoster().some((entry) => entry?.id === candidate.id)) {
                 team.reservePlayers.push(candidate);
               }
-              pushNotification(
-                this.#buildDepthSigningNotification(team, candidate, result.newContracts?.[result.newContracts.length - 1], currentDay),
-              );
               break;
             }
           }
@@ -329,16 +328,13 @@ export class SeasonTransitionService {
           if (!signedPlayer) {
             const emergencyPlayer = this.#createEmergencyDepthPlayer(team, preferredGroup || "FWD", negotiationDate);
             allPlayers.push(emergencyPlayer);
-            const emergencyContracts = this.#contracts.finalizeFreeAgentSigning(
+            this.#contracts.finalizeFreeAgentSigning(
               team,
               emergencyPlayer,
               { years: 1, salaryRub: 500000 },
               { currentDate: negotiationDate },
             );
             team.reservePlayers.push(emergencyPlayer);
-            pushNotification(
-              this.#buildDepthSigningNotification(team, emergencyPlayer, emergencyContracts?.[emergencyContracts.length - 1], currentDay),
-            );
           }
 
           roster = (allPlayers || []).filter((player) => player.affiliation?.teamId === team.id && !juniorIds.has(player.id));
@@ -470,34 +466,22 @@ export class SeasonTransitionService {
     return ((hash % 21) - 10) / 10;
   }
 
-  #buildDepthSigningNotification(team, player, contract, day) {
-    const salaryMillions = ((Number(contract?.salaryRub) || 0) / 1000000).toFixed(1).replace(".0", "");
-    const endYear = Number(String(contract?.season || "").split("/")[1]) || "";
-    return {
-      id: `notification-offseason-depth-${team.id}-${player.id}-${day}-${Math.random().toString(36).slice(2, 8)}`,
-      type: "ai-signing",
-      title: "Межсезонье",
-      message: `${team.name} подписал ${player.name} ${player.ovr} до ${endYear} с зарплатой ${salaryMillions} млн`,
-      day,
-      createdAt: new Date().toISOString(),
-      playerId: player.id,
-      read: false,
-    };
-  }
-
   #createEmergencyDepthPlayer(team, preferredGroup, negotiationDate) {
     const isDefense = preferredGroup === "DEF";
     const position = isDefense ? PlayerPosition.DEF : PlayerPosition.CTR;
     const year = new Date(negotiationDate).getUTCFullYear();
+    const seed = Math.abs(String(team?.id || "").split("").reduce((sum, char) => sum + char.charCodeAt(0), 0));
+    const firstName = EMERGENCY_FIRST_NAMES[seed % EMERGENCY_FIRST_NAMES.length];
+    const lastName = EMERGENCY_LAST_NAMES[(seed + (isDefense ? 3 : 0)) % EMERGENCY_LAST_NAMES.length];
     const profile = {
       id: `system-fa-${generateUuid()}`,
       position,
       identity: {
-        firstName: "Системный",
-        lastName: isDefense ? "Защитник" : "Форвард",
-        displayName: `Системный ${isDefense ? "защитник" : "форвард"}`,
+        firstName,
+        lastName,
+        displayName: `${firstName} ${lastName}`,
         birthDate: `${Math.max(1998, year - 25)}-01-01`,
-        nationality: team?.country === "Беларусь" ? "BY" : "RU",
+        nationality: team?.country === "BY" ? "BY" : "RU",
         isGoalie: false,
         photoUrl: "./player-photo/placeholder.png",
         primaryPosition: position,
