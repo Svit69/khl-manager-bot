@@ -1,4 +1,4 @@
-import { getPlayerPhotoUrl, PHOTO_FALLBACK_ATTR } from "../utils/PlayerPhoto.js";
+import { getPlayerPhotoUrl, isPlaceholderPhoto, PHOTO_FALLBACK_ATTR } from "../utils/PlayerPhoto.js";
 
 const getPosition = (player) => player?.identity?.primaryPosition || "-";
 const getGrowth = (entry) => Math.max(0, (entry?.scoutedPotential?.high || entry?.player?.ovr || 0) - (entry?.player?.ovr || 0));
@@ -36,9 +36,22 @@ const renderProspect = (entry, index) => {
   </article>`;
 };
 
-const renderJuniorCard = (entry) => {
+const renderPhotoAction = (player, status) => {
+  if (!isPlaceholderPhoto(player.identity?.photoUrl)) return "";
+  const labels = {
+    loading: "Генерация...",
+    ready: "Фото готово",
+    error: "Повторить фото",
+  };
+  const label = labels[status] || "Сгенерировать фото";
+  const disabled = status === "loading" ? "disabled" : "";
+  return `<button class="junior-manager-action secondary" ${disabled} data-action="generate-junior-photo" data-player-id="${player.id}">${label}</button>`;
+};
+
+const renderJuniorCard = (entry, photoStatusById) => {
   const player = entry.player;
   const status = entry.isGraduating ? "Выпуск" : entry.practice.label;
+  const photoStatus = photoStatusById?.get?.(player.id);
   return `<article class="junior-manager-card">
     <div class="junior-manager-card-top">
       ${renderPlayerHead(entry)}
@@ -53,6 +66,7 @@ const renderJuniorCard = (entry) => {
     </div>
     <div class="junior-manager-card-actions">
       <button class="junior-manager-action secondary" data-action="promote-junior" data-player-id="${player.id}">Поднять в основу</button>
+      ${renderPhotoAction(player, photoStatus)}
       ${entry.isGraduating && !entry.hasMainContract ? `<button class="junior-manager-action" data-action="sign-junior-main" data-player-id="${player.id}">Подписать основу</button>` : ""}
     </div>
   </article>`;
@@ -91,6 +105,7 @@ export class JuniorTeamTabRenderer {
     }
 
     const players = view.players || [];
+    const photoStatusById = view.photoStatusById;
     const graduationClass = view.graduationClass || [];
     const mainPlayers = view.mainPlayers || [];
     const targetSize = view.targetSize || 22;
@@ -159,7 +174,7 @@ export class JuniorTeamTabRenderer {
             </div>
           </div>
           <div class="junior-manager-card-grid">
-            ${players.map(renderJuniorCard).join("") || `<div class="junior-manager-empty">Состав пуст</div>`}
+            ${players.map((entry) => renderJuniorCard(entry, photoStatusById)).join("") || `<div class="junior-manager-empty">Состав пуст</div>`}
           </div>
         </section>
 

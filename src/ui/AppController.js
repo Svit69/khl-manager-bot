@@ -18,6 +18,7 @@ export class AppController{
   #seasonContractDecisionSelectedPlayerId=null;
   #seasonContractReleasePlayerIds=new Set();
   #seasonContractOutcomes=new Map();
+  #juniorPhotoStatusById=new Map();
   constructor(state,calendar,teams,renderer,userStore){
     this.#state=state;this.#calendar=calendar;this.#teams=teams;this.#renderer=renderer;this.#userStore=userStore;
   }
@@ -74,7 +75,9 @@ export class AppController{
       }else if(this.#activeTab==="trades"){
         this.#renderer.renderTrades(this.#buildTradeState());
       }else if(this.#activeTab==="junior"){
-        this.#renderer.renderJuniorTeam(this.#state.getActiveTeamJuniorView());
+        const juniorView=this.#state.getActiveTeamJuniorView();
+        if(juniorView)juniorView.photoStatusById=this.#juniorPhotoStatusById;
+        this.#renderer.renderJuniorTeam(juniorView);
       }else{
         this.#renderer.renderMyTeamRoster(this.#state.activeTeam);
       }
@@ -248,7 +251,7 @@ export class AppController{
     const rows=this.#state.getSeasonContractDecisionRows(Object.fromEntries(this.#offerByPlayerId));
     return rows.find(row=>row.playerId===playerId)?.preview?.offer||null;
   }
-  #handleClick(event){
+  async #handleClick(event){
     const clickable=event.target?.closest?.("[data-team-id],[data-tab],[data-action],#resetBtn,#playBtn");
     const teamId=clickable?.dataset?.teamId;
     if(teamId){this.#pendingTeamId=teamId;this.#renderScreen();return;}
@@ -512,6 +515,11 @@ export class AppController{
         this.#userStore.saveState(this.#state.exportState());
       }
       this.#renderScreen();
+      return;
+    }
+    if(action==="generate-junior-photo"){
+      const playerId=clickable.dataset.playerId;
+      await this.#generateJuniorPhoto(playerId);
       return;
     }
     if(action==="set-osa-years"){
@@ -886,6 +894,32 @@ export class AppController{
       return {kind:"line",lineIndex,slotIndex};
     }
     return null;
+  }
+  async #generateJuniorPhoto(playerId){
+    if(!playerId || this.#juniorPhotoStatusById.get(playerId)==="loading")return;
+    const player=this.#state.getJuniorPhotoRequest(playerId);
+    if(!player)return;
+    this.#juniorPhotoStatusById.set(playerId,"loading");
+    this.#renderScreen();
+    try{
+      const response=await fetch("/api/junior-photo",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({player})
+      });
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok || !data.photoUrl)throw new Error(data.error||"Не удалось сгенерировать фото.");
+      if(this.#state.setJuniorPlayerPhoto(playerId,data.photoUrl)){
+        this.#userStore.saveState(this.#state.exportState());
+        this.#juniorPhotoStatusById.set(playerId,"ready");
+      }else{
+        this.#juniorPhotoStatusById.set(playerId,"error");
+      }
+    }catch(error){
+      console.error(error);
+      this.#juniorPhotoStatusById.set(playerId,"error");
+    }
+    this.#renderScreen();
   }
   #parseSalaryMillions(rawValue){
     const normalized=String(rawValue??"").trim().replace(",",".");

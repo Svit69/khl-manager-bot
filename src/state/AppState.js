@@ -492,6 +492,29 @@ export class AppState {
     return contract;
   }
 
+  getJuniorPhotoRequest(playerId) {
+    if (!this.activeTeam || !playerId) return null;
+    const player = (this.activeTeam.juniorPlayers || []).find((entry) => entry.id === playerId);
+    if (!player) return null;
+    const seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
+    return {
+      id: player.id,
+      name: player.name,
+      age: getJuniorSeasonAge(player, seasonLabel),
+      position: player.identity?.primaryPosition || "",
+      nationality: player.identity?.nationality || "",
+      teamName: this.activeTeam.juniorTeam?.name || this.activeTeam.name,
+    };
+  }
+
+  setJuniorPlayerPhoto(playerId, photoUrl) {
+    if (!this.activeTeam || !playerId || !photoUrl) return false;
+    const player = (this.activeTeam.juniorPlayers || []).find((entry) => entry.id === playerId);
+    if (!player) return false;
+    player.identity.photoUrl = photoUrl;
+    return true;
+  }
+
   playDay() {
     const day = this.#calendar.getCurrent();
     return day ? this.#simulateCalendarDay(day, null) : null;
