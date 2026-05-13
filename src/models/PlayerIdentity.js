@@ -13,6 +13,7 @@
   get nationality(){return this.#nationality}
   get isGoalie(){return this.#isGoalie}
   get photoUrl(){return this.#photoUrl}
+  set photoUrl(value){this.#photoUrl=value||null}
   get primaryPosition(){return this.#primaryPosition}
   get secondaryPositions(){return this.#secondaryPositions}
 }

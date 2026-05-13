@@ -1,8 +1,10 @@
+import { getPlayerPhotoUrl, PHOTO_FALLBACK_ATTR } from "../utils/PlayerPhoto.js";
+
 const getPosition = (player) => player?.identity?.primaryPosition || "-";
 const getGrowth = (entry) => Math.max(0, (entry?.scoutedPotential?.high || entry?.player?.ovr || 0) - (entry?.player?.ovr || 0));
 
 const renderPhoto = (player) =>
-  `<img class="junior-manager-photo" src="${player?.identity?.photoUrl || "./player-photo/placeholder.png"}" alt="${player?.name || ""}"/>`;
+  `<img class="junior-manager-photo" src="${getPlayerPhotoUrl(player)}" alt="${player?.name || ""}" ${PHOTO_FALLBACK_ATTR}/>`;
 
 const renderSummary = (label, value, accent = false) =>
   `<div class="junior-manager-summary-card${accent ? " accent" : ""}"><span>${label}</span><strong>${value}</strong></div>`;

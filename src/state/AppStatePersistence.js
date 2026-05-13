@@ -1,6 +1,15 @@
 export const createPlayerSnapshots = (players) =>
   [...new Map((players || []).map((player) => [player.id, player])).values()].map((player) => ({
     id: player.id,
+    identity: {
+      firstName: player.identity?.firstName || null,
+      lastName: player.identity?.lastName || null,
+      displayName: player.identity?.displayName || player.name || null,
+      birthDate: player.identity?.birthDate || null,
+      nationality: player.identity?.nationality || null,
+      primaryPosition: player.identity?.primaryPosition || null,
+      photoUrl: player.identity?.photoUrl || null,
+    },
     fatigueScore: player.fatigueScore,
     form: player.form,
     injuryUntilDay: player.condition.injuryUntilDay,
@@ -28,6 +37,8 @@ export const restorePlayerSnapshots = (players, snapshots) => {
     if (snapshot.potential) player.potential.importSnapshot(snapshot.potential);
     if (snapshot.career) player.career?.importSnapshot?.(snapshot.career);
     if (snapshot.seasonStats) player.seasonStats.importSnapshot(snapshot.seasonStats);
+    if (snapshot.identity && "photoUrl" in snapshot.identity) player.identity.photoUrl = snapshot.identity.photoUrl;
+    if ("photoUrl" in snapshot) player.identity.photoUrl = snapshot.photoUrl;
     if ("teamId" in snapshot) player.affiliation.teamId = snapshot.teamId;
     if ("contractId" in snapshot) player.affiliation.contractId = snapshot.contractId;
     if ("acquiredDay" in snapshot) player.affiliation.acquiredDay = snapshot.acquiredDay;

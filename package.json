@@ -1,0 +1,7 @@
+{
+  "type": "module",
+  "scripts": {
+    "check:unicode": "node scripts/check-unicode.mjs",
+    "junior:photos": "node scripts/generate-junior-photos.mjs"
+  }
+}

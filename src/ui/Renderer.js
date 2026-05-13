@@ -6,6 +6,7 @@ import { JuniorTeamTabRenderer } from "./JuniorTeamTabRenderer.js";
 import { SeasonContractDecisionRenderer } from "./SeasonContractDecisionRenderer.js";
 import { calculateAge } from "../contracts/SeasonUtils.js";
 import { adjustedOvrForPosition } from "../utils/positionFit.js";
+import { getPlayerPhotoUrl, PHOTO_FALLBACK_ATTR } from "../utils/PlayerPhoto.js";
 const NATION_FLAG_ASSET_BY_CODE=Object.freeze({
   RU:"./flags/icon-russia.png",RUS:"./flags/icon-russia.png",
   CA:"./flags/icon-canada.png",CAN:"./flags/icon-canada.png",
@@ -77,7 +78,7 @@ const renderFatigueDot=player=>{
   return `<span class="hockey-card-fatigue hockey-card-fatigue--${status}" title="${labels[status]||"\u0423\u0441\u0442\u0430\u043b\u043e\u0441\u0442\u044c"} \u2022 ${score}" aria-label="${labels[status]||"\u0423\u0441\u0442\u0430\u043b\u043e\u0441\u0442\u044c"}"></span>`;
 };
 const renderRosterCard=(player,extraClass="",options={})=>{
-  const photo=player.identity.photoUrl||"./player-photo/placeholder.png";
+  const photo=getPlayerPhotoUrl(player);
   const surname=getSurname(player).toUpperCase();
   const age=calculateAge(player.identity.birthDate);
   const nationCode=getNationCode(player.identity.nationality);
@@ -87,7 +88,7 @@ const renderRosterCard=(player,extraClass="",options={})=>{
   const isPenalized=options.isPenalized||displayOvr<(player.ovr||displayOvr);
   const penalizedClass=isPenalized?" hockey-card--penalized":"";
   const fatigueClass=(player.fatigueOvrPenalty||0)>0?" hockey-card--fatigued":"";
-  return `<article class="hockey-card${extraClass?` ${extraClass}`:""}${penalizedClass}${fatigueClass}"><div class="hockey-card-layers"><img class="hockey-card-bg" src="./card/card_background.svg" alt="" aria-hidden="true"/><img class="hockey-card-photo" src="${photo}" alt="${player.name}"/><img class="hockey-card-front" src="./card/card_front.svg" alt="" aria-hidden="true"/></div><div class="hockey-card-top"><span class="hockey-card-ovr-wrap"><span class="hockey-card-ovr">${displayOvr}</span></span><span class="hockey-card-pos">${displayPosition}</span></div><div class="hockey-card-name-band">${surname}</div><div class="hockey-card-meta-row"><span>${age} \u041b\u0415\u0422</span>${renderFatigueDot(player)}<span>${nationFlag} ${nationCode}</span></div></article>`;
+  return `<article class="hockey-card${extraClass?` ${extraClass}`:""}${penalizedClass}${fatigueClass}"><div class="hockey-card-layers"><img class="hockey-card-bg" src="./card/card_background.svg" alt="" aria-hidden="true"/><img class="hockey-card-photo" src="${photo}" alt="${player.name}" ${PHOTO_FALLBACK_ATTR}/><img class="hockey-card-front" src="./card/card_front.svg" alt="" aria-hidden="true"/></div><div class="hockey-card-top"><span class="hockey-card-ovr-wrap"><span class="hockey-card-ovr">${displayOvr}</span></span><span class="hockey-card-pos">${displayPosition}</span></div><div class="hockey-card-name-band">${surname}</div><div class="hockey-card-meta-row"><span>${age} \u041b\u0415\u0422</span>${renderFatigueDot(player)}<span>${nationFlag} ${nationCode}</span></div></article>`;
 };
 const renderEmptyRosterSlot=slot=>{
   const attrs=[
