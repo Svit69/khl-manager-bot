@@ -48,10 +48,11 @@ const renderPhotoAction = (player, status) => {
   return `<button class="junior-manager-action secondary" ${disabled} data-action="generate-junior-photo" data-player-id="${player.id}">${label}</button>`;
 };
 
-const renderJuniorCard = (entry, photoStatusById) => {
+const renderJuniorCard = (entry, photoStatusById, photoErrorById) => {
   const player = entry.player;
   const status = entry.isGraduating ? "Выпуск" : entry.practice.label;
   const photoStatus = photoStatusById?.get?.(player.id);
+  const photoError = photoErrorById?.get?.(player.id);
   return `<article class="junior-manager-card">
     <div class="junior-manager-card-top">
       ${renderPlayerHead(entry)}
@@ -69,6 +70,7 @@ const renderJuniorCard = (entry, photoStatusById) => {
       ${renderPhotoAction(player, photoStatus)}
       ${entry.isGraduating && !entry.hasMainContract ? `<button class="junior-manager-action" data-action="sign-junior-main" data-player-id="${player.id}">Подписать основу</button>` : ""}
     </div>
+    ${photoError ? `<div class="junior-manager-photo-error">${photoError}</div>` : ""}
   </article>`;
 };
 
@@ -106,6 +108,7 @@ export class JuniorTeamTabRenderer {
 
     const players = view.players || [];
     const photoStatusById = view.photoStatusById;
+    const photoErrorById = view.photoErrorById;
     const graduationClass = view.graduationClass || [];
     const mainPlayers = view.mainPlayers || [];
     const targetSize = view.targetSize || 22;
@@ -174,7 +177,7 @@ export class JuniorTeamTabRenderer {
             </div>
           </div>
           <div class="junior-manager-card-grid">
-            ${players.map((entry) => renderJuniorCard(entry, photoStatusById)).join("") || `<div class="junior-manager-empty">Состав пуст</div>`}
+            ${players.map((entry) => renderJuniorCard(entry, photoStatusById, photoErrorById)).join("") || `<div class="junior-manager-empty">Состав пуст</div>`}
           </div>
         </section>
 

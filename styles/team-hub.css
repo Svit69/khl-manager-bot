@@ -1336,6 +1336,17 @@
 .junior-manager-card-actions .junior-manager-action{
   flex:1 1 140px;
 }
+.junior-manager-photo-error{
+  margin-top:10px;
+  padding:9px 10px;
+  border-radius:10px;
+  color:#ffb3b3;
+  background:rgba(255,92,92,.1);
+  border:1px solid rgba(255,92,92,.18);
+  font-size:12px;
+  font-weight:800;
+  line-height:1.35;
+}
 .junior-manager-transfer{
   display:grid;
   grid-template-columns:38px minmax(0,1fr);

@@ -19,6 +19,7 @@ export class AppController{
   #seasonContractReleasePlayerIds=new Set();
   #seasonContractOutcomes=new Map();
   #juniorPhotoStatusById=new Map();
+  #juniorPhotoErrorById=new Map();
   constructor(state,calendar,teams,renderer,userStore){
     this.#state=state;this.#calendar=calendar;this.#teams=teams;this.#renderer=renderer;this.#userStore=userStore;
   }
@@ -76,7 +77,10 @@ export class AppController{
         this.#renderer.renderTrades(this.#buildTradeState());
       }else if(this.#activeTab==="junior"){
         const juniorView=this.#state.getActiveTeamJuniorView();
-        if(juniorView)juniorView.photoStatusById=this.#juniorPhotoStatusById;
+        if(juniorView){
+          juniorView.photoStatusById=this.#juniorPhotoStatusById;
+          juniorView.photoErrorById=this.#juniorPhotoErrorById;
+        }
         this.#renderer.renderJuniorTeam(juniorView);
       }else{
         this.#renderer.renderMyTeamRoster(this.#state.activeTeam);
@@ -900,6 +904,7 @@ export class AppController{
     const player=this.#state.getJuniorPhotoRequest(playerId);
     if(!player)return;
     this.#juniorPhotoStatusById.set(playerId,"loading");
+    this.#juniorPhotoErrorById.delete(playerId);
     this.#renderScreen();
     try{
       const response=await fetch("/api/junior-photo",{
@@ -912,12 +917,15 @@ export class AppController{
       if(this.#state.setJuniorPlayerPhoto(playerId,data.photoUrl)){
         this.#userStore.saveState(this.#state.exportState());
         this.#juniorPhotoStatusById.set(playerId,"ready");
+        this.#juniorPhotoErrorById.delete(playerId);
       }else{
         this.#juniorPhotoStatusById.set(playerId,"error");
+        this.#juniorPhotoErrorById.set(playerId,"Фото получено, но игрок уже не найден в молодежке.");
       }
     }catch(error){
       console.error(error);
       this.#juniorPhotoStatusById.set(playerId,"error");
+      this.#juniorPhotoErrorById.set(playerId,error?.message||"Не удалось сгенерировать фото.");
     }
     this.#renderScreen();
   }
