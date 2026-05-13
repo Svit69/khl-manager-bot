@@ -12,10 +12,12 @@ const DEFAULT_NEGATIVE_PROMPT = [
   "deformed",
 ].join(", ");
 
-const OPENAI_IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || "gpt-image-1-mini";
-const OPENAI_IMAGE_SIZE = process.env.OPENAI_IMAGE_SIZE || "1024x1024";
-const OPENAI_IMAGE_QUALITY = process.env.OPENAI_IMAGE_QUALITY || "low";
-const OPENAI_IMAGE_FORMAT = process.env.OPENAI_IMAGE_FORMAT || "jpeg";
+const getEnv = (...names) => names.map((name) => process.env[name]).find(Boolean) || "";
+
+const OPENAI_IMAGE_MODEL = getEnv("OPENAI_IMAGE_MODEL", "openai_image_model") || "gpt-image-1-mini";
+const OPENAI_IMAGE_SIZE = getEnv("OPENAI_IMAGE_SIZE", "openai_image_size") || "1024x1024";
+const OPENAI_IMAGE_QUALITY = getEnv("OPENAI_IMAGE_QUALITY", "openai_image_quality") || "low";
+const OPENAI_IMAGE_FORMAT = getEnv("OPENAI_IMAGE_FORMAT", "openai_image_format") || "jpeg";
 
 const sanitizeText = (value, fallback = "") => String(value || fallback).trim().slice(0, 120);
 
@@ -79,11 +81,11 @@ const requestWorkerPhoto = async (workerUrl, headers, payload) => {
 };
 
 const requestOpenAiPhoto = async (payload) => {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = getEnv("OPENAI_API_KEY", "openai_api_key");
   if (!apiKey) {
     return {
       status: 503,
-      error: "Настройте JUNIOR_PHOTO_WORKER_URL или OPENAI_API_KEY в переменных окружения Vercel.",
+      error: "Set openai_api_key or junior_photo_worker_url in Vercel Environment Variables.",
     };
   }
 
@@ -155,11 +157,12 @@ export default async function handler(req, res) {
   };
 
   const headers = { "Content-Type": "application/json" };
-  if (process.env.JUNIOR_PHOTO_WORKER_TOKEN) {
-    headers.Authorization = `Bearer ${process.env.JUNIOR_PHOTO_WORKER_TOKEN}`;
+  const workerToken = getEnv("JUNIOR_PHOTO_WORKER_TOKEN", "junior_photo_worker_token");
+  if (workerToken) {
+    headers.Authorization = `Bearer ${workerToken}`;
   }
 
-  const workerUrl = process.env.JUNIOR_PHOTO_WORKER_URL;
+  const workerUrl = getEnv("JUNIOR_PHOTO_WORKER_URL", "junior_photo_worker_url");
   const result = workerUrl
     ? await requestWorkerPhoto(workerUrl, headers, payload)
     : await requestOpenAiPhoto(payload);

@@ -41,7 +41,7 @@ In the browser, junior players without a real `identity.photoUrl` use determinis
 
 ## Vercel Generation
 
-For production on Vercel, use the in-app button `Сгенерировать фото`. It calls:
+For production on Vercel, use the in-app button `Generate photo` / `Сгенерировать фото`. It calls:
 
 ```text
 POST /api/junior-photo
@@ -54,27 +54,29 @@ The Vercel function supports two modes.
 This is the simplest production setup. Add this environment variable in Vercel:
 
 ```text
-OPENAI_API_KEY=sk-...
+openai_api_key=sk-...
 ```
 
 Optional tuning variables:
 
 ```text
-OPENAI_IMAGE_MODEL=gpt-image-1-mini
-OPENAI_IMAGE_SIZE=1024x1024
-OPENAI_IMAGE_QUALITY=low
-OPENAI_IMAGE_FORMAT=jpeg
+openai_image_model=gpt-image-1-mini
+openai_image_size=1024x1024
+openai_image_quality=low
+openai_image_format=jpeg
 ```
 
-When `JUNIOR_PHOTO_WORKER_URL` is not configured, the API uses OpenAI Images and returns an inline data URL. It works without a separate GPU worker, but many generated photos can make the browser save larger.
+Uppercase aliases like `OPENAI_API_KEY` are also supported, but lowercase names are friendlier to panels that only allow lowercase letters, digits, dashes, and underscores.
+
+When `junior_photo_worker_url` is not configured, the API uses OpenAI Images and returns an inline data URL. It works without a separate GPU worker, but many generated photos can make the browser save larger.
 
 ## External Worker
 
 Use this mode if you want persistent CDN URLs and smaller browser saves:
 
 ```text
-JUNIOR_PHOTO_WORKER_URL=https://your-worker.example.com/generate-junior-photo
-JUNIOR_PHOTO_WORKER_TOKEN=optional-secret-token
+junior_photo_worker_url=https://your-worker.example.com/generate-junior-photo
+junior_photo_worker_token=optional-secret-token
 ```
 
 Worker request body:
