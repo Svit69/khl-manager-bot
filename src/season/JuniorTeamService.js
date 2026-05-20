@@ -116,8 +116,78 @@ const WEIGHTED_FIRST_NAMES = Object.freeze([
   ["Симеон", 2],
 ]);
 const FIRST_NAME_TOTAL_WEIGHT = WEIGHTED_FIRST_NAMES.reduce((sum, [, weight]) => sum + weight, 0);
-const LAST_NAMES_RU = ["Смирнов","Кузнецов","Соколов","Попов","Васильев","Морозов","Волков","Федоров","Михайлов","Новиков","Павлов","Козлов","Орлов","Зайцев"];
-const LAST_NAMES_BY = ["Ковалев","Гончаров","Савицкий","Мороз","Пинчук","Соловей","Левченко","Климович"];
+const WEIGHTED_LAST_NAMES_RU = Object.freeze([
+  ["Смирнов", 110],
+  ["Кузнецов", 100],
+  ["Соколов", 92],
+  ["Попов", 84],
+  ["Васильев", 78],
+  ["Морозов", 72],
+  ["Волков", 68],
+  ["Федоров", 64],
+  ["Михайлов", 60],
+  ["Новиков", 56],
+  ["Павлов", 52],
+  ["Козлов", 48],
+  ["Орлов", 44],
+  ["Зайцев", 40],
+  ["Белов", 34],
+  ["Соловьев", 32],
+  ["Андреев", 30],
+  ["Макаров", 28],
+  ["Никитин", 26],
+  ["Громов", 24],
+  ["Тихонов", 22],
+  ["Калинин", 20],
+  ["Быков", 18],
+  ["Ершов", 16],
+]);
+const WEIGHTED_LAST_NAMES_BY = Object.freeze([
+  ["Ковалев", 90],
+  ["Гончаров", 82],
+  ["Савицкий", 76],
+  ["Мороз", 68],
+  ["Пинчук", 60],
+  ["Соловей", 54],
+  ["Левченко", 48],
+  ["Климович", 44],
+  ["Мельник", 40],
+  ["Бондарь", 36],
+  ["Гуринович", 32],
+  ["Романович", 28],
+  ["Сидоренко", 24],
+  ["Войтехович", 20],
+]);
+const WEIGHTED_LAST_NAMES_KZ = Object.freeze([
+  ["Ахметов", 82],
+  ["Омаров", 74],
+  ["Ибраев", 66],
+  ["Серикбаев", 58],
+  ["Нурмагамбетов", 50],
+  ["Сагындыков", 44],
+  ["Касымов", 38],
+  ["Жумабаев", 34],
+  ["Тулегенов", 30],
+  ["Ермеков", 26],
+  ["Бекетов", 22],
+  ["Абдрахманов", 18],
+]);
+const GENERATED_LAST_NAME_CHANCE = Object.freeze({ RU: 24, BY: 30, KZ: 38 });
+const LAST_NAME_ROOTS = Object.freeze({
+  RU: ["Бел", "Свет", "Гор", "Зим", "Орл", "Тих", "Кал", "Бор", "Мир", "Гром", "Лукин", "Сав", "Яров", "Север", "Руд", "Лад", "Клен", "Ветров"],
+  BY: ["Ковал", "Сав", "Лев", "Клим", "Гончар", "Мельн", "Бондар", "Ром", "Гур", "Войт", "Сидор", "Полес", "Дрозд", "Зареч"],
+  KZ: ["Нур", "Серик", "Омар", "Ибр", "Касым", "Ермек", "Жума", "Тулеген", "Сагын", "Бек", "Али", "Арман", "Темир", "Даурен"],
+});
+const LAST_NAME_SUFFIXES = Object.freeze({
+  RU: [["ов", 34], ["ев", 24], ["ин", 18], ["ский", 8], ["цкий", 5], ["овский", 3], ["енко", 2]],
+  BY: [["ов", 18], ["евич", 17], ["енко", 15], ["ич", 12], ["ский", 11], ["ук", 8], ["ко", 6], ["ец", 4]],
+  KZ: [["ов", 22], ["ев", 18], ["баев", 18], ["беков", 11], ["ович", 6], ["улы", 5], ["жанов", 5], ["ханов", 4]],
+});
+const LAST_NAME_POOLS = Object.freeze({
+  RU: WEIGHTED_LAST_NAMES_RU,
+  BY: WEIGHTED_LAST_NAMES_BY,
+  KZ: WEIGHTED_LAST_NAMES_KZ,
+});
 
 const pick = (items, seed) => items[Math.abs(seed) % items.length];
 const hash = (source) => {
@@ -127,13 +197,42 @@ const hash = (source) => {
 };
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
-const pickWeightedFirstName = (seed) => {
-  let roll = Math.abs(seed) % FIRST_NAME_TOTAL_WEIGHT;
-  for (const [name, weight] of WEIGHTED_FIRST_NAMES) {
+const pickWeighted = (items, seed, totalWeight = null) => {
+  const total = totalWeight ?? items.reduce((sum, [, weight]) => sum + weight, 0);
+  let roll = Math.abs(seed) % total;
+  for (const [name, weight] of items) {
     if (roll < weight) return name;
     roll -= weight;
   }
-  return WEIGHTED_FIRST_NAMES[0][0];
+  return items[0][0];
+};
+
+const pickWeightedFirstName = (seed) => pickWeighted(WEIGHTED_FIRST_NAMES, seed, FIRST_NAME_TOTAL_WEIGHT);
+
+const getLastNamePool = (nationality) => LAST_NAME_POOLS[nationality] || WEIGHTED_LAST_NAMES_RU;
+const getLastNameRoots = (nationality) => LAST_NAME_ROOTS[nationality] || LAST_NAME_ROOTS.RU;
+const getLastNameSuffixes = (nationality) => LAST_NAME_SUFFIXES[nationality] || LAST_NAME_SUFFIXES.RU;
+
+const joinGeneratedLastName = (root, suffix) => {
+  if (!root) return suffix;
+  if (!suffix) return root;
+  if (root.endsWith(suffix)) return root;
+  if (root.endsWith("ов") && suffix === "ов") return root;
+  return `${root}${suffix}`;
+};
+
+const generateLastName = (nationality, seed) => {
+  const roots = getLastNameRoots(nationality);
+  const suffixes = getLastNameSuffixes(nationality);
+  const root = pick(roots, hash(`${seed}:last-root`));
+  const suffix = pickWeighted(suffixes, hash(`${seed}:last-suffix`));
+  return joinGeneratedLastName(root, suffix);
+};
+
+const pickLastName = (nationality, seed) => {
+  const chance = GENERATED_LAST_NAME_CHANCE[nationality] ?? GENERATED_LAST_NAME_CHANCE.RU;
+  if (hash(`${seed}:generated-last-name`) % 100 < chance) return generateLastName(nationality, seed);
+  return pickWeighted(getLastNamePool(nationality), hash(`${seed}:listed-last-name`));
 };
 
 const getPositionNeed = (players) => {
@@ -173,11 +272,15 @@ const getNationality = (team, seed) => {
   return "KZ";
 };
 
-const getNames = (nationality, seed) => {
-  const lastNames = nationality === "BY" ? LAST_NAMES_BY : LAST_NAMES_RU;
+const getNames = (nationality, seed, existingNames = new Set()) => {
+  const firstName = pickWeightedFirstName(hash(`${seed}:first-name`));
+  let lastName = pickLastName(nationality, seed);
+  for (let attempt = 1; attempt <= 6 && existingNames.has(`${firstName} ${lastName}`); attempt += 1) {
+    lastName = pickLastName(nationality, hash(`${seed}:last-name-reroll:${attempt}`));
+  }
   return {
-    firstName: pickWeightedFirstName(hash(`${seed}:first-name`)),
-    lastName: pick(lastNames, Math.floor(seed / 7)),
+    firstName,
+    lastName,
   };
 };
 
@@ -285,7 +388,8 @@ export class JuniorTeamService {
     const birthYear = getJuniorSeasonStartDate(seasonLabel).getUTCFullYear() - age;
     const position = getPositionNeed(team.juniorPlayers);
     const nationality = getNationality(team, seed);
-    const { firstName, lastName } = getNames(nationality, seed);
+    const existingNames = new Set((team.juniorPlayers || []).map((player) => player.name));
+    const { firstName, lastName } = getNames(nationality, seed, existingNames);
     const ovr = getBaseOvr(age, seed);
     const talentRoll = seed % 100;
     const potentialGap = talentRoll >= 95 ? 18 + (seed % 5) : talentRoll >= 70 ? 11 + (seed % 7) : 5 + (seed % 8);
