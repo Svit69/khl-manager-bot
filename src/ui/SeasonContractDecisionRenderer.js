@@ -1,3 +1,5 @@
+import { PHOTO_FALLBACK_ATTR } from "../utils/PlayerPhoto.js";
+
 const formatMillions = (value) => {
   const millions = (Number(value) || 0) / 1000000;
   return Number.isInteger(millions) ? String(millions) : millions.toFixed(1);
@@ -38,7 +40,7 @@ const renderRow = (row, view) => {
   const decision = view.releasePlayerIds.has(row.playerId) ? "release" : (row.hasFutureContract ? "renewed" : "pending");
   const selectedClass = view.selectedPlayerId === row.playerId ? " active" : "";
   return `<button class="season-contract-player${selectedClass}" data-action="season-contract-select" data-player-id="${row.playerId}">
-    <img src="${row.photoUrl}" alt="${row.displayName}">
+    <img src="${row.photoUrl}" alt="${row.displayName}" ${PHOTO_FALLBACK_ATTR}>
     <span class="season-contract-player-main">
       <strong>${row.displayName}</strong>
       <small>${row.position} • ${row.age} лет • OVR ${row.ovr}</small>
@@ -73,7 +75,7 @@ export class SeasonContractDecisionRenderer {
     const selectedPanel = selected
       ? `<section class="season-contract-detail">
           <div class="season-contract-detail-head">
-            <img src="${selected.photoUrl}" alt="${selected.displayName}">
+            <img src="${selected.photoUrl}" alt="${selected.displayName}" ${PHOTO_FALLBACK_ATTR}>
             <div>
               <div class="season-contract-kicker">${statusLabel(selected.ufaStatus)} • ${selected.location === "junior" ? "молодежка" : "основа"}</div>
               <h3>${selected.displayName}</h3>

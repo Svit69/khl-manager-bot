@@ -1,8 +1,8 @@
 # Junior photo generation
 
-Local junior portraits are generated through a running ComfyUI instance. The app never stores an API key in the browser.
+Local junior portraits can be generated through a running ComfyUI instance. The app never stores an API key in the browser.
 
-## Quick start
+## Quick Start
 
 1. Start ComfyUI locally.
 2. Make sure an SDXL checkpoint is available in ComfyUI.
@@ -37,11 +37,11 @@ The script writes `identity.photoUrl` into the output save for every generated j
 - `--force` regenerates existing files.
 - `--prompts-out` writes the prompt manifest to a custom path.
 
-In the browser, junior players without a real `identity.photoUrl` use deterministic generated avatars. The app no longer tries to load missing `player-photo/juniors/<juniorId>.png` files on Vercel.
+In the browser, players without a real `identity.photoUrl` use `player-photo/default.png`.
 
 ## Vercel Generation
 
-For production on Vercel, use the in-app button `Generate photo` / `Сгенерировать фото`. It calls:
+For production on Vercel, the in-app photo generation button calls:
 
 ```text
 POST /api/junior-photo
@@ -51,7 +51,7 @@ The Vercel function supports two modes.
 
 ## OpenAI Fallback
 
-This is the simplest production setup. Add this environment variable in Vercel:
+Add this environment variable in Vercel:
 
 ```text
 openai_api_key=sk-...
@@ -85,11 +85,11 @@ Worker request body:
 {
   "player": {
     "id": "junior-team-2025-0",
-    "name": "Иван Смирнов",
+    "name": "Ivan Smirnov",
     "age": 18,
-    "position": "ЦТР",
+    "position": "CTR",
     "nationality": "RU",
-    "teamName": "Омские Ястребы"
+    "teamName": "Omskie Yastreby"
   },
   "outputKey": "junior-photos/junior-team-2025-0.png",
   "prompt": "realistic studio media day headshot portrait...",

@@ -301,7 +301,7 @@ export class JuniorTeamService {
         birthDate: `${birthYear}-${String((seed % 12) + 1).padStart(2, "0")}-${String((seed % 27) + 1).padStart(2, "0")}`,
         nationality,
         isGoalie: position === PlayerPosition.G,
-        photoUrl: "./player-photo/placeholder.png",
+        photoUrl: "./player-photo/default.png",
         primaryPosition: position,
         secondaryPositions: [],
       },

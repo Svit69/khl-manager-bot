@@ -483,7 +483,7 @@ export class SeasonTransitionService {
         birthDate: `${Math.max(1998, year - 25)}-01-01`,
         nationality: team?.country === "BY" ? "BY" : "RU",
         isGoalie: false,
-        photoUrl: "./player-photo/placeholder.png",
+        photoUrl: "./player-photo/default.png",
         primaryPosition: position,
         secondaryPositions: [],
       },

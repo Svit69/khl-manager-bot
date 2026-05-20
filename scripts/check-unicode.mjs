@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 
 const roots = ["src", "styles", "scripts", "api", "docs"];
-const extensions = new Set([".js", ".css", ".html"]);
+const extensions = new Set([".js", ".css", ".html", ".md"]);
 const suspiciousChars = /[\u0400\u0402-\u040F\u0450\u0452-\u045F\u00A0\u00B0-\u00BF]/u;
 const mojibakeFragments = [
   "\u0432\u0402",

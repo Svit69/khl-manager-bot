@@ -36,6 +36,7 @@ import {
   createRosterSnapshots,
   importSavedRosters,
 } from "./AppStateRoster.js";
+import { getPlayerPhotoUrl } from "../utils/PlayerPhoto.js";
 
 const dedupeFreeAgents = (players = []) => {
   const uniqueById = new Map();
@@ -238,7 +239,7 @@ export class AppState {
           position: player.identity?.primaryPosition || "",
           age,
           ovr: player.currentOvr ?? player.ovr,
-          photoUrl: player.identity?.photoUrl || "./player-photo/placeholder.png",
+          photoUrl: getPlayerPhotoUrl(player),
           khlGamesPlayed: player.career?.khlGamesPlayed || 0,
           ufaStatus: getUfaStatus(age, player.career?.khlGamesPlayed || 0),
           location,
