@@ -266,9 +266,20 @@ const getBaseOvr = (age, seed) => {
 };
 
 const getNationality = (team, seed) => {
-  if (team.shortName === "DMN") return seed % 100 < 72 ? "BY" : "RU";
-  if (seed % 100 < 82) return "RU";
-  if (seed % 100 < 93) return "BY";
+  const roll = seed % 100;
+  const country = String(team?.country || "RU").toUpperCase();
+  if (country === "BY") {
+    if (roll < 82) return "BY";
+    if (roll < 98) return "RU";
+    return "KZ";
+  }
+  if (country === "KZ") {
+    if (roll < 82) return "KZ";
+    if (roll < 97) return "RU";
+    return "BY";
+  }
+  if (roll < 96) return "RU";
+  if (roll < 99) return "BY";
   return "KZ";
 };
 
