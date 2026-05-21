@@ -74,7 +74,13 @@ export class ContractService {
     );
 
     if (fullContracts) {
-      this.#contracts = saved;
+      const merged = new Map(saved.map((contract) => [contract.id, contract]));
+      this.#baseContracts.forEach((contract) => {
+        if (!merged.has(contract.id) && !this.#releasedPlayerIds.has(contract.playerId)) {
+          merged.set(contract.id, { ...contract });
+        }
+      });
+      this.#contracts = [...merged.values()];
       return;
     }
 

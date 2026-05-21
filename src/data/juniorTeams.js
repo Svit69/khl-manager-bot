@@ -9,6 +9,7 @@ const JUNIOR_TEAM_BY_PARENT_SHORT_NAME = Object.freeze({
   DMN: { name: "Динамо-Шинник", shortName: "DSH" },
   TRK: { name: "Белые Медведи", shortName: "BMD" },
   MMG: { name: "Стальные Лисы", shortName: "STL" },
+  LOK: { name: "Локо", shortName: "LOKO" },
 });
 
 export const createJuniorTeamInfo = (parentTeam) => {

@@ -1,4 +1,4 @@
-const CACHE_NAME="khl-manager-v114";
+const CACHE_NAME="khl-manager-v115";
 const ASSETS=[
   "./",
   "./index.html",
@@ -41,6 +41,7 @@ const ASSETS=[
   "./src/contracts/ai/AiRenewalNegotiation.js",
   "./src/data/freeAgents.js",
   "./src/data/juniorTeams.js",
+  "./src/data/lokomotivPlayers.js",
   "./src/data/teams.js",
   "./manifest.json",
   "./khl-logo/avangard.png",
@@ -48,6 +49,7 @@ const ASSETS=[
   "./khl-logo/salavat-yulaev.png",
   "./khl-logo/traktor.png",
   "./khl-logo/metallurg.png",
+  "./khl-logo/lokomotiv.png",
   "./khl-logo/dynamo-moscow.png",
   "./khl-logo/dinamo-minsk.png",
   "./player-photo/da-costa.png",
@@ -312,6 +314,22 @@ const ASSETS=[
   "./player-photo/yaremchuk.png",
   "./player-photo/viktor-fyodorov.png",
   "./player-photo/pugachyov.png",
+  "./player-photo/denis-alexeyev.png",
+  "./player-photo/bereglazov.png",
+  "./player-photo/beryozkin.png",
+  "./player-photo/alexander-volkov.png",
+  "./player-photo/gernat.png",
+  "./player-photo/yelesin.png",
+  "./player-photo/georgi-ivanov.png",
+  "./player-photo/kayumov.png",
+  "./player-photo/kiryanov.png",
+  "./player-photo/kraskovsky.png",
+  "./player-photo/kuzin.png",
+  "./player-photo/misyul.png",
+  "./player-photo/ilya-nikolayev.png",
+  "./player-photo/nikulin.png",
+  "./player-photo/panik.png",
+  "./player-photo/polunin.png",
   "./player-photo/placeholder.png",
   "./player-photo/default.png"
 ];
