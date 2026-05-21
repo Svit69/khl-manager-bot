@@ -1,4 +1,4 @@
-const CACHE_NAME="khl-manager-v115";
+const CACHE_NAME="khl-manager-v116";
 const ASSETS=[
   "./",
   "./index.html",
@@ -330,6 +330,7 @@ const ASSETS=[
   "./player-photo/nikulin.png",
   "./player-photo/panik.png",
   "./player-photo/polunin.png",
+  "./player-photo/andrei-sergeyev.png",
   "./player-photo/placeholder.png",
   "./player-photo/default.png"
 ];
