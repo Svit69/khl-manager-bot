@@ -172,17 +172,65 @@ const WEIGHTED_LAST_NAMES_KZ = Object.freeze([
   ["Бекетов", 22],
   ["Абдрахманов", 18],
 ]);
-const GENERATED_LAST_NAME_CHANCE = Object.freeze({ RU: 24, BY: 30, KZ: 38 });
+const TEAM_HERITAGE_LAST_NAME_CHANCE = 10;
+const HOCKEY_HISTORY_LAST_NAME_CHANCE = 10;
+const GENERATED_LAST_NAME_CHANCE = Object.freeze({ RU: 34, BY: 38, KZ: 44 });
 const LAST_NAME_ROOTS = Object.freeze({
-  RU: ["Бел", "Свет", "Гор", "Зим", "Орл", "Тих", "Кал", "Бор", "Мир", "Гром", "Лукин", "Сав", "Яров", "Север", "Руд", "Лад", "Клен", "Ветров"],
-  BY: ["Ковал", "Сав", "Лев", "Клим", "Гончар", "Мельн", "Бондар", "Ром", "Гур", "Войт", "Сидор", "Полес", "Дрозд", "Зареч"],
-  KZ: ["Нур", "Серик", "Омар", "Ибр", "Касым", "Ермек", "Жума", "Тулеген", "Сагын", "Бек", "Али", "Арман", "Темир", "Даурен"],
+  RU: ["Бел", "Свет", "Гор", "Зим", "Орл", "Тих", "Калин", "Бор", "Мир", "Гром", "Сав", "Яров", "Север", "Руд", "Лад", "Клен", "Ветров", "Лугов", "Снег", "Зор", "Ворон", "Горде", "Ерш", "Лазар", "Собол", "Терех", "Фомин", "Шувал", "Корен", "Берез", "Озер", "Вишн", "Мельн", "Ряб", "Троф", "Игнат", "Журав", "Демин", "Крыл", "Ларион"],
+  BY: ["Ковал", "Сав", "Лев", "Клим", "Гончар", "Мельн", "Бондар", "Ром", "Гур", "Войт", "Сидор", "Полес", "Дрозд", "Зареч", "Богуш", "Лях", "Кравч", "Стас", "Ярош", "Мартын", "Радк", "Жук", "Лис", "Тишк", "Грин", "Новиц", "Быков", "Козлов"],
+  KZ: ["Нур", "Серик", "Омар", "Ибр", "Касым", "Ермек", "Жума", "Тулеген", "Сагын", "Бек", "Али", "Арман", "Темир", "Даурен", "Айдар", "Марат", "Есен", "Кайрат", "Мурат", "Сабыр", "Жан", "Аскар", "Болат", "Руслан", "Талгат", "Абзал", "Самат"],
 });
 const LAST_NAME_SUFFIXES = Object.freeze({
-  RU: [["ов", 34], ["ев", 24], ["ин", 18], ["ский", 8], ["цкий", 5], ["овский", 3], ["енко", 2]],
-  BY: [["ов", 18], ["евич", 17], ["енко", 15], ["ич", 12], ["ский", 11], ["ук", 8], ["ко", 6], ["ец", 4]],
-  KZ: [["ов", 22], ["ев", 18], ["баев", 18], ["беков", 11], ["ович", 6], ["улы", 5], ["жанов", 5], ["ханов", 4]],
+  RU: [["ов", 32], ["ев", 24], ["ин", 18], ["ский", 8], ["цкий", 5], ["овский", 4], ["евский", 3], ["енко", 2], ["ых", 1], ["ой", 1]],
+  BY: [["ов", 16], ["евич", 18], ["енко", 15], ["ич", 12], ["ский", 10], ["ук", 8], ["ко", 6], ["ец", 4], ["чук", 4], ["янок", 2]],
+  KZ: [["ов", 20], ["ев", 17], ["баев", 17], ["беков", 10], ["ович", 5], ["улы", 6], ["жанов", 5], ["ханов", 4], ["галиев", 4], ["таев", 4], ["динов", 3]],
 });
+const ROOT_SUFFIX_HINTS = Object.freeze({
+  RU: {
+    Гор: [["ин", 5], ["ский", 3], ["ов", 1]],
+    Мир: [["онов", 6], ["ин", 2]],
+    Сав: [["ин", 5], ["ов", 2]],
+    Свет: [["лов", 7], ["ов", 1]],
+    Север: [["ин", 4], ["ов", 3]],
+    Яров: [["ой", 5], ["ых", 2], ["ов", 1]],
+    Ларион: [["ов", 8]],
+  },
+  BY: {
+    Лев: [["чук", 4], ["ич", 3], ["ов", 2]],
+    Сав: [["ич", 4], ["ук", 3], ["ов", 2]],
+    Гур: [["евич", 4], ["ский", 2], ["ов", 1]],
+  },
+});
+const HOCKEY_HISTORY_LAST_NAMES = Object.freeze([
+  ["Федоров", 8],
+  ["Буре", 7],
+  ["Могильный", 7],
+  ["Ларионов", 7],
+  ["Макаров", 7],
+  ["Крутов", 6],
+  ["Касатонов", 6],
+  ["Ковальчук", 6],
+  ["Малкин", 6],
+  ["Овечкин", 5],
+  ["Дацюк", 5],
+  ["Каменский", 5],
+  ["Гусев", 5],
+  ["Капризов", 5],
+  ["Радулов", 4],
+  ["Тарасенко", 4],
+  ["Кузнецов", 4],
+  ["Григоренко", 4],
+  ["Шипачев", 4],
+  ["Зарипов", 4],
+  ["Мозякин", 4],
+  ["Зиновьев", 3],
+  ["Морозов", 3],
+  ["Ткачев", 3],
+  ["Толчинский", 3],
+  ["Слепышев", 3],
+  ["Нестеров", 3],
+  ["Войнов", 3],
+]);
 const LAST_NAME_POOLS = Object.freeze({
   RU: WEIGHTED_LAST_NAMES_RU,
   BY: WEIGHTED_LAST_NAMES_BY,
@@ -212,24 +260,52 @@ const pickWeightedFirstName = (seed) => pickWeighted(WEIGHTED_FIRST_NAMES, seed,
 const getLastNamePool = (nationality) => LAST_NAME_POOLS[nationality] || WEIGHTED_LAST_NAMES_RU;
 const getLastNameRoots = (nationality) => LAST_NAME_ROOTS[nationality] || LAST_NAME_ROOTS.RU;
 const getLastNameSuffixes = (nationality) => LAST_NAME_SUFFIXES[nationality] || LAST_NAME_SUFFIXES.RU;
+const getRootSuffixes = (nationality, root) => ROOT_SUFFIX_HINTS[nationality]?.[root] || getLastNameSuffixes(nationality);
+const getHockeyHistoryLastName = (seed) => pickWeighted(HOCKEY_HISTORY_LAST_NAMES, hash(`${seed}:hockey-history-last-name`));
+const getTeamHeritageLastName = (team, seed, nationality) => {
+  const names = (team?.getRoster?.() || [])
+    .filter((player) => !nationality || player.identity?.nationality === nationality)
+    .map((player) => player.identity?.lastName || String(player.name || "").trim().split(/\s+/).slice(-1)[0])
+    .filter((name) => typeof name === "string" && name.length >= 4 && name.length <= 18);
+  if (!names.length) return null;
+  return pick([...new Set(names)], hash(`${seed}:team-heritage-last-name`));
+};
 
 const joinGeneratedLastName = (root, suffix) => {
   if (!root) return suffix;
   if (!suffix) return root;
   if (root.endsWith(suffix)) return root;
   if (root.endsWith("ов") && suffix === "ов") return root;
+  if (root.endsWith("ев") && suffix === "ев") return root;
+  if (root.endsWith("ин") && suffix === "ин") return root;
+  if (root.endsWith("й") && suffix.startsWith("с")) return `${root.slice(0, -1)}${suffix}`;
   return `${root}${suffix}`;
 };
 
 const generateLastName = (nationality, seed) => {
   const roots = getLastNameRoots(nationality);
-  const suffixes = getLastNameSuffixes(nationality);
   const root = pick(roots, hash(`${seed}:last-root`));
+  const suffixes = getRootSuffixes(nationality, root);
   const suffix = pickWeighted(suffixes, hash(`${seed}:last-suffix`));
+  const secondaryRoll = hash(`${seed}:last-secondary-root`) % 100;
+  if (secondaryRoll < 7 && nationality !== "KZ") {
+    const secondaryRoot = pick(roots, hash(`${seed}:last-secondary-root:value`));
+    if (secondaryRoot !== root && root.length <= 5 && secondaryRoot.length <= 5) {
+      return joinGeneratedLastName(`${root}${secondaryRoot.toLowerCase()}`, suffix);
+    }
+  }
   return joinGeneratedLastName(root, suffix);
 };
 
-const pickLastName = (nationality, seed) => {
+const pickLastName = (nationality, seed, team = null) => {
+  const teamHeritageRoll = hash(`${seed}:team-heritage-roll`) % 100;
+  if (teamHeritageRoll < TEAM_HERITAGE_LAST_NAME_CHANCE) {
+    const inherited = getTeamHeritageLastName(team, seed, nationality);
+    if (inherited) return inherited;
+  }
+  if (hash(`${seed}:hockey-history-roll`) % 100 < HOCKEY_HISTORY_LAST_NAME_CHANCE) {
+    return getHockeyHistoryLastName(seed);
+  }
   const chance = GENERATED_LAST_NAME_CHANCE[nationality] ?? GENERATED_LAST_NAME_CHANCE.RU;
   if (hash(`${seed}:generated-last-name`) % 100 < chance) return generateLastName(nationality, seed);
   return pickWeighted(getLastNamePool(nationality), hash(`${seed}:listed-last-name`));
@@ -283,11 +359,11 @@ const getNationality = (team, seed) => {
   return "KZ";
 };
 
-const getNames = (nationality, seed, existingNames = new Set()) => {
+const getNames = (nationality, seed, existingNames = new Set(), team = null) => {
   const firstName = pickWeightedFirstName(hash(`${seed}:first-name`));
-  let lastName = pickLastName(nationality, seed);
+  let lastName = pickLastName(nationality, seed, team);
   for (let attempt = 1; attempt <= 6 && existingNames.has(`${firstName} ${lastName}`); attempt += 1) {
-    lastName = pickLastName(nationality, hash(`${seed}:last-name-reroll:${attempt}`));
+    lastName = pickLastName(nationality, hash(`${seed}:last-name-reroll:${attempt}`), team);
   }
   return {
     firstName,
@@ -400,7 +476,7 @@ export class JuniorTeamService {
     const position = getPositionNeed(team.juniorPlayers);
     const nationality = getNationality(team, seed);
     const existingNames = new Set((team.juniorPlayers || []).map((player) => player.name));
-    const { firstName, lastName } = getNames(nationality, seed, existingNames);
+    const { firstName, lastName } = getNames(nationality, seed, existingNames, team);
     const ovr = getBaseOvr(age, seed);
     const talentRoll = seed % 100;
     const potentialGap = talentRoll >= 95 ? 18 + (seed % 5) : talentRoll >= 70 ? 11 + (seed % 7) : 5 + (seed % 8);

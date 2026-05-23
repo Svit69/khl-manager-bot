@@ -257,10 +257,10 @@ export class AppController{
   }
   async #handleClick(event){
     const clickable=event.target?.closest?.("[data-team-id],[data-tab],[data-action],#resetBtn,#playBtn");
-    const teamId=clickable?.dataset?.teamId;
-    if(teamId){this.#pendingTeamId=teamId;this.#renderScreen();return;}
     const tab=clickable?.dataset?.tab;
     const action=clickable?.dataset?.action;
+    const teamId=clickable?.dataset?.teamId;
+    if(teamId && !action){this.#pendingTeamId=teamId;this.#renderScreen();return;}
     if(tab){
       this.#activeTab=tab;
       if(tab!=="teamStats")this.#teamStatsSort="points";
