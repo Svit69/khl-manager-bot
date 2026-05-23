@@ -18,6 +18,7 @@ export const teamsData=[
   buildTeam("6b9a4d2c-5f18-41d4-9b65-3d71d8a4f2c0","Динамо Мн","DMN","Минск","BY","dinamo-minsk.png"),
   buildTeam("1f9e53f8-c6b1-4d2d-8ae8-6f1fd72f3f62","ЦСКА","CSK","Москва","RU","cska.png"),
   buildTeam("3a2d2d4a-7b2b-4a2f-8a5c-8e8e8f9e0c0b","Салават Юлаев","SYU","Уфа","RU","salavat-yulaev.png"),
+  buildTeam("8ef62a37-2c8f-4c7b-9d38-2c4b6e0e9f14","Сибирь","SIB","Новосибирск","RU","sibir.png"),
   buildTeam("4c9c3c3a-8f7a-4f5e-9c9a-6d6b6a5e4f3d","Трактор","TRK","Челябинск","RU","traktor.png"),
   buildTeam("7d4e3f2a-1b6c-4a9d-8e5f-2c3b4a5d6e7f","Металлург","MMG","Магнитогорск","RU","metallurg.png"),
   buildTeam("5e7f6c2a-2d44-4d3a-9b2c-9f1a6e8d7c30","Локомотив","LOK","Ярославль","RU","lokomotiv.png"),
