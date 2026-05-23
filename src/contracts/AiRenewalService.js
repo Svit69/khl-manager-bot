@@ -12,6 +12,7 @@ import {
   runFreeAgentNegotiation,
   runRenewalNegotiation,
 } from "./ai/AiRenewalNegotiation.js";
+import { TEAM_ROSTER_TARGET_SIZE } from "../season/RosterTargets.js";
 
 export class AiRenewalService {
   #contracts;
@@ -87,7 +88,7 @@ export class AiRenewalService {
     for (const team of getManagedAiTeams(teams, activeTeamId)) {
       const plan = buildTeamPlan(team, standingsIndex.get(team.id), standingsTable, negotiationDate);
       const roster = team?.getRoster?.() || [];
-      const sizeNeed = Math.max(0, 20 - roster.length);
+      const sizeNeed = Math.max(0, TEAM_ROSTER_TARGET_SIZE - roster.length);
       if (!sizeNeed) continue;
 
       const context = { ...buildContext(team), currentDate: negotiationDate, allPlayers };

@@ -7,6 +7,7 @@ import { SeasonContractDecisionRenderer } from "./SeasonContractDecisionRenderer
 import { calculateAge } from "../contracts/SeasonUtils.js";
 import { adjustedOvrForPosition } from "../utils/positionFit.js";
 import { getPlayerPhotoUrl, PHOTO_FALLBACK_ATTR } from "../utils/PlayerPhoto.js";
+const FANTASY_DRAFT_ROUNDS=23;
 const NATION_FLAG_ASSET_BY_CODE=Object.freeze({
   RU:"./flags/icon-russia.png",RUS:"./flags/icon-russia.png",
   CA:"./flags/icon-canada.png",CAN:"./flags/icon-canada.png",
@@ -301,7 +302,7 @@ export class Renderer{
   }
   renderFantasyDraftIntro(team){
     const infoPills=[
-      {label:"Режим",value:"20 раундов"},
+      {label:"Режим",value:"23 раунда"},
       {label:"Порядок",value:"Snake draft"},
       {label:"После",value:"Переход к составу"}
     ];
@@ -318,7 +319,7 @@ export class Renderer{
         <div class="draft-intro-hero">
           <div class="draft-intro-kicker">Fantasy Draft</div>
           <h1>Draft your team</h1>
-          <p class="draft-intro-lead">Вы выбрали <strong>${team.name}</strong>. Сейчас вся лига по очереди будет забирать игроков из общей базы. Ваша задача — собрать сильный и сбалансированный состав за 20 пиков.</p>
+          <p class="draft-intro-lead">Вы выбрали <strong>${team.name}</strong>. Сейчас вся лига по очереди будет забирать игроков из общей базы. Ваша задача — собрать сильный и сбалансированный состав за 23 пика.</p>
           <div class="draft-intro-pills">${pills}</div>
         </div>
         <div class="draft-intro-showcase">
@@ -353,12 +354,13 @@ export class Renderer{
   renderFantasyDraft(draft,team){
     const selectedPlayer=draft.availablePlayers.find(player=>player.id===draft.selectedPlayerId)||null;
     const previewPlayer=selectedPlayer||draft.availablePlayers[0]||null;
+    const draftRounds=draft.rounds||FANTASY_DRAFT_ROUNDS;
     const totalProgress=draft.totalPicks>0?Math.min(100,Math.round((Math.max(0,draft.pickNumber-1)/draft.totalPicks)*100)):0;
-    const draftHeader=`<div class="draft-header-shell"><div class="draft-header-main"><img class="logo" src="${team.logoUrl}" alt="${team.name}"/><div><div class="draft-header-title">Фэнтези драфт — ${team.name}</div><div class="muted">Раунд ${draft.currentRound}/20 • Пик ${draft.currentPickInRound}/${draft.teams.length} • Общий #${draft.pickNumber}/${draft.totalPicks}</div></div></div><div class="draft-header-side"><div class="muted">Текущий пик</div><div class="draft-current-team">${draft.currentTeamName||"—"}</div><div class="draft-progress"><span style="width:${totalProgress}%"></span></div></div></div>`;
+    const draftHeader=`<div class="draft-header-shell"><div class="draft-header-main"><img class="logo" src="${team.logoUrl}" alt="${team.name}"/><div><div class="draft-header-title">Фэнтези драфт — ${team.name}</div><div class="muted">Раунд ${draft.currentRound}/${draftRounds} • Пик ${draft.currentPickInRound}/${draft.teams.length} • Общий #${draft.pickNumber}/${draft.totalPicks}</div></div></div><div class="draft-header-side"><div class="muted">Текущий пик</div><div class="draft-current-team">${draft.currentTeamName||"—"}</div><div class="draft-progress"><span style="width:${totalProgress}%"></span></div></div></div>`;
     const teamRows=draft.teams.map(item=>{
       const isCurrent=item.id===draft.currentTeamId;
       const isUser=item.id===team.id;
-      return `<div class="draft-team-row${isCurrent?" current":""}${isUser?" user":""}"><span class="draft-team-name">${item.name}</span><span class="draft-team-count">${item.pickedCount}/20</span></div>`;
+      return `<div class="draft-team-row${isCurrent?" current":""}${isUser?" user":""}"><span class="draft-team-name">${item.name}</span><span class="draft-team-count">${item.pickedCount}/${draftRounds}</span></div>`;
     }).join("");
     const orderPreview=draft.upcomingOrder.map(item=>{
       const pickTeam=draft.teams.find(teamItem=>teamItem.id===item.teamId);
@@ -405,7 +407,7 @@ export class Renderer{
     }).join("");
     const previewAge=previewPlayer?calculateAge(previewPlayer.identity.birthDate):null;
     const previewCard=previewPlayer?`<div class="draft-preview-head"><img class="draft-preview-photo" src="${getPlayerPhotoUrl(previewPlayer)}" alt="${previewPlayer.name}" ${PHOTO_FALLBACK_ATTR}/><div class="draft-preview-title"><div class="draft-preview-ovr">${previewPlayer.ovr}</div><div class="draft-preview-name">${previewPlayer.name}</div><div class="draft-preview-meta">${previewPlayer.identity.primaryPosition} • ${previewAge} лет • ${getNationBadge(previewPlayer.identity.nationality)}</div></div></div><div class="draft-preview-attrs">${attrRows||'<div class="muted">Атрибуты недоступны</div>'}</div>`:`<div class="muted">Игрок не выбран</div>`;
-    this.#teamEl.innerHTML=`<div class="draft-screen"><div class="draft-top">${draftHeader}<div class="draft-order-strip">${orderPreview}</div></div><div class="draft-layout"><section class="draft-left"><div class="draft-card"><div class="draft-card-head"><h2>Доступные игроки</h2><div class="muted">${draft.availablePlayers.length} в пуле</div></div><div class="draft-toolbar"><div><div class="muted">Сортировка</div>${sortControls}</div><div><div class="muted">Фильтр по позиции</div>${filterControls}</div></div>${actionBar}<div class="draft-list">${cards||"<div class=\"muted\">Нет игроков</div>"}</div></div></section><aside class="draft-right"><div class="draft-card"><div class="draft-card-head"><h2>Просмотр игрока</h2><div class="muted">Имя • позиция • OVR • возраст • нация</div></div>${previewCard}</div><div class="draft-card"><div class="draft-card-head"><h2>Ваш драфт-борд</h2><div class="muted">${team.name}</div></div>${renderDraftNeedsGrid(userRoster)}<div class="draft-panel">${rosterPanel}</div></div><div class="draft-card"><div class="draft-card-head"><h2>Команды</h2><div class="muted">20 раундов • змейка</div></div><div class="draft-team-list">${teamRows}</div></div><div class="draft-card"><div class="draft-card-head"><h2>Последние пики</h2><div class="muted">Live log</div></div><div class="draft-recent-list">${recentPicks}</div></div></aside></div></div>`;
+    this.#teamEl.innerHTML=`<div class="draft-screen"><div class="draft-top">${draftHeader}<div class="draft-order-strip">${orderPreview}</div></div><div class="draft-layout"><section class="draft-left"><div class="draft-card"><div class="draft-card-head"><h2>Доступные игроки</h2><div class="muted">${draft.availablePlayers.length} в пуле</div></div><div class="draft-toolbar"><div><div class="muted">Сортировка</div>${sortControls}</div><div><div class="muted">Фильтр по позиции</div>${filterControls}</div></div>${actionBar}<div class="draft-list">${cards||"<div class=\"muted\">Нет игроков</div>"}</div></div></section><aside class="draft-right"><div class="draft-card"><div class="draft-card-head"><h2>Просмотр игрока</h2><div class="muted">Имя • позиция • OVR • возраст • нация</div></div>${previewCard}</div><div class="draft-card"><div class="draft-card-head"><h2>Ваш драфт-борд</h2><div class="muted">${team.name}</div></div>${renderDraftNeedsGrid(userRoster)}<div class="draft-panel">${rosterPanel}</div></div><div class="draft-card"><div class="draft-card-head"><h2>Команды</h2><div class="muted">${draftRounds} раундов • змейка</div></div><div class="draft-team-list">${teamRows}</div></div><div class="draft-card"><div class="draft-card-head"><h2>Последние пики</h2><div class="muted">Live log</div></div><div class="draft-recent-list">${recentPicks}</div></div></aside></div></div>`;
     this.#matchEl.innerHTML="";
   }  renderCalendar(currentDateLabel,info,isLocked,panelData={}){
     const activeTab=panelData?.tab||"standings";

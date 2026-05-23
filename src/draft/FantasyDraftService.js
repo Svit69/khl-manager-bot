@@ -3,7 +3,8 @@ import { generateUuid } from "../utils/uuid.js";
 
 const POSITION_ALL = "ALL";
 const DEFAULT_SORT = "ovr";
-const DRAFT_POSITION_TARGETS = Object.freeze({ CTR: 4, LW: 4, RW: 4, DEF: 6, G: 2 });
+export const DRAFT_ROUNDS = 23;
+const DRAFT_POSITION_TARGETS = Object.freeze({ CTR: 5, LW: 5, RW: 5, DEF: 8, G: 0 });
 const TEAM_DRAFT_ARCHETYPES = Object.freeze(["balanced", "win-now", "youth"]);
 const DINAMO_MINSK_TEAM_ID = "6b9a4d2c-5f18-41d4-9b65-3d71d8a4f2c0";
 
@@ -37,7 +38,7 @@ export class FantasyDraftService {
   #draftOrder;
   #teamArchetypeById = new Map();
 
-  constructor(teams, players, userTeamId, rounds = 20) {
+  constructor(teams, players, userTeamId, rounds = DRAFT_ROUNDS) {
     this.#draftId = generateUuid();
     this.#teams = [...teams];
     this.#rounds = rounds;
@@ -52,7 +53,7 @@ export class FantasyDraftService {
 
   static fromSnapshot(teams, players, snapshot) {
     if (!snapshot) return null;
-    const service = new FantasyDraftService(teams, players, snapshot.userTeamId, snapshot.rounds);
+    const service = new FantasyDraftService(teams, players, snapshot.userTeamId, Math.max(DRAFT_ROUNDS, Number(snapshot.rounds) || DRAFT_ROUNDS));
     const playersById = new Map(players.map((player) => [player.id, player]));
     const readPlayers = (ids) => (ids || []).map((id) => playersById.get(id)).filter(Boolean);
 
@@ -125,6 +126,7 @@ export class FantasyDraftService {
       currentTeamId: currentTeam?.id || null,
       currentTeamName: currentTeam?.name || "",
       currentRound: Math.floor(this.#pickIndex / this.#teams.length) + 1,
+      rounds: this.#rounds,
       currentPickInRound: (this.#pickIndex % this.#teams.length) + 1,
       pickNumber: this.#pickIndex + 1,
       totalPicks: this.#rounds * this.#teams.length,

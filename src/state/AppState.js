@@ -3,6 +3,7 @@ import { StatsTracker } from "../stats/StatsTracker.js";
 import { AiRenewalService } from "../contracts/AiRenewalService.js";
 import { ContractService } from "../contracts/ContractService.js";
 import { ContractType } from "../contracts/ContractType.js";
+import { getFallbackMarketSalaryRub } from "../contracts/FallbackMarketSalary.js";
 import { StandingsTracker } from "../stats/StandingsTracker.js";
 import { calculateAge, formatContractEndDate, parseSeasonEnd, setSeasonReferenceDate } from "../contracts/SeasonUtils.js";
 import { PlayerDevelopmentService } from "../progression/PlayerDevelopmentService.js";
@@ -14,6 +15,7 @@ import {
   upsertCompetitiveOffer,
 } from "../season/OffseasonFreeAgencyMarket.js";
 import { getPreseasonDateAt, getPreseasonNextDate } from "../season/PreseasonSchedule.js";
+import { TEAM_ROSTER_TARGET_SIZE } from "../season/RosterTargets.js";
 import { SeasonTransitionService } from "../season/SeasonTransitionService.js";
 import { JuniorTeamService } from "../season/JuniorTeamService.js";
 import { getJuniorIneligibilityReason, getJuniorSeasonAge } from "../season/JuniorEligibility.js";
@@ -37,6 +39,7 @@ import {
   importSavedRosters,
 } from "./AppStateRoster.js";
 import { getPlayerPhotoUrl } from "../utils/PlayerPhoto.js";
+import { lineupScoreForPosition } from "../utils/positionFit.js";
 
 const dedupeFreeAgents = (players = []) => {
   const uniqueById = new Map();
@@ -46,6 +49,11 @@ const dedupeFreeAgents = (players = []) => {
   });
   return [...uniqueById.values()];
 };
+
+const AI_ROTATION_MAX_ROSTER_SIZE = TEAM_ROSTER_TARGET_SIZE + 2;
+const AI_RESTED_RESERVE_THRESHOLD = 35;
+const AI_ROTATION_FATIGUE_THRESHOLD = 55;
+const AI_DEPTH_SIGNING_FATIGUE_THRESHOLD = 58;
 
 export class AppState {
   #teams;
@@ -741,6 +749,8 @@ export class AppState {
     const focusedMatches = [];
     const playedTeams = new Set();
     matches.forEach((match) => {
+      this.#prepareAiTeamForMatch(match.home, day?.phase || "regular");
+      this.#prepareAiTeamForMatch(match.away, day?.phase || "regular");
       const simulated = this.#sim.simulateMatch(match.home, match.away, { phase: day?.phase || "regular" });
       this.#calendar.recordResult(day.day, match.id, simulated);
       if (day?.phase !== "playoffs") this.#standings.recordMatch(simulated);
@@ -795,6 +805,142 @@ export class AppState {
       player.applyFatigue(delta);
       player.applyFormDelta(Math.random() * 0.02 - 0.01);
     });
+  }
+
+  #prepareAiTeamForMatch(team, phase) {
+    if (!team?.id || team.id === this.#activeTeamId) return;
+    const normalizedPhase = String(phase || "");
+    if (!["regular", "playoffs"].includes(normalizedPhase)) return;
+
+    if (normalizedPhase === "regular") {
+      this.#seasonTransition.ensureMinimumRosterDepth({
+        teams: [team],
+        activeTeamId: this.#activeTeamId,
+        allPlayers: this.getAllPlayers(),
+        buildContext: (candidateTeam) => this.#buildNegotiationContext(candidateTeam),
+        negotiationDate: this.#calendar.currentDate,
+      });
+      this.#signAiRotationDepthIfNeeded(team);
+    }
+    if (this.#rotateAiLineupForFatigue(team)) this.#refreshExpectedRoles(team);
+  }
+
+  #signAiRotationDepthIfNeeded(team) {
+    const roster = team?.getRoster?.() || [];
+    if (roster.length >= AI_ROTATION_MAX_ROSTER_SIZE) return false;
+
+    const linePlayers = team.lines.flatMap((line) => line.players).filter(Boolean);
+    const tiredLinePlayers = linePlayers.filter((player) => (Number(player.fatigueScore) || 0) >= AI_DEPTH_SIGNING_FATIGUE_THRESHOLD);
+    const restedReserves = (team.reservePlayers || []).filter((player) => (Number(player.fatigueScore) || 0) <= AI_RESTED_RESERVE_THRESHOLD);
+    if (tiredLinePlayers.length < 4 || restedReserves.length >= 2) return false;
+
+    const preferredGroup = this.#getPlayerRotationGroup(
+      [...tiredLinePlayers].sort((left, right) => (right.fatigueScore || 0) - (left.fatigueScore || 0))[0],
+    );
+    const available = this.getAvailableFreeAgents();
+    const sameGroupCandidates = available
+      .filter((player) => this.#getPlayerRotationGroup(player) === preferredGroup)
+      .filter((player) => (Number(player.ovr) || 0) <= 76);
+    const fallbackCandidates = available.filter((player) => (Number(player.ovr) || 0) <= 74);
+    const candidate = [...(sameGroupCandidates.length ? sameGroupCandidates : fallbackCandidates)]
+      .sort((left, right) => (right.ovr - left.ovr) || left.name.localeCompare(right.name, "ru"))[0];
+    if (!candidate) return false;
+
+    this.#contracts.finalizeFreeAgentSigning(
+      team,
+      candidate,
+      { years: 1, salaryRub: getFallbackMarketSalaryRub(candidate) },
+      { currentDate: this.#calendar.currentDate },
+    );
+    candidate.affiliation.acquiredDay = this.#calendar.currentDay;
+    if (!team.getRoster().some((player) => player?.id === candidate.id)) {
+      team.reservePlayers.push(candidate);
+    }
+    this.#freeAgents = dedupeFreeAgents(this.#freeAgents.filter((player) => player.id !== candidate.id));
+    this.#refreshExpectedRoles(team);
+    return true;
+  }
+
+  #rotateAiLineupForFatigue(team) {
+    let changed = false;
+    team.lines.forEach((line) => {
+      line.players.forEach((player, slotIndex) => {
+        const slotPosition = line.positions?.[slotIndex] || player?.identity?.primaryPosition || null;
+        if (!player) {
+          const reserveIndex = this.#findBestAiReserveIndex(team.reservePlayers, slotPosition, null);
+          if (reserveIndex >= 0) {
+            line.players[slotIndex] = team.reservePlayers.splice(reserveIndex, 1)[0];
+            changed = true;
+          }
+          return;
+        }
+
+        if (!this.#shouldAiRestPlayer(player)) {
+          const upgradeIndex = this.#findBestAiUpgradeReserveIndex(team.reservePlayers, slotPosition, player);
+          if (upgradeIndex < 0) return;
+          const replacement = team.reservePlayers.splice(upgradeIndex, 1)[0];
+          line.players[slotIndex] = replacement;
+          team.reservePlayers.push(player);
+          changed = true;
+          return;
+        }
+
+        const reserveIndex = this.#findBestAiReserveIndex(team.reservePlayers, slotPosition, player);
+        if (reserveIndex < 0) return;
+        const replacement = team.reservePlayers.splice(reserveIndex, 1)[0];
+        line.players[slotIndex] = replacement;
+        team.reservePlayers.push(player);
+        changed = true;
+      });
+    });
+    return changed;
+  }
+
+  #shouldAiRestPlayer(player) {
+    const fatigue = Number(player?.fatigueScore) || 0;
+    if (fatigue >= AI_ROTATION_FATIGUE_THRESHOLD) return true;
+    return (Number(player?.ovr) || 0) - (Number(player?.currentOvr) || 0) >= 4;
+  }
+
+  #findBestAiReserveIndex(reserves, slotPosition, starter) {
+    let bestIndex = -1;
+    let bestScore = -Infinity;
+    const starterScore = starter ? lineupScoreForPosition(starter, slotPosition) : 0;
+    const starterFatigue = Number(starter?.fatigueScore) || 0;
+    const tolerance = starterFatigue >= 75 ? 12 : starterFatigue >= 65 ? 8 : 5;
+
+    (reserves || []).forEach((candidate, index) => {
+      if (!candidate || (Number(candidate.fatigueScore) || 0) > 42) return;
+      const score = lineupScoreForPosition(candidate, slotPosition);
+      if (starter && score < starterScore - tolerance) return;
+      if (score > bestScore) {
+        bestScore = score;
+        bestIndex = index;
+      }
+    });
+    return bestIndex;
+  }
+
+  #findBestAiUpgradeReserveIndex(reserves, slotPosition, starter) {
+    if (!starter) return -1;
+    let bestIndex = -1;
+    let bestScore = -Infinity;
+    const starterScore = lineupScoreForPosition(starter, slotPosition);
+
+    (reserves || []).forEach((candidate, index) => {
+      if (!candidate || (Number(candidate.fatigueScore) || 0) > AI_RESTED_RESERVE_THRESHOLD) return;
+      const score = lineupScoreForPosition(candidate, slotPosition);
+      if (score < starterScore + 3) return;
+      if (score > bestScore) {
+        bestScore = score;
+        bestIndex = index;
+      }
+    });
+    return bestIndex;
+  }
+
+  #getPlayerRotationGroup(player) {
+    return player?.identity?.primaryPosition === "ЗАЩ" ? "DEF" : "FWD";
   }
 
   #randomizeForm(teams) {

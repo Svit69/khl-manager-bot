@@ -1,5 +1,6 @@
 import { calculateAge, clamp, parseSeasonEnd } from "../SeasonUtils.js";
 import { getFallbackMarketSalaryRub } from "../FallbackMarketSalary.js";
+import { TEAM_ROSTER_TARGET_SIZE } from "../../season/RosterTargets.js";
 import {
   OFFSEASON_SIGNINGS_BY_STRATEGY,
   POSITION_SCARCITY_TARGETS,
@@ -106,7 +107,7 @@ export const buildOffseasonFreeAgentCandidates = ({ contracts, team, freeAgents,
 
 export const getOffseasonSigningSlots = (team, plan) => {
   const roster = team?.getRoster?.() || [];
-  const slotsToFill = Math.max(0, 20 - roster.length);
+  const slotsToFill = Math.max(0, TEAM_ROSTER_TARGET_SIZE - roster.length);
   const maxSignings = OFFSEASON_SIGNINGS_BY_STRATEGY[plan.strategy] || 4;
   return Math.max(0, Math.min(maxSignings, slotsToFill));
 };
@@ -166,7 +167,7 @@ const buildOffseasonFreeAgentCandidate = ({ contracts, team, player, context, pl
   const sameGroup = roster.filter((candidate) => getPositionGroup(candidate.identity?.primaryPosition) === positionGroup);
   const averageGroupOvr = sameGroup.length ? sameGroup.reduce((sum, candidate) => sum + (candidate.ovr || 0), 0) / sameGroup.length : 0;
   const rosterNeed = Math.max(0, (POSITION_SCARCITY_TARGETS[positionGroup] || 5) - sameGroup.length);
-  if (rosterNeed <= 0 && roster.length >= 20) return null;
+  if (rosterNeed <= 0 && roster.length >= TEAM_ROSTER_TARGET_SIZE) return null;
   const isUpgrade = !sameGroup.length || (player.ovr || 0) >= averageGroupOvr + 1;
   const years = getFreeAgentYears(player, plan, rosterNeed);
   const preview = contracts.getFreeAgentPreview(

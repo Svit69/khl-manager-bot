@@ -750,7 +750,7 @@ export class AppController{
   }
   #startFantasyDraft(selectedTeamId){
     const allPlayers=this.#state.getFantasyDraftPlayerPool();
-    const service=new FantasyDraftService(this.#teams,allPlayers,selectedTeamId,20);
+    const service=new FantasyDraftService(this.#teams,allPlayers,selectedTeamId);
     this.#draftState={service,selectedTeamId,sortBy:"ovr",filterPosition:"ALL",selectedPlayerId:null};
     this.#draftIntroTeamId=null;
     this.#pendingTeamId=null;
