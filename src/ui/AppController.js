@@ -443,6 +443,15 @@ export class AppController{
       this.#renderScreen();
       return;
     }
+    if(action==="trade-select-team"){
+      const teamId=clickable.dataset.teamId||"";
+      this.#tradeTeamId=teamId||null;
+      this.#tradeGivePlayerIds.clear();
+      this.#tradeReceivePlayerIds.clear();
+      this.#tradeMessage="";
+      this.#renderScreen();
+      return;
+    }
     if(action==="trade-toggle-receive"){
       const playerId=clickable.dataset.playerId;
       if(!playerId)return;

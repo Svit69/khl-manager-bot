@@ -42,34 +42,104 @@
   line-height:1.45;
   max-width:620px;
 }
-.trade-hero-controls{
-  display:flex;
-  align-items:flex-end;
-  gap:12px;
-}
-.trade-team-select{
+.trade-hero-controls{display:flex;align-items:flex-end;gap:12px;min-width:min(360px,100%)}
+.trade-team-picker{position:relative;width:min(380px,100%)}
+.trade-team-picker summary{
   display:grid;
   gap:8px;
-  min-width:260px;
+  min-height:74px;
+  padding:12px 44px 12px 14px;
+  border-radius:16px;
+  border:1px solid rgba(122,173,255,.34);
+  background:
+    linear-gradient(135deg,rgba(126,214,255,.11),rgba(92,142,255,.06)),
+    linear-gradient(180deg,rgba(8,19,42,.96),rgba(6,14,33,.94));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 14px 34px rgba(0,0,0,.18);
+  cursor:pointer;
+  list-style:none;
 }
-.trade-team-select span{
+.trade-team-picker summary::-webkit-details-marker{display:none}
+.trade-team-picker summary::after{
+  content:"";
+  position:absolute;
+  right:16px;
+  top:42px;
+  width:10px;
+  height:10px;
+  border-right:2px solid #8fe0ff;
+  border-bottom:2px solid #8fe0ff;
+  transform:rotate(45deg);
+  transition:transform .16s ease;
+}
+.trade-team-picker[open] summary::after{transform:rotate(225deg);top:47px}
+.trade-team-picker-label{
   font-size:11px;
   text-transform:uppercase;
   letter-spacing:.16em;
   color:#8fb7f4;
-  font-weight:800;
+  font-weight:900;
 }
-.trade-team-select select{
-  min-width:260px;
-  background:linear-gradient(180deg,rgba(8,19,42,.96),rgba(6,14,33,.94));
+.trade-team-picker-current{display:flex;align-items:center;gap:10px;min-width:0}
+.trade-team-picker-current img,.trade-team-option img{
+  width:34px;
+  height:34px;
+  flex:0 0 auto;
+  object-fit:contain;
+  filter:drop-shadow(0 8px 14px rgba(0,0,0,.28));
+}
+.trade-team-picker-current strong{
+  min-width:0;
   color:#f3f8ff;
-  border:1px solid rgba(122,173,255,.38);
-  border-radius:14px;
-  padding:14px 16px;
   font-size:18px;
-  font-weight:800;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+  line-height:1.15;
+  font-weight:900;
 }
+.trade-team-picker-placeholder{
+  display:grid;
+  place-items:center;
+  width:34px;
+  height:34px;
+  flex:0 0 auto;
+  border-radius:10px;
+  background:rgba(255,255,255,.07);
+  color:#8fb7f4;
+  font-weight:900;
+}
+.trade-team-menu{
+  position:absolute;
+  z-index:6;
+  right:0;
+  top:calc(100% + 8px);
+  display:grid;
+  gap:6px;
+  width:min(380px,calc(100vw - 44px));
+  max-height:360px;
+  overflow:auto;
+  padding:8px;
+  border-radius:16px;
+  border:1px solid rgba(122,173,255,.28);
+  background:linear-gradient(180deg,rgba(9,20,43,.98),rgba(5,12,28,.98));
+  box-shadow:0 24px 60px rgba(0,0,0,.42);
+}
+.trade-team-option{
+  display:grid;
+  grid-template-columns:40px minmax(0,1fr);
+  align-items:center;
+  gap:10px;
+  width:100%;
+  min-height:54px;
+  padding:8px 10px;
+  border:1px solid transparent;
+  border-radius:12px;
+  background:rgba(255,255,255,.035);
+  color:#eef5ff;
+  text-align:left;
+  cursor:pointer;
+}
+.trade-team-option:hover,.trade-team-option.active{border-color:rgba(126,214,255,.36);background:rgba(126,214,255,.09)}
+.trade-team-option span{display:grid;gap:2px;min-width:0}
+.trade-team-option strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.trade-team-option small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#89a7d8;font-weight:700}
 .trade-status-bar{
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
@@ -158,7 +228,7 @@
 }
 .trade-list-header{
   display:grid;
-  grid-template-columns:minmax(0,1fr) 92px;
+  grid-template-columns:46px minmax(0,1fr) 74px;
   gap:12px;
   align-items:center;
   padding:0 6px 4px;
@@ -184,7 +254,7 @@
 .trade-list{scrollbar-color:rgba(126,214,255,.92) rgba(7,12,22,.7);scrollbar-width:thin}
 .trade-player-row{
   display:grid;
-  grid-template-columns:minmax(0,1fr) 92px;
+  grid-template-columns:46px minmax(0,1fr) 74px;
   gap:12px;
   align-items:center;
   width:100%;
@@ -199,6 +269,14 @@
   min-width:0;
   transition:border-color .16s ease,background .16s ease,transform .16s ease,box-shadow .16s ease;
 }
+.trade-player-photo{
+  width:46px;
+  height:46px;
+  border-radius:12px;
+  object-fit:cover;
+  background:#101923;
+  box-shadow:0 8px 18px rgba(0,0,0,.26);
+}
 .trade-player-main{
   min-width:0;
   display:grid;
@@ -207,22 +285,31 @@
 .trade-player-name{
   display:block;
   min-width:0;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+  white-space:normal;
+  overflow:visible;
+  overflow-wrap:anywhere;
   font-size:17px;
+  line-height:1.14;
   font-weight:800;
-  letter-spacing:.01em;
 }
 .trade-player-subtitle{
-  display:block;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-wrap:wrap;
   min-width:0;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
   color:#8eb0e7;
   font-size:12px;
   font-weight:700;
+}
+.trade-player-subtitle span{
+  display:inline-flex;
+  align-items:center;
+  min-height:22px;
+  padding:0 8px;
+  border-radius:999px;
+  background:rgba(126,214,255,.08);
+  color:#b9d7ff;
 }
 .trade-player-rating{
   justify-self:end;
@@ -343,9 +430,8 @@
 }
 .trade-summary-name{
   min-width:0;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+  white-space:normal;
+  overflow-wrap:anywhere;
 }
 .trade-summary-value{
   color:#8fe0ff;
@@ -369,9 +455,11 @@
 @media (max-width:900px){
   .trade-screen{padding:12px}
   .trade-hero-copy h2{font-size:28px}
-  .trade-team-select,.trade-team-select select{min-width:0;width:100%}
-  .trade-player-row{grid-template-columns:minmax(0,1fr) 72px;padding:12px}
-  .trade-list-header{grid-template-columns:minmax(0,1fr) 72px}
+  .trade-hero-controls,.trade-team-picker{width:100%}
+  .trade-team-menu{left:0;right:auto;width:100%}
+  .trade-player-row{grid-template-columns:40px minmax(0,1fr) 64px;padding:12px}
+  .trade-player-photo{width:40px;height:40px}
+  .trade-list-header{grid-template-columns:40px minmax(0,1fr) 64px}
   .trade-player-name{font-size:15px}
   .trade-player-rating strong{font-size:18px}
   .trade-deal-head{align-items:flex-start;flex-direction:column}

@@ -1,4 +1,5 @@
 import { calculateAge } from "../contracts/SeasonUtils.js";
+import { getPlayerPhotoUrl, PHOTO_FALLBACK_ATTR } from "../utils/PlayerPhoto.js";
 
 const formatDelta = (value) => {
   if (typeof value !== "number" || Number.isNaN(value)) return "—";
@@ -10,9 +11,10 @@ const renderPlayerPickRow = (side, player, selectedIds) => {
   const selected = selectedIds.has(player.id);
   const position = player.identity?.primaryPosition || "—";
   return `<button class="trade-player-row${selected ? " selected" : ""}" data-action="trade-toggle-${side}" data-player-id="${player.id}">
+    <img class="trade-player-photo" src="${getPlayerPhotoUrl(player)}" alt="${player.name}" ${PHOTO_FALLBACK_ATTR}>
     <div class="trade-player-main">
       <span class="trade-player-name" title="${player.name}">${player.name}</span>
-      <span class="trade-player-subtitle">${position} • ${age} лет</span>
+      <span class="trade-player-subtitle"><span>${position}</span><span>${age} лет</span></span>
     </div>
     <div class="trade-player-rating">
       <span class="trade-player-rating-label">OVR</span>
@@ -31,6 +33,26 @@ const renderSelectedSummary = (items, emptyLabel) => {
   `).join("");
 };
 
+const renderTeamPicker = (partners, selectedTeamId, selectedTeam) => {
+  const label = selectedTeam?.name || "Выберите команду";
+  const logo = selectedTeam?.logoUrl || "";
+  return `<details class="trade-team-picker">
+    <summary>
+      <span class="trade-team-picker-label">Клуб для переговоров</span>
+      <span class="trade-team-picker-current">
+        ${logo ? `<img src="${logo}" alt="${label}">` : `<span class="trade-team-picker-placeholder">?</span>`}
+        <strong>${label}</strong>
+      </span>
+    </summary>
+    <div class="trade-team-menu">
+      ${partners.map((team) => `<button class="trade-team-option${team.id === selectedTeamId ? " active" : ""}" data-action="trade-select-team" data-team-id="${team.id}">
+        <img src="${team.logoUrl}" alt="${team.name}">
+        <span><strong>${team.name}</strong><small>${team.city || team.shortName || ""}</small></span>
+      </button>`).join("")}
+    </div>
+  </details>`;
+};
+
 export class TradeTabRenderer {
   render(view) {
     const {
@@ -44,10 +66,6 @@ export class TradeTabRenderer {
       evaluation = null,
       message = ""
     } = view || {};
-
-    const partnerOptions = partners
-      .map((team) => `<option value="${team.id}" ${team.id === selectedTeamId ? "selected" : ""}>${team.name}</option>`)
-      .join("");
 
     const indicator = evaluation?.indicator ? `${evaluation.indicator.icon} ${evaluation.indicator.text}` : "Соберите пакет";
     const decision = evaluation?.decision?.label || "Добавьте игроков с обеих сторон и оцените сделку";
@@ -66,13 +84,7 @@ export class TradeTabRenderer {
           <p>Соберите пакет, оцените баланс и отправьте предложение только когда оно действительно выглядит равноценным.</p>
         </div>
         <div class="trade-hero-controls">
-          <label class="trade-team-select">
-            <span>Клуб для переговоров</span>
-            <select data-action="trade-select-team">
-              <option value="">Выберите команду</option>
-              ${partnerOptions}
-            </select>
-          </label>
+          ${renderTeamPicker(partners, selectedTeamId, selectedTeam)}
         </div>
       </div>
 
@@ -102,8 +114,9 @@ export class TradeTabRenderer {
           </div>
           <div class="trade-list-shell">
             <div class="trade-list-header">
+              <span></span>
               <span>Игрок</span>
-              <span class="align-right">Рейтинг</span>
+              <span class="align-right">OVR</span>
             </div>
             <div class="trade-list">
               ${giveCandidates.map((player) => renderPlayerPickRow("give", player, giveSelectedIds)).join("") || `<div class="trade-summary-empty">Игроков нет</div>`}
@@ -121,8 +134,9 @@ export class TradeTabRenderer {
           </div>
           <div class="trade-list-shell">
             <div class="trade-list-header">
+              <span></span>
               <span>Игрок</span>
-              <span class="align-right">Рейтинг</span>
+              <span class="align-right">OVR</span>
             </div>
             <div class="trade-list">
               ${receiveCandidates.map((player) => renderPlayerPickRow("receive", player, receiveSelectedIds)).join("") || `<div class="trade-summary-empty">Игроков нет</div>`}
