@@ -244,7 +244,7 @@
   .season-contract-detail-head{grid-template-columns:52px minmax(0,1fr)}
   .season-contract-detail-head img{width:52px;height:52px}
   .season-contract-detail-head .season-contract-badge{grid-column:1 / -1;justify-self:start}
-  .season-contract-detail-grid,.season-contract-market{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .season-contract-detail-grid,.season-contract-market,.season-contract-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   .season-contract-footer-main{justify-content:flex-start}
   .sim-modal{padding:8px}
   .sim-modal-card{

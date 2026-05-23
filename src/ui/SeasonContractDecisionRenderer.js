@@ -7,6 +7,38 @@ const formatMillions = (value) => {
 
 const formatMillionsInput = (value) => formatMillions(value).replace(",", ".");
 const statusLabel = (status) => status === "OSA" ? "ОСА" : (status === "NSA" ? "НСА" : status);
+const normalizeStats = (stats = {}) => {
+  const goals = Number(stats.goals) || 0;
+  const assists = Number(stats.assists) || 0;
+  const points = Number(stats.points) || goals + assists;
+  return {
+    games: Number(stats.games) || 0,
+    goals,
+    assists,
+    points,
+    penaltyMinutes: Number(stats.penaltyMinutes) || 0,
+  };
+};
+const formatPointsPerGame = (stats = {}) => {
+  const normalized = normalizeStats(stats);
+  if (!normalized.games) return "0.00";
+  return (normalized.points / normalized.games).toFixed(2);
+};
+
+const renderSeasonStats = (stats) => {
+  const normalized = normalizeStats(stats);
+  const items = [
+    ["И", normalized.games],
+    ["Г", normalized.goals],
+    ["П", normalized.assists],
+    ["О", normalized.points],
+    ["ШМ", normalized.penaltyMinutes],
+    ["О/И", formatPointsPerGame(normalized)],
+  ];
+  return `<div class="season-contract-stats">${items.map(([label, value]) =>
+    `<div><span>${label}</span><strong>${value}</strong></div>`,
+  ).join("")}</div>`;
+};
 
 const renderDecisionBadge = (row, decision) => {
   if (row.hasFutureContract) return `<span class="season-contract-badge good">Продлен</span>`;
@@ -39,11 +71,13 @@ const renderOfferControls = (row, offer) => {
 const renderRow = (row, view) => {
   const decision = view.releasePlayerIds.has(row.playerId) ? "release" : (row.hasFutureContract ? "renewed" : "pending");
   const selectedClass = view.selectedPlayerId === row.playerId ? " active" : "";
+  const stats = normalizeStats(row.seasonStats);
   return `<button class="season-contract-player${selectedClass}" data-action="season-contract-select" data-player-id="${row.playerId}">
     <img src="${row.photoUrl}" alt="${row.displayName}" ${PHOTO_FALLBACK_ATTR}>
     <span class="season-contract-player-main">
       <strong>${row.displayName}</strong>
       <small>${row.position} • ${row.age} лет • OVR ${row.ovr}</small>
+      <small class="season-contract-player-stats">И ${stats.games} • ${stats.goals}+${stats.assists}=${stats.points} • ${formatPointsPerGame(stats)} О/И</small>
     </span>
     ${renderDecisionBadge(row, decision)}
   </button>`;
@@ -89,6 +123,7 @@ export class SeasonContractDecisionRenderer {
             <div><span>Статус</span><strong>${statusLabel(selected.ufaStatus)}</strong></div>
             <div><span>Матчи КХЛ</span><strong>${selected.khlGamesPlayed}</strong></div>
           </div>
+          ${renderSeasonStats(selected.seasonStats)}
           ${preview ? `<div class="season-contract-market">
             <div><span>Рынок</span><strong>${formatMillions(preview.marketSalary)} млн</strong></div>
             <div><span>Ожидание от клуба</span><strong>${formatMillions(preview.teamAdjustedDemand)} млн</strong></div>

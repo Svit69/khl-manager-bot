@@ -87,9 +87,9 @@
 .season-contract-kicker{color:#80f7ca;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
 .season-contract-close{width:40px;height:40px;border:none;border-radius:14px;background:rgba(255,255,255,.06);color:#edf6ef;font-size:28px;line-height:1;cursor:pointer}
 .season-contract-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-.season-contract-summary div,.season-contract-detail-grid div,.season-contract-market div{display:grid;gap:4px;padding:11px 12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)}
-.season-contract-summary span,.season-contract-detail-grid span,.season-contract-market span{color:#8fa0b8;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
-.season-contract-summary strong,.season-contract-detail-grid strong,.season-contract-market strong{color:#edf6ef;font-size:18px;line-height:1}
+.season-contract-summary div,.season-contract-detail-grid div,.season-contract-market div,.season-contract-stats div{display:grid;gap:4px;padding:11px 12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)}
+.season-contract-summary span,.season-contract-detail-grid span,.season-contract-market span,.season-contract-stats span{color:#8fa0b8;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.season-contract-summary strong,.season-contract-detail-grid strong,.season-contract-market strong,.season-contract-stats strong{color:#edf6ef;font-size:18px;line-height:1}
 .season-contract-filters{display:flex;flex-wrap:wrap;gap:8px}
 .season-contract-filter,.season-contract-chip,.season-contract-step{min-height:34px;border:none;border-radius:999px;padding:0 13px;background:rgba(255,255,255,.06);color:#dce7e5;font:inherit;font-size:12px;font-weight:900;cursor:pointer}
 .season-contract-filter.active,.season-contract-chip.active{background:linear-gradient(135deg,#80f7ca,#d8ff6d);color:#071018}
@@ -101,6 +101,7 @@
 .season-contract-player-main{display:grid;gap:3px;min-width:0}
 .season-contract-player-main strong{overflow:hidden;color:#f4f8f4;font-size:14px;font-weight:900;text-overflow:ellipsis;white-space:nowrap}
 .season-contract-player-main small{color:#8fa0b8;font-size:12px;font-weight:700}
+.season-contract-player-stats{color:#cbd6e4!important;font-size:11px!important}
 .season-contract-badge{padding:7px 9px;border-radius:999px;font-size:10px;font-weight:900;text-transform:uppercase;white-space:nowrap}
 .season-contract-badge.good{background:rgba(128,247,202,.13);color:#dffdfa}
 .season-contract-badge.pending{background:rgba(255,255,255,.07);color:#cbd6e4}
@@ -112,6 +113,8 @@
 .season-contract-detail-head p{margin:0;color:#8fa0b8;font-size:13px;font-weight:700}
 .season-contract-detail-grid,.season-contract-market{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 .season-contract-market{grid-template-columns:repeat(3,minmax(0,1fr))}
+.season-contract-stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.season-contract-stats div{background:rgba(128,247,202,.06);border-color:rgba(128,247,202,.12)}
 .season-contract-chance{height:8px;overflow:hidden;border-radius:999px;background:rgba(255,255,255,.07)}
 .season-contract-chance span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#ff7575,#e7f56b,#80f7ca)}
 .season-contract-reasons{display:grid;gap:7px}

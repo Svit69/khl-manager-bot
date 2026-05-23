@@ -254,6 +254,13 @@ export class AppState {
           salaryRub: currentContract.salaryRub || 0,
           contractType: this.#contracts.getContractTypeLabel(currentContract.type),
           contractEndDate: formatContractEndDate(currentContract.season),
+          seasonStats: {
+            games: player.seasonStats?.games || 0,
+            goals: player.seasonStats?.goals || 0,
+            assists: player.seasonStats?.assists || 0,
+            points: player.seasonStats?.points || 0,
+            penaltyMinutes: player.seasonStats?.penaltyMinutes || 0,
+          },
           hasFutureContract,
           preview,
         };
