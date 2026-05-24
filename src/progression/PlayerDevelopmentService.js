@@ -17,6 +17,8 @@ import {
   getRoleExpectationComponent,
   getRoleRegressionComponent,
   getUsageDevelopmentComponent,
+  getVeteranRoleTrajectoryComponent,
+  getYoungPotentialTrajectoryDelta,
 } from "./PlayerDevelopmentComponents.js";
 import {
   getAttributeStepThreshold,
@@ -91,6 +93,7 @@ export class PlayerDevelopmentService {
         reserveRegression.development +
         getRoleExpectationComponent(player, age, games, avgIceTime, teamGamesPlayed) +
         getRoleRegressionComponent(player, age, games, avgIceTime) +
+        getVeteranRoleTrajectoryComponent(player, age, games, avgIceTime, pointsPerGame, expected, teamGamesPlayed) +
         getRehabilitationComponent(player, matchStat, avgIceTime),
       -0.18,
       0.22,
@@ -101,6 +104,7 @@ export class PlayerDevelopmentService {
 
     const potentialDelta = this.#scalePotentialDelta(age,
       getPotentialDevelopmentDelta(player, age, games, avgIceTime, pointsPerGame, shotsPerGame, expected, matchStat) +
+      getYoungPotentialTrajectoryDelta(player, age, games, avgIceTime, pointsPerGame, expected, teamGamesPlayed) +
       reserveRegression.potential);
     this.#applyPotentialThreshold(player, potentialDelta);
 
@@ -138,6 +142,7 @@ export class PlayerDevelopmentService {
           0.4 +
         getPotentialGapComponent(potentialGap) * 0.5 +
         getRoleExpectationComponent(player, age, games, avgIceTime, games) * 0.65 +
+        getVeteranRoleTrajectoryComponent(player, age, games, avgIceTime, pointsPerGame, expected, games) * 0.75 +
         getPeakAgeRealizationComponent(player, age, potentialGap, games, avgIceTime, pointsPerGame, shotsPerGame, expected) *
           0.75,
       -0.18,
@@ -151,7 +156,8 @@ export class PlayerDevelopmentService {
 
     const potentialDelta = this.#scalePotentialDelta(
       age,
-      getPotentialDevelopmentDelta(player, age, games, avgIceTime, pointsPerGame, shotsPerGame, expected, { games: 1 }) * 0.7,
+      getPotentialDevelopmentDelta(player, age, games, avgIceTime, pointsPerGame, shotsPerGame, expected, { games: 1 }) * 0.7 +
+        getYoungPotentialTrajectoryDelta(player, age, games, avgIceTime, pointsPerGame, expected, games) * 0.55,
     );
     this.#applyPotentialThreshold(player, potentialDelta);
 

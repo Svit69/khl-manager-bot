@@ -256,6 +256,56 @@ export const getPotentialDevelopmentDelta = (
   return clamp(delta, 0, isYoungCore ? 0.16 : 0.12);
 };
 
+export const getYoungPotentialTrajectoryDelta = (
+  player,
+  age,
+  games,
+  avgIceTime,
+  pointsPerGame,
+  expected,
+  teamGamesPlayed,
+) => {
+  if (age > 23 || teamGamesPlayed < 16) return 0;
+
+  const teamGames = Math.max(games, Number(teamGamesPlayed) || 0);
+  const participationRate = games / Math.max(1, teamGames);
+  const lineIndex = Number(player.expectedLineIndex) || null;
+  const productionRatio = pointsPerGame / Math.max(0.05, expected.pointsPerGame);
+  const developmentProgress = Number(player.potential?.developmentProgress) || 0;
+  const growthRate = Number(player.potential?.growthRate) || 1;
+  const isCoreAge = age <= 20;
+  let delta = 0;
+
+  if (participationRate < 0.35 && avgIceTime < 8) {
+    delta -= isCoreAge ? 0.038 : 0.026;
+  } else if (participationRate < 0.5 && avgIceTime < 9.5) {
+    delta -= isCoreAge ? 0.022 : 0.015;
+  }
+
+  if (games >= 12 && avgIceTime >= 8 && productionRatio < 0.55) {
+    delta -= isCoreAge ? 0.026 : 0.018;
+  }
+  if (games >= 18 && productionRatio < 0.42) {
+    delta -= isCoreAge ? 0.018 : 0.012;
+  }
+  if ((!lineIndex || lineIndex >= 4) && games >= 12 && avgIceTime < 10) {
+    delta -= isCoreAge ? 0.017 : 0.011;
+  }
+  if (developmentProgress < -0.7 && games >= 14) {
+    delta -= isCoreAge ? 0.018 : 0.012;
+  }
+
+  if (participationRate >= 0.55 && avgIceTime >= 12 && productionRatio >= 0.92) {
+    delta += isCoreAge ? 0.022 : 0.014;
+  }
+  if (lineIndex && lineIndex <= 2 && avgIceTime >= 14 && productionRatio >= 0.8) {
+    delta += isCoreAge ? 0.014 : 0.008;
+  }
+
+  const growthMultiplier = clamp(0.86 + growthRate * 0.16, 0.82, 1.12);
+  return clamp(delta * growthMultiplier, -0.085, 0.05);
+};
+
 export const getReserveInactivityRegression = (player, age, games, avgIceTime, teamGamesPlayed) => {
   if (teamGamesPlayed < 12) return { development: 0, potential: 0 };
 
@@ -294,6 +344,48 @@ export const getRoleRegressionComponent = (player, age, games, avgIceTime) => {
     return -0.012;
   }
   return 0;
+};
+
+export const getVeteranRoleTrajectoryComponent = (
+  player,
+  age,
+  games,
+  avgIceTime,
+  pointsPerGame,
+  expected,
+  teamGamesPlayed,
+) => {
+  if (age < 31 || teamGamesPlayed < 10 || games < 5) return 0;
+
+  const lineIndex = Number(player.expectedLineIndex) || null;
+  const participationRate = games / Math.max(1, Number(teamGamesPlayed) || games);
+  const productionRatio = pointsPerGame / Math.max(0.05, expected.pointsPerGame);
+  const declineRate = Number(player.potential?.declineRate) || 1;
+  const isLateVeteran = age >= 34;
+  let delta = 0;
+
+  if (lineIndex && lineIndex <= 2 && avgIceTime >= 15 && productionRatio >= 0.82) {
+    delta += isLateVeteran ? 0.018 : 0.026;
+  }
+  if (lineIndex && lineIndex <= 2 && avgIceTime >= 17 && participationRate >= 0.68) {
+    delta += isLateVeteran ? 0.008 : 0.012;
+  }
+  if (!isForwardPosition(player.identity?.primaryPosition) && avgIceTime >= 19 && productionRatio >= 0.72) {
+    delta += 0.007;
+  }
+
+  if (!lineIndex || (lineIndex >= 4 && avgIceTime < 10)) {
+    delta -= isLateVeteran ? 0.038 : 0.025;
+  }
+  if (participationRate < 0.45 && avgIceTime < 12) {
+    delta -= isLateVeteran ? 0.032 : 0.02;
+  }
+  if (games >= 14 && productionRatio < 0.55) {
+    delta -= isLateVeteran ? 0.024 : 0.015;
+  }
+
+  if (delta < 0) delta *= clamp(0.8 + declineRate * 0.28, 0.88, 1.35);
+  return clamp(delta, -0.075, 0.045);
 };
 
 export const getRehabilitationComponent = (player, matchStat, avgIceTime) => {
