@@ -56,6 +56,11 @@ const AI_RESTED_RESERVE_THRESHOLD = 35;
 const AI_ROTATION_FATIGUE_THRESHOLD = 55;
 const AI_DEPTH_SIGNING_FATIGUE_THRESHOLD = 58;
 
+const normalizeTransferLedger = (items = []) =>
+  (Array.isArray(items) ? items : [])
+    .filter((entry) => entry?.id && entry?.teamId && entry?.playerId)
+    .map((entry) => ({ ...entry }));
+
 export class AppState {
   #teams;
   #calendar;
@@ -75,6 +80,7 @@ export class AppState {
   #seasonHistory = [];
   #seasonState;
   #retiredPlayerIds = new Set();
+  #transferLedger = [];
 
   constructor(teams, calendar, contracts, freeAgents = []) {
     this.#teams = teams;
@@ -99,6 +105,7 @@ export class AppState {
       restrictedRightsOffers: [],
       preseasonIndex: 0,
     };
+    this.#transferLedger = [];
     this.#syncSeasonReferenceDate();
     this.#syncSeasonPhase();
   }
@@ -212,6 +219,23 @@ export class AppState {
   getTeamStatisticsRows(teamId = this.#activeTeamId, sortBy = "points") {
     const team = this.#teams.find((entry) => entry.id === teamId) || null;
     return team ? this.#contracts.getTeamStatisticsRows(team, this.#buildNegotiationContext(team), sortBy) : [];
+  }
+
+  getTeamTransferView(teamId = this.#activeTeamId) {
+    const selectedTeam = this.#teams.find((entry) => entry.id === teamId) || this.activeTeam || this.#teams[0] || null;
+    const selectedTeamId = selectedTeam?.id || teamId || "";
+    const rows = this.#transferLedger
+      .filter((entry) => entry.teamId === selectedTeamId && entry.seasonLabel === (this.#seasonState?.seasonLabel || this.#calendar.seasonLabel))
+      .map((entry) => this.#enrichTransferEntry(entry))
+      .sort((left, right) => (Number(right.day) || 0) - (Number(left.day) || 0) || right.createdAt.localeCompare(left.createdAt));
+    return {
+      teams: this.#teams,
+      selectedTeamId,
+      selectedTeam,
+      seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
+      signings: rows.filter((entry) => entry.type === "in"),
+      departures: rows.filter((entry) => entry.type === "out"),
+    };
   }
 
   getActiveTeamStatisticsRows(sortBy = "points") {
@@ -336,7 +360,17 @@ export class AppState {
 
   submitTradeWithTeam(teamId, givePlayerIds, receivePlayerIds) {
     const opponent = this.#teams.find((team) => team.id === teamId);
-    return this.activeTeam && opponent ? this.#trade.executeTrade(this.activeTeam, opponent, givePlayerIds, receivePlayerIds) : null;
+    if (!this.activeTeam || !opponent) return null;
+    const result = this.#trade.executeTrade(this.activeTeam, opponent, givePlayerIds, receivePlayerIds);
+    if (result?.accepted) {
+      (result.evaluation?.givePlayers || []).forEach((player) => {
+        this.#recordPlayerMovement({ player, fromTeamId: this.#activeTeamId, toTeamId: opponent.id, method: "trade" });
+      });
+      (result.evaluation?.receivePlayers || []).forEach((player) => {
+        this.#recordPlayerMovement({ player, fromTeamId: opponent.id, toTeamId: this.#activeTeamId, method: "trade" });
+      });
+    }
+    return result;
   }
 
   getActiveTeamNegotiationPreview(playerId, offer) {
@@ -402,6 +436,7 @@ export class AppState {
     this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
     this.#refreshExpectedRoles(newTeam);
     if (this.activeTeam) this.#refreshExpectedRoles(this.activeTeam);
+    this.#recordPlayerMovement({ player, fromTeamId: this.#activeTeamId, toTeamId: newTeam.id, method: "offerSheet" });
     this.#pushNotification({
       id: `notification-osa-release-${player.id}-${Date.now()}`,
       type: "offseason-departure",
@@ -434,6 +469,7 @@ export class AppState {
       this.activeTeam.reservePlayers.push(player);
       this.#freeAgents = dedupeFreeAgents(this.#freeAgents.filter((entry) => entry.id !== player.id));
       this.#refreshExpectedRoles(this.activeTeam);
+      this.#recordPlayerMovement({ player, fromTeamId: null, toTeamId: this.#activeTeamId, method: "freeAgent" });
     }
     return result;
   }
@@ -573,7 +609,7 @@ export class AppState {
       decisionIndex: Number(this.#seasonState?.preseasonIndex) || 0,
       decisionDate: preseasonDate,
     });
-    this.#seasonTransition.ensureMinimumRosterDepth({
+    const depthMovements = this.#seasonTransition.ensureMinimumRosterDepth({
       teams: this.#teams,
       activeTeamId: this.#activeTeamId,
       allPlayers: this.getAllPlayers(),
@@ -581,6 +617,7 @@ export class AppState {
       negotiationDate: preseasonDate,
       seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
     });
+    this.#recordRosterDepthMovements(depthMovements);
     this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
     this.#seasonState = {
       ...this.#seasonState,
@@ -635,6 +672,8 @@ export class AppState {
     this.#standings.importSnapshot([]);
     this.#lastMatch = null;
     this.#seasonState = transition.seasonState;
+    this.#transferLedger = [];
+    this.#recordTransitionMovements(transition);
     this.#releaseIneligibleJuniorPlayers({ notify: true });
     this.#juniors.applyOffseasonDevelopment(this.#teams, this.#getEffectiveNegotiationDate(), this.#seasonState.seasonLabel);
     this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#seasonState.seasonLabel });
@@ -656,12 +695,14 @@ export class AppState {
       seasonHistory: this.#seasonHistory,
       seasonState: this.#seasonState,
       retiredPlayerIds: [...this.#retiredPlayerIds],
+      transferLedger: this.#transferLedger,
     };
   }
 
   importState(saved) {
     if (!saved) return;
     this.#retiredPlayerIds = new Set(Array.isArray(saved.retiredPlayerIds) ? saved.retiredPlayerIds : []);
+    this.#transferLedger = normalizeTransferLedger(saved.transferLedger);
     this.#activeTeamId = saved.activeTeamId || null;
     if (saved.calendar) this.#calendar.importState(saved.calendar);
     else {
@@ -829,7 +870,7 @@ export class AppState {
     if (!["regular", "playoffs"].includes(normalizedPhase)) return;
 
     if (normalizedPhase === "regular") {
-      this.#seasonTransition.ensureMinimumRosterDepth({
+      const depthMovements = this.#seasonTransition.ensureMinimumRosterDepth({
         teams: [team],
         activeTeamId: this.#activeTeamId,
         allPlayers: this.getAllPlayers(),
@@ -837,6 +878,7 @@ export class AppState {
         negotiationDate: this.#calendar.currentDate,
         seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
       });
+      this.#recordRosterDepthMovements(depthMovements);
       this.#signAiRotationDepthIfNeeded(team);
     }
     if (this.#rotateAiLineupForFatigue(team)) this.#refreshExpectedRoles(team);
@@ -875,6 +917,7 @@ export class AppState {
     }
     this.#freeAgents = dedupeFreeAgents(this.#freeAgents.filter((player) => player.id !== candidate.id));
     this.#refreshExpectedRoles(team);
+    this.#recordPlayerMovement({ player: candidate, fromTeamId: null, toTeamId: team.id, method: "rosterDepth" });
     return true;
   }
 
@@ -964,6 +1007,96 @@ export class AppState {
     teams.flatMap((team) => team.getRoster()).forEach((player) => {
       player.applyFormDelta(Math.random() * 0.02 - 0.01);
     });
+  }
+
+  #recordPlayerMovement({ player, fromTeamId = null, toTeamId = null, method = "freeAgent", note = "" }) {
+    if (!player?.id || fromTeamId === toTeamId) return;
+    const seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
+    const createdAt = new Date().toISOString();
+    const base = {
+      seasonLabel,
+      day: this.#calendar.currentDay,
+      createdAt,
+      playerId: player.id,
+      playerName: player.name,
+      position: player.identity?.primaryPosition || "",
+      ovr: player.ovr,
+      fromTeamId,
+      fromTeamName: this.#getTeamName(fromTeamId),
+      toTeamId,
+      toTeamName: this.#getTeamName(toTeamId),
+      method,
+      note,
+    };
+    const entries = [];
+    if (fromTeamId) {
+      entries.push({
+        ...base,
+        id: `transfer-out-${seasonLabel}-${fromTeamId}-${player.id}-${this.#calendar.currentDay}-${createdAt}`,
+        teamId: fromTeamId,
+        type: "out",
+      });
+    }
+    if (toTeamId) {
+      entries.push({
+        ...base,
+        id: `transfer-in-${seasonLabel}-${toTeamId}-${player.id}-${this.#calendar.currentDay}-${createdAt}`,
+        teamId: toTeamId,
+        type: "in",
+      });
+    }
+    this.#transferLedger = [...entries, ...this.#transferLedger].slice(0, 1000);
+  }
+
+  #recordTransitionMovements(transition) {
+    (transition?.departures || []).forEach((entry) => {
+      this.#recordPlayerMovement({
+        player: entry.player,
+        fromTeamId: entry.fromTeamId,
+        toTeamId: null,
+        method: entry.reason === "retirement" ? "retirement" : "contractExpired",
+      });
+    });
+  }
+
+  #recordRosterDepthMovements(result) {
+    (result?.departures || []).forEach((entry) => {
+      this.#recordPlayerMovement({
+        player: entry.player,
+        fromTeamId: entry.fromTeamId,
+        toTeamId: null,
+        method: "contractExpired",
+      });
+    });
+    (result?.signings || []).forEach((entry) => {
+      this.#recordPlayerMovement({
+        player: entry.player,
+        fromTeamId: null,
+        toTeamId: entry.toTeamId,
+        method: "rosterDepth",
+      });
+    });
+  }
+
+  #enrichTransferEntry(entry) {
+    const current = this.#getCurrentPlayerDestination(entry.playerId);
+    return {
+      ...entry,
+      sourceLabel: entry.fromTeamName || "Свободный агент",
+      destinationLabel: entry.type === "out" ? current : (entry.toTeamName || "Свободный агент"),
+    };
+  }
+
+  #getCurrentPlayerDestination(playerId) {
+    if (this.#retiredPlayerIds.has(playerId)) return "Завершил карьеру";
+    const player = this.getAllPlayers().find((entry) => entry.id === playerId);
+    const teamName = this.#getTeamName(player?.affiliation?.teamId);
+    return teamName || "Свободный агент";
+  }
+
+  #getTeamName(teamId) {
+    if (!teamId) return "";
+    return this.#teams.find((team) => team.id === teamId)?.name || "";
   }
 
   #buildNegotiationContext(team) {
@@ -1113,6 +1246,7 @@ export class AppState {
     }
     this.#freeAgents = dedupeFreeAgents(this.#freeAgents.filter((entry) => entry.id !== player.id));
     this.#refreshExpectedRoles(team);
+    this.#recordPlayerMovement({ player, fromTeamId: null, toTeamId: team.id, method: "freeAgent" });
 
     const signedContract = newContracts?.[newContracts.length - 1] || null;
     const seasonEnd = signedContract?.season ? Number(String(signedContract.season).split("/")[1]) || "" : "";
@@ -1244,6 +1378,9 @@ export class AppState {
     if (released.length) {
       this.#contracts.releasePlayers(released.map(({ player }) => player.id));
       this.#freeAgents = dedupeFreeAgents([...this.#freeAgents, ...released.map(({ player }) => player)]);
+      released.forEach(({ player, team }) => {
+        this.#recordPlayerMovement({ player, fromTeamId: team.id, toTeamId: null, method: "juniorRelease" });
+      });
     }
     this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
     if (!notify || !released.length) return;

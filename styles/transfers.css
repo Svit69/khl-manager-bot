@@ -1,0 +1,148 @@
+.transfer-shell{
+  display:grid;
+  gap:14px;
+}
+.transfer-hero{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:18px;
+  padding:18px;
+  border-radius:16px;
+  border:1px solid rgba(120,157,223,.2);
+  background:linear-gradient(180deg,rgba(9,18,41,.88),rgba(6,12,28,.84));
+}
+.transfer-kicker{
+  display:block;
+  color:#8db7ef;
+  font-size:12px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+}
+.transfer-hero h3{
+  margin:6px 0 6px;
+  font-size:24px;
+  line-height:1.1;
+}
+.transfer-hero p{
+  margin:0;
+  color:#9fb7dc;
+  max-width:720px;
+}
+.transfer-team-select{
+  display:grid;
+  gap:6px;
+  min-width:230px;
+  color:#9fb7dc;
+  font-size:12px;
+  font-weight:800;
+}
+.transfer-team-select select{
+  width:100%;
+  border:1px solid rgba(125,180,255,.28);
+  border-radius:10px;
+  background:#081329;
+  color:#f5f9ff;
+  padding:10px 12px;
+  font-weight:800;
+}
+.transfer-summary{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+.transfer-summary div{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 14px;
+  border-radius:12px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(118,163,233,.12);
+}
+.transfer-summary span{color:#9fb7dc}
+.transfer-summary strong{font-size:22px}
+.transfer-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:14px;
+}
+.transfer-panel{
+  min-width:0;
+  display:grid;
+  align-content:start;
+  gap:10px;
+  padding:14px;
+  border-radius:16px;
+  border:1px solid rgba(120,157,223,.18);
+  background:rgba(5,11,25,.54);
+}
+.transfer-panel-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+.transfer-panel-head h4{
+  margin:0;
+  font-size:18px;
+}
+.transfer-panel-head span{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:34px;
+  min-height:28px;
+  border-radius:999px;
+  background:rgba(125,216,255,.12);
+  color:#8fe0ff;
+  font-weight:900;
+}
+.transfer-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(180px,.8fr) auto;
+  gap:12px;
+  align-items:center;
+  padding:11px 12px;
+  border-radius:12px;
+  border:1px solid rgba(118,163,233,.1);
+  background:rgba(255,255,255,.03);
+}
+.transfer-player,
+.transfer-meta{
+  min-width:0;
+  display:grid;
+  gap:3px;
+}
+.transfer-player strong,
+.transfer-meta strong{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.transfer-player span,
+.transfer-meta span,
+.transfer-day{
+  color:#91acd4;
+  font-size:12px;
+}
+.transfer-day{
+  white-space:nowrap;
+  justify-self:end;
+}
+.transfer-empty{
+  padding:18px 12px;
+  border-radius:12px;
+  border:1px dashed rgba(118,163,233,.18);
+  color:#8faad2;
+  text-align:center;
+}
+@media (max-width:1100px){
+  .transfer-hero{align-items:stretch;flex-direction:column}
+  .transfer-team-select{min-width:0}
+  .transfer-grid{grid-template-columns:1fr}
+  .transfer-row{grid-template-columns:minmax(0,1fr)}
+  .transfer-day{justify-self:start}
+}

@@ -6,6 +6,7 @@ export class AppController{
   #activeRosterUnit="1";
   #teamStatsSort="points";
   #teamStatsTeamId=null;
+  #transferTeamId=null;
   #draftIntroTeamId=null;
   #draftState=null;
   #dragRosterSlot=null;
@@ -75,6 +76,8 @@ export class AppController{
         this.#renderer.renderFreeAgents(this.#state.getActiveTeamFreeAgentRows(),this.#buildNegotiationState());
       }else if(this.#activeTab==="trades"){
         this.#renderer.renderTrades(this.#buildTradeState());
+      }else if(this.#activeTab==="transfers"){
+        this.#renderer.renderTransfers(this.#state.getTeamTransferView(this.#transferTeamId||this.#state.activeTeamId));
       }else if(this.#activeTab==="junior"){
         const juniorView=this.#state.getActiveTeamJuniorView();
         if(juniorView){
@@ -168,6 +171,10 @@ export class AppController{
     }
     if(action==="team-stats-team-select"){
       this.#teamStatsTeamId=changed.value||this.#state.activeTeamId;
+      this.#renderScreen();
+    }
+    if(action==="transfer-team-select"){
+      this.#transferTeamId=changed.value||this.#state.activeTeamId;
       this.#renderScreen();
     }
     if(action==="season-contract-salary-input"){

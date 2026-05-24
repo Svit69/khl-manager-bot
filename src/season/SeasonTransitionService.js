@@ -69,6 +69,9 @@ export class SeasonTransitionService {
     const activePlayers = (allPlayers || []).filter((player) => !retiredPlayerIds.has(player.id));
     const playerMap = new Map(activePlayers.map((player) => [player.id, player]));
     const releasedPlayerIds = [];
+    const departures = retirementEntries
+      .filter(({ player }) => player.affiliation?.teamId)
+      .map(({ player }) => ({ player, fromTeamId: player.affiliation.teamId, reason: "retirement" }));
     const userDepartures = [];
     const userRestrictedRetentions = [];
     const restrictedRightsOffers = [];
@@ -108,6 +111,7 @@ export class SeasonTransitionService {
       if (player.affiliation?.teamId === activeTeamId) {
         userDepartures.push(player);
       }
+      if (currentTeamId) departures.push({ player, fromTeamId: currentTeamId, reason: "contractExpired" });
       player.affiliation.teamId = null;
       player.affiliation.contractId = null;
       player.affiliation.acquiredDay = null;
@@ -190,11 +194,12 @@ export class SeasonTransitionService {
       },
       freeAgents: collectUniqueFreeAgents(activePlayers),
       retiredPlayerIds: [...retiredPlayerIds],
+      departures,
     };
   }
 
   ensureMinimumRosterDepth(args) {
-    this.#ensureMinimumRosterDepth(args);
+    return this.#ensureMinimumRosterDepth(args);
   }
 
   rebuildRosters(teams, allPlayers) {
@@ -219,6 +224,7 @@ export class SeasonTransitionService {
   }
 
   #ensureMinimumRosterDepth({ teams, activeTeamId, allPlayers, buildContext, negotiationDate, seasonLabel = null }) {
+    const movements = { signings: [], departures: [] };
     const positionTargets = TEAM_ROSTER_POSITION_TARGETS;
     const getGroup = (playerOrPosition) => {
       const position = typeof playerOrPosition === "string"
@@ -275,6 +281,7 @@ export class SeasonTransitionService {
           if (preferredGroup && roster.length >= TEAM_ROSTER_TARGET_SIZE) {
             const surplusPlayer = getSurplusPlayer(roster);
             if (surplusPlayer) {
+              movements.departures.push({ player: surplusPlayer, fromTeamId: team.id });
               surplusPlayer.affiliation.teamId = null;
               surplusPlayer.affiliation.contractId = null;
               surplusPlayer.affiliation.acquiredDay = null;
@@ -321,6 +328,7 @@ export class SeasonTransitionService {
               if (!team.getRoster().some((entry) => entry?.id === candidate.id)) {
                 team.reservePlayers.push(candidate);
               }
+              movements.signings.push({ player: candidate, toTeamId: team.id });
               break;
             }
           }
@@ -335,11 +343,13 @@ export class SeasonTransitionService {
               { currentDate: negotiationDate, seasonLabel },
             );
             team.reservePlayers.push(emergencyPlayer);
+            movements.signings.push({ player: emergencyPlayer, toTeamId: team.id });
           }
 
           roster = (allPlayers || []).filter((player) => player.affiliation?.teamId === team.id && !juniorIds.has(player.id));
         }
       });
+    return movements;
   }
 
   #rebuildRosters(teams, playerMap) {
