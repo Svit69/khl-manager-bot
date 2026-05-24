@@ -29,6 +29,7 @@ import {
 } from "./AppStateNotifications.js";
 import { applyMatchFatigue, applyMatchMood, applyMatchPlayerStats } from "./AppStateMatchEffects.js";
 import {
+  createMissingSavedPlayers,
   createPlayerSnapshots,
   normalizeSeasonState,
   restorePlayerSnapshots,
@@ -577,6 +578,7 @@ export class AppState {
       allPlayers: this.getAllPlayers(),
       buildContext: (team) => this.#buildNegotiationContext(team),
       negotiationDate: preseasonDate,
+      seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
     });
     this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
     this.#seasonState = {
@@ -678,6 +680,11 @@ export class AppState {
       ...this.#teams.flatMap((team) => [...team.getRoster(), ...(team.juniorPlayers || [])]),
       ...this.#freeAgents,
     ].map((player) => [player.id, player])).values()];
+    const missingSavedPlayers = createMissingSavedPlayers(saved.players, basePlayers, this.#calendar.seasonLabel);
+    if (missingSavedPlayers.length) {
+      this.#freeAgents = dedupeFreeAgents([...this.#freeAgents, ...missingSavedPlayers]);
+      basePlayers = [...basePlayers, ...missingSavedPlayers];
+    }
     if (saved.rosters) {
       importSavedRosters({
         teams: this.#teams,
@@ -691,6 +698,7 @@ export class AppState {
       ].map((player) => [player.id, player])).values()];
     }
     restorePlayerSnapshots(basePlayers, saved.players);
+    this.#ensureRosterContracts(saved.seasonState?.seasonLabel || this.#calendar.seasonLabel);
     this.#releaseIneligibleJuniorPlayers({ notify: false });
     basePlayers = [...new Map([
       ...this.#teams.flatMap((team) => [...team.getRoster(), ...(team.juniorPlayers || [])]),
@@ -826,6 +834,7 @@ export class AppState {
         allPlayers: this.getAllPlayers(),
         buildContext: (candidateTeam) => this.#buildNegotiationContext(candidateTeam),
         negotiationDate: this.#calendar.currentDate,
+        seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
       });
       this.#signAiRotationDepthIfNeeded(team);
     }
@@ -857,7 +866,7 @@ export class AppState {
       team,
       candidate,
       { years: 1, salaryRub: getFallbackMarketSalaryRub(candidate) },
-      { currentDate: this.#calendar.currentDate },
+      { currentDate: this.#calendar.currentDate, seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel },
     );
     candidate.affiliation.acquiredDay = this.#calendar.currentDay;
     if (!team.getRoster().some((player) => player?.id === candidate.id)) {
@@ -967,6 +976,7 @@ export class AppState {
       teamsCount,
       teamGamesPlayed,
       currentDate,
+      seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
       isInTop8: rank !== null && rank <= 8,
       teamRoster: team.getRoster(),
       allPlayers: this.getAllPlayers(),
@@ -1092,7 +1102,10 @@ export class AppState {
     const team = this.#teams.find((entry) => entry.id === winningOffer.teamId);
     if (!team) return;
 
-    const newContracts = this.#contracts.finalizeFreeAgentSigning(team, player, winningOffer.offer, { currentDate: decisionDate });
+    const newContracts = this.#contracts.finalizeFreeAgentSigning(team, player, winningOffer.offer, {
+      currentDate: decisionDate,
+      seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
+    });
     player.affiliation.acquiredDay = this.#calendar.currentDay;
     if (!team.getRoster().some((entry) => entry?.id === player.id)) {
       team.reservePlayers.push(player);
@@ -1258,6 +1271,15 @@ export class AppState {
     });
     team.reservePlayers.forEach((player) => {
       if (player) player.expectedLineIndex = null;
+    });
+  }
+
+  #ensureRosterContracts(seasonLabel) {
+    (this.#teams || []).forEach((team) => {
+      team.getRoster().forEach((player) => {
+        if (!player?.id || player.affiliation?.teamId !== team.id) return;
+        this.#contracts.ensureCurrentRosterContract(player, team.id, seasonLabel);
+      });
     });
   }
 

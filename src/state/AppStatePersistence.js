@@ -1,3 +1,11 @@
+import { createSkater } from "../data/playerFactory.js";
+
+const DEFAULT_ATTRIBUTES = Object.freeze({ shot: 65, speed: 65, physical: 65, defense: 65, skill: 65 });
+const DEFAULT_POTENTIAL = Object.freeze({ potential: 68, growthRate: 0.2, peakAge: 27, declineRate: 0.4 });
+const DEFAULT_CAREER = Object.freeze({ khlGamesPlayed: 0, seasonsPlayed: 0, reputation: 25 });
+const seasonTag = (seasonLabel) => `season-${String(seasonLabel || "season").split("/")[0] || "1"}`;
+const getSnapshotSeasonId = (snapshot, seasonLabel) => snapshot?.seasonStats?.seasonId || seasonTag(seasonLabel);
+
 export const createPlayerSnapshots = (players) =>
   [...new Map((players || []).map((player) => [player.id, player])).values()].map((player) => ({
     id: player.id,
@@ -23,6 +31,57 @@ export const createPlayerSnapshots = (players) =>
     acquiredDay: player.affiliation?.acquiredDay ?? null,
     expectedLineIndex: player.expectedLineIndex ?? null,
   }));
+
+export const createMissingSavedPlayers = (snapshots, existingPlayers, seasonLabel) => {
+  const existingIds = new Set((existingPlayers || []).map((player) => player?.id).filter(Boolean));
+  return (snapshots || [])
+    .filter((snapshot) => snapshot?.id && !existingIds.has(snapshot.id))
+    .map((snapshot) => {
+      const identity = snapshot.identity || {};
+      const displayName = identity.displayName || "Системный игрок";
+      const [fallbackFirstName, ...fallbackLastParts] = displayName.split(/\s+/);
+      const position = identity.primaryPosition || "ЦТР";
+      const profile = {
+        id: snapshot.id,
+        position,
+        identity: {
+          firstName: identity.firstName || fallbackFirstName || "Системный",
+          lastName: identity.lastName || fallbackLastParts.join(" ") || "Игрок",
+          displayName,
+          birthDate: identity.birthDate || "2000-01-01",
+          nationality: identity.nationality || "RU",
+          isGoalie: Boolean(identity.isGoalie),
+          photoUrl: identity.photoUrl || "./player-photo/default.png",
+          primaryPosition: position,
+          secondaryPositions: identity.secondaryPositions || [],
+        },
+        attributes: snapshot.attributes?.attributesJson || DEFAULT_ATTRIBUTES,
+        potential: { ...DEFAULT_POTENTIAL, ...(snapshot.potential || {}) },
+        condition: {
+          fatigueScore: Number(snapshot.fatigueScore) || 0,
+          form: Number(snapshot.form) || 1,
+          injuryUntilDay: snapshot.injuryUntilDay || null,
+        },
+        career: { ...DEFAULT_CAREER, ...(snapshot.career || {}) },
+        affiliation: {
+          teamId: snapshot.teamId || null,
+          contractId: snapshot.contractId || null,
+          acquiredDay: snapshot.acquiredDay ?? null,
+        },
+      };
+      const player = createSkater(
+        { id: snapshot.teamId || null, name: "Сохранение" },
+        profile.identity.firstName,
+        profile.identity.lastName,
+        position,
+        getSnapshotSeasonId(snapshot, seasonLabel),
+        profile,
+      );
+      if (snapshot.seasonStats) player.seasonStats.importSnapshot(snapshot.seasonStats);
+      if ("expectedLineIndex" in snapshot) player.expectedLineIndex = snapshot.expectedLineIndex;
+      return player;
+    });
+};
 
 export const restorePlayerSnapshots = (players, snapshots) => {
   const snapshotById = new Map((snapshots || []).map((player) => [player.id, player]));

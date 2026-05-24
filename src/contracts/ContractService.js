@@ -255,6 +255,32 @@ export class ContractService {
     );
   }
 
+  ensureCurrentRosterContract(player, teamId, season) {
+    if (!player?.id || !teamId || !season) return null;
+    const currentContract = this.getContractForSeason(player.id, season);
+    if (currentContract) {
+      player.affiliation.contractId = currentContract.id;
+      this.#releasedPlayerIds.delete(player.id);
+      return currentContract;
+    }
+
+    const contracts = this.getContractsForPlayer(player.id);
+    const latest = getLatestContract(contracts, (contract) => parseSeasonEnd(contract.season));
+    const contract = {
+      id: generateUuid(),
+      playerId: player.id,
+      teamId,
+      season,
+      salaryRub: roundSalaryRub(latest?.salaryRub || getFallbackMarketSalaryRub(player)),
+      type: latest?.type || ContractType.ONE_WAY,
+    };
+    this.#contracts.push(contract);
+    player.affiliation.teamId = teamId;
+    player.affiliation.contractId = contract.id;
+    this.#releasedPlayerIds.delete(player.id);
+    return contract;
+  }
+
   isRenewalLocked(playerId, currentDate = null) {
     const currentSeason = getSeasonLabelFromDate(currentDate);
     return this.#contracts.some(
@@ -304,7 +330,11 @@ export class ContractService {
     return contractTypeLabel[normalizeType(type)];
   }
 
-  getSigningStartSeason(currentDate = null) {
+  getSigningStartSeason(contextOrDate = null) {
+    if (contextOrDate && typeof contextOrDate === "object" && contextOrDate.seasonLabel) {
+      return contextOrDate.seasonLabel;
+    }
+    const currentDate = contextOrDate && typeof contextOrDate === "object" ? contextOrDate.currentDate : contextOrDate;
     const seasonFromDate = getSeasonLabelFromDate(currentDate);
     if (seasonFromDate) return seasonFromDate;
     const seasons = this.#contracts.map((contract) => contract.season).filter(Boolean);
@@ -389,7 +419,7 @@ export class ContractService {
       teamId: team.id,
       years: normalizedOffer.years,
       salaryRub: normalizedOffer.salaryRub,
-      startSeason: this.getSigningStartSeason(context?.currentDate),
+      startSeason: this.getSigningStartSeason(context),
       type: ContractType.ONE_WAY,
     });
 

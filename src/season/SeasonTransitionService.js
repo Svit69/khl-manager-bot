@@ -218,7 +218,7 @@ export class SeasonTransitionService {
     };
   }
 
-  #ensureMinimumRosterDepth({ teams, activeTeamId, allPlayers, buildContext, negotiationDate }) {
+  #ensureMinimumRosterDepth({ teams, activeTeamId, allPlayers, buildContext, negotiationDate, seasonLabel = null }) {
     const positionTargets = TEAM_ROSTER_POSITION_TARGETS;
     const getGroup = (playerOrPosition) => {
       const position = typeof playerOrPosition === "string"
@@ -268,7 +268,7 @@ export class SeasonTransitionService {
 
         while (!isRosterReady(roster) && safety < 64) {
           safety += 1;
-          const context = { ...buildContext(team), currentDate: negotiationDate, allPlayers };
+          const context = { ...buildContext(team), currentDate: negotiationDate, seasonLabel, allPlayers };
           const preferred = getPreferredGroup(roster);
           const preferredGroup = preferred?.deficit > 0 ? preferred.group : null;
 
@@ -332,7 +332,7 @@ export class SeasonTransitionService {
               team,
               emergencyPlayer,
               { years: 1, salaryRub: 500000 },
-              { currentDate: negotiationDate },
+              { currentDate: negotiationDate, seasonLabel },
             );
             team.reservePlayers.push(emergencyPlayer);
           }
