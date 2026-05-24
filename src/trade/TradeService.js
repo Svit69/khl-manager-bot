@@ -1,28 +1,36 @@
 import { buildCompetitiveLines } from "../data/lineupBuilder.js";
-import { calculateTradeValueForTeam } from "./TradeValue.js";
+import { PlayerPosition } from "../models/PlayerPosition.js";
+import { explainTradeValueForTeam } from "./TradeValue.js";
+
+const PACKAGE_CORRELATION_WEIGHTS = Object.freeze([1, 0.5, 0.28, 0.14]);
+const LOW_QUALITY_PACKAGE_WEIGHTS = Object.freeze([0.75, 0.18, 0.08, 0.04]);
+const MID_QUALITY_PACKAGE_WEIGHTS = Object.freeze([0.9, 0.28, 0.14, 0.06]);
 
 const buildByIdMap = (players) => new Map((players || []).map((player) => [player.id, player]));
-
 const sum = (items) => (items || []).reduce((acc, value) => acc + (Number(value) || 0), 0);
+const round = (value) => Math.round((Number(value) || 0) * 10) / 10;
 
-const createDecision = (aiDelta) => {
-  if (aiDelta >= 1.5) return { accepted: true, label: "ИИ принимает обмен" };
-  if (aiDelta >= 0) return { accepted: true, label: "ИИ принимает (близко к равному)" };
-  if (aiDelta > -2) return { accepted: false, label: "ИИ отклоняет: неравноценный баланс" };
-  return { accepted: false, label: "ИИ отклоняет: слишком невыгодно для состава" };
+const createDecision = (aiDelta, requiredPremium = 0) => {
+  const threshold = Number(requiredPremium) || 0;
+  if (aiDelta >= threshold + 1.5) return { accepted: true, label: "ИИ принимает обмен" };
+  if (aiDelta >= threshold) return { accepted: true, label: "ИИ принимает, но сделка близка к равной" };
+  if (aiDelta > threshold - 2) return { accepted: false, label: "ИИ отклоняет: не хватает премии за риск" };
+  return { accepted: false, label: "ИИ отклоняет: составу невыгодно" };
 };
-const getAcceptanceHint = (aiDelta) => {
-  if (aiDelta >= 4) return "Высокий шанс принятия";
-  if (aiDelta >= 1.5) return "Хороший шанс принятия";
-  if (aiDelta >= 0) return "Погранично, но возможно";
-  if (aiDelta >= -2) return `Добавьте ценность примерно +${Math.ceil(Math.abs(aiDelta) + 1)} для ИИ`;
-  return `Слишком большой разрыв: нужно +${Math.ceil(Math.abs(aiDelta) + 2)} для ИИ`;
+
+const getAcceptanceHint = (aiDelta, requiredPremium = 0) => {
+  const missing = round((Number(requiredPremium) || 0) - aiDelta);
+  if (missing <= -4) return "Высокий шанс принятия";
+  if (missing <= -1.5) return "Хороший шанс принятия";
+  if (missing <= 0) return "Погранично, но возможно";
+  if (missing <= 2) return `Нужно добавить ценность примерно +${Math.ceil(missing)} для ИИ`;
+  return `Слишком большой разрыв: нужно примерно +${Math.ceil(missing + 1)} для ИИ`;
 };
 
 const toIndicator = (userDelta) => {
-  if (userDelta >= 4) return { icon: "🟢", text: "Выгодно", tone: "good" };
-  if (userDelta >= -3) return { icon: "🟡", text: "Близко к равному", tone: "neutral" };
-  return { icon: "🔴", text: "Невыгодно", tone: "bad" };
+  if (userDelta >= 4) return { text: "Выгодно", tone: "good" };
+  if (userDelta >= -3) return { text: "Близко к равному", tone: "neutral" };
+  return { text: "Невыгодно", tone: "bad" };
 };
 
 const rebuildTeamRoster = (team, roster) => {
@@ -31,15 +39,103 @@ const rebuildTeamRoster = (team, roster) => {
   team.reservePlayers.splice(0, team.reservePlayers.length, ...lineup.reservePlayers);
 };
 
+const scoreRoster = (roster) =>
+  buildCompetitiveLines(roster).lines.reduce((total, line) => total + line.getStrength(), 0);
+
+const createRosterProjection = (team, nextRoster) => {
+  const before = scoreRoster(team.getRoster());
+  const after = scoreRoster(nextRoster);
+  return {
+    before: round(before),
+    after: round(after),
+    delta: round(after - before),
+  };
+};
+
+const createPackageEvaluation = (items, valueKey, anchorOvr = null) => {
+  const sorted = [...(items || [])].sort((left, right) => (right[valueKey] || 0) - (left[valueKey] || 0));
+  const simple = round(sum(sorted.map((entry) => entry[valueKey])));
+  const top = Number(sorted[0]?.[valueKey]) || 0;
+  const second = Number(sorted[1]?.[valueKey]) || 0;
+  const gapPenalty = sorted.length >= 3 && top - second >= 10 ? 0.86 : 1;
+  const topOvr = Number(sorted[0]?.player?.ovr) || 0;
+  const qualityGap = anchorOvr ? Math.max(0, Number(anchorOvr) - topOvr) : 0;
+  const weights = qualityGap >= 8
+    ? LOW_QUALITY_PACKAGE_WEIGHTS
+    : qualityGap >= 5
+      ? MID_QUALITY_PACKAGE_WEIGHTS
+      : PACKAGE_CORRELATION_WEIGHTS;
+  const effective = round(sorted.reduce((total, entry, index) => {
+    const baseWeight = weights[index] ?? 0.08;
+    const weight = index === 0 ? 1 : baseWeight * gapPenalty;
+    const topWeight = index === 0 && qualityGap >= 8 ? weights[0] : weight;
+    return total + (Number(entry[valueKey]) || 0) * topWeight;
+  }, 0));
+  return {
+    simple,
+    effective,
+    correlationPenalty: round(simple - effective),
+  };
+};
+
+const getApproxAge = (player) => {
+  const birthDate = new Date(player?.identity?.birthDate);
+  if (Number.isNaN(birthDate.getTime())) return 99;
+  return new Date().getUTCFullYear() - birthDate.getUTCFullYear();
+};
+
+const getCorePlayerIds = (team) => {
+  const roster = team?.getRoster?.() || [];
+  const forwards = roster
+    .filter((player) => player.identity?.primaryPosition !== PlayerPosition.DEF && player.identity?.primaryPosition !== PlayerPosition.G)
+    .sort((left, right) => (right.ovr - left.ovr) || left.name.localeCompare(right.name, "ru"))
+    .slice(0, 3);
+  const defenders = roster
+    .filter((player) => player.identity?.primaryPosition === PlayerPosition.DEF)
+    .sort((left, right) => (right.ovr - left.ovr) || left.name.localeCompare(right.name, "ru"))
+    .slice(0, 2);
+  const bestYoung = roster
+    .filter((player) => (Number(player.ovr) || 0) >= 72)
+    .sort((left, right) => getApproxAge(left) - getApproxAge(right) || right.ovr - left.ovr)
+    .slice(0, 1);
+  return new Set([...forwards, ...defenders, ...bestYoung].map((player) => player.id));
+};
+
+const createBestPlayerPremium = (aiTeam, giveValues, receiveValues) => {
+  const all = [
+    ...giveValues.map((entry) => ({ ...entry, side: "user" })),
+    ...receiveValues.map((entry) => ({ ...entry, side: "ai" })),
+  ].sort((left, right) => (right.player.ovr - left.player.ovr) || (right.aiValue || 0) - (left.aiValue || 0));
+  const best = all[0] || null;
+  if (!best || best.side !== "ai") return { premium: 0, reasons: [] };
+
+  const bestIncoming = giveValues.reduce((max, entry) => Math.max(max, Number(entry.aiValue) || 0), 0);
+  const bestIncomingOvr = giveValues.reduce((max, entry) => Math.max(max, Number(entry.player?.ovr) || 0), 0);
+  const valueGap = Math.max(0, (Number(best.aiValue) || 0) - bestIncoming);
+  const ovrGap = Math.max(0, (Number(best.player?.ovr) || 0) - bestIncomingOvr);
+  const coreIds = getCorePlayerIds(aiTeam);
+  let premium = 2 + valueGap * 0.22 + ovrGap * 2.4;
+  const reasons = [];
+  if (coreIds.has(best.player.id)) {
+    premium += 5;
+    reasons.push("игрок относится к ядру состава ИИ");
+  }
+  const cappedPremium = round(Math.min(36, premium));
+  reasons.unshift(`ИИ отдает лучшего игрока сделки: нужна премия +${Math.ceil(cappedPremium)}`);
+  return { premium: cappedPremium, reasons };
+};
+
 export class TradeService {
   #getPlayerContracts;
   #reassignPlayerContracts;
   #getCurrentDay;
+  #getSeasonLabel;
 
-  constructor({ getPlayerContracts, reassignPlayerContracts = null, getCurrentDay = null } = {}) {
+  constructor({ getPlayerContracts, reassignPlayerContracts = null, getCurrentDay = null, getSeasonLabel = null } = {}) {
     this.#getPlayerContracts = getPlayerContracts;
     this.#reassignPlayerContracts = reassignPlayerContracts;
     this.#getCurrentDay = getCurrentDay;
+    this.#getSeasonLabel = getSeasonLabel;
   }
 
   evaluateTrade(userTeam, aiTeam, givePlayerIds, receivePlayerIds) {
@@ -52,26 +148,61 @@ export class TradeService {
 
     const givePlayers = [...new Set(givePlayerIds || [])].map((id) => userById.get(id)).filter(Boolean);
     const receivePlayers = [...new Set(receivePlayerIds || [])].map((id) => aiById.get(id)).filter(Boolean);
+    const context = {
+      currentDay: typeof this.#getCurrentDay === "function" ? this.#getCurrentDay() : null,
+      seasonLabel: typeof this.#getSeasonLabel === "function" ? this.#getSeasonLabel() : null,
+    };
 
-    const giveValues = givePlayers.map((player) => ({
-      player,
-      userValue: calculateTradeValueForTeam(userTeam, player, this.#getPlayerContracts(player.id)),
-      aiValue: calculateTradeValueForTeam(aiTeam, player, this.#getPlayerContracts(player.id))
-    }));
-    const receiveValues = receivePlayers.map((player) => ({
-      player,
-      userValue: calculateTradeValueForTeam(userTeam, player, this.#getPlayerContracts(player.id)),
-      aiValue: calculateTradeValueForTeam(aiTeam, player, this.#getPlayerContracts(player.id))
-    }));
+    const giveValues = givePlayers.map((player) => {
+      const user = explainTradeValueForTeam(userTeam, player, this.#getPlayerContracts(player.id), context);
+      const ai = explainTradeValueForTeam(aiTeam, player, this.#getPlayerContracts(player.id), context);
+      return { player, userValue: user.value, aiValue: ai.value, userReasons: user.reasons, aiReasons: ai.reasons };
+    });
+    const receiveValues = receivePlayers.map((player) => {
+      const user = explainTradeValueForTeam(userTeam, player, this.#getPlayerContracts(player.id), context);
+      const ai = explainTradeValueForTeam(aiTeam, player, this.#getPlayerContracts(player.id), context);
+      return { player, userValue: user.value, aiValue: ai.value, userReasons: user.reasons, aiReasons: ai.reasons };
+    });
 
-    const userOutgoing = sum(giveValues.map((entry) => entry.userValue));
-    const userIncoming = sum(receiveValues.map((entry) => entry.userValue));
-    const aiIncoming = sum(giveValues.map((entry) => entry.aiValue));
-    const aiOutgoing = sum(receiveValues.map((entry) => entry.aiValue));
-    const userDelta = Math.round((userIncoming - userOutgoing) * 10) / 10;
-    const aiDelta = Math.round((aiIncoming - aiOutgoing) * 10) / 10;
+    const userOutgoingBestOvr = giveValues.reduce((max, entry) => Math.max(max, Number(entry.player?.ovr) || 0), 0);
+    const aiOutgoingBestOvr = receiveValues.reduce((max, entry) => Math.max(max, Number(entry.player?.ovr) || 0), 0);
+    const userIncomingPackage = createPackageEvaluation(receiveValues, "userValue", userOutgoingBestOvr);
+    const userOutgoingPackage = createPackageEvaluation(giveValues, "userValue");
+    const aiIncomingPackage = createPackageEvaluation(giveValues, "aiValue", aiOutgoingBestOvr);
+    const aiOutgoingPackage = createPackageEvaluation(receiveValues, "aiValue");
+    const userOutgoing = userOutgoingPackage.effective;
+    const userIncoming = userIncomingPackage.effective;
+    const aiIncoming = aiIncomingPackage.effective;
+    const aiOutgoing = aiOutgoingPackage.effective;
+
+    const giveSet = new Set(givePlayers.map((player) => player.id));
+    const receiveSet = new Set(receivePlayers.map((player) => player.id));
+    const nextUserRoster = [
+      ...userRoster.filter((player) => !giveSet.has(player.id)),
+      ...receivePlayers,
+    ];
+    const nextAiRoster = [
+      ...aiRoster.filter((player) => !receiveSet.has(player.id)),
+      ...givePlayers,
+    ];
+    const userRosterProjection = createRosterProjection(userTeam, nextUserRoster);
+    const aiRosterProjection = createRosterProjection(aiTeam, nextAiRoster);
+    const userRosterImpact = round(userRosterProjection.delta * 20);
+    const aiRosterImpact = round(aiRosterProjection.delta * 20);
+    const premium = createBestPlayerPremium(aiTeam, giveValues, receiveValues);
+
+    const userDelta = round(userIncoming - userOutgoing + userRosterImpact);
+    const aiDelta = round(aiIncoming - aiOutgoing + aiRosterImpact);
     const indicator = toIndicator(userDelta);
-    const decision = createDecision(aiDelta);
+    const decision = createDecision(aiDelta, premium.premium);
+    const reasons = [
+      aiIncomingPackage.correlationPenalty >= 5 ? `пакет входящих для ИИ снижен на ${aiIncomingPackage.correlationPenalty}: несколько игроков не равноценны одному лидеру` : null,
+      aiRosterProjection.delta < -1 ? `прогноз состава ИИ после обмена: ${aiRosterProjection.delta}` : null,
+      aiRosterProjection.delta > 1 ? `прогноз состава ИИ после обмена: +${aiRosterProjection.delta}` : null,
+      ...premium.reasons,
+      ...giveValues.flatMap((entry) => entry.aiReasons.map((reason) => `${entry.player.name}: ${reason}`)),
+      ...receiveValues.flatMap((entry) => entry.aiReasons.map((reason) => `${entry.player.name}: ${reason}`)),
+    ].filter(Boolean).slice(0, 7);
 
     const isValid = givePlayers.length > 0 && receivePlayers.length > 0;
     return {
@@ -83,12 +214,22 @@ export class TradeService {
       receiveValues,
       userOutgoing,
       userIncoming,
+      userSimpleOutgoing: userOutgoingPackage.simple,
+      userSimpleIncoming: userIncomingPackage.simple,
       userDelta,
       aiDelta,
+      aiIncoming,
+      aiOutgoing,
+      aiSimpleIncoming: aiIncomingPackage.simple,
+      aiSimpleOutgoing: aiOutgoingPackage.simple,
+      aiRequiredPremium: premium.premium,
+      userRosterProjection,
+      aiRosterProjection,
       indicator,
       decision,
-      acceptanceHint: getAcceptanceHint(aiDelta),
-      isValid
+      acceptanceHint: getAcceptanceHint(aiDelta, premium.premium),
+      reasons,
+      isValid,
     };
   }
 
@@ -105,11 +246,11 @@ export class TradeService {
     const receiveSet = new Set(evaluation.receivePlayers.map((player) => player.id));
     const nextUserRoster = [
       ...userTeam.getRoster().filter((player) => !giveSet.has(player.id)),
-      ...evaluation.receivePlayers
+      ...evaluation.receivePlayers,
     ];
     const nextAiRoster = [
       ...aiTeam.getRoster().filter((player) => !receiveSet.has(player.id)),
-      ...evaluation.givePlayers
+      ...evaluation.givePlayers,
     ];
 
     const acquiredDay = typeof this.#getCurrentDay === "function" ? this.#getCurrentDay() : null;
@@ -129,7 +270,7 @@ export class TradeService {
     return {
       accepted: true,
       message: "Обмен принят.",
-      evaluation
+      evaluation,
     };
   }
 }

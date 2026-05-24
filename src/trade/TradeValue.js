@@ -1,4 +1,4 @@
-import { calculateAge } from "../contracts/SeasonUtils.js";
+import { calculateAge, parseSeasonEnd } from "../contracts/SeasonUtils.js";
 import { PlayerPosition } from "../models/PlayerPosition.js";
 
 const ROLE_SCORE_BY_LINE = Object.freeze({
@@ -17,6 +17,8 @@ const POSITION_TARGETS = Object.freeze({
   [PlayerPosition.G]: 2
 });
 
+const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
 const getAgeScore = (age) => {
   if (age <= 21) return 14;
   if (age <= 24) return 10;
@@ -28,30 +30,72 @@ const getAgeScore = (age) => {
 
 const estimateMarketSalary = (ovr) => Math.max(800000, Math.round((ovr - 50) * 1800000));
 
-const getContractScore = (ovr, contracts) => {
+const getContractScore = (player, contracts, context = null, reasons = []) => {
+  const ovr = Number(player?.ovr) || 0;
+  const age = calculateAge(player?.identity?.birthDate, context?.currentDate);
   const latest = [...(contracts || [])]
     .sort((a, b) => String(a.season || "").localeCompare(String(b.season || "")))
     .slice(-1)[0];
   if (!latest?.salaryRub) return 0;
   const market = estimateMarketSalary(ovr);
   const ratio = market / Math.max(1, latest.salaryRub);
-  if (ratio >= 1.25) return 10;
-  if (ratio >= 1.05) return 6;
-  if (ratio >= 0.9) return 2;
-  if (ratio >= 0.75) return -4;
-  return -10;
+  let score = 0;
+  if (ratio >= 1.25) {
+    score += 10;
+    reasons.push("выгодная зарплата относительно рынка");
+  } else if (ratio >= 1.05) {
+    score += 6;
+    reasons.push("контракт немного выгоднее рынка");
+  } else if (ratio >= 0.9) {
+    score += 2;
+  } else if (ratio >= 0.75) {
+    score -= 4;
+    reasons.push("зарплата выше рыночной оценки");
+  } else {
+    score -= 10;
+    reasons.push("тяжелый контракт");
+  }
+
+  const currentSeasonEnd = parseSeasonEnd(context?.seasonLabel);
+  const remainingYears = currentSeasonEnd
+    ? contracts.filter((contract) => parseSeasonEnd(contract.season) >= currentSeasonEnd).length
+    : contracts.length;
+  if (remainingYears <= 1 && ovr >= 76) {
+    score -= 4;
+    reasons.push("короткий срок контракта снижает ценность");
+  } else if (remainingYears >= 2 && ratio >= 1.05 && age <= 29) {
+    score += Math.min(5, remainingYears + 1);
+    reasons.push("несколько лет контроля по хорошей цене");
+  } else if (remainingYears >= 3 && age >= 32 && ratio < 0.95) {
+    score -= 5;
+    reasons.push("длинный дорогой контракт ветерана");
+  }
+
+  return score;
 };
 
-const getNeedAdjustment = (team, position) => {
-  const roster = team.getRoster();
+const getNeedAdjustment = (team, position, reasons = []) => {
+  const roster = team?.getRoster?.() || [];
   const count = roster.filter((player) => player.identity?.primaryPosition === position).length;
   const target = POSITION_TARGETS[position] || 0;
   if (!target) return 0;
   const delta = count - target;
-  if (delta <= -2) return 0.18;
-  if (delta === -1) return 0.1;
-  if (delta >= 4) return -0.2;
-  if (delta >= 2) return -0.12;
+  if (delta <= -2) {
+    reasons.push("закрывает явный дефицит позиции");
+    return 0.18;
+  }
+  if (delta === -1) {
+    reasons.push("закрывает небольшую потребность позиции");
+    return 0.1;
+  }
+  if (delta >= 4) {
+    reasons.push("позиция переполнена в составе");
+    return -0.2;
+  }
+  if (delta >= 2) {
+    reasons.push("на этой позиции уже есть глубина");
+    return -0.12;
+  }
   return 0;
 };
 
@@ -65,34 +109,79 @@ const getRoleScore = (team, player) => {
   return -3;
 };
 
-const getRecentAcquisitionPenalty = (player) => {
+const getRecentAcquisitionPenalty = (player, currentDay = null, reasons = []) => {
   const acquiredDay = player.affiliation?.acquiredDay;
   if (acquiredDay === null || acquiredDay === undefined) return 0;
   const games = player.seasonStats?.games || 0;
-  if (games <= 1) return -26;
-  if (games <= 3) return -18;
-  if (games <= 6) return -10;
-  return -4;
+  const daysSince = currentDay === null || currentDay === undefined
+    ? null
+    : Math.max(0, Number(currentDay) - Number(acquiredDay));
+  let penalty = -4;
+  if (games <= 1) penalty = -34;
+  else if (games <= 3) penalty = -24;
+  else if (games <= 6) penalty = -14;
+  if (daysSince !== null) {
+    if (daysSince <= 7) penalty = Math.min(penalty, -32);
+    else if (daysSince <= 20) penalty = Math.min(penalty, -20);
+    else if (daysSince <= 45) penalty = Math.min(penalty, -10);
+  }
+  if (penalty <= -20) reasons.push("игрок недавно подписан или приобретен, ликвидность сильно снижена");
+  else reasons.push("недавнее приобретение немного снижает ценность");
+  return penalty;
 };
 
-export const calculateTradeValueForTeam = (team, player, contracts) => {
-  const age = calculateAge(player.identity?.birthDate);
+const getProductionScore = (player, age, reasons = []) => {
+  const position = player.identity?.primaryPosition;
+  const points = (player.seasonStats?.goals || 0) + (player.seasonStats?.assists || 0);
+  const games = Number(player.seasonStats?.games) || 0;
+  if (!games) return 0;
+  const ppg = points / Math.max(1, games);
+  const sample = clamp(games / 18, 0.35, 1);
+  const isDefense = position === PlayerPosition.DEF;
+  let score = clamp(ppg * (isDefense ? 9 : 7) * sample, 0, 8);
+
+  if (games >= 8 && age <= 24) {
+    const strongYoungSeason = isDefense ? ppg >= 0.28 : ppg >= 0.45;
+    const veryStrongYoungSeason = isDefense ? ppg >= 0.4 : ppg >= 0.65;
+    if (veryStrongYoungSeason) {
+      score += 10;
+      reasons.push("молодой игрок уже дает сильную статистику в сезоне");
+    } else if (strongYoungSeason) {
+      score += 6;
+      reasons.push("молодой игрок подтверждает ценность статистикой");
+    }
+  }
+
+  if (games >= 12 && ppg <= 0.08 && !isDefense) {
+    score -= 3;
+    reasons.push("слабая результативность при заметной выборке матчей");
+  }
+
+  return score;
+};
+
+export const explainTradeValueForTeam = (team, player, contracts, context = null) => {
+  const reasons = [];
+  const age = calculateAge(player.identity?.birthDate, context?.currentDate);
   const ovr = Number(player.ovr) || 0;
   const potential = Number(player.potential?.potential) || ovr;
   const progress = Math.max(-10, Math.min(15, potential - ovr));
-  const points = (player.seasonStats?.goals || 0) + (player.seasonStats?.assists || 0);
-  const games = Math.max(1, player.seasonStats?.games || 0);
-  const ppg = points / games;
+  const roleScore = getRoleScore(team, player);
+  if (roleScore >= 5) reasons.push("важная роль в текущем составе");
 
   const raw =
-    (ovr * 0.7) +
-    (potential * 0.35) +
+    (ovr * 0.82) +
+    (potential * 0.15) +
     getAgeScore(age) +
-    getContractScore(ovr, contracts) +
-    getRoleScore(team, player) +
-    getRecentAcquisitionPenalty(player) +
-    (progress * 0.9) +
-    (ppg * 4);
-  const needAdjusted = raw * (1 + getNeedAdjustment(team, player.identity?.primaryPosition));
-  return Math.max(20, Math.min(120, Math.round(needAdjusted * 10) / 10));
+    getContractScore(player, contracts, context, reasons) +
+    roleScore +
+    getRecentAcquisitionPenalty(player, context?.currentDay, reasons) +
+    (progress * 0.35) +
+    getProductionScore(player, age, reasons);
+  const needAdjusted = raw * (1 + getNeedAdjustment(team, player.identity?.primaryPosition, reasons));
+  const value = Math.max(20, Math.min(120, Math.round(needAdjusted * 10) / 10));
+  return { value, reasons: [...new Set(reasons)].slice(0, 4) };
 };
+
+export const calculateTradeValueForTeam = (team, player, contracts, context = null) =>
+  explainTradeValueForTeam(team, player, contracts, context).value;

@@ -33,6 +33,14 @@ const renderSelectedSummary = (items, emptyLabel) => {
   `).join("");
 };
 
+const renderTradeReasons = (reasons = []) => {
+  if (!reasons.length) return "";
+  return `<div class="trade-reasons">
+    <div class="trade-summary-title">Почему ИИ так оценивает</div>
+    ${reasons.map((reason) => `<div class="trade-reason">${reason}</div>`).join("")}
+  </div>`;
+};
+
 const renderTeamPicker = (partners, selectedTeamId, selectedTeam) => {
   const label = selectedTeam?.name || "Выберите команду";
   const logo = selectedTeam?.logoUrl || "";
@@ -67,7 +75,7 @@ export class TradeTabRenderer {
       message = ""
     } = view || {};
 
-    const indicator = evaluation?.indicator ? `${evaluation.indicator.icon} ${evaluation.indicator.text}` : "Соберите пакет";
+    const indicator = evaluation?.indicator ? evaluation.indicator.text : "Соберите пакет";
     const decision = evaluation?.decision?.label || "Добавьте игроков с обеих сторон и оцените сделку";
     const submitDisabled = !selectedTeam || !evaluation?.isValid ? "disabled" : "";
     const giveCount = evaluation?.givePlayers?.length || 0;
@@ -157,6 +165,9 @@ export class TradeTabRenderer {
         <div class="trade-eval-row"><span>Вердикт ИИ</span><strong>${decision}</strong></div>
         <div class="trade-eval-row"><span>Ваш баланс</span><strong>${formatDelta(evaluation?.userDelta)}</strong></div>
         <div class="trade-eval-row"><span>Баланс ИИ</span><strong>${formatDelta(evaluation?.aiDelta)}</strong></div>
+        <div class="trade-eval-row"><span>Состав ИИ после обмена</span><strong>${formatDelta(evaluation?.aiRosterProjection?.delta)}</strong></div>
+        ${evaluation?.aiRequiredPremium ? `<div class="trade-eval-row"><span>Премия за лидера/ядро</span><strong>+${evaluation.aiRequiredPremium}</strong></div>` : ""}
+        ${renderTradeReasons(evaluation?.reasons)}
 
         <div class="trade-summary">
           <div class="trade-summary-card">

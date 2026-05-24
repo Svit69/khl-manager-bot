@@ -401,6 +401,19 @@
   text-align:right;
   color:#f5f9ff;
 }
+.trade-reasons{
+  display:grid;
+  gap:8px;
+  padding:12px;
+  border-radius:12px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(118,163,233,.12);
+}
+.trade-reason{
+  color:#c6d8f4;
+  font-size:13px;
+  line-height:1.35;
+}
 .trade-summary{
   display:grid;
   grid-template-columns:minmax(0,1fr) minmax(0,1fr);

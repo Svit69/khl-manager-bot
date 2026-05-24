@@ -88,6 +88,7 @@ export class AppState {
       getPlayerContracts: (playerId) => this.#contracts.getContractsForPlayer(playerId),
       reassignPlayerContracts: (playerId, teamId) => this.#contracts.reassignPlayerContracts(playerId, teamId),
       getCurrentDay: () => this.#calendar.currentDay,
+      getSeasonLabel: () => this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
     });
     this.#seasonState = {
       phase: "preseason",
