@@ -1,4 +1,4 @@
-const CACHE_NAME="khl-manager-v126";
+const CACHE_NAME="khl-manager-v127";
 const ASSETS=[
   "./",
   "./index.html",
@@ -45,6 +45,7 @@ const ASSETS=[
   "./src/data/juniorTeams.js",
   "./src/data/lokomotivPlayers.js",
   "./src/data/sibirPlayers.js",
+  "./src/data/skaPlayers.js",
   "./src/data/teams.js",
   "./manifest.json",
   "./khl-logo/avangard.png",
@@ -54,6 +55,7 @@ const ASSETS=[
   "./khl-logo/metallurg.png",
   "./khl-logo/lokomotiv.png",
   "./khl-logo/sibir.png",
+  "./khl-logo/ska.png",
   "./khl-logo/dynamo-moscow.png",
   "./khl-logo/dinamo-minsk.png",
   "./player-photo/da-costa.png",
@@ -63,9 +65,12 @@ const ASSETS=[
   "./player-photo/boucher.png",
   "./player-photo/gorbunov.png",
   "./player-photo/byvaltsev.png",
+  "./player-photo/blandisi.png",
   "./player-photo/denezhkin.png",
+  "./player-photo/galenyuk.png",
   "./player-photo/kashtanov.png",
   "./player-photo/kizimov.png",
+  "./player-photo/goldobin.png",
   "./player-photo/osipov.png",
   "./player-photo/sharov.png",
   "./player-photo/vorobyev.png",
@@ -73,6 +78,7 @@ const ASSETS=[
   "./player-photo/shahkov.png",
   "./player-photo/isayev.png",
   "./player-photo/blacker.png",
+  "./player-photo/mikhail-vorobyov.png",
   "./player-photo/malorosiyanov.png",
   "./player-photo/macek.png",
   "./player-photo/khripunov.png",
