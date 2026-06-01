@@ -1,4 +1,4 @@
-const CACHE_NAME="khl-manager-v130";
+const CACHE_NAME="khl-manager-v131";
 const ASSETS=[
   "./",
   "./index.html",
@@ -46,6 +46,7 @@ const ASSETS=[
   "./src/data/lokomotivPlayers.js",
   "./src/data/sibirPlayers.js",
   "./src/data/skaPlayers.js",
+  "./src/data/spartakPlayers.js",
   "./src/data/surnameRoots.js",
   "./src/data/teams.js",
   "./manifest.json",
@@ -57,6 +58,7 @@ const ASSETS=[
   "./khl-logo/lokomotiv.png",
   "./khl-logo/sibir.png",
   "./khl-logo/ska.png",
+  "./khl-logo/spartak.png",
   "./khl-logo/dynamo-moscow.png",
   "./khl-logo/dinamo-minsk.png",
   "./player-photo/da-costa.png",
@@ -400,6 +402,18 @@ const ASSETS=[
   "./player-photo/shirokov.png",
   "./player-photo/alexei-yakovlev.png",
   "./player-photo/pershakov.png",
+  "./player-photo/bychkov.png",
+  "./player-photo/vishnevsky.png",
+  "./player-photo/knyazev.png",
+  "./player-photo/korolyov.png",
+  "./player-photo/andrei-mironov.png",
+  "./player-photo/ivan-morozov.png",
+  "./player-photo/daniil-orlov.png",
+  "./player-photo/poryadin.png",
+  "./player-photo/rubtsov.png",
+  "./player-photo/jaros.png",
+  "./player-photo/keane.png",
+  "./player-photo/tyurin.png",
   "./player-photo/default.png"
 ];
 self.addEventListener("install",e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS)))});

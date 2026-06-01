@@ -12,6 +12,7 @@ const JUNIOR_TEAM_BY_PARENT_SHORT_NAME = Object.freeze({
   LOK: { name: "Локо", shortName: "LOKO" },
   SIB: { name: "Сибирские снайперы", shortName: "SNP" },
   SKA: { name: "СКА-1946", shortName: "SKA46" },
+  SPM: { name: "МХК Спартак", shortName: "MHKSP" },
 });
 
 export const createJuniorTeamInfo = (parentTeam) => {
