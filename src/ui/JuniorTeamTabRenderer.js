@@ -1,5 +1,14 @@
 import { getPlayerPhotoUrl, isPlaceholderPhoto, PHOTO_FALLBACK_ATTR } from "../utils/PlayerPhoto.js";
 
+const POSITION_FILTERS = Object.freeze([
+  ["all", "Все"],
+  ["ЦТР", "ЦТР"],
+  ["ЛНП", "ЛНП"],
+  ["ПНП", "ПНП"],
+  ["ЗАЩ", "ЗАЩ"],
+  ["ВРТ", "ВРТ"],
+]);
+
 const getPosition = (player) => player?.identity?.primaryPosition || "-";
 const getGrowth = (entry) => Math.max(0, (entry?.scoutedPotential?.high || entry?.player?.ovr || 0) - (entry?.player?.ovr || 0));
 
@@ -11,6 +20,15 @@ const renderSummary = (label, value, accent = false) =>
 
 const renderMetric = (label, value, className = "") =>
   `<span class="junior-manager-metric ${className}"><small>${label}</small><strong>${value}</strong></span>`;
+
+const renderPositionFilter = (selectedPosition, visibleCount, totalCount) =>
+  `<label class="junior-manager-filter">
+    <span>Позиция</span>
+    <select data-action="junior-position-filter">
+      ${POSITION_FILTERS.map(([value, label]) => `<option value="${value}"${value === selectedPosition ? " selected" : ""}>${label}</option>`).join("")}
+    </select>
+    <small>${visibleCount}/${totalCount}</small>
+  </label>`;
 
 const renderPlayerHead = (entry) => {
   const player = entry.player;
@@ -107,6 +125,10 @@ export class JuniorTeamTabRenderer {
     }
 
     const players = view.players || [];
+    const positionFilter = view.positionFilter || "all";
+    const filteredPlayers = positionFilter === "all"
+      ? players
+      : players.filter((entry) => getPosition(entry.player) === positionFilter);
     const photoStatusById = view.photoStatusById;
     const photoErrorById = view.photoErrorById;
     const graduationClass = view.graduationClass || [];
@@ -175,9 +197,10 @@ export class JuniorTeamTabRenderer {
               <h3>Состав молодежки</h3>
               <span>Развитие зависит от возраста, потенциала и матчей в основе за сезон</span>
             </div>
+            ${renderPositionFilter(positionFilter, filteredPlayers.length, players.length)}
           </div>
           <div class="junior-manager-card-grid">
-            ${players.map((entry) => renderJuniorCard(entry, photoStatusById, photoErrorById)).join("") || `<div class="junior-manager-empty">Состав пуст</div>`}
+            ${filteredPlayers.map((entry) => renderJuniorCard(entry, photoStatusById, photoErrorById)).join("") || `<div class="junior-manager-empty">Игроков на этой позиции нет</div>`}
           </div>
         </section>
 

@@ -169,6 +169,10 @@
   .junior-manager-card-top{
     flex-direction:column;
   }
+  .junior-manager-filter{
+    flex-basis:auto;
+    width:100%;
+  }
   .junior-manager-table-head{
     display:none;
   }

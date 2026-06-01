@@ -21,6 +21,7 @@ export class AppController{
   #seasonContractOutcomes=new Map();
   #juniorPhotoStatusById=new Map();
   #juniorPhotoErrorById=new Map();
+  #juniorPositionFilter="all";
   constructor(state,calendar,teams,renderer,userStore){
     this.#state=state;this.#calendar=calendar;this.#teams=teams;this.#renderer=renderer;this.#userStore=userStore;
   }
@@ -83,6 +84,7 @@ export class AppController{
         if(juniorView){
           juniorView.photoStatusById=this.#juniorPhotoStatusById;
           juniorView.photoErrorById=this.#juniorPhotoErrorById;
+          juniorView.positionFilter=this.#juniorPositionFilter;
         }
         this.#renderer.renderJuniorTeam(juniorView);
       }else{
@@ -175,6 +177,10 @@ export class AppController{
     }
     if(action==="transfer-team-select"){
       this.#transferTeamId=changed.value||this.#state.activeTeamId;
+      this.#renderScreen();
+    }
+    if(action==="junior-position-filter"){
+      this.#juniorPositionFilter=changed.value||"all";
       this.#renderScreen();
     }
     if(action==="season-contract-salary-input"){

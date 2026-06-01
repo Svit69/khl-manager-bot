@@ -1032,6 +1032,34 @@
   font-size:12px;
   font-weight:700;
 }
+.junior-manager-filter{
+  flex:0 0 156px;
+  display:grid;
+  gap:5px;
+  color:#8fa0b8;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.junior-manager-filter select{
+  width:100%;
+  height:34px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;
+  background:#11171d;
+  color:#edf6ef;
+  padding:0 10px;
+  font:inherit;
+  font-size:12px;
+  letter-spacing:0;
+  text-transform:none;
+}
+.junior-manager-filter small{
+  color:#80f7ca;
+  font-size:10px;
+  font-weight:900;
+}
 .junior-manager-prospects{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
@@ -1064,6 +1092,7 @@
 .junior-manager-board{
   display:grid;
   grid-template-columns:minmax(0,1.45fr) minmax(280px,.55fr);
+  align-items:start;
   gap:14px;
   min-width:0;
 }
@@ -1206,6 +1235,8 @@
 }
 .junior-manager-main-list{
   display:grid;
+  align-content:start;
+  align-items:start;
   gap:8px;
   max-height:620px;
   overflow:auto;
@@ -1350,6 +1381,7 @@
 .junior-manager-transfer{
   display:grid;
   grid-template-columns:38px minmax(0,1fr);
+  align-self:start;
   gap:10px;
   align-items:center;
   min-width:0;
