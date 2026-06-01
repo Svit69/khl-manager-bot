@@ -1,4 +1,4 @@
-const CACHE_NAME="khl-manager-v128";
+const CACHE_NAME="khl-manager-v129";
 const ASSETS=[
   "./",
   "./index.html",
@@ -46,6 +46,7 @@ const ASSETS=[
   "./src/data/lokomotivPlayers.js",
   "./src/data/sibirPlayers.js",
   "./src/data/skaPlayers.js",
+  "./src/data/surnameRoots.js",
   "./src/data/teams.js",
   "./manifest.json",
   "./khl-logo/avangard.png",
