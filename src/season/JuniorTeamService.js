@@ -173,8 +173,8 @@ const WEIGHTED_LAST_NAMES_KZ = Object.freeze([
   ["Бекетов", 22],
   ["Абдрахманов", 18],
 ]);
-const TEAM_HERITAGE_LAST_NAME_CHANCE = 10;
-const HOCKEY_HISTORY_LAST_NAME_CHANCE = 10;
+const TEAM_HERITAGE_LAST_NAME_CHANCE = 2;
+const HOCKEY_HISTORY_LAST_NAME_CHANCE = 2;
 const GENERATED_LAST_NAME_CHANCE = Object.freeze({ RU: 78, BY: 80, KZ: 84 });
 const WEIGHTED_SURNAME_SUFFIXES = Object.freeze({
   RU: [["ов", 43], ["ев", 22], ["ин", 18], ["енко", 8], ["чук", 4], ["ич", 3], ["ый", 2]],
