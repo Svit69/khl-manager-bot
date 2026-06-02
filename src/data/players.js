@@ -1,6 +1,7 @@
 ﻿import { PlayerPosition } from "../models/PlayerPosition.js";
 import { lokomotivPlayerProfiles } from "./lokomotivPlayers.js";
 import { sibirPlayerProfiles } from "./sibirPlayers.js";
+import { severstalPlayerProfiles } from "./severstalPlayers.js";
 import { skaPlayerProfiles } from "./skaPlayers.js";
 import { spartakPlayerProfiles } from "./spartakPlayers.js";
 export const playerProfiles=[
@@ -5370,7 +5371,7 @@ export const playerProfiles=[
     affiliation:{contractId:"5c000000-0000-4000-8000-000000000039"}
   }
 ];
-const allPlayerProfiles=[...playerProfiles,...lokomotivPlayerProfiles,...sibirPlayerProfiles,...skaPlayerProfiles,...spartakPlayerProfiles].filter(Boolean);
+const allPlayerProfiles=[...playerProfiles,...lokomotivPlayerProfiles,...sibirPlayerProfiles,...severstalPlayerProfiles,...skaPlayerProfiles,...spartakPlayerProfiles].filter(Boolean);
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>allPlayerProfiles
   .find(p=>p.teamId===teamId&&p.lineIndex===lineIndex&&p.position===position&&(roleIndex===null||p.roleIndex===roleIndex));
 export const getTeamProfiles=teamId=>allPlayerProfiles.filter(p=>p.teamId===teamId);

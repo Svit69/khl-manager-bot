@@ -13,6 +13,7 @@ const JUNIOR_TEAM_BY_PARENT_SHORT_NAME = Object.freeze({
   SIB: { name: "Сибирские снайперы", shortName: "SNP" },
   SKA: { name: "СКА-1946", shortName: "SKA46" },
   SPM: { name: "МХК Спартак", shortName: "MHKSP" },
+  SEV: { name: "Алмаз", shortName: "ALM" },
 });
 
 export const createJuniorTeamInfo = (parentTeam) => {
