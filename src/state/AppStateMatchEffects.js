@@ -1,4 +1,5 @@
 import { calculateAge } from "../contracts/SeasonUtils.js";
+import { HiddenPlayerTrait, hasHiddenTrait } from "../models/HiddenPlayerTraits.js";
 
 const RESERVE_FATIGUE_RECOVERY = -11.25;
 const FATIGUE_ACCUMULATION_FACTOR = 0.9;
@@ -87,7 +88,8 @@ export const applyMatchFatigue = (team, teamSummary, referenceDate = null) => {
     const baseLoad = isGoalie
       ? 4.6 + (minutes / 60) * 6.2
       : 2.2 + Math.max(0, minutes - 8) * 0.22 + Math.max(0, minutes - 16) * 0.34 + Math.max(0, minutes - 22) * 0.42;
-    const delta = Math.max(0.8, Math.min(isGoalie ? 12 : 15, baseLoad - enduranceBonus)) * FATIGUE_ACCUMULATION_FACTOR;
+    const traitRecoveryFactor = hasHiddenTrait(player, HiddenPlayerTrait.IRON_LUNGS) ? 0.78 : 1;
+    const delta = Math.max(0.8, Math.min(isGoalie ? 12 : 15, baseLoad - enduranceBonus)) * FATIGUE_ACCUMULATION_FACTOR * traitRecoveryFactor;
     player.applyFatigue(delta);
   });
 };

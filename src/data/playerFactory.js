@@ -8,6 +8,7 @@ import { PlayerSeasonStats } from "../models/PlayerSeasonStats.js";
 import { SkaterAttributes } from "../models/SkaterAttributes.js";
 import { Skater } from "../models/Skater.js";
 import { PlayerPosition } from "../models/PlayerPosition.js";
+import { normalizeHiddenTraits } from "../models/HiddenPlayerTraits.js";
 export const createSkater=(teamInfo,firstName,lastName,position,seasonId,profile=null)=>{
   if(!profile)throw new Error(`Missing player profile for ${teamInfo?.name||"team"}`);
   const playerId=profile.id;
@@ -52,6 +53,7 @@ export const createSkater=(teamInfo,firstName,lastName,position,seasonId,profile
   });
   const seasonStats=new PlayerSeasonStats({seasonId,playerId});
   const skater=new Skater(identity,attributes,potential,condition,career,affiliation,seasonStats,position);
+  skater.hiddenTraits=normalizeHiddenTraits(profile.hiddenTraits);
   if(profile?.lineIndex)skater.expectedLineIndex=profile.lineIndex;
   return skater;
 };

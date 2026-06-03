@@ -1,4 +1,5 @@
 import { createSkater } from "../data/playerFactory.js";
+import { normalizeHiddenTraits } from "../models/HiddenPlayerTraits.js";
 
 const DEFAULT_ATTRIBUTES = Object.freeze({ shot: 65, speed: 65, physical: 65, defense: 65, skill: 65 });
 const DEFAULT_POTENTIAL = Object.freeze({ potential: 68, growthRate: 0.2, peakAge: 27, declineRate: 0.4 });
@@ -16,8 +17,10 @@ export const createPlayerSnapshots = (players) =>
       birthDate: player.identity?.birthDate || null,
       nationality: player.identity?.nationality || null,
       primaryPosition: player.identity?.primaryPosition || null,
+      secondaryPositions: player.identity?.secondaryPositions || [],
       photoUrl: player.identity?.photoUrl || null,
     },
+    hiddenTraits: normalizeHiddenTraits(player.hiddenTraits),
     fatigueScore: player.fatigueScore,
     form: player.form,
     injuryUntilDay: player.condition.injuryUntilDay,
@@ -55,6 +58,7 @@ export const createMissingSavedPlayers = (snapshots, existingPlayers, seasonLabe
           primaryPosition: position,
           secondaryPositions: identity.secondaryPositions || [],
         },
+        hiddenTraits: normalizeHiddenTraits(snapshot.hiddenTraits),
         attributes: snapshot.attributes?.attributesJson || DEFAULT_ATTRIBUTES,
         potential: { ...DEFAULT_POTENTIAL, ...(snapshot.potential || {}) },
         condition: {
@@ -97,6 +101,8 @@ export const restorePlayerSnapshots = (players, snapshots) => {
     if (snapshot.career) player.career?.importSnapshot?.(snapshot.career);
     if (snapshot.seasonStats) player.seasonStats.importSnapshot(snapshot.seasonStats);
     if (snapshot.identity && "photoUrl" in snapshot.identity) player.identity.photoUrl = snapshot.identity.photoUrl;
+    if (snapshot.identity && "secondaryPositions" in snapshot.identity) player.identity.secondaryPositions = snapshot.identity.secondaryPositions;
+    if ("hiddenTraits" in snapshot) player.hiddenTraits = normalizeHiddenTraits(snapshot.hiddenTraits);
     if ("photoUrl" in snapshot) player.identity.photoUrl = snapshot.photoUrl;
     if ("teamId" in snapshot) player.affiliation.teamId = snapshot.teamId;
     if ("contractId" in snapshot) player.affiliation.contractId = snapshot.contractId;

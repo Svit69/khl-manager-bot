@@ -2,6 +2,7 @@ import { createSkater } from "../data/playerFactory.js";
 import { RUSSIAN_SURNAME_ROOTS } from "../data/surnameRoots.js";
 import { calculateAge } from "../contracts/SeasonUtils.js";
 import { PlayerPosition } from "../models/PlayerPosition.js";
+import { getJuniorHiddenTraits } from "../models/HiddenPlayerTraits.js";
 import { getJuniorSeasonAge, getJuniorSeasonStartDate } from "./JuniorEligibility.js";
 import { getJuniorPracticeProfile } from "./JuniorScouting.js";
 
@@ -342,6 +343,15 @@ const getPositionNeed = (players) => {
     .sort((left, right) => ((counts.get(left[0]) || 0) / left[1]) - ((counts.get(right[0]) || 0) / right[1]))[0]?.[0] || PlayerPosition.CTR;
 };
 
+const getForwardSecondaryPositions = (position, seed) => {
+  if (![PlayerPosition.CTR, PlayerPosition.LW, PlayerPosition.RW].includes(position)) return [];
+  const roll = hash(`${seed}:secondary-position`) % 100;
+  if (roll >= 42) return [];
+  if (position === PlayerPosition.CTR) return [hash(`${seed}:wing-side`) % 2 ? PlayerPosition.RW : PlayerPosition.LW];
+  if (roll < 30) return [position === PlayerPosition.LW ? PlayerPosition.RW : PlayerPosition.LW];
+  return [PlayerPosition.CTR];
+};
+
 const getAttributeProfile = (position, ovr, seed) => {
   const spread = (offset) => clamp(ovr + ((seed + offset) % 9) - 4, 40, 99);
   if (position === PlayerPosition.DEF) {
@@ -498,6 +508,7 @@ export class JuniorTeamService {
     const age = 16 + (seed % 5);
     const birthYear = getJuniorSeasonStartDate(seasonLabel).getUTCFullYear() - age;
     const position = getPositionNeed(team.juniorPlayers);
+    const secondaryPositions = getForwardSecondaryPositions(position, seed);
     const nationality = getNationality(team, seed);
     const existingNames = new Set((team.juniorPlayers || []).map((player) => player.name));
     const { firstName, lastName } = getNames(nationality, seed, existingNames, team);
@@ -518,8 +529,9 @@ export class JuniorTeamService {
         isGoalie: position === PlayerPosition.G,
         photoUrl: "./player-photo/default.png",
         primaryPosition: position,
-        secondaryPositions: [],
+        secondaryPositions,
       },
+      hiddenTraits: getJuniorHiddenTraits({ position, seed, talentRoll }),
       attributes: getAttributeProfile(position, ovr, seed),
       potential: {
         potential: clamp(ovr + potentialGap, 55, 92),

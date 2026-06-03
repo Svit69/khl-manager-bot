@@ -16,4 +16,5 @@
   set photoUrl(value){this.#photoUrl=value||null}
   get primaryPosition(){return this.#primaryPosition}
   get secondaryPositions(){return this.#secondaryPositions}
+  set secondaryPositions(value){this.#secondaryPositions=Array.isArray(value)?value:[]}
 }
