@@ -2,6 +2,7 @@ const METHOD_LABELS = Object.freeze({
   freeAgent: "Свободный агент",
   trade: "Обмен",
   offerSheet: "ОСА",
+  rightsTrade: "Права",
   contractExpired: "Контракт завершен",
   juniorRelease: "Выпуск молодежки",
   retirement: "Завершение карьеры",

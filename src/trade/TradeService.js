@@ -9,6 +9,7 @@ const MID_QUALITY_PACKAGE_WEIGHTS = Object.freeze([0.9, 0.28, 0.14, 0.06]);
 const buildByIdMap = (players) => new Map((players || []).map((player) => [player.id, player]));
 const sum = (items) => (items || []).reduce((acc, value) => acc + (Number(value) || 0), 0);
 const round = (value) => Math.round((Number(value) || 0) * 10) / 10;
+const RIGHTS_VALUE_FACTOR = 0.62;
 
 const createDecision = (aiDelta, requiredPremium = 0) => {
   const threshold = Number(requiredPremium) || 0;
@@ -78,6 +79,16 @@ const createPackageEvaluation = (items, valueKey, anchorOvr = null) => {
   };
 };
 
+const createTradeValueEntry = (team, player, contracts, context, assetType = "player") => {
+  const explained = explainTradeValueForTeam(team, player, contracts, context);
+  const factor = assetType === "rights" ? RIGHTS_VALUE_FACTOR : 1;
+  const value = round(explained.value * factor);
+  const reasons = assetType === "rights"
+    ? [`права на игрока оценены в ${Math.round(RIGHTS_VALUE_FACTOR * 100)}% от его полной стоимости`, ...explained.reasons]
+    : explained.reasons;
+  return { value, reasons };
+};
+
 const getApproxAge = (player) => {
   const birthDate = new Date(player?.identity?.birthDate);
   if (Number.isNaN(birthDate.getTime())) return 99;
@@ -105,7 +116,9 @@ const createBestPlayerPremium = (aiTeam, giveValues, receiveValues) => {
   const all = [
     ...giveValues.map((entry) => ({ ...entry, side: "user" })),
     ...receiveValues.map((entry) => ({ ...entry, side: "ai" })),
-  ].sort((left, right) => (right.player.ovr - left.player.ovr) || (right.aiValue || 0) - (left.aiValue || 0));
+  ]
+    .filter((entry) => entry.assetType !== "rights")
+    .sort((left, right) => (right.player.ovr - left.player.ovr) || (right.aiValue || 0) - (left.aiValue || 0));
   const best = all[0] || null;
   if (!best || best.side !== "ai") return { premium: 0, reasons: [] };
 
@@ -138,30 +151,44 @@ export class TradeService {
     this.#getSeasonLabel = getSeasonLabel;
   }
 
-  evaluateTrade(userTeam, aiTeam, givePlayerIds, receivePlayerIds) {
+  evaluateTrade(userTeam, aiTeam, givePlayerIds, receivePlayerIds, { userRightsPlayers = [], aiRightsPlayers = [] } = {}) {
     if (!userTeam || !aiTeam || userTeam.id === aiTeam.id) return null;
 
     const userRoster = userTeam.getRoster();
     const aiRoster = aiTeam.getRoster();
     const userById = buildByIdMap(userRoster);
     const aiById = buildByIdMap(aiRoster);
+    const userRightsById = buildByIdMap(userRightsPlayers);
+    const aiRightsById = buildByIdMap(aiRightsPlayers);
 
     const givePlayers = [...new Set(givePlayerIds || [])].map((id) => userById.get(id)).filter(Boolean);
     const receivePlayers = [...new Set(receivePlayerIds || [])].map((id) => aiById.get(id)).filter(Boolean);
+    const giveRightsPlayers = [...new Set(givePlayerIds || [])].map((id) => userRightsById.get(id)).filter(Boolean);
+    const receiveRightsPlayers = [...new Set(receivePlayerIds || [])].map((id) => aiRightsById.get(id)).filter(Boolean);
     const context = {
       currentDay: typeof this.#getCurrentDay === "function" ? this.#getCurrentDay() : null,
       seasonLabel: typeof this.#getSeasonLabel === "function" ? this.#getSeasonLabel() : null,
     };
 
     const giveValues = givePlayers.map((player) => {
-      const user = explainTradeValueForTeam(userTeam, player, this.#getPlayerContracts(player.id), context);
-      const ai = explainTradeValueForTeam(aiTeam, player, this.#getPlayerContracts(player.id), context);
-      return { player, userValue: user.value, aiValue: ai.value, userReasons: user.reasons, aiReasons: ai.reasons };
+      const user = createTradeValueEntry(userTeam, player, this.#getPlayerContracts(player.id), context);
+      const ai = createTradeValueEntry(aiTeam, player, this.#getPlayerContracts(player.id), context);
+      return { player, assetType: "player", userValue: user.value, aiValue: ai.value, userReasons: user.reasons, aiReasons: ai.reasons };
     });
     const receiveValues = receivePlayers.map((player) => {
-      const user = explainTradeValueForTeam(userTeam, player, this.#getPlayerContracts(player.id), context);
-      const ai = explainTradeValueForTeam(aiTeam, player, this.#getPlayerContracts(player.id), context);
-      return { player, userValue: user.value, aiValue: ai.value, userReasons: user.reasons, aiReasons: ai.reasons };
+      const user = createTradeValueEntry(userTeam, player, this.#getPlayerContracts(player.id), context);
+      const ai = createTradeValueEntry(aiTeam, player, this.#getPlayerContracts(player.id), context);
+      return { player, assetType: "player", userValue: user.value, aiValue: ai.value, userReasons: user.reasons, aiReasons: ai.reasons };
+    });
+    giveRightsPlayers.forEach((player) => {
+      const user = createTradeValueEntry(userTeam, player, [], context, "rights");
+      const ai = createTradeValueEntry(aiTeam, player, [], context, "rights");
+      giveValues.push({ player, assetType: "rights", userValue: user.value, aiValue: ai.value, userReasons: user.reasons, aiReasons: ai.reasons });
+    });
+    receiveRightsPlayers.forEach((player) => {
+      const user = createTradeValueEntry(userTeam, player, [], context, "rights");
+      const ai = createTradeValueEntry(aiTeam, player, [], context, "rights");
+      receiveValues.push({ player, assetType: "rights", userValue: user.value, aiValue: ai.value, userReasons: user.reasons, aiReasons: ai.reasons });
     });
 
     const userOutgoingBestOvr = giveValues.reduce((max, entry) => Math.max(max, Number(entry.player?.ovr) || 0), 0);
@@ -204,12 +231,14 @@ export class TradeService {
       ...receiveValues.flatMap((entry) => entry.aiReasons.map((reason) => `${entry.player.name}: ${reason}`)),
     ].filter(Boolean).slice(0, 7);
 
-    const isValid = givePlayers.length > 0 && receivePlayers.length > 0;
+    const isValid = giveValues.length > 0 && receiveValues.length > 0;
     return {
       userTeam,
       aiTeam,
       givePlayers,
       receivePlayers,
+      giveRightsPlayers,
+      receiveRightsPlayers,
       giveValues,
       receiveValues,
       userOutgoing,
@@ -233,8 +262,8 @@ export class TradeService {
     };
   }
 
-  executeTrade(userTeam, aiTeam, givePlayerIds, receivePlayerIds) {
-    const evaluation = this.evaluateTrade(userTeam, aiTeam, givePlayerIds, receivePlayerIds);
+  executeTrade(userTeam, aiTeam, givePlayerIds, receivePlayerIds, rightsOptions = {}) {
+    const evaluation = this.evaluateTrade(userTeam, aiTeam, givePlayerIds, receivePlayerIds, rightsOptions);
     if (!evaluation || !evaluation.isValid) {
       return { accepted: false, message: "Добавьте хотя бы одного игрока с каждой стороны." };
     }
@@ -263,6 +292,12 @@ export class TradeService {
       player.affiliation.teamId = userTeam.id;
       player.affiliation.acquiredDay = acquiredDay;
       this.#reassignPlayerContracts?.(player.id, userTeam.id);
+    });
+    evaluation.giveRightsPlayers.forEach((player) => {
+      player.externalCareer.rightsTeamId = aiTeam.id;
+    });
+    evaluation.receiveRightsPlayers.forEach((player) => {
+      player.externalCareer.rightsTeamId = userTeam.id;
     });
     rebuildTeamRoster(userTeam, nextUserRoster);
     rebuildTeamRoster(aiTeam, nextAiRoster);

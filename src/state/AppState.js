@@ -228,6 +228,7 @@ export class AppState {
   getExternalPlayerRows() {
     const teamsById = new Map(this.#teams.map((team) => [team.id, team]));
     return this.#externalPlayers
+      .filter((player) => player.externalCareer?.rightsTeamId === this.#activeTeamId)
       .map((player) => {
         const career = player.externalCareer || {};
         const rightsTeam = teamsById.get(career.rightsTeamId) || null;
@@ -252,6 +253,19 @@ export class AppState {
         (right.ovr - left.ovr) ||
         left.displayName.localeCompare(right.displayName, "ru"),
       );
+  }
+
+  getExternalRightsPlayers(teamId) {
+    if (!teamId) return [];
+    const pendingPlayerIds = new Set(
+      (this.#seasonState?.restrictedRightsOffers || [])
+        .filter((entry) => entry?.status === "pending")
+        .map((entry) => entry.playerId),
+    );
+    return this.#externalPlayers
+      .filter((player) => player.externalCareer?.rightsTeamId === teamId)
+      .filter((player) => !player.externalCareer?.availableToKhl && !pendingPlayerIds.has(player.id))
+      .sort((left, right) => (right.ovr - left.ovr) || left.name.localeCompare(right.name, "ru"));
   }
 
   getTeamStatisticsRows(teamId = this.#activeTeamId, sortBy = "points") {
@@ -393,19 +407,33 @@ export class AppState {
 
   evaluateTradeWithTeam(teamId, givePlayerIds, receivePlayerIds) {
     const opponent = this.#teams.find((team) => team.id === teamId);
-    return this.activeTeam && opponent ? this.#trade.evaluateTrade(this.activeTeam, opponent, givePlayerIds, receivePlayerIds) : null;
+    return this.activeTeam && opponent
+      ? this.#trade.evaluateTrade(this.activeTeam, opponent, givePlayerIds, receivePlayerIds, {
+        userRightsPlayers: this.getExternalRightsPlayers(this.#activeTeamId),
+        aiRightsPlayers: this.getExternalRightsPlayers(opponent.id),
+      })
+      : null;
   }
 
   submitTradeWithTeam(teamId, givePlayerIds, receivePlayerIds) {
     const opponent = this.#teams.find((team) => team.id === teamId);
     if (!this.activeTeam || !opponent) return null;
-    const result = this.#trade.executeTrade(this.activeTeam, opponent, givePlayerIds, receivePlayerIds);
+    const result = this.#trade.executeTrade(this.activeTeam, opponent, givePlayerIds, receivePlayerIds, {
+      userRightsPlayers: this.getExternalRightsPlayers(this.#activeTeamId),
+      aiRightsPlayers: this.getExternalRightsPlayers(opponent.id),
+    });
     if (result?.accepted) {
       (result.evaluation?.givePlayers || []).forEach((player) => {
         this.#recordPlayerMovement({ player, fromTeamId: this.#activeTeamId, toTeamId: opponent.id, method: "trade" });
       });
       (result.evaluation?.receivePlayers || []).forEach((player) => {
         this.#recordPlayerMovement({ player, fromTeamId: opponent.id, toTeamId: this.#activeTeamId, method: "trade" });
+      });
+      (result.evaluation?.giveRightsPlayers || []).forEach((player) => {
+        this.#recordPlayerMovement({ player, fromTeamId: this.#activeTeamId, toTeamId: opponent.id, method: "rightsTrade" });
+      });
+      (result.evaluation?.receiveRightsPlayers || []).forEach((player) => {
+        this.#recordPlayerMovement({ player, fromTeamId: opponent.id, toTeamId: this.#activeTeamId, method: "rightsTrade" });
       });
     }
     return result;
@@ -1274,7 +1302,10 @@ export class AppState {
     const player = this.getAllKnownPlayers().find((entry) => entry.id === playerId);
     const teamName = this.#getTeamName(player?.affiliation?.teamId);
     if (teamName) return teamName;
-    if (this.#externalPlayers.some((entry) => entry.id === playerId)) return player?.externalCareer?.league || "НХЛ / АХЛ";
+    if (this.#externalPlayers.some((entry) => entry.id === playerId)) {
+      const rightsTeamName = this.#getTeamName(player?.externalCareer?.rightsTeamId);
+      return rightsTeamName ? `Права: ${rightsTeamName}` : player?.externalCareer?.league || "НХЛ / АХЛ";
+    }
     return "Свободный агент";
   }
 

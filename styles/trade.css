@@ -311,6 +311,7 @@
   background:rgba(126,214,255,.08);
   color:#b9d7ff;
 }
+.trade-player-subtitle .trade-rights-chip{background:rgba(255,203,108,.13);color:#ffd28a}
 .trade-player-rating{
   justify-self:end;
   text-align:right;
@@ -446,6 +447,7 @@
   white-space:normal;
   overflow-wrap:anywhere;
 }
+.trade-summary-name small{color:#ffd28a;font-size:11px;font-weight:800}
 .trade-summary-value{
   color:#8fe0ff;
   font-weight:800;

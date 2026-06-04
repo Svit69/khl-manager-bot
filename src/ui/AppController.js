@@ -215,8 +215,13 @@ export class AppController{
   #buildTradeState(){
     const partners=this.#state.getTradePartnerTeams();
     const selectedTeam=partners.find(team=>team.id===this.#tradeTeamId)||null;
-    const giveCandidates=this.#state.activeTeam?.getRoster()||[];
-    const receiveCandidates=selectedTeam?.getRoster()||[];
+    const giveCandidates=[
+      ...(this.#state.activeTeam?.getRoster()||[]),
+      ...this.#state.getExternalRightsPlayers(this.#state.activeTeamId)
+    ];
+    const receiveCandidates=selectedTeam
+      ? [...selectedTeam.getRoster(),...this.#state.getExternalRightsPlayers(selectedTeam.id)]
+      : [];
     const giveIds=[...this.#tradeGivePlayerIds];
     const receiveIds=[...this.#tradeReceivePlayerIds];
     const evaluation=selectedTeam?this.#state.evaluateTradeWithTeam(selectedTeam.id,giveIds,receiveIds):null;

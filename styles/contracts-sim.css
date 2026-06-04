@@ -90,7 +90,7 @@
 .external-player-main>span,.external-player-meta span{color:var(--muted);font-size:12px}
 .external-rights-owned{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:999px;background:rgba(255,203,108,.16);color:#ffd28a;font-size:10px;font-weight:800}
 .external-player-name{display:flex;align-items:center;gap:7px;min-width:0}
-.external-player-name strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.external-player-name strong{min-width:0;overflow-wrap:anywhere;line-height:1.2}
 .external-player-state{padding:2px 6px;border-radius:999px;background:rgba(112,157,211,.14);color:#b9dcff;font-size:10px;font-weight:800;white-space:nowrap}
 .external-player-state.available{background:rgba(44,189,137,.18);color:#8df7cb}
 
