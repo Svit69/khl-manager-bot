@@ -313,3 +313,8 @@
   .calendar-playoff-round{padding:8px}
 }
 
+@media (max-width: 760px){
+  .external-player-grid{grid-template-columns:1fr}
+  .external-player-card{grid-template-columns:1fr}
+  .external-player-name{align-items:flex-start;flex-direction:column}
+}

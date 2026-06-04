@@ -21,6 +21,7 @@ export const createPlayerSnapshots = (players) =>
       photoUrl: player.identity?.photoUrl || null,
     },
     hiddenTraits: normalizeHiddenTraits(player.hiddenTraits),
+    externalCareer: player.externalCareer ? { ...player.externalCareer } : null,
     fatigueScore: player.fatigueScore,
     form: player.form,
     injuryUntilDay: player.condition.injuryUntilDay,
@@ -59,6 +60,7 @@ export const createMissingSavedPlayers = (snapshots, existingPlayers, seasonLabe
           secondaryPositions: identity.secondaryPositions || [],
         },
         hiddenTraits: normalizeHiddenTraits(snapshot.hiddenTraits),
+        externalCareer: snapshot.externalCareer ? { ...snapshot.externalCareer } : null,
         attributes: snapshot.attributes?.attributesJson || DEFAULT_ATTRIBUTES,
         potential: { ...DEFAULT_POTENTIAL, ...(snapshot.potential || {}) },
         condition: {
@@ -103,6 +105,7 @@ export const restorePlayerSnapshots = (players, snapshots) => {
     if (snapshot.identity && "photoUrl" in snapshot.identity) player.identity.photoUrl = snapshot.identity.photoUrl;
     if (snapshot.identity && "secondaryPositions" in snapshot.identity) player.identity.secondaryPositions = snapshot.identity.secondaryPositions;
     if ("hiddenTraits" in snapshot) player.hiddenTraits = normalizeHiddenTraits(snapshot.hiddenTraits);
+    if ("externalCareer" in snapshot) player.externalCareer = snapshot.externalCareer ? { ...snapshot.externalCareer } : null;
     if ("photoUrl" in snapshot) player.identity.photoUrl = snapshot.photoUrl;
     if ("teamId" in snapshot) player.affiliation.teamId = snapshot.teamId;
     if ("contractId" in snapshot) player.affiliation.contractId = snapshot.contractId;

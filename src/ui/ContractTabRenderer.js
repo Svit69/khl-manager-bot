@@ -1,6 +1,7 @@
 export class ContractTabRenderer {
-  render(rows, negotiation, restrictedRights = []) {
+  render(rows, negotiation, restrictedRights = [], externalPlayers = []) {
     const restrictedMarkup = this.#renderRestrictedRights(restrictedRights);
+    const externalMarkup = this.#renderExternalPlayers(externalPlayers);
     const content = rows
       .map((row) => {
         const contractInfo = row.contractEndDate ? `До ${row.contractEndDate}` : "Контракт не найден";
@@ -19,7 +20,37 @@ export class ContractTabRenderer {
       })
       .join("");
 
-    return `<h2>Контракты</h2>${restrictedMarkup}<div class="contract-grid">${content || '<div class="muted">Игроки не найдены</div>'}</div>`;
+    return `<h2>Контракты</h2>${restrictedMarkup}${externalMarkup}<div class="contract-grid">${content || '<div class="muted">Игроки не найдены</div>'}</div>`;
+  }
+
+  #renderExternalPlayers(rows) {
+    if (!rows?.length) return "";
+    const cards = rows.map((row) => {
+      const rightsClass = row.isActiveTeamRights ? "is-owned" : "";
+      const availability = row.availableToKhl
+        ? '<span class="external-player-state available">Готов вернуться</span>'
+        : `<span class="external-player-state">${row.statusLabel}</span>`;
+      const contractLabel = row.contractUntil ? `Контракт: ${row.contractUntil}` : "Без контракта";
+      return `<div class="external-player-card ${rightsClass}">
+        <div class="external-player-main">
+          <div class="external-player-name"><strong>${row.displayName}</strong>${availability}</div>
+          <span>${row.position} • OVR ${row.ovr} • ${row.age} лет</span>
+        </div>
+        <div class="external-player-meta">
+          <span>${row.league}</span>
+          <span>${contractLabel}</span>
+          <span>Права: <strong>${row.rightsTeamName}</strong>${row.isActiveTeamRights ? '<b class="external-rights-owned">Ваши права</b>' : ""}</span>
+          <span>Интерес к КХЛ: <strong>${row.returnInterestLabel}</strong></span>
+        </div>
+      </div>`;
+    }).join("");
+    return `<section class="external-players-panel">
+      <div class="external-players-head">
+        <div><h3>Игроки НХЛ / АХЛ</h3><p>Статус и права на игроков пересчитываются каждое межсезонье</p></div>
+        <span>${rows.length}</span>
+      </div>
+      <div class="external-player-grid">${cards}</div>
+    </section>`;
   }
 
   #renderRestrictedRights(rows) {
@@ -36,7 +67,7 @@ export class ContractTabRenderer {
       const salaryControls = `<div class="negotiation-salary-box"><label class="muted" for="osa-salary-${row.id}">Ваше предложение, млн руб.</label><div class="negotiation-salary-row"><button class="btn secondary compact" data-action="adjust-osa-salary" data-offer-id="${row.id}" data-delta-million="-5">-5</button><button class="btn secondary compact" data-action="adjust-osa-salary" data-offer-id="${row.id}" data-delta-million="-1">-1</button><input id="osa-salary-${row.id}" class="negotiation-salary-input" type="number" min="${this.#formatMillionsInput(bestOffer.salaryRub)}" step="0.5" value="${this.#formatMillionsInput(offer.salaryRub)}" data-action="set-osa-salary-input" data-offer-id="${row.id}"><span class="muted">млн</span><button class="btn secondary compact" data-action="adjust-osa-salary" data-offer-id="${row.id}" data-delta-million="1">+1</button><button class="btn secondary compact" data-action="adjust-osa-salary" data-offer-id="${row.id}" data-delta-million="5">+5</button></div></div>`;
       return `<div class="osa-rights-card">
         <div class="osa-rights-top">
-          <div><span class="contract-chip warning">ОСА</span><strong>${row.playerName}</strong><span>${row.position} • OVR ${row.ovr}</span></div>
+          <div><span class="contract-chip warning">ОСА</span><strong>${row.playerName}</strong><span>${row.position} • OVR ${row.ovr}</span>${row.sourceLabel ? `<span>${row.sourceLabel}</span>` : ""}</div>
           <div class="osa-rights-offer"><span>Лучший оффер</span><strong>${row.offerTeamName}</strong><span>${bestOffer.years} г. • ${this.#formatMillions(bestOffer.salaryRub)} млн</span></div>
         </div>
         <div class="osa-rights-body">

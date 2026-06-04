@@ -62,7 +62,8 @@ export class AppController{
         this.#renderer.renderContracts(
           this.#state.getActiveTeamContractRows(),
           this.#buildNegotiationState(),
-          this.#buildRestrictedRightsState()
+          this.#buildRestrictedRightsState(),
+          this.#state.getExternalPlayerRows()
         );
       }else if(this.#activeTab==="teamStats"){
         const selectedTeamId=this.#teamStatsTeamId||this.#state.activeTeamId;

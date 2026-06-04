@@ -17,6 +17,7 @@ import {
 import { getPreseasonDateAt, getPreseasonNextDate } from "../season/PreseasonSchedule.js";
 import { TEAM_ROSTER_TARGET_SIZE } from "../season/RosterTargets.js";
 import { SeasonTransitionService } from "../season/SeasonTransitionService.js";
+import { ExternalPlayerService, getExternalStatusLabel, getReturnInterestLabel } from "../season/ExternalPlayerService.js";
 import { JuniorTeamService } from "../season/JuniorTeamService.js";
 import { getJuniorIneligibilityReason, getJuniorSeasonAge } from "../season/JuniorEligibility.js";
 import { getJuniorPracticeProfile, getScoutedPotential } from "../season/JuniorScouting.js";
@@ -65,6 +66,7 @@ export class AppState {
   #teams;
   #calendar;
   #freeAgents;
+  #externalPlayers;
   #stats = new StatsTracker();
   #standings = new StandingsTracker();
   #sim = new MatchSimulator();
@@ -74,6 +76,7 @@ export class AppState {
   #trade;
   #aiRenewals;
   #seasonTransition;
+  #externalPlayerService = new ExternalPlayerService();
   #lastMatch = null;
   #activeTeamId = null;
   #notifications = [];
@@ -82,10 +85,11 @@ export class AppState {
   #retiredPlayerIds = new Set();
   #transferLedger = [];
 
-  constructor(teams, calendar, contracts, freeAgents = []) {
+  constructor(teams, calendar, contracts, freeAgents = [], externalPlayers = []) {
     this.#teams = teams;
     this.#calendar = calendar;
     this.#freeAgents = dedupeFreeAgents(freeAgents);
+    this.#externalPlayers = [...externalPlayers];
     this.#contracts = new ContractService(contracts);
     this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#calendar.seasonLabel });
     this.#aiRenewals = new AiRenewalService(this.#contracts);
@@ -188,6 +192,10 @@ export class AppState {
     );
   }
 
+  getAllKnownPlayers() {
+    return [...new Map([...this.getAllPlayers(), ...this.#externalPlayers].map((player) => [player.id, player])).values()];
+  }
+
   getFantasyDraftPlayerPool() {
     return [...this.#teams.flatMap((team) => team.getRoster()), ...this.#freeAgents].filter(
       (player) => !this.#retiredPlayerIds.has(player.id),
@@ -200,7 +208,7 @@ export class AppState {
 
   getActiveTeamRestrictedRightsRows() {
     if (!this.#activeTeamId) return [];
-    const playersById = new Map(this.getAllPlayers().map((player) => [player.id, player]));
+    const playersById = new Map(this.getAllKnownPlayers().map((player) => [player.id, player]));
     return (this.#seasonState?.restrictedRightsOffers || [])
       .filter((entry) => entry?.status === "pending" && entry.rightsTeamId === this.#activeTeamId)
       .map((entry) => {
@@ -211,9 +219,39 @@ export class AppState {
           playerName: player.name,
           position: player.identity?.primaryPosition || "",
           ovr: player.ovr,
+          sourceLabel: entry.source === "external" ? `${entry.fromLeague || "НХЛ / АХЛ"} • возвращение в КХЛ` : null,
         };
       })
       .filter(Boolean);
+  }
+
+  getExternalPlayerRows() {
+    const teamsById = new Map(this.#teams.map((team) => [team.id, team]));
+    return this.#externalPlayers
+      .map((player) => {
+        const career = player.externalCareer || {};
+        const rightsTeam = teamsById.get(career.rightsTeamId) || null;
+        return {
+          playerId: player.id,
+          displayName: player.name,
+          position: player.identity?.primaryPosition || "",
+          age: calculateAge(player.identity?.birthDate, this.#getEffectiveNegotiationDate()),
+          ovr: player.ovr,
+          league: career.league || "НХЛ / АХЛ",
+          statusLabel: getExternalStatusLabel(career.status),
+          contractUntil: career.contractUntil || null,
+          rightsTeamName: rightsTeam?.name || "Прав в КХЛ нет",
+          isActiveTeamRights: Boolean(rightsTeam && rightsTeam.id === this.#activeTeamId),
+          returnInterestLabel: getReturnInterestLabel(career.returnInterest),
+          availableToKhl: Boolean(career.availableToKhl),
+        };
+      })
+      .sort((left, right) =>
+        Number(right.isActiveTeamRights) - Number(left.isActiveTeamRights) ||
+        Number(right.availableToKhl) - Number(left.availableToKhl) ||
+        (right.ovr - left.ovr) ||
+        left.displayName.localeCompare(right.displayName, "ru"),
+      );
   }
 
   getTeamStatisticsRows(teamId = this.#activeTeamId, sortBy = "points") {
@@ -388,7 +426,7 @@ export class AppState {
       (candidate) => candidate.id === offerId && candidate.rightsTeamId === this.#activeTeamId && candidate.status === "pending",
     );
     if (!entry || !this.activeTeam) return { accepted: false, message: "Предложение ОСА не найдено." };
-    const player = this.activeTeam.getRoster().find((candidate) => candidate.id === entry.playerId);
+    const player = this.getAllKnownPlayers().find((candidate) => candidate.id === entry.playerId);
     if (!player) return { accepted: false, message: "Игрок уже не находится в системе клуба." };
 
     const bestOffer = entry.offer || {};
@@ -402,7 +440,13 @@ export class AppState {
       submittedOffer,
       entry.season || this.#seasonState?.seasonLabel,
     );
+    const wasExternal = this.#activateExternalPlayer(player, this.activeTeam);
     this.#resolveRestrictedRightsOffer(entry.id, "matched");
+    if (wasExternal) {
+      this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
+      this.#refreshExpectedRoles(this.activeTeam);
+      this.#recordPlayerMovement({ player, fromTeamId: null, toTeamId: this.#activeTeamId, method: "externalReturn" });
+    }
     this.#pushNotification({
       id: `notification-osa-match-${player.id}-${Date.now()}`,
       type: "offseason-retention",
@@ -421,7 +465,7 @@ export class AppState {
       (candidate) => candidate.id === offerId && candidate.rightsTeamId === this.#activeTeamId && candidate.status === "pending",
     );
     if (!entry) return { accepted: false, message: "Предложение ОСА не найдено." };
-    const player = this.getAllPlayers().find((candidate) => candidate.id === entry.playerId);
+    const player = this.getAllKnownPlayers().find((candidate) => candidate.id === entry.playerId);
     const newTeam = this.#teams.find((candidate) => candidate.id === entry.offerTeamId);
     if (!player || !newTeam) return { accepted: false, message: "Не удалось завершить переход ОСА." };
 
@@ -432,6 +476,7 @@ export class AppState {
       entry.season || this.#seasonState?.seasonLabel,
     );
     player.affiliation.acquiredDay = this.#calendar.currentDay;
+    this.#activateExternalPlayer(player, newTeam);
     this.#resolveRestrictedRightsOffer(entry.id, "released");
     this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
     this.#refreshExpectedRoles(newTeam);
@@ -664,6 +709,7 @@ export class AppState {
       pushNotification: (notification) => this.#pushNotification(notification),
       releaseRightsPlayerIds: options.releaseRightsPlayerIds || [],
     });
+    this.#processExternalPlayerReturns(transition);
     this.#seasonHistory.unshift(transition.archive);
     this.#seasonHistory = this.#seasonHistory.slice(0, 12);
     (transition.retiredPlayerIds || []).forEach((playerId) => this.#retiredPlayerIds.add(playerId));
@@ -674,6 +720,9 @@ export class AppState {
     this.#seasonState = transition.seasonState;
     this.#transferLedger = [];
     this.#recordTransitionMovements(transition);
+    (transition.externalSignings || []).forEach((entry) => {
+      this.#recordPlayerMovement({ player: entry.player, fromTeamId: null, toTeamId: entry.toTeamId, method: "externalReturn" });
+    });
     this.#releaseIneligibleJuniorPlayers({ notify: true });
     this.#juniors.applyOffseasonDevelopment(this.#teams, this.#getEffectiveNegotiationDate(), this.#seasonState.seasonLabel);
     this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#seasonState.seasonLabel });
@@ -686,6 +735,7 @@ export class AppState {
     return {
       calendar: this.#calendar.exportState(),
       players: createPlayerSnapshots(this.getAllPlayers()),
+      externalPlayers: createPlayerSnapshots(this.#externalPlayers),
       stats: this.#stats.getSeasonStats(),
       activeTeamId: this.#activeTeamId,
       contracts: this.#contracts.exportContracts(),
@@ -710,6 +760,17 @@ export class AppState {
       if (saved.calendarResults) this.#calendar.importResults(saved.calendarResults);
     }
     if (saved.contracts) this.#contracts.importContracts(saved.contracts);
+    if (Array.isArray(saved.externalPlayers)) {
+      const missingExternalPlayers = createMissingSavedPlayers(
+        saved.externalPlayers,
+        this.#externalPlayers,
+        this.#calendar.seasonLabel,
+      );
+      this.#externalPlayers = [...this.#externalPlayers, ...missingExternalPlayers];
+      restorePlayerSnapshots(this.#externalPlayers, saved.externalPlayers);
+      const savedExternalIds = new Set(saved.externalPlayers.map((player) => player?.id).filter(Boolean));
+      this.#externalPlayers = this.#externalPlayers.filter((player) => savedExternalIds.has(player.id));
+    }
     if (saved.rosters) {
       this.#juniors.ensureSavedJuniorPlayers({
         teams: this.#teams,
@@ -727,6 +788,10 @@ export class AppState {
       this.#freeAgents = dedupeFreeAgents([...this.#freeAgents, ...missingSavedPlayers]);
       basePlayers = [...basePlayers, ...missingSavedPlayers];
     }
+    const activeSavedPlayerIds = new Set((saved.players || []).map((player) => player?.id).filter(Boolean));
+    this.#externalPlayers = this.#externalPlayers.filter(
+      (player) => !activeSavedPlayerIds.has(player.id) && !this.#retiredPlayerIds.has(player.id),
+    );
     if (saved.rosters) {
       importSavedRosters({
         teams: this.#teams,
@@ -1059,6 +1124,123 @@ export class AppState {
     });
   }
 
+  #processExternalPlayerReturns(transition) {
+    const nextSeasonLabel = transition?.seasonState?.seasonLabel;
+    if (!nextSeasonLabel || !this.#externalPlayers.length) return;
+    const nextSeasonStartYear = Number(String(nextSeasonLabel).split("/")[0]) || this.#calendar.seasonStartYear + 1;
+    const seasonDate = new Date(Date.UTC(nextSeasonStartYear, 4, 31));
+    const result = this.#externalPlayerService.evaluateOffseason({
+      players: this.#externalPlayers,
+      seasonDate,
+      seasonLabel: nextSeasonLabel,
+    });
+    this.#externalPlayers = result.players;
+    transition.externalSignings = [];
+
+    (result.returnCandidates || []).forEach((candidate) => {
+      const { player, ufaStatus, rightsTeamId, fromLeague } = candidate;
+      const rightsTeam = this.#teams.find((team) => team.id === rightsTeamId) || null;
+
+      if (ufaStatus === "NSA" || !rightsTeam) {
+        player.affiliation.teamId = null;
+        player.affiliation.contractId = null;
+        player.affiliation.acquiredDay = null;
+        this.#removeExternalPlayer(player, "khl_market", nextSeasonLabel);
+        transition.freeAgents = dedupeFreeAgents([...(transition.freeAgents || []), player]);
+        this.#pushNotification({
+          id: `notification-external-fa-${player.id}-${Date.now()}`,
+          type: "free-agent-market",
+          title: "Возвращение из НХЛ / АХЛ",
+          message: `${player.name} освободился из ${fromLeague} и вышел на рынок свободных агентов как НСА`,
+          day: this.#calendar.currentDay,
+          createdAt: new Date().toISOString(),
+          playerId: player.id,
+          read: false,
+        });
+        return;
+      }
+
+      if (rightsTeam.id === this.#activeTeamId) {
+        const offerSheet = this.#seasonTransition.buildRestrictedRightsOfferSheet({
+          teams: this.#teams,
+          activeTeamId: rightsTeam.id,
+          player,
+          nextSeasonLabel,
+          allPlayers: this.getAllKnownPlayers(),
+          buildContext: (team) => ({
+            ...this.#buildNegotiationContext(team),
+            currentDate: seasonDate.toISOString().slice(0, 10),
+            seasonLabel: nextSeasonLabel,
+          }),
+          minimumOvr: 0,
+        });
+        if (offerSheet) {
+          transition.seasonState.restrictedRightsOffers.push({
+            ...offerSheet,
+            source: "external",
+            fromLeague,
+          });
+          this.#pushNotification({
+            id: `notification-external-osa-${player.id}-${Date.now()}`,
+            type: "offseason-retention",
+            title: "Права ОСА",
+            message: `${player.name} готов вернуться из ${fromLeague}. ${offerSheet.offerTeamName} сделал предложение, которое нужно повторить или отпустить`,
+            day: this.#calendar.currentDay,
+            createdAt: new Date().toISOString(),
+            playerId: player.id,
+            read: false,
+          });
+          return;
+        }
+      }
+
+      const contract = this.#contracts.retainRestrictedFreeAgent(player, rightsTeam.id, nextSeasonLabel);
+      player.affiliation.contractId = contract?.id || null;
+      player.affiliation.acquiredDay = this.#calendar.currentDay;
+      this.#activateExternalPlayer(player, rightsTeam, nextSeasonLabel);
+      transition.externalSignings.push({ player, toTeamId: rightsTeam.id });
+      if (rightsTeam.id === this.#activeTeamId) {
+        this.#pushNotification({
+          id: `notification-external-osa-retain-${player.id}-${Date.now()}`,
+          type: "offseason-retention",
+          title: "Возвращение из НХЛ / АХЛ",
+          message: `${player.name} вернулся в клуб по правам ОСА`,
+          day: this.#calendar.currentDay,
+          createdAt: new Date().toISOString(),
+          playerId: player.id,
+          read: false,
+        });
+      }
+    });
+
+    this.#seasonTransition.rebuildRosters(this.#teams, [
+      ...new Map([...(transition.freeAgents || []), ...this.getAllPlayers()].map((player) => [player.id, player])).values(),
+    ]);
+  }
+
+  #removeExternalPlayer(player, status, seasonLabel = this.#seasonState?.seasonLabel) {
+    if (!player?.id) return false;
+    const wasExternal = this.#externalPlayers.some((candidate) => candidate.id === player.id);
+    this.#externalPlayers = this.#externalPlayers.filter((candidate) => candidate.id !== player.id);
+    if (player.externalCareer) {
+      player.externalCareer = {
+        ...player.externalCareer,
+        status,
+        availableToKhl: false,
+        returnedToKhlSeason: seasonLabel || null,
+      };
+    }
+    return wasExternal;
+  }
+
+  #activateExternalPlayer(player, team, seasonLabel = this.#seasonState?.seasonLabel) {
+    const wasExternal = this.#removeExternalPlayer(player, "returned_khl", seasonLabel);
+    if (wasExternal && team && !team.getRoster().some((candidate) => candidate?.id === player.id)) {
+      team.reservePlayers.push(player);
+    }
+    return wasExternal;
+  }
+
   #recordRosterDepthMovements(result) {
     (result?.departures || []).forEach((entry) => {
       this.#recordPlayerMovement({
@@ -1089,9 +1271,11 @@ export class AppState {
 
   #getCurrentPlayerDestination(playerId) {
     if (this.#retiredPlayerIds.has(playerId)) return "Завершил карьеру";
-    const player = this.getAllPlayers().find((entry) => entry.id === playerId);
+    const player = this.getAllKnownPlayers().find((entry) => entry.id === playerId);
     const teamName = this.#getTeamName(player?.affiliation?.teamId);
-    return teamName || "Свободный агент";
+    if (teamName) return teamName;
+    if (this.#externalPlayers.some((entry) => entry.id === playerId)) return player?.externalCareer?.league || "НХЛ / АХЛ";
+    return "Свободный агент";
   }
 
   #getTeamName(teamId) {

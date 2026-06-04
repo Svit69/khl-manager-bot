@@ -269,10 +269,10 @@ export class Renderer{
       this.#matchEl.innerHTML=`<h2>Состав</h2><div class="roster-grid roster-grid-cards">${cards}</div>`;
     }
   }
-  renderContracts(rows,negotiation,restrictedRights=[]){
+  renderContracts(rows,negotiation,restrictedRights=[],externalPlayers=[]){
     const container=document.getElementById("teamTabContent");
-    if(container){container.innerHTML=this.#contractTab.render(rows,negotiation,restrictedRights);return;}
-    this.#matchEl.innerHTML=this.#contractTab.render(rows,negotiation,restrictedRights);
+    if(container){container.innerHTML=this.#contractTab.render(rows,negotiation,restrictedRights,externalPlayers);return;}
+    this.#matchEl.innerHTML=this.#contractTab.render(rows,negotiation,restrictedRights,externalPlayers);
   }
   renderTeamStatistics(rows,sortBy="points",selectedTeamId=null,teams=[],activeTeamId=null){
     const container=document.getElementById("teamTabContent");

@@ -206,6 +206,10 @@ export class SeasonTransitionService {
     this.#rebuildRosters(teams, new Map((allPlayers || []).map((player) => [player.id, player])));
   }
 
+  buildRestrictedRightsOfferSheet(args) {
+    return this.#buildRestrictedRightsOfferSheet(args);
+  }
+
   #buildArchive({ calendar, standingsTable, scorerTable, teams, activeTeamId, currentSeasonLabel }) {
     const playoffs = calendar.getPlayoffBracketData();
     const champion = playoffs?.champion || null;
@@ -401,8 +405,8 @@ export class SeasonTransitionService {
     };
   }
 
-  #buildRestrictedRightsOfferSheet({ teams, activeTeamId, player, nextSeasonLabel, allPlayers, buildContext }) {
-    if (!player || (player.ovr || 0) < 71) return null;
+  #buildRestrictedRightsOfferSheet({ teams, activeTeamId, player, nextSeasonLabel, allPlayers, buildContext, minimumOvr = 71 }) {
+    if (!player || (player.ovr || 0) < minimumOvr) return null;
     const rightsTeam = (teams || []).find((team) => team.id === activeTeamId) || null;
     const candidates = (teams || [])
       .filter((team) => team?.id && team.id !== activeTeamId)

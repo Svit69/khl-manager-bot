@@ -54,6 +54,7 @@ export const createSkater=(teamInfo,firstName,lastName,position,seasonId,profile
   const seasonStats=new PlayerSeasonStats({seasonId,playerId});
   const skater=new Skater(identity,attributes,potential,condition,career,affiliation,seasonStats,position);
   skater.hiddenTraits=normalizeHiddenTraits(profile.hiddenTraits);
+  if(profile.externalCareer)skater.externalCareer={...profile.externalCareer};
   if(profile?.lineIndex)skater.expectedLineIndex=profile.lineIndex;
   return skater;
 };

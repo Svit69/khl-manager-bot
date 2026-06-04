@@ -78,6 +78,21 @@
   align-items:start;
 }
 .osa-rights-top>div:first-child,.osa-rights-offer{display:grid;gap:3px}
+.external-players-panel{display:grid;gap:10px;margin:0 0 14px;padding:12px;border:1px solid rgba(112,157,211,.3);border-radius:10px;background:rgba(5,18,34,.62)}
+.external-players-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.external-players-head h3{margin:0 0 3px;font-size:17px}
+.external-players-head p{margin:0;color:var(--muted);font-size:13px}
+.external-players-head>span{display:inline-grid;place-items:center;min-width:28px;height:28px;border-radius:999px;background:rgba(112,157,211,.16);color:#b9dcff;font-weight:800}
+.external-player-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.external-player-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,.8fr);gap:12px;padding:10px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:rgba(4,13,28,.48)}
+.external-player-card.is-owned{border-color:rgba(255,203,108,.4);background:rgba(66,45,18,.22)}
+.external-player-main,.external-player-meta{display:grid;align-content:start;gap:4px;min-width:0}
+.external-player-main>span,.external-player-meta span{color:var(--muted);font-size:12px}
+.external-rights-owned{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:999px;background:rgba(255,203,108,.16);color:#ffd28a;font-size:10px;font-weight:800}
+.external-player-name{display:flex;align-items:center;gap:7px;min-width:0}
+.external-player-name strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.external-player-state{padding:2px 6px;border-radius:999px;background:rgba(112,157,211,.14);color:#b9dcff;font-size:10px;font-weight:800;white-space:nowrap}
+.external-player-state.available{background:rgba(44,189,137,.18);color:#8df7cb}
 
 .season-contract-modal{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:22px;background:rgba(2,6,12,.72);backdrop-filter:blur(14px)}
 .season-contract-card{width:min(1180px,100%);max-height:min(92vh,920px);display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto;gap:14px;overflow:hidden;border-radius:24px;border:1px solid rgba(255,255,255,.1);background:linear-gradient(135deg,rgba(118,243,186,.08),rgba(111,212,255,.06) 45%,rgba(255,255,255,.02)),linear-gradient(180deg,rgba(18,23,30,.98),rgba(9,13,20,.98));box-shadow:0 34px 80px rgba(0,0,0,.44);padding:18px}
