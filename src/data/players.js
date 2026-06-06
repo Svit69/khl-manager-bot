@@ -92,7 +92,7 @@ export const playerProfiles=[
       primaryPosition:PlayerPosition.DEF,
       secondaryPositions:[]
     },
-    attributes:{shot:79,speed:72,physical:84,defense:80,skill:80},
+    attributes:{shot:76,speed:70,physical:82,defense:78,skill:78},
     potential:{potential:85,growthRate:1.0,peakAge:27,declineRate:0.8},
     condition:{fatigueScore:0,form:1.0,injuryUntilDay:null},
     career:{khlGamesPlayed:215,seasonsPlayed:5,reputation:100},
