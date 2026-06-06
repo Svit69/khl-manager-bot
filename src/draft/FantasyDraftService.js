@@ -7,6 +7,11 @@ export const DRAFT_ROUNDS = 23;
 const DRAFT_POSITION_TARGETS = Object.freeze({ CTR: 5, LW: 5, RW: 5, DEF: 8, G: 0 });
 const TEAM_DRAFT_ARCHETYPES = Object.freeze(["balanced", "win-now", "youth"]);
 const DINAMO_MINSK_TEAM_ID = "6b9a4d2c-5f18-41d4-9b65-3d71d8a4f2c0";
+const BARYS_TEAM_ID = "0f7b8a2d-4d25-4c2e-9b5a-0f3d9e5a6b71";
+const NATIONALITY_DRAFT_PLANS = Object.freeze({
+  [DINAMO_MINSK_TEAM_ID]: { targetNationality: "BY", fallbackNationality: "RU", targetRatio: 0.7 },
+  [BARYS_TEAM_ID]: { targetNationality: "KZ", fallbackNationality: "RU", targetRatio: 0.7 },
+});
 
 const FLOW_STAGE = Object.freeze({
   CREATED: "Создать/начать драфт",
@@ -304,40 +309,43 @@ export class FantasyDraftService {
   }
 
   #scoreNationalityPlan(player, context) {
-    if (context.teamId !== DINAMO_MINSK_TEAM_ID) return 0;
+    const plan = NATIONALITY_DRAFT_PLANS[context.teamId];
+    if (!plan) return 0;
+    const { targetNationality, fallbackNationality, targetRatio } = plan;
     const nationality = String(player.identity?.nationality || "").trim().toUpperCase();
     const currentRoster = this.#pickedByTeamId.get(context.teamId) || [];
-    const belarusianCount = currentRoster
-      .filter((item) => String(item.identity?.nationality || "").trim().toUpperCase() === "BY")
+    const targetNationalityCount = currentRoster
+      .filter((item) => String(item.identity?.nationality || "").trim().toUpperCase() === targetNationality)
       .length;
 
     if (context.round <= 5) {
-      if (nationality === "BY") return 2;
-      if (nationality === "RU") return 1;
+      if (nationality === targetNationality) return 2;
+      if (nationality === fallbackNationality) return 1;
       return 0;
     }
 
     if (context.round <= 8) {
-      if (nationality === "BY") return 26;
-      if (nationality === "RU") return 18;
+      if (nationality === targetNationality) return 26;
+      if (nationality === fallbackNationality) return 18;
       return -24;
     }
 
     const projectedPicks = currentRoster.length + 1;
-    const projectedBelarusianCount = belarusianCount + (nationality === "BY" ? 1 : 0);
-    const projectedBelarusianRatio = projectedBelarusianCount / projectedPicks;
+    const projectedTargetNationalityCount = targetNationalityCount + (nationality === targetNationality ? 1 : 0);
+    const projectedTargetNationalityRatio = projectedTargetNationalityCount / projectedPicks;
     const picksLeftAfterThis = Math.max(0, this.#rounds - projectedPicks);
-    const belarusianTargetCount = Math.ceil(this.#rounds * 0.7);
-    const missesTargetWithoutBelarusian = nationality !== "BY" && belarusianCount + picksLeftAfterThis < belarusianTargetCount;
-    const remainingBelarusianNeed = Math.max(0, belarusianTargetCount - projectedBelarusianCount);
+    const targetNationalityTargetCount = Math.ceil(this.#rounds * targetRatio);
+    const missesTargetWithoutTargetNationality =
+      nationality !== targetNationality && targetNationalityCount + picksLeftAfterThis < targetNationalityTargetCount;
+    const remainingTargetNationalityNeed = Math.max(0, targetNationalityTargetCount - projectedTargetNationalityCount);
 
-    if (nationality === "BY") {
-      return 40 + Math.max(0, (0.7 - projectedBelarusianRatio) * 60);
+    if (nationality === targetNationality) {
+      return 40 + Math.max(0, (targetRatio - projectedTargetNationalityRatio) * 60);
     }
-    if (nationality === "RU") {
-      return missesTargetWithoutBelarusian ? -40 : -8 - remainingBelarusianNeed * 2;
+    if (nationality === fallbackNationality) {
+      return missesTargetWithoutTargetNationality ? -40 : -8 - remainingTargetNationalityNeed * 2;
     }
-    return missesTargetWithoutBelarusian ? -55 : -18;
+    return missesTargetWithoutTargetNationality ? -55 : -18;
   }
 
   #scoreAgePotentialByArchetype({ age, potential, ovr, archetype, phase }) {

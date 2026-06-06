@@ -495,7 +495,7 @@ export class SeasonTransitionService {
         lastName,
         displayName: `${firstName} ${lastName}`,
         birthDate: `${Math.max(1998, year - 25)}-01-01`,
-        nationality: team?.country === "BY" ? "BY" : "RU",
+        nationality: team?.country === "BY" ? "BY" : team?.country === "KZ" ? "KZ" : "RU",
         isGoalie: false,
         photoUrl: "./player-photo/default.png",
         primaryPosition: position,

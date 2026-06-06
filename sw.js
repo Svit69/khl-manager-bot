@@ -1,4 +1,4 @@
-const CACHE_NAME="khl-manager-v140";
+const CACHE_NAME="khl-manager-v141";
 const ASSETS=[
   "./",
   "./index.html",
@@ -49,6 +49,7 @@ const ASSETS=[
   "./src/data/playerHiddenTraits.js",
   "./src/data/lokomotivPlayers.js",
   "./src/data/sibirPlayers.js",
+  "./src/data/barysPlayers.js",
   "./src/data/severstalPlayers.js",
   "./src/data/skaPlayers.js",
   "./src/data/spartakPlayers.js",
@@ -63,6 +64,7 @@ const ASSETS=[
   "./khl-logo/lokomotiv.png",
   "./khl-logo/severstal.png",
   "./khl-logo/sibir.png",
+  "./khl-logo/barys.png",
   "./khl-logo/ska.png",
   "./khl-logo/spartak.png",
   "./khl-logo/dynamo-moscow.png",
@@ -459,6 +461,31 @@ const ASSETS=[
   "./player-photo/jaros.png",
   "./player-photo/keane.png",
   "./player-photo/tyurin.png",
+  "./player-photo/asetov.png",
+  "./player-photo/beketayev.png",
+  "./player-photo/vecchione.png",
+  "./player-photo/emil-galimov.png",
+  "./player-photo/daniyar.png",
+  "./player-photo/kaiyrzhan.png",
+  "./player-photo/logvin.png",
+  "./player-photo/lyapunov.png",
+  "./player-photo/mccoshen.png",
+  "./player-photo/massie.png",
+  "./player-photo/morelli.png",
+  "./player-photo/muratov.png",
+  "./player-photo/mukhametov.png",
+  "./player-photo/omirbekov.png",
+  "./player-photo/orazov.png",
+  "./player-photo/panyukov.png",
+  "./player-photo/savitsky.png",
+  "./player-photo/semyon-simonov.png",
+  "./player-photo/tyce-thompson.png",
+  "./player-photo/willman.png",
+  "./player-photo/walsh.png",
+  "./player-photo/shaikhmeddenov.png",
+  "./player-photo/artyom-korolyov.png",
+  "./player-photo/gaitamirov.png",
+  "./player-photo/mindubayev.png",
   "./player-photo/default.png"
 ];
 self.addEventListener("install",e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS)))});

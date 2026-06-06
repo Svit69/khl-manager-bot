@@ -1,5 +1,6 @@
 import { lokomotivPlayerContracts } from "./lokomotivPlayers.js";
 import { sibirPlayerContracts } from "./sibirPlayers.js";
+import { barysPlayerContracts } from "./barysPlayers.js";
 import { severstalPlayerContracts } from "./severstalPlayers.js";
 import { skaPlayerContracts } from "./skaPlayers.js";
 import { spartakPlayerContracts } from "./spartakPlayers.js";
@@ -2902,6 +2903,7 @@ export const playerContracts=[
   },
   ...lokomotivPlayerContracts,
   ...sibirPlayerContracts,
+  ...barysPlayerContracts,
   ...severstalPlayerContracts,
   ...skaPlayerContracts,
   ...spartakPlayerContracts,
