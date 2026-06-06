@@ -1,3 +1,4 @@
+import { avtomobilistPlayerContracts } from "./avtomobilistPlayers.js";
 import { lokomotivPlayerContracts } from "./lokomotivPlayers.js";
 import { sibirPlayerContracts } from "./sibirPlayers.js";
 import { barysPlayerContracts } from "./barysPlayers.js";
@@ -2901,6 +2902,7 @@ export const playerContracts=[
     salaryRub:1000000,
     type:"three-way"
   },
+  ...avtomobilistPlayerContracts,
   ...lokomotivPlayerContracts,
   ...sibirPlayerContracts,
   ...barysPlayerContracts,
