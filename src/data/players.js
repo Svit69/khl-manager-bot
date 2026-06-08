@@ -6,6 +6,7 @@ import { barysPlayerProfiles } from "./barysPlayers.js";
 import { severstalPlayerProfiles } from "./severstalPlayers.js";
 import { skaPlayerProfiles } from "./skaPlayers.js";
 import { spartakPlayerProfiles } from "./spartakPlayers.js";
+import { neftekhimikPlayerProfiles } from "./neftekhimik/index.js";
 import { applyConfiguredHiddenTraits } from "./playerHiddenTraits.js";
 export const playerProfiles=[
   {
@@ -5374,7 +5375,7 @@ export const playerProfiles=[
     affiliation:{contractId:"5c000000-0000-4000-8000-000000000039"}
   }
 ];
-const allPlayerProfiles=[...playerProfiles,...avtomobilistPlayerProfiles,...lokomotivPlayerProfiles,...sibirPlayerProfiles,...barysPlayerProfiles,...severstalPlayerProfiles,...skaPlayerProfiles,...spartakPlayerProfiles].filter(Boolean).map(applyConfiguredHiddenTraits);
+const allPlayerProfiles=[...playerProfiles,...avtomobilistPlayerProfiles,...lokomotivPlayerProfiles,...sibirPlayerProfiles,...barysPlayerProfiles,...severstalPlayerProfiles,...skaPlayerProfiles,...spartakPlayerProfiles,...neftekhimikPlayerProfiles].filter(Boolean).map(applyConfiguredHiddenTraits);
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>allPlayerProfiles
   .find(p=>p.teamId===teamId&&p.lineIndex===lineIndex&&p.position===position&&(roleIndex===null||p.roleIndex===roleIndex));
 export const getTeamProfiles=teamId=>allPlayerProfiles.filter(p=>p.teamId===teamId);
