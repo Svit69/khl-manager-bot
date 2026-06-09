@@ -379,7 +379,7 @@ export class AppController{
           ?"Игрок согласился и продлен"
           :(result.decision==="counter"
             ?`Игрок просит изменить условия: ${result.counter?.summary||"контрпредложение"}`
-            :(result.decision==="locked"?"Контракт уже продлен":"Игрок отказался от предложения"));
+            :(result.decision==="locked"?(result.reason||"Контракт уже продлен"):"Игрок отказался от предложения"));
         this.#seasonContractOutcomes.set(playerId,result.decision==="queued"?`Оффер отправлен. Ответ придет ${result.resolvesOn||"на следующей дате"}.`:label);
         if(result.decision==="counter"&&result.counter)this.#offerByPlayerId.set(playerId,result.counter);
         if(result.decision==="queued")this.#seasonExternalOfferPlayerIds.add(playerId);

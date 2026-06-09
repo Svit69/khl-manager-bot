@@ -20,6 +20,8 @@ import { SeasonTransitionService } from "../season/SeasonTransitionService.js";
 import { ExternalPlayerService, getExternalStatusLabel, getReturnInterestLabel } from "../season/ExternalPlayerService.js";
 import { ExternalPlayerDevelopmentService } from "../season/ExternalPlayerDevelopmentService.js";
 import { ExternalRightsOfferService } from "../season/ExternalRightsOfferService.js";
+import { ExternalRightsInterestService } from "../season/ExternalRightsInterestService.js";
+import { AiExternalRightsService } from "../season/AiExternalRightsService.js";
 import { KhlProspectDepartureService } from "../season/KhlProspectDepartureService.js";
 import { JuniorTeamService } from "../season/JuniorTeamService.js";
 import { getJuniorIneligibilityReason, getJuniorSeasonAge } from "../season/JuniorEligibility.js";
@@ -82,6 +84,8 @@ export class AppState {
   #externalPlayerService = new ExternalPlayerService();
   #externalDevelopment = new ExternalPlayerDevelopmentService();
   #externalRightsOffers = new ExternalRightsOfferService();
+  #externalRightsInterest = new ExternalRightsInterestService();
+  #aiExternalRights = new AiExternalRightsService();
   #prospectDepartures = new KhlProspectDepartureService();
   #lastMatch = null;
   #activeTeamId = null;
@@ -234,11 +238,18 @@ export class AppState {
 
   getExternalPlayerRows() {
     const teamsById = new Map(this.#teams.map((team) => [team.id, team]));
+    const seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
     return this.#externalPlayers
       .filter((player) => player.externalCareer?.rightsTeamId === this.#activeTeamId)
       .map((player) => {
         const career = player.externalCareer || {};
         const rightsTeam = teamsById.get(career.rightsTeamId) || null;
+        const interest = this.#externalRightsInterest.buildProfile(player, {
+          seasonLabel,
+          seasonDate: this.#getEffectiveNegotiationDate(),
+          rightsTeam,
+        });
+        const offerWindow = this.#externalRightsInterest.buildOfferWindow(player, seasonLabel);
         return {
           playerId: player.id,
           displayName: player.name,
@@ -250,8 +261,11 @@ export class AppState {
           contractUntil: career.contractUntil || null,
           rightsTeamName: rightsTeam?.name || "Прав в КХЛ нет",
           isActiveTeamRights: Boolean(rightsTeam && rightsTeam.id === this.#activeTeamId),
-          returnInterestLabel: getReturnInterestLabel(career.returnInterest),
+          returnInterestLabel: interest.label || getReturnInterestLabel(career.returnInterest),
+          returnInterestScore: interest.score,
+          returnInterestReasons: interest.reasons,
           availableToKhl: Boolean(career.availableToKhl),
+          offerWindow,
         };
       })
       .sort((left, right) =>
@@ -371,9 +385,10 @@ export class AppState {
     const context = this.#buildNegotiationContext(this.activeTeam);
     return this.#externalPlayers
       .filter((player) => player.externalCareer?.rightsTeamId === this.#activeTeamId)
-      .filter((player) => parseSeasonEnd(player.externalCareer?.contractUntil) <= parseSeasonEnd(seasonLabel))
       .filter((player) => !this.#hasPendingExternalRightsOffer(player.id))
       .map((player) => {
+        const offerWindow = this.#externalRightsInterest.buildOfferWindow(player, seasonLabel);
+        if (!offerWindow.canOffer) return null;
         const preview = this.#contracts.getFreeAgentPreview(this.activeTeam, player, offersByPlayerId[player.id] || null, context);
         return {
           rowType: "external",
@@ -392,8 +407,10 @@ export class AppState {
           seasonStats: {},
           hasFutureContract: false,
           preview,
+          offerWindow,
         };
       })
+      .filter(Boolean)
       .sort((left, right) => (right.ovr - left.ovr) || left.displayName.localeCompare(right.displayName, "ru"));
   }
 
@@ -596,9 +613,13 @@ export class AppState {
   queueExternalRightsOffer(playerId, offer) {
     const player = this.#externalPlayers.find((entry) => entry.id === playerId && entry.externalCareer?.rightsTeamId === this.#activeTeamId);
     if (!this.activeTeam || !player || this.#hasPendingExternalRightsOffer(playerId)) return null;
+    const season = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
+    const offerWindow = this.#externalRightsInterest.buildOfferWindow(player, season);
+    if (!offerWindow.canOffer) return { decision: "locked", reason: offerWindow.label };
     const preview = this.#contracts.getFreeAgentPreview(this.activeTeam, player, offer, this.#buildNegotiationContext(this.activeTeam));
     const nextDecisionIndex = Math.min((this.#seasonState?.preseasonDates || []).length - 1, (Number(this.#seasonState?.preseasonIndex) || 0) + 1);
     const nextDecisionDate = getPreseasonNextDate(this.#seasonState?.preseasonDates || [], this.#seasonState?.preseasonIndex || 0);
+    player.externalCareer = { ...(player.externalCareer || {}), lastKhlOfferSeason: season };
     this.#seasonState = {
       ...this.#seasonState,
       externalRightsOffers: [...(this.#seasonState?.externalRightsOffers || []), {
@@ -607,7 +628,7 @@ export class AppState {
         teamId: this.#activeTeamId,
         offer: { ...preview.offer },
         decisionIndex: nextDecisionIndex,
-        season: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
+        season,
         status: "pending",
       }],
     };
@@ -814,6 +835,7 @@ export class AppState {
     });
     transition.seasonState.externalRightsOffers = this.#buildTransitionExternalRightsOffers(options.externalRightsOffers || [], transition.seasonState);
     this.#processExternalPlayerReturns(transition);
+    this.#processAiExternalRightsActions(transition);
     this.#addNorthAmericaDeparturesToExternalPool(transition);
     this.#seasonHistory.unshift(transition.archive);
     this.#seasonHistory = this.#seasonHistory.slice(0, 12);
@@ -1350,6 +1372,39 @@ export class AppState {
     ]);
   }
 
+  #processAiExternalRightsActions(transition) {
+    const seasonLabel = transition?.seasonState?.seasonLabel;
+    if (!seasonLabel) return;
+    const seasonDate = `${parseSeasonEnd(seasonLabel)}-05-31`;
+    const actions = this.#aiExternalRights.process({
+      players: this.#externalPlayers,
+      teams: this.#teams,
+      activeTeamId: this.#activeTeamId,
+      seasonLabel,
+      seasonDate,
+      contracts: this.#contracts,
+      decisionService: this.#externalRightsOffers,
+      buildContext: (team) => ({ ...this.#buildNegotiationContext(team), currentDate: seasonDate, seasonLabel }),
+    });
+    actions.forEach((action) => this.#applyAiExternalRightsAction(action, transition, seasonLabel));
+    this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
+  }
+
+  #applyAiExternalRightsAction(action, transition, seasonLabel) {
+    if (action.type === "signed") {
+      this.#activateExternalPlayer(action.player, action.team, seasonLabel);
+      transition.externalSignings.push({ player: action.player, toTeamId: action.team.id });
+      return;
+    }
+    if (action.type === "rightsTrade") {
+      this.#recordPlayerMovement({ player: action.player, fromTeamId: action.fromTeam.id, toTeamId: action.toTeam.id, method: "rightsTrade" });
+      return;
+    }
+    if (action.type === "released") {
+      this.#recordPlayerMovement({ player: action.player, fromTeamId: action.fromTeam.id, toTeamId: null, method: "rightsReleased" });
+    }
+  }
+
   #removeExternalPlayer(player, status, seasonLabel = this.#seasonState?.seasonLabel) {
     if (!player?.id) return false;
     const wasExternal = this.#externalPlayers.some((candidate) => candidate.id === player.id);
@@ -1466,15 +1521,20 @@ export class AppState {
     const decisionIndex = Math.min((seasonState?.preseasonDates || []).length - 1, 1);
     return (offers || [])
       .filter((entry) => entry?.playerId && entry?.offer)
-      .map((entry) => ({
-        id: `external-rights-offer-${entry.playerId}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        playerId: entry.playerId,
-        teamId: this.#activeTeamId,
-        offer: { ...entry.offer },
-        decisionIndex,
-        season: seasonState?.seasonLabel || this.#calendar.seasonLabel,
-        status: "pending",
-      }));
+      .map((entry) => {
+        const season = seasonState?.seasonLabel || this.#calendar.seasonLabel;
+        const player = this.#externalPlayers.find((candidate) => candidate.id === entry.playerId);
+        if (player?.externalCareer) player.externalCareer.lastKhlOfferSeason = season;
+        return {
+          id: `external-rights-offer-${entry.playerId}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          playerId: entry.playerId,
+          teamId: this.#activeTeamId,
+          offer: { ...entry.offer },
+          decisionIndex,
+          season,
+          status: "pending",
+        };
+      });
   }
 
   #hasPendingExternalRightsOffer(playerId) {

@@ -1,5 +1,6 @@
 import { buildCompetitiveLines } from "../data/lineupBuilder.js";
 import { PlayerPosition } from "../models/PlayerPosition.js";
+import { explainExternalRightsTradeValue } from "./ExternalRightsTradeValue.js";
 import { explainTradeValueForTeam } from "./TradeValue.js";
 
 const PACKAGE_CORRELATION_WEIGHTS = Object.freeze([1, 0.5, 0.28, 0.14]);
@@ -9,7 +10,6 @@ const MID_QUALITY_PACKAGE_WEIGHTS = Object.freeze([0.9, 0.28, 0.14, 0.06]);
 const buildByIdMap = (players) => new Map((players || []).map((player) => [player.id, player]));
 const sum = (items) => (items || []).reduce((acc, value) => acc + (Number(value) || 0), 0);
 const round = (value) => Math.round((Number(value) || 0) * 10) / 10;
-const RIGHTS_VALUE_FACTOR = 0.62;
 
 const createDecision = (aiDelta, requiredPremium = 0) => {
   const threshold = Number(requiredPremium) || 0;
@@ -81,11 +81,9 @@ const createPackageEvaluation = (items, valueKey, anchorOvr = null) => {
 
 const createTradeValueEntry = (team, player, contracts, context, assetType = "player") => {
   const explained = explainTradeValueForTeam(team, player, contracts, context);
-  const factor = assetType === "rights" ? RIGHTS_VALUE_FACTOR : 1;
-  const value = round(explained.value * factor);
-  const reasons = assetType === "rights"
-    ? [`права на игрока оценены в ${Math.round(RIGHTS_VALUE_FACTOR * 100)}% от его полной стоимости`, ...explained.reasons]
-    : explained.reasons;
+  const rights = assetType === "rights" ? explainExternalRightsTradeValue(team, player, explained.value, context) : null;
+  const value = round(rights?.value ?? explained.value);
+  const reasons = assetType === "rights" ? rights.reasons : explained.reasons;
   return { value, reasons };
 };
 

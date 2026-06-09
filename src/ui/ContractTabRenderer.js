@@ -31,6 +31,11 @@ export class ContractTabRenderer {
         ? '<span class="external-player-state available">Готов вернуться</span>'
         : `<span class="external-player-state">${row.statusLabel}</span>`;
       const contractLabel = row.contractUntil ? `Контракт: ${row.contractUntil}` : "Без контракта";
+      const offerClass = row.offerWindow?.canOffer ? "available" : "";
+      const offerLabel = row.offerWindow?.label || "Статус оффера неизвестен";
+      const reasons = (row.returnInterestReasons || [])
+        .map((reason) => `<span>${reason.value >= 0 ? "+" : ""}${reason.value} ${reason.text}</span>`)
+        .join("");
       return `<div class="external-player-card ${rightsClass}">
         <div class="external-player-main">
           <div class="external-player-name"><strong>${row.displayName}</strong>${availability}</div>
@@ -40,7 +45,9 @@ export class ContractTabRenderer {
           <span>${row.league}</span>
           <span>${contractLabel}</span>
           <span>Права: <strong>${row.rightsTeamName}</strong>${row.isActiveTeamRights ? '<b class="external-rights-owned">Ваши права</b>' : ""}</span>
-          <span>Интерес к КХЛ: <strong>${row.returnInterestLabel}</strong></span>
+          <span>Интерес к КХЛ: <strong>${row.returnInterestLabel} (${row.returnInterestScore ?? 0}/100)</strong></span>
+          <span class="external-player-state ${offerClass}">${offerLabel}</span>
+          ${reasons ? `<div class="external-interest-reasons">${reasons}</div>` : ""}
         </div>
       </div>`;
     }).join("");
