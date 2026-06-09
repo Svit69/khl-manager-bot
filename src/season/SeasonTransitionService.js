@@ -8,6 +8,7 @@ import { generateUuid } from "../utils/uuid.js";
 import { PlayerRetirementService } from "./PlayerRetirementService.js";
 import { createPreseasonDates, getPreseasonDateAt } from "./PreseasonSchedule.js";
 import { TEAM_ROSTER_POSITION_TARGETS, TEAM_ROSTER_TARGET_SIZE } from "./RosterTargets.js";
+import { KhlProspectDepartureService } from "./KhlProspectDepartureService.js";
 
 const createUtcDate = (year, monthIndex, day) => new Date(Date.UTC(year, monthIndex, day));
 const formatSeasonLabel = (startYear) => `${startYear}/${startYear + 1}`;
@@ -30,6 +31,7 @@ export class SeasonTransitionService {
   #contracts;
   #development;
   #retirements = new PlayerRetirementService();
+  #prospectDepartures = new KhlProspectDepartureService();
 
   constructor(contractService, aiRenewalService, developmentService) {
     this.#contracts = contractService;
@@ -85,6 +87,13 @@ export class SeasonTransitionService {
         return;
       }
       const currentTeamId = player.affiliation?.teamId || null;
+      const naDeparture = currentTeamId ? this.#prospectDepartures.evaluate(player, { seasonLabel: currentSeasonLabel, seasonDate: offseasonDate }) : null;
+      if (naDeparture) {
+        this.#movePlayerToExternalRights(player, currentTeamId, naDeparture);
+        departures.push({ player, fromTeamId: currentTeamId, reason: "northAmerica" });
+        releasedPlayerIds.push(player.id);
+        return;
+      }
       const ufaStatus = getUfaStatus(
         calculateAge(player.identity?.birthDate, offseasonDate),
         player.career?.khlGamesPlayed || 0,
@@ -386,6 +395,22 @@ export class SeasonTransitionService {
       playerId: event.playerId,
       read: false,
     };
+  }
+
+  #movePlayerToExternalRights(player, rightsTeamId, departure) {
+    player.externalCareer = {
+      ...(player.externalCareer || {}),
+      ...departure,
+      rightsTeamId,
+      seasonsOutsideKhl: 0,
+      returnInterest: departure.league === "NHL" ? 16 : 38,
+      availableToKhl: false,
+      lastEvaluatedSeason: null,
+    };
+    player.affiliation.teamId = null;
+    player.affiliation.contractId = null;
+    player.affiliation.acquiredDay = null;
+    player.expectedLineIndex = null;
   }
 
   #buildRetirementNotification(entry, day, isUserTeamPlayer) {

@@ -41,6 +41,8 @@ const renderSeasonStats = (stats) => {
 };
 
 const renderDecisionBadge = (row, decision) => {
+  if (decision === "external-offer") return `<span class="season-contract-badge good">Оффер</span>`;
+  if (row.isRenewalLocked) return `<span class="season-contract-badge danger">НХЛ / АХЛ</span>`;
   if (row.hasFutureContract) return `<span class="season-contract-badge good">Продлен</span>`;
   if (decision === "release") return `<span class="season-contract-badge danger">Отпустить</span>`;
   return `<span class="season-contract-badge pending">Без решения</span>`;
@@ -69,7 +71,7 @@ const renderOfferControls = (row, offer) => {
 };
 
 const renderRow = (row, view) => {
-  const decision = view.releasePlayerIds.has(row.playerId) ? "release" : (row.hasFutureContract ? "renewed" : "pending");
+  const decision = view.externalOfferPlayerIds?.has?.(row.playerId) ? "external-offer" : (view.releasePlayerIds.has(row.playerId) ? "release" : (row.hasFutureContract ? "renewed" : "pending"));
   const selectedClass = view.selectedPlayerId === row.playerId ? " active" : "";
   const stats = normalizeStats(row.seasonStats);
   return `<button class="season-contract-player${selectedClass}" data-action="season-contract-select" data-player-id="${row.playerId}">
@@ -93,6 +95,7 @@ export class SeasonContractDecisionRenderer {
       ["pending", "Без решения"],
       ["osa", "ОСА"],
       ["nsa", "НСА"],
+      ["external", "НХЛ / АХЛ"],
       ["renewed", "Продлены"],
       ["release", "Отпустить"],
     ];
@@ -100,12 +103,13 @@ export class SeasonContractDecisionRenderer {
       .map(([id, label]) => `<button class="season-contract-filter${view.filter === id ? " active" : ""}" data-action="season-contract-filter" data-filter="${id}">${label}</button>`)
       .join("");
     const selectedDecision = selected
-      ? (view.releasePlayerIds.has(selected.playerId) ? "release" : (selected.hasFutureContract ? "renewed" : "pending"))
+      ? (view.externalOfferPlayerIds?.has?.(selected.playerId) ? "external-offer" : (view.releasePlayerIds.has(selected.playerId) ? "release" : (selected.hasFutureContract ? "renewed" : "pending")))
       : "pending";
     const preview = selected?.preview || null;
     const offer = view.offersByPlayerId[selected?.playerId] || preview?.offer || null;
     const reasons = (preview?.reasons || []).slice(0, 5).map(renderReason).join("");
     const chance = Math.max(0, Math.min(100, Number(preview?.state?.chance) || 0));
+    const lockMessage = selected?.renewalLockReason || "Игрок уже продлен на будущий сезон.";
     const selectedPanel = selected
       ? `<section class="season-contract-detail">
           <div class="season-contract-detail-head">
@@ -131,7 +135,7 @@ export class SeasonContractDecisionRenderer {
           </div>
           <div class="season-contract-chance"><span style="width:${chance}%"></span></div>
           <div class="season-contract-reasons">${reasons}</div>
-          ${offer ? renderOfferControls(selected, offer) : ""}` : `<div class="season-contract-locked">Игрок уже продлен на будущий сезон.</div>`}
+          ${offer ? renderOfferControls(selected, offer) : ""}` : `<div class="season-contract-locked">${lockMessage}</div>`}
           <div class="season-contract-actions">
             ${preview ? `<button class="btn" data-action="season-contract-submit-offer" data-player-id="${selected.playerId}">Предложить контракт</button>` : ""}
             ${selectedDecision === "release"
