@@ -2,7 +2,7 @@ import { calculateAge } from "../contracts/SeasonUtils.js";
 import { HiddenPlayerTrait, hasHiddenTrait } from "../models/HiddenPlayerTraits.js";
 
 const RESERVE_FATIGUE_RECOVERY = -11.25;
-const FATIGUE_ACCUMULATION_FACTOR = 0.9;
+const FATIGUE_ACCUMULATION_FACTOR = 0.72;
 
 export const applyMatchPlayerStats = (match) => {
   const applySide = (teamSummary, team) => {
