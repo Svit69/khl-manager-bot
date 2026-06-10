@@ -322,5 +322,8 @@
 @media (max-width: 760px){
   .external-player-grid{grid-template-columns:1fr}
   .external-player-card{grid-template-columns:1fr}
+  .external-player-identity{grid-template-columns:46px minmax(0,1fr) 44px}
+  .external-player-photo{width:46px;height:46px}
+  .external-player-meta{grid-template-columns:1fr}
   .external-player-name{align-items:flex-start;flex-direction:column}
 }

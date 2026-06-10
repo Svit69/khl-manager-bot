@@ -43,6 +43,7 @@ import {
 } from "./AppStatePersistence.js";
 import {
   collectSavedExternalPlayerIds,
+  collectSavedExternalPlayerSnapshots,
   excludeExternalRightsPlayersFromActivePool,
   shouldRestoreExternalRightsPlayer,
 } from "./AppStateExternalImport.js";
@@ -307,6 +308,7 @@ export class AppState {
         return {
           playerId: player.id,
           displayName: player.name,
+          photoUrl: getPlayerPhotoUrl(player),
           position: player.identity?.primaryPosition || "",
           age: calculateAge(player.identity?.birthDate, this.#getEffectiveNegotiationDate()),
           ovr: player.ovr,
@@ -996,15 +998,16 @@ export class AppState {
       if (saved.calendarResults) this.#calendar.importResults(saved.calendarResults);
     }
     if (saved.contracts) this.#contracts.importContracts(saved.contracts);
-    const savedExternalPlayerIds = collectSavedExternalPlayerIds(saved.externalPlayers);
-    if (Array.isArray(saved.externalPlayers)) {
+    const savedExternalPlayers = collectSavedExternalPlayerSnapshots(saved);
+    const savedExternalPlayerIds = collectSavedExternalPlayerIds(savedExternalPlayers);
+    if (savedExternalPlayers.length) {
       const missingExternalPlayers = createMissingSavedPlayers(
-        saved.externalPlayers,
+        savedExternalPlayers,
         this.#externalPlayers,
         this.#calendar.seasonLabel,
       );
       this.#externalPlayers = [...this.#externalPlayers, ...missingExternalPlayers];
-      restorePlayerSnapshots(this.#externalPlayers, saved.externalPlayers);
+      restorePlayerSnapshots(this.#externalPlayers, savedExternalPlayers);
       this.#externalPlayers = this.#externalPlayers.filter((player) => savedExternalPlayerIds.has(player.id));
     }
     if (saved.rosters) {
