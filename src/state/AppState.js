@@ -1965,6 +1965,8 @@ export class AppState {
   }
 
   #roundSalaryRub(value) {
-    return Math.max(500000, Math.round((Number(value) || 0) / 500000) * 500000);
+    const salary = Math.max(500000, Number(value) || 0);
+    const step = salary <= 10000000 ? 500000 : 1000000;
+    return Math.round(salary / step) * step;
   }
 }

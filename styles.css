@@ -1,4 +1,5 @@
 @import url("./styles/base.css");
+@import url("./styles/scrollbars.css");
 @import url("./styles/team-select.css");
 @import url("./styles/roster-cards.css");
 @import url("./styles/team-hub.css");

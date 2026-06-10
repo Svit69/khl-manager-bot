@@ -1054,7 +1054,9 @@ export class AppController{
     return this.#roundSalaryRub(millions*1000000);
   }
   #roundSalaryRub(value){
-    return Math.max(500000,Math.round((Number(value)||0)/500000)*500000);
+    const salary=Math.max(500000,Number(value)||0);
+    const step=salary<=10000000?500000:1000000;
+    return Math.round(salary/step)*step;
   }
   #resetGame(){this.#userStore.clearSave();window.location.reload()}
 }

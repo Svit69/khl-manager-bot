@@ -1,4 +1,5 @@
 import { getFallbackMarketSalaryRub } from "../contracts/FallbackMarketSalary.js";
+import { roundSalaryRub } from "../contracts/ContractServiceShared.js";
 import {
   canSubmitAiExternalOffer,
   findExternalRightsBuyer,
@@ -24,7 +25,7 @@ export class AiExternalRightsService {
   }
 
   #trySign(player, team, { seasonLabel, seasonDate, contracts, decisionService, buildContext }) {
-    const salaryRub = Math.round((getFallbackMarketSalaryRub(player) * 1.08) / 500000) * 500000;
+    const salaryRub = roundSalaryRub(getFallbackMarketSalaryRub(player) * 1.08);
     const offer = { years: 1, salaryRub };
     const preview = contracts.getFreeAgentPreview(team, player, offer, buildContext(team));
     const decision = decisionService.buildDecision({ player, offer, preview, teamId: team.id, decisionDate: seasonDate, seasonLabel });

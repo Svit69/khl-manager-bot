@@ -1,5 +1,8 @@
-const roundSalaryRub = (value) =>
-  Math.max(500000, Math.round((Number(value) || 0) / 500000) * 500000);
+const roundSalaryRub = (value) => {
+  const salary = Math.max(500000, Number(value) || 0);
+  const step = salary <= 10000000 ? 500000 : 1000000;
+  return Math.round(salary / step) * step;
+};
 
 const FALLBACK_SALARY_CURVE = Object.freeze([
   [60, 500000],

@@ -1,5 +1,6 @@
 import { buildCompetitiveLines } from "../data/lineupBuilder.js";
 import { getFallbackMarketSalaryRub } from "../contracts/FallbackMarketSalary.js";
+import { roundSalaryRub } from "../contracts/ContractServiceShared.js";
 import { getUfaStatus } from "../contracts/RenewalScoring.js";
 import { calculateAge } from "../contracts/SeasonUtils.js";
 import { createSkater } from "../data/playerFactory.js";
@@ -328,7 +329,7 @@ export class SeasonTransitionService {
               { years: 1, salaryRub: getFallbackMarketSalaryRub(candidate) },
               context,
             );
-            const offer = { years: 1, salaryRub: Math.round((preview.teamAdjustedDemand * 1.08) / 500000) * 500000 };
+            const offer = { years: 1, salaryRub: roundSalaryRub(preview.teamAdjustedDemand * 1.08) };
             let result = this.#contracts.submitFreeAgentOffer(team, candidate, offer, context);
             if (result?.decision === "counter" && result.counter) {
               result = this.#contracts.submitFreeAgentOffer(team, candidate, result.counter, context);
@@ -336,7 +337,7 @@ export class SeasonTransitionService {
             if (result?.decision !== "accept") {
               const fallbackOffer = {
                 years: 1,
-                salaryRub: Math.round((preview.teamAdjustedDemand * 1.2) / 500000) * 500000,
+                salaryRub: roundSalaryRub(preview.teamAdjustedDemand * 1.2),
               };
               result = this.#contracts.submitFreeAgentOffer(team, candidate, fallbackOffer, context);
             }
@@ -499,7 +500,7 @@ export class SeasonTransitionService {
     if (samePositionCount <= rightsSamePositionCount - 1) factor += 0.08;
     if ((player.potential?.potential || player.ovr) - player.ovr >= 4) factor += 0.06;
     if ((player.ovr || 0) >= 80) factor += 0.08;
-    return Math.round((base * factor) / 500000) * 500000;
+    return roundSalaryRub(base * factor);
   }
 
   #stableOfferSheetNoise(player, team) {

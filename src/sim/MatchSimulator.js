@@ -21,6 +21,7 @@ const PK_UNIT_SHARE=0.62;
 const rand=(min,max)=>min+Math.random()*(max-min);
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 const sum=items=>items.reduce((a,b)=>a+b,0);
+const getProfilePosition=profile=>profile.slotPosition||profile.player.identity?.primaryPosition;
 
 export class MatchSimulator{
   simulateMatch(home,away,options={}){
@@ -111,8 +112,8 @@ export class MatchSimulator{
         this.#buildMatchProfile(player,line.positions?.[slotIndex]||player.identity?.primaryPosition,{isPlayoff})
       );
       const skaters=playerProfiles.filter(profile=>profile.player.identity?.primaryPosition!=="ВРТ");
-      const forwards=skaters.filter(profile=>["ЛНП","ЦТР","ПНП"].includes(profile.player.identity?.primaryPosition));
-      const defenders=skaters.filter(profile=>profile.player.identity?.primaryPosition==="ЗАЩ");
+      const forwards=skaters.filter(profile=>["ЛНП","ЦТР","ПНП"].includes(getProfilePosition(profile)));
+      const defenders=skaters.filter(profile=>getProfilePosition(profile)==="ЗАЩ");
       const fallback=skaters.length?skaters:playerProfiles;
       return {
         lineIndex,
@@ -604,7 +605,7 @@ export class MatchSimulator{
 
   #getIndividualXgWeight(profile,momentType,mode,attackingState,defendingState,isOvertime){
     const attrs=this.#getMatchAttributes(profile.player);
-    const position=profile.slotPosition||profile.player.identity?.primaryPosition;
+    const position=getProfilePosition(profile);
     const defensePressure=this.#getDefensivePressure(defendingState?.profiles||[],defendingState?.mode);
     const traitModeFactor=(mode==="pp"&&hasHiddenTrait(profile.player,HiddenPlayerTrait.POWER_PLAY_SPECIALIST))
       ? 1.13
@@ -639,8 +640,8 @@ export class MatchSimulator{
   }
 
   #buildScorerPool(skaters,momentType,mode,isOvertime,defenderIds=new Set()){
-    const defenders=skaters.filter(profile=>(profile.slotPosition||profile.player.identity?.primaryPosition)==="\u0417\u0410\u0429");
-    const forwards=skaters.filter(profile=>(profile.slotPosition||profile.player.identity?.primaryPosition)!=="\u0417\u0410\u0429");
+    const defenders=skaters.filter(profile=>getProfilePosition(profile)==="ЗАЩ");
+    const forwards=skaters.filter(profile=>getProfilePosition(profile)!=="ЗАЩ");
     if(!defenders.length || !forwards.length)return skaters;
     if(isOvertime)return forwards;
     if(mode==="pp"){
@@ -655,7 +656,7 @@ export class MatchSimulator{
 
   #getAssistWeight(profile,momentType,mode,attackingState){
     const attrs=this.#getMatchAttributes(profile.player);
-    const position=profile.slotPosition||profile.player.identity?.primaryPosition;
+    const position=getProfilePosition(profile);
     let weight=profile.effectiveOvr*0.34+(attrs.skill||60)*0.42+(attrs.speed||60)*0.12+(attrs.defense||60)*0.06;
     if(["rush","cycle"].includes(momentType))weight+=(attrs.speed||60)*0.08;
     if(["slot","one_timer"].includes(momentType))weight+=(attrs.skill||60)*0.08;
@@ -689,7 +690,7 @@ export class MatchSimulator{
 
   #getShotGenerationWeight(profile,mode,teamContext,momentType){
     const attrs=this.#getMatchAttributes(profile.player);
-    const position=profile.slotPosition||profile.player.identity?.primaryPosition;
+    const position=getProfilePosition(profile);
     const lineIndex=this.#findPlayerLineIndex(teamContext,profile.player.id);
     let weight=profile.effectiveOvr*0.18+(attrs.shot||60)*0.42+(attrs.skill||60)*0.16+(attrs.speed||60)*0.1+(attrs.physical||60)*0.04;
     if(position==="ЗАЩ"){
@@ -1058,7 +1059,7 @@ export class MatchSimulator{
       profiles:trimmed,
       defenderIds:new Set(
         trimmed
-          .filter(profile=>(profile.slotPosition||profile.player.identity?.primaryPosition)==="\u0417\u0410\u0429")
+          .filter(profile=>getProfilePosition(profile)==="ЗАЩ")
           .map(profile=>profile.player.id)
       )
     };

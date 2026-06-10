@@ -21,8 +21,11 @@ const PROJECTED_ROLE_THRESHOLDS = {
 const average = (values) =>
   values.length ? values.reduce((total, value) => total + value, 0) / values.length : 0;
 const roundToTenth = (value) => Math.round(value * 10) / 10;
-const roundSalaryRub = (value) =>
-  Math.max(MIN_MARKET_SALARY_RUB, Math.round((Number(value) || 0) / 500000) * 500000);
+const roundSalaryRub = (value) => {
+  const salary = Math.max(MIN_MARKET_SALARY_RUB, Number(value) || 0);
+  const step = salary <= 10000000 ? 500000 : 1000000;
+  return Math.round(salary / step) * step;
+};
 const interpolate = (value, inMin, inMax, outMin, outMax) => {
   if (inMin === inMax) return outMax;
   const ratio = clamp((value - inMin) / (inMax - inMin), 0, 1);

@@ -36,8 +36,11 @@ export const OFFSEASON_SIGNINGS_BY_STRATEGY = {
 export const average = (values) =>
   values.length ? values.reduce((total, value) => total + value, 0) / values.length : 0;
 
-export const roundSalaryRub = (value) =>
-  Math.max(500000, Math.round((Number(value) || 0) / 500000) * 500000);
+export const roundSalaryRub = (value) => {
+  const salary = Math.max(500000, Number(value) || 0);
+  const step = salary <= 10000000 ? 500000 : 1000000;
+  return Math.round(salary / step) * step;
+};
 
 export const getPositionGroup = (position) => {
   if (position === "ЗАЩ") return "DEF";
