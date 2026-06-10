@@ -123,6 +123,7 @@ export const normalizeSeasonState = (savedSeasonState, seasonLabel) =>
       preseasonOffers: Array.isArray(savedSeasonState.preseasonOffers) ? savedSeasonState.preseasonOffers : [],
       externalRightsOffers: Array.isArray(savedSeasonState.externalRightsOffers) ? savedSeasonState.externalRightsOffers : [],
       restrictedRightsOffers: Array.isArray(savedSeasonState.restrictedRightsOffers) ? savedSeasonState.restrictedRightsOffers : [],
+      offerSheetCompensations: Array.isArray(savedSeasonState.offerSheetCompensations) ? savedSeasonState.offerSheetCompensations : [],
       preseasonIndex: Number(savedSeasonState.preseasonIndex) || 0,
     }
     : {
@@ -134,5 +135,6 @@ export const normalizeSeasonState = (savedSeasonState, seasonLabel) =>
       preseasonOffers: [],
       externalRightsOffers: [],
       restrictedRightsOffers: [],
+      offerSheetCompensations: [],
       preseasonIndex: 0,
     };

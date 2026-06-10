@@ -118,6 +118,7 @@ export class AppState {
       preseasonOffers: [],
       externalRightsOffers: [],
       restrictedRightsOffers: [],
+      offerSheetCompensations: [],
       preseasonIndex: 0,
     };
     this.#transferLedger = [];
@@ -231,6 +232,8 @@ export class AppState {
           position: player.identity?.primaryPosition || "",
           ovr: player.ovr,
           sourceLabel: entry.source === "external" ? `${entry.fromLeague || "НХЛ / АХЛ"} • возвращение в КХЛ` : null,
+          compensation: entry.compensation || null,
+          compensationLabel: entry.compensation?.label || "Без компенсации",
         };
       })
       .filter(Boolean);
@@ -569,6 +572,7 @@ export class AppState {
     player.affiliation.acquiredDay = this.#calendar.currentDay;
     this.#activateExternalPlayer(player, newTeam);
     this.#resolveRestrictedRightsOffer(entry.id, "released");
+    this.#recordOfferSheetCompensation(entry, player, newTeam);
     this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
     this.#refreshExpectedRoles(newTeam);
     if (this.activeTeam) this.#refreshExpectedRoles(this.activeTeam);
@@ -577,13 +581,13 @@ export class AppState {
       id: `notification-osa-release-${player.id}-${Date.now()}`,
       type: "offseason-departure",
       title: "Права ОСА",
-      message: `${player.name} перешел в ${newTeam.name}: ${entry.offer.years} г. • ${formatSalaryMillions(entry.offer.salaryRub)} млн`,
+      message: `${player.name} перешел в ${newTeam.name}. Компенсация: ${entry.compensation?.label || "без компенсации"}.`,
       day: this.#calendar.currentDay,
       createdAt: new Date().toISOString(),
       playerId: player.id,
       read: false,
     });
-    return { accepted: true, decision: "released", contract };
+    return { accepted: true, decision: "released", contract, compensation: entry.compensation || null };
   }
 
   getFreeAgentSigningPreview(playerId, offer) {
@@ -974,6 +978,7 @@ export class AppState {
       preseasonOffers: [],
       externalRightsOffers: [],
       restrictedRightsOffers: [],
+      offerSheetCompensations: [],
       preseasonIndex: 0,
     };
     this.#syncSeasonReferenceDate();
@@ -1856,6 +1861,23 @@ export class AppState {
       restrictedRightsOffers: (this.#seasonState?.restrictedRightsOffers || []).map((entry) =>
         entry.id === offerId ? { ...entry, status } : entry,
       ),
+    };
+  }
+
+  #recordOfferSheetCompensation(entry, player, newTeam) {
+    this.#seasonState = {
+      ...this.#seasonState,
+      offerSheetCompensations: [...(this.#seasonState?.offerSheetCompensations || []), {
+        id: `offer-sheet-comp-${entry.id}`,
+        season: entry.season || this.#seasonState?.seasonLabel,
+        playerId: player.id,
+        playerName: player.name,
+        fromTeamId: this.#activeTeamId,
+        toTeamId: newTeam.id,
+        toTeamName: newTeam.name,
+        compensation: entry.compensation || { label: "Без компенсации", picks: [], cashRub: 0 },
+        createdAt: new Date().toISOString(),
+      }],
     };
   }
 

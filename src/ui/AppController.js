@@ -18,8 +18,10 @@ export class AppController{
   #seasonContractDecisionFilter="pending";
   #seasonContractDecisionSelectedPlayerId=null;
   #seasonContractReleasePlayerIds=new Set();
+  #seasonContractQualifiedPlayerIds=new Set();
   #seasonExternalOfferPlayerIds=new Set();
   #seasonContractOutcomes=new Map();
+  #dismissedOfferSheetPopupIds=new Set();
   #juniorPhotoStatusById=new Map();
   #juniorPhotoErrorById=new Map();
   #juniorPositionFilter="all";
@@ -93,6 +95,7 @@ export class AppController{
         this.#renderer.renderMyTeamRoster(this.#state.activeTeam);
       }
       this.#renderer.renderSeasonContractDecision(this.#buildSeasonContractDecisionView());
+      this.#renderer.renderOfferSheetPopup(this.#buildOfferSheetPopupView());
       if(this.#matchPlayback)this.#renderer.renderMatchSimulationPopup(this.#matchPlayback);
       return;
     }
@@ -192,6 +195,7 @@ export class AppController{
       const current=this.#offerByPlayerId.get(playerId)||this.#getSeasonContractDefaultOffer(playerId)||{years:1,salaryRub};
       this.#offerByPlayerId.set(playerId,{...current,salaryRub});
       this.#seasonContractReleasePlayerIds.delete(playerId);
+      this.#seasonContractQualifiedPlayerIds.delete(playerId);
       this.#renderScreen();
     }
   }
@@ -242,9 +246,9 @@ export class AppController{
     if(!this.#seasonContractDecisionOpen || !this.#state.activeTeam)return {isOpen:false};
     const offersByPlayerId=Object.fromEntries(this.#offerByPlayerId);
     const rows=this.#getSeasonDecisionRows(offersByPlayerId);
-    const pendingRows=rows.filter(row=>row.rowType==="khl"&&!row.hasFutureContract&&!row.isRenewalLocked&&!this.#seasonContractReleasePlayerIds.has(row.playerId));
+    const pendingRows=rows.filter(row=>row.rowType==="khl"&&!row.hasFutureContract&&!row.isRenewalLocked&&!this.#seasonContractReleasePlayerIds.has(row.playerId)&&!this.#seasonContractQualifiedPlayerIds.has(row.playerId));
     const visibleRows=rows.filter(row=>{
-      if(this.#seasonContractDecisionFilter==="pending")return row.rowType==="khl"&&!row.hasFutureContract&&!row.isRenewalLocked&&!this.#seasonContractReleasePlayerIds.has(row.playerId);
+      if(this.#seasonContractDecisionFilter==="pending")return row.rowType==="khl"&&!row.hasFutureContract&&!row.isRenewalLocked&&!this.#seasonContractReleasePlayerIds.has(row.playerId)&&!this.#seasonContractQualifiedPlayerIds.has(row.playerId);
       if(this.#seasonContractDecisionFilter==="external")return row.rowType==="external";
       if(this.#seasonContractDecisionFilter==="osa")return row.ufaStatus==="OSA"||row.ufaStatus==="ОСА";
       if(this.#seasonContractDecisionFilter==="nsa")return row.ufaStatus==="NSA"||row.ufaStatus==="НСА";
@@ -264,11 +268,12 @@ export class AppController{
       selectedPlayerId:selectedRow?.playerId||null,
       filter:this.#seasonContractDecisionFilter,
       releasePlayerIds:this.#seasonContractReleasePlayerIds,
+      qualifiedPlayerIds:this.#seasonContractQualifiedPlayerIds,
       externalOfferPlayerIds:this.#seasonExternalOfferPlayerIds,
       offersByPlayerId:Object.fromEntries(this.#offerByPlayerId),
       outcomesByPlayerId:Object.fromEntries(this.#seasonContractOutcomes),
       totalCount:rows.length,
-      resolvedCount:rows.filter(row=>row.rowType==="external"?this.#seasonExternalOfferPlayerIds.has(row.playerId):(row.hasFutureContract||row.isRenewalLocked||this.#seasonContractReleasePlayerIds.has(row.playerId))).length,
+      resolvedCount:rows.filter(row=>row.rowType==="external"?this.#seasonExternalOfferPlayerIds.has(row.playerId):(row.hasFutureContract||row.isRenewalLocked||this.#seasonContractReleasePlayerIds.has(row.playerId)||this.#seasonContractQualifiedPlayerIds.has(row.playerId))).length,
       pendingCount:pendingRows.length,
       osaCount:rows.filter(row=>row.ufaStatus==="OSA"||row.ufaStatus==="ОСА").length
     };
@@ -283,6 +288,10 @@ export class AppController{
       ...this.#state.getSeasonContractDecisionRows(offersByPlayerId),
       ...this.#state.getSeasonExternalRightsDecisionRows(offersByPlayerId)
     ];
+  }
+  #buildOfferSheetPopupView(){
+    const row=this.#state.getActiveTeamRestrictedRightsRows().find(candidate=>!this.#dismissedOfferSheetPopupIds.has(candidate.id))||null;
+    return {row};
   }
   async #handleClick(event){
     const clickable=event.target?.closest?.("[data-team-id],[data-tab],[data-action],#resetBtn,#playBtn");
@@ -322,6 +331,12 @@ export class AppController{
       this.#renderScreen();
       return;
     }
+    if(action==="offer-sheet-popup-dismiss"){
+      const offerId=clickable.dataset.offerId;
+      if(offerId)this.#dismissedOfferSheetPopupIds.add(offerId);
+      this.#renderScreen();
+      return;
+    }
     if(action==="season-contract-close"){
       this.#seasonContractDecisionOpen=false;
       this.#renderScreen();
@@ -343,6 +358,7 @@ export class AppController{
       const current=this.#offerByPlayerId.get(playerId)||this.#getSeasonContractDefaultOffer(playerId)||{years:1,salaryRub:0};
       this.#offerByPlayerId.set(playerId,{...current,years});
       this.#seasonContractReleasePlayerIds.delete(playerId);
+      this.#seasonContractQualifiedPlayerIds.delete(playerId);
       this.#renderScreen();
       return;
     }
@@ -353,6 +369,7 @@ export class AppController{
       if(!playerId||!current)return;
       this.#offerByPlayerId.set(playerId,{...current,salaryRub:this.#roundSalaryRub(current.salaryRub+Math.round(deltaMillion*1000000))});
       this.#seasonContractReleasePlayerIds.delete(playerId);
+      this.#seasonContractQualifiedPlayerIds.delete(playerId);
       this.#renderScreen();
       return;
     }
@@ -364,6 +381,7 @@ export class AppController{
         const salaryRub=action==="season-contract-market-salary"?preview.marketSalary:preview.teamAdjustedDemand;
         this.#offerByPlayerId.set(playerId,{...current,salaryRub:this.#roundSalaryRub(salaryRub)});
         this.#seasonContractReleasePlayerIds.delete(playerId);
+        this.#seasonContractQualifiedPlayerIds.delete(playerId);
       }
       this.#renderScreen();
       return;
@@ -385,6 +403,7 @@ export class AppController{
         if(result.decision==="queued")this.#seasonExternalOfferPlayerIds.add(playerId);
         if(result.decision==="accept"||result.decision==="locked"||result.decision==="queued"){
           this.#seasonContractReleasePlayerIds.delete(playerId);
+          this.#seasonContractQualifiedPlayerIds.delete(playerId);
           this.#userStore.saveState(this.#state.exportState());
         }
       }
@@ -394,23 +413,52 @@ export class AppController{
     if(action==="season-contract-release"){
       const playerId=clickable.dataset.playerId;
       if(playerId){
+        const row=this.#buildSeasonContractDecisionView().rows.find(candidate=>candidate.playerId===playerId);
         this.#seasonContractReleasePlayerIds.add(playerId);
-        this.#seasonContractOutcomes.set(playerId,"Игрок будет отпущен после окончания сезона");
+        this.#seasonContractQualifiedPlayerIds.delete(playerId);
+        this.#seasonContractOutcomes.set(playerId,(row?.ufaStatus==="OSA"||row?.ufaStatus==="ОСА")?"Игрок не будет квалифицирован и выйдет на рынок без компенсации.":"Игрок будет отпущен после окончания сезона");
       }
       this.#renderScreen();
       return;
     }
     if(action==="season-contract-undo-release"){
       const playerId=clickable.dataset.playerId;
-      if(playerId)this.#seasonContractReleasePlayerIds.delete(playerId);
+      if(playerId){
+        this.#seasonContractReleasePlayerIds.delete(playerId);
+        this.#seasonContractQualifiedPlayerIds.delete(playerId);
+      }
+      this.#renderScreen();
+      return;
+    }
+    if(action==="season-contract-qualify"){
+      const playerId=clickable.dataset.playerId;
+      if(playerId){
+        this.#seasonContractQualifiedPlayerIds.add(playerId);
+        this.#seasonContractReleasePlayerIds.delete(playerId);
+        this.#seasonContractOutcomes.set(playerId,"Квалификационное предложение сделано. Права ОСА сохранятся.");
+      }
+      this.#renderScreen();
+      return;
+    }
+    if(action==="season-contract-qualify-pending-osa"){
+      const offers=Object.fromEntries(this.#offerByPlayerId);
+      this.#state.getSeasonContractDecisionRows(offers)
+        .filter(row=>!row.hasFutureContract&&!row.isRenewalLocked&&(row.ufaStatus==="OSA"||row.ufaStatus==="ОСА"))
+        .forEach(row=>{
+          this.#seasonContractQualifiedPlayerIds.add(row.playerId);
+          this.#seasonContractReleasePlayerIds.delete(row.playerId);
+        });
       this.#renderScreen();
       return;
     }
     if(action==="season-contract-release-pending"){
       const offers=Object.fromEntries(this.#offerByPlayerId);
       this.#state.getSeasonContractDecisionRows(offers)
-        .filter(row=>!row.hasFutureContract&&!row.isRenewalLocked)
-        .forEach(row=>this.#seasonContractReleasePlayerIds.add(row.playerId));
+        .filter(row=>!row.hasFutureContract&&!row.isRenewalLocked&&!this.#seasonContractQualifiedPlayerIds.has(row.playerId))
+        .forEach(row=>{
+          this.#seasonContractReleasePlayerIds.add(row.playerId);
+          this.#seasonContractQualifiedPlayerIds.delete(row.playerId);
+        });
       this.#renderScreen();
       return;
     }
@@ -421,6 +469,7 @@ export class AppController{
       const externalRightsOffers=[...this.#seasonExternalOfferPlayerIds].map(playerId=>({playerId,offer:this.#offerByPlayerId.get(playerId)})).filter(entry=>entry.offer);
       this.#state.advanceToNextSeason({releaseRightsPlayerIds:[...this.#seasonContractReleasePlayerIds],externalRightsOffers});
       this.#seasonContractReleasePlayerIds.clear();
+      this.#seasonContractQualifiedPlayerIds.clear();
       this.#seasonExternalOfferPlayerIds.clear();
       this.#seasonContractOutcomes.clear();
       this.#userStore.saveState(this.#state.exportState());
@@ -594,6 +643,7 @@ export class AppController{
       const result=this.#state.matchRestrictedRightsOffer(offerId,this.#offerByPlayerId.get(offerId));
       if(result?.accepted){
         this.#offerByPlayerId.delete(offerId);
+        this.#dismissedOfferSheetPopupIds.delete(offerId);
         this.#userStore.saveState(this.#state.exportState());
       }
       this.#renderScreen();
@@ -604,6 +654,7 @@ export class AppController{
       const result=this.#state.releaseRestrictedRightsOffer(offerId);
       if(result?.accepted){
         this.#offerByPlayerId.delete(offerId);
+        this.#dismissedOfferSheetPopupIds.delete(offerId);
         this.#userStore.saveState(this.#state.exportState());
       }
       this.#renderScreen();

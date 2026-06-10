@@ -9,6 +9,7 @@ import { PlayerRetirementService } from "./PlayerRetirementService.js";
 import { createPreseasonDates, getPreseasonDateAt } from "./PreseasonSchedule.js";
 import { TEAM_ROSTER_POSITION_TARGETS, TEAM_ROSTER_TARGET_SIZE } from "./RosterTargets.js";
 import { KhlProspectDepartureService } from "./KhlProspectDepartureService.js";
+import { OfferSheetCompensationService } from "./OfferSheetCompensationService.js";
 
 const createUtcDate = (year, monthIndex, day) => new Date(Date.UTC(year, monthIndex, day));
 const formatSeasonLabel = (startYear) => `${startYear}/${startYear + 1}`;
@@ -32,6 +33,7 @@ export class SeasonTransitionService {
   #development;
   #retirements = new PlayerRetirementService();
   #prospectDepartures = new KhlProspectDepartureService();
+  #offerSheetCompensation = new OfferSheetCompensationService();
 
   constructor(contractService, aiRenewalService, developmentService) {
     this.#contracts = contractService;
@@ -200,6 +202,7 @@ export class SeasonTransitionService {
         preseasonOpen: true,
         preseasonOffers: [],
         restrictedRightsOffers,
+        offerSheetCompensations: [],
       },
       freeAgents: collectUniqueFreeAgents(activePlayers),
       retiredPlayerIds: [...retiredPlayerIds],
@@ -471,6 +474,7 @@ export class SeasonTransitionService {
         years: best.preview.offer.years,
         salaryRub: best.preview.offer.salaryRub,
       },
+      compensation: this.#offerSheetCompensation.calculate(best.preview.offer),
       status: "pending",
       createdAt: new Date().toISOString(),
     };

@@ -5,6 +5,7 @@ import { TradeTabRenderer } from "./TradeTabRenderer.js";
 import { JuniorTeamTabRenderer } from "./JuniorTeamTabRenderer.js";
 import { TransferTabRenderer } from "./TransferTabRenderer.js";
 import { SeasonContractDecisionRenderer } from "./SeasonContractDecisionRenderer.js";
+import { OfferSheetPopupRenderer } from "./OfferSheetPopupRenderer.js";
 import { calculateAge } from "../contracts/SeasonUtils.js";
 import { adjustedOvrForPosition } from "../utils/positionFit.js";
 import { getPlayerPhotoUrl, PHOTO_FALLBACK_ATTR } from "../utils/PlayerPhoto.js";
@@ -208,7 +209,7 @@ const renderNotificationCenter=notifications=>{
   </div>`;
 };
 export class Renderer{
-  #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();#teamStatsTab=new TeamStatsTabRenderer();#freeAgentTab=new FreeAgentTabRenderer();#tradeTab=new TradeTabRenderer();#juniorTab=new JuniorTeamTabRenderer();#transferTab=new TransferTabRenderer();#seasonContractDecision=new SeasonContractDecisionRenderer();
+  #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();#teamStatsTab=new TeamStatsTabRenderer();#freeAgentTab=new FreeAgentTabRenderer();#tradeTab=new TradeTabRenderer();#juniorTab=new JuniorTeamTabRenderer();#transferTab=new TransferTabRenderer();#seasonContractDecision=new SeasonContractDecisionRenderer();#offerSheetPopup=new OfferSheetPopupRenderer();
   constructor(){
     this.#teamEl=document.getElementById("teamPanel");
     this.#calEl=document.getElementById("calendarPanel");
@@ -297,6 +298,10 @@ export class Renderer{
   renderSeasonContractDecision(view){
     if(!view?.isOpen)return;
     this.#teamEl.insertAdjacentHTML("beforeend",this.#seasonContractDecision.render(view));
+  }
+  renderOfferSheetPopup(view){
+    if(!view?.row)return;
+    this.#teamEl.insertAdjacentHTML("beforeend",this.#offerSheetPopup.render(view));
   }
   renderFreeAgents(rows,negotiation){
     const container=document.getElementById("teamTabContent");

@@ -75,13 +75,13 @@ export class ContractTabRenderer {
       return `<div class="osa-rights-card">
         <div class="osa-rights-top">
           <div><span class="contract-chip warning">ОСА</span><strong>${row.playerName}</strong><span>${row.position} • OVR ${row.ovr}</span>${row.sourceLabel ? `<span>${row.sourceLabel}</span>` : ""}</div>
-          <div class="osa-rights-offer"><span>Лучший оффер</span><strong>${row.offerTeamName}</strong><span>${bestOffer.years} г. • ${this.#formatMillions(bestOffer.salaryRub)} млн</span></div>
+          <div class="osa-rights-offer"><span>Лучший оффер</span><strong>${row.offerTeamName}</strong><span>${bestOffer.years} г. • ${this.#formatMillions(bestOffer.salaryRub)} млн</span><span>Компенсация: ${row.compensationLabel || "без компенсации"}</span></div>
         </div>
         <div class="osa-rights-body">
-          <div class="muted">Агент игрока принес оффер от другого клуба. Чтобы сохранить игрока, нужно повторить или улучшить условия.</div>
+          <div class="muted">Агент игрока принес оффершит от другого клуба. Повторите условия или отпустите игрока за компенсацию.</div>
           <div class="row">${yearsButtons}</div>
           ${salaryControls}
-          <div class="row"><button class="btn" data-action="match-osa-offer" data-offer-id="${row.id}">Повторить оффер</button><button class="btn secondary danger" data-action="release-osa-rights" data-offer-id="${row.id}">Отпустить игрока</button></div>
+          <div class="row"><button class="btn" data-action="match-osa-offer" data-offer-id="${row.id}">Повторить оффершит</button><button class="btn secondary danger" data-action="release-osa-rights" data-offer-id="${row.id}">Забрать компенсацию</button></div>
         </div>
       </div>`;
     }).join("");
