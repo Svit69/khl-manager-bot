@@ -1572,7 +1572,7 @@ export class AppState {
       ? this.#getRenewalStartSeason(player)
       : this.#contracts.getSigningStartSeason(context);
     return this.#salaryCap.assessOffer({
-      contracts: this.#contracts.exportContracts(),
+      contracts: this.#exportContractRows(),
       teamId: team.id,
       playerId: player.id,
       startSeason,
@@ -1583,7 +1583,7 @@ export class AppState {
   #assessTradeSalaryCap(opponent, givePlayerIds, receivePlayerIds) {
     if (!this.#gameSettings.salaryCapEnabled) return { allowed: true, failures: [] };
     return this.#salaryCap.assessTrade({
-      contracts: this.#contracts.exportContracts(),
+      contracts: this.#exportContractRows(),
       userTeamId: this.#activeTeamId,
       aiTeamId: opponent?.id,
       givePlayerIds,
@@ -1596,6 +1596,11 @@ export class AppState {
     const contracts = this.#contracts.getContractsForPlayer(player.id);
     const lastContract = contracts[contracts.length - 1];
     return lastContract?.season ? formatNextSeason(lastContract.season) : this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
+  }
+
+  #exportContractRows() {
+    const payload = this.#contracts.exportContracts();
+    return Array.isArray(payload) ? payload : payload?.contracts || [];
   }
 
   #buildSalaryCapRejection(assessment, team = null) {
