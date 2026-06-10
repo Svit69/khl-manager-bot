@@ -1,5 +1,6 @@
 import { calculateAge } from "../contracts/SeasonUtils.js";
 import { getPlayerPhotoUrl, PHOTO_FALLBACK_ATTR } from "../utils/PlayerPhoto.js";
+import { formatTradeSalary, renderTradeSalaryCap } from "./TradeSalaryCapRenderer.js";
 
 const formatDelta = (value) => {
   if (typeof value !== "number" || Number.isNaN(value)) return "—";
@@ -15,11 +16,12 @@ const renderPlayerPickRow = (side, player, selectedIds) => {
   const position = player.identity?.primaryPosition || "—";
   const isRightsAsset = Boolean(player.externalCareer);
   const assetLabel = isRightsAsset ? `<span class="trade-rights-chip">Права • ${player.externalCareer?.league || "НХЛ / АХЛ"}</span>` : "";
+  const salaryLabel = formatTradeSalary(player.tradeSalaryRub);
   return `<button class="trade-player-row${selected ? " selected" : ""}" data-action="trade-toggle-${side}" data-player-id="${player.id}" data-asset-key="${assetKey}">
     <img class="trade-player-photo" src="${getPlayerPhotoUrl(player)}" alt="${player.name}" ${PHOTO_FALLBACK_ATTR}>
     <div class="trade-player-main">
       <span class="trade-player-name ${getNameFitClass(player.name)}" title="${player.name}">${player.name}</span>
-      <span class="trade-player-subtitle"><span>${position}</span><span>${age} лет</span>${assetLabel}</span>
+      <span class="trade-player-subtitle"><span>${position}</span><span>${age} лет</span>${salaryLabel ? `<span>${salaryLabel}</span>` : ""}${assetLabel}</span>
     </div>
     <div class="trade-player-rating">
       <span class="trade-player-rating-label">OVR</span>
@@ -77,12 +79,13 @@ export class TradeTabRenderer {
       giveSelectedIds = new Set(),
       receiveSelectedIds = new Set(),
       evaluation = null,
+      salaryCap = null,
       message = ""
     } = view || {};
 
     const indicator = evaluation?.indicator ? evaluation.indicator.text : "Соберите пакет";
     const decision = evaluation?.decision?.label || "Добавьте игроков с обеих сторон и оцените сделку";
-    const submitDisabled = !selectedTeam || !evaluation?.isValid ? "disabled" : "";
+    const submitDisabled = !selectedTeam || !evaluation?.isValid || salaryCap?.allowed === false ? "disabled" : "";
     const giveCount = evaluation?.givePlayers?.length || 0;
     const receiveCount = evaluation?.receivePlayers?.length || 0;
     const acceptance = evaluation?.decision?.accepted ? "Да" : "Нет";
@@ -115,6 +118,8 @@ export class TradeTabRenderer {
           <strong>${acceptanceHint}</strong>
         </div>
       </div>
+
+      ${renderTradeSalaryCap(salaryCap)}
 
       ${selectedTeam ? `<div class="trade-grid">
         <section class="trade-panel">

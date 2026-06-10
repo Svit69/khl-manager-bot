@@ -5,6 +5,7 @@ import { ContractService } from "../contracts/ContractService.js";
 import { ContractType } from "../contracts/ContractType.js";
 import { getFallbackMarketSalaryRub } from "../contracts/FallbackMarketSalary.js";
 import { SalaryCapService } from "../contracts/SalaryCapService.js";
+import { buildTradeSalaryCapPreview } from "../contracts/TradeSalaryCapPreview.js";
 import { StandingsTracker } from "../stats/StandingsTracker.js";
 import { calculateAge, formatContractEndDate, formatNextSeason, parseSeasonEnd, setSeasonReferenceDate } from "../contracts/SeasonUtils.js";
 import { PlayerDevelopmentService } from "../progression/PlayerDevelopmentService.js";
@@ -171,6 +172,25 @@ export class AppState {
       .reduce((sum, contract) => sum + (Number(contract.salaryRub) || 0), 0);
     const capRub = this.#salaryCap.getCapRub(seasonLabel);
     return { enabled: true, seasonLabel, capRub, payrollRub, remainingRub: Math.max(0, capRub - payrollRub) };
+  }
+
+  getTradeSalaryCapPreview(opponentId, givePlayerIds = [], receivePlayerIds = []) {
+    if (!this.#gameSettings.salaryCapEnabled || !this.#activeTeamId || !opponentId) return null;
+    const seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
+    return buildTradeSalaryCapPreview({
+      contracts: this.#exportContractRows(),
+      userTeamId: this.#activeTeamId,
+      aiTeamId: opponentId,
+      givePlayerIds,
+      receivePlayerIds,
+      seasonLabel,
+      getCapRub: (season) => this.#salaryCap.getCapRub(season),
+    });
+  }
+
+  getTradePlayerSalaryRub(playerId, seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel) {
+    if (!playerId || !this.#gameSettings.salaryCapEnabled) return null;
+    return this.#getPlayerSalaryForSeason(playerId, seasonLabel);
   }
   getSeasonState() {
     return {

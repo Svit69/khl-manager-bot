@@ -172,6 +172,32 @@
 .trade-status-pill.positive{border-color:rgba(92,215,148,.34)}
 .trade-status-pill.negative{border-color:rgba(255,129,129,.34)}
 .trade-status-pill.wide strong{white-space:normal}
+.trade-cap-panel{
+  display:grid;
+  gap:12px;
+  padding:14px;
+  border-radius:16px;
+  border:1px solid rgba(128,247,202,.2);
+  background:linear-gradient(135deg,rgba(128,247,202,.08),rgba(126,214,255,.05)),rgba(5,12,28,.64);
+}
+.trade-cap-panel.danger{border-color:rgba(255,129,129,.38);background:linear-gradient(135deg,rgba(255,129,129,.1),rgba(255,203,108,.05)),rgba(5,12,28,.68)}
+.trade-cap-head span,.trade-cap-team-head span,.trade-cap-grid span{color:#8fb7f4;font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+.trade-cap-head strong{display:block;margin-top:3px;color:#f5f9ff;font-size:18px}
+.trade-cap-panel.ok .trade-cap-head strong{color:#8df7cb}
+.trade-cap-panel.danger .trade-cap-head strong{color:#ff9c9c}
+.trade-cap-teams{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.trade-cap-team{display:grid;gap:9px;min-width:0;padding:12px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid rgba(118,163,233,.12)}
+.trade-cap-team.warn{border-color:rgba(255,203,108,.34)}
+.trade-cap-team.danger{border-color:rgba(255,129,129,.38)}
+.trade-cap-team-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.trade-cap-team-head strong{color:#f5f9ff}
+.trade-cap-track{height:8px;overflow:hidden;border-radius:999px;background:rgba(255,255,255,.08)}
+.trade-cap-track span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#80f7ca,#7ed6ff)}
+.trade-cap-team.warn .trade-cap-track span{background:linear-gradient(90deg,#ffd28a,#ffb15c)}
+.trade-cap-team.danger .trade-cap-track span{background:linear-gradient(90deg,#ff9c9c,#ff6b6b)}
+.trade-cap-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.trade-cap-grid div{display:grid;gap:3px;min-width:0;padding:8px;border-radius:10px;background:rgba(255,255,255,.04)}
+.trade-cap-grid strong{min-width:0;color:#edf6ff;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .trade-grid{
   display:grid;
   grid-template-columns:minmax(0,1fr) minmax(0,1fr);
@@ -465,6 +491,7 @@
 @media (max-width:1300px){
   .trade-status-bar{grid-template-columns:1fr}
   .trade-grid{grid-template-columns:1fr}
+  .trade-cap-teams{grid-template-columns:1fr}
   .trade-summary{grid-template-columns:1fr}
   .negotiation-head{grid-template-columns:1fr}
 }
@@ -478,6 +505,7 @@
   .trade-list-header{grid-template-columns:40px minmax(0,1fr) 64px}
   .trade-player-name{font-size:15px}
   .trade-player-rating strong{font-size:18px}
+  .trade-cap-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .trade-deal-head{align-items:flex-start;flex-direction:column}
   .contract-meta-grid{grid-template-columns:1fr}
   .negotiation-offer-grid{grid-template-columns:1fr}

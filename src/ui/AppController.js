@@ -235,17 +235,25 @@ export class AppController{
     const giveIds=[...this.#tradeGivePlayerIds];
     const receiveIds=[...this.#tradeReceivePlayerIds];
     const evaluation=selectedTeam?this.#state.evaluateTradeWithTeam(selectedTeam.id,giveIds,receiveIds):null;
+    const salaryCap=selectedTeam?this.#state.getTradeSalaryCapPreview(selectedTeam.id,giveIds,receiveIds):null;
     return {
       partners,
       selectedTeamId:selectedTeam?.id||"",
       selectedTeam,
-      giveCandidates,
-      receiveCandidates,
+      giveCandidates:this.#decorateTradeCandidates(giveCandidates),
+      receiveCandidates:this.#decorateTradeCandidates(receiveCandidates),
       giveSelectedIds:this.#tradeGivePlayerIds,
       receiveSelectedIds:this.#tradeReceivePlayerIds,
       evaluation,
+      salaryCap,
       message:this.#tradeMessage
     };
+  }
+  #decorateTradeCandidates(players){
+    return (players||[]).map(player=>({
+      ...player,
+      tradeSalaryRub:player.externalCareer?null:this.#state.getTradePlayerSalaryRub(player.id)
+    }));
   }
   #buildSeasonContractDecisionView(){
     if(!this.#seasonContractDecisionOpen || !this.#state.activeTeam)return {isOpen:false};
