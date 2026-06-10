@@ -396,7 +396,11 @@ export class Renderer{
       renderDraftPositionBlock("ВРТ",userRoster.G||[])
     ].join("");
     const status=draft.isComplete?"Драфт завершен":(draft.isUserTurn?`Ваш пик: ${draft.currentTeamName}`:`Пикает: ${draft.currentTeamName}`);
-    const salaryCap=draft.salaryCap||null;
+    const salaryCap=draft.salaryCap?{
+      ...draft.salaryCap,
+      selectedSalaryRub:previewPlayer?Number(draft.salaryCap.salaryByPlayerId?.[previewPlayer.id])||0:0,
+      selectedFits:!previewPlayer || (Number(draft.salaryCap.userPayrollRub)||0)+(Number(draft.salaryCap.salaryByPlayerId?.[previewPlayer.id])||0)<=Number(draft.salaryCap.capRub)
+    }:null;
     const capSummary=salaryCap?`<div class="draft-cap-summary"><div><span>Потолок ${salaryCap.seasonLabel}</span><strong>${formatMillions(salaryCap.userPayrollRub)} / ${formatMillions(salaryCap.capRub)} млн</strong></div><div><span>Доступно</span><strong>${formatMillions(salaryCap.remainingRub)} млн</strong></div><div><span>Выбранный</span><strong>${formatMillions(salaryCap.selectedSalaryRub)} млн</strong></div></div>`:"";
     const capMessage=salaryCap&&!salaryCap.selectedFits?`<div class="draft-warning">Игрок не помещается под потолок зарплат.</div>`:"";
     const draftMessage=draft.message?`<div class="draft-warning">${draft.message}</div>`:"";

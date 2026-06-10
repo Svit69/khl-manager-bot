@@ -142,7 +142,7 @@ export class FantasyDraftService {
       sortBy,
       filterPosition,
       availablePlayers: sorted,
-      salaryCap: this.#buildSalaryCapView(previewPlayer),
+      salaryCap: this.#buildSalaryCapView(),
       userRosterByPosition: this.getUserRosterByPosition(),
       teams: this.#teams.map((team) => ({
         id: team.id,
