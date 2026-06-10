@@ -2,7 +2,7 @@ export class FreeAgentTabRenderer {
   render(rows, negotiation) {
     const content = rows
       .map((row) => {
-        const status = this.#formatStatus(row.age, row.khlGamesPlayed);
+        const status = row.freeAgentStatus || this.#formatStatus(row.age, row.khlGamesPlayed);
         const controls = `<div class="row"><button class="btn secondary" data-action="open-negotiation" data-player-id="${row.playerId}">Подписать</button></div>`;
         const negotiationPanel =
           negotiation && negotiation.playerId === row.playerId ? this.#renderNegotiationPanel(negotiation) : "";

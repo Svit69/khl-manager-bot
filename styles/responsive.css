@@ -10,6 +10,8 @@
   .team-select-mark::before,
   .team-select-mark::after{display:none}
   .team-select-hero h2{font-size:26px}
+  .team-select-settings{align-items:stretch;flex-direction:column}
+  .team-select-toggle{min-width:0}
   .team-select-grid{grid-template-columns:1fr}
   .team-select-dock{
     width:100%;

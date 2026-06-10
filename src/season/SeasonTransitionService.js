@@ -41,7 +41,7 @@ export class SeasonTransitionService {
     this.#development = developmentService;
   }
 
-  advanceToNextSeason({ teams, calendar, activeTeamId, standingsTable, scorerTable, allPlayers, buildContext, pushNotification, releaseRightsPlayerIds = [] }) {
+  advanceToNextSeason({ teams, calendar, activeTeamId, standingsTable, scorerTable, allPlayers, buildContext, pushNotification, releaseRightsPlayerIds = [], restrictedFreeAgencyEnabled = true }) {
     const currentSeasonLabel = calendar.seasonLabel;
     const nextSeasonStartYear = calendar.seasonStartYear + 1;
     const nextSeasonLabel = formatSeasonLabel(nextSeasonStartYear);
@@ -91,7 +91,7 @@ export class SeasonTransitionService {
       const currentTeamId = player.affiliation?.teamId || null;
       const naDeparture = currentTeamId ? this.#prospectDepartures.evaluate(player, { seasonLabel: currentSeasonLabel, seasonDate: offseasonDate }) : null;
       if (naDeparture) {
-        this.#movePlayerToExternalRights(player, currentTeamId, naDeparture);
+        this.#movePlayerToExternalRights(player, restrictedFreeAgencyEnabled ? currentTeamId : null, naDeparture);
         departures.push({ player, fromTeamId: currentTeamId, reason: "northAmerica" });
         releasedPlayerIds.push(player.id);
         return;
@@ -100,7 +100,7 @@ export class SeasonTransitionService {
         calculateAge(player.identity?.birthDate, offseasonDate),
         player.career?.khlGamesPlayed || 0,
       );
-      if (currentTeamId && ufaStatus === "OSA" && !(currentTeamId === activeTeamId && releasedRightsPlayerIds.has(player.id))) {
+      if (restrictedFreeAgencyEnabled && currentTeamId && ufaStatus === "OSA" && !(currentTeamId === activeTeamId && releasedRightsPlayerIds.has(player.id))) {
         const retainedContract = this.#contracts.retainRestrictedFreeAgent(player, currentTeamId, nextSeasonLabel);
         player.affiliation.teamId = currentTeamId;
         player.affiliation.contractId = retainedContract?.id || player.affiliation.contractId || null;

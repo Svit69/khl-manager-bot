@@ -224,11 +224,12 @@ export class Renderer{
     const sidebar=renderTeamSidebar(team,activeTab);
     this.#teamEl.innerHTML=`<div class="team-screen">${sidebar}<div class="team-screen-main"><div class="team-screen-header"><div><div class="team-screen-title">${team.name}</div><div class="team-screen-subtitle">${team.city}, ${team.shortName}</div></div><div class="team-screen-status">${renderNotificationCenter(notifications)}<span class="team-screen-status-pill">Club Hub</span><span class="team-screen-status-pill team-screen-status-pill-muted">${activeTab==="roster"?"Основной состав":"Управление клубом"}</span></div></div>${rosterView}<div id="teamTabContent"></div></div></div>`;
   }
-  renderTeamSelection(teams,activeTeamId,selectedTeamId=null){
+  renderTeamSelection(teams,activeTeamId,selectedTeamId=null,settings={}){
     const popularShortNames=new Set(["AVT","AKB","CSK","AVG"]);
     const popularTeams=teams.filter(team=>popularShortNames.has(team.shortName));
     const otherTeams=teams.filter(team=>!popularShortNames.has(team.shortName));
     const selectedTeam=teams.find(team=>team.id===selectedTeamId)||null;
+    const rfaEnabled=settings.restrictedFreeAgencyEnabled!==false;
     const renderCard=team=>`<button class="team-select-card${selectedTeamId===team.id?" active":""}" data-team-id="${team.id}">
       <div class="team-select-card-glow"></div>
       <div class="team-select-card-body">
@@ -238,6 +239,7 @@ export class Renderer{
       </div>
     </button>`;
     const renderSection=(title,cards)=>cards.length?`<section class="team-select-section"><h3>${title}</h3><div class="team-select-grid">${cards.map(renderCard).join("")}</div></section>`:"";
+    const settingsPanel=`<section class="team-select-settings"><div><h3>Настройки карьеры</h3><p>Можно изменить до выбора клуба.</p></div><label class="team-select-toggle"><input type="checkbox" data-action="new-game-rfa-toggle" ${rfaEnabled?"checked":""}><span></span><strong>ОСА / НСА и права игроков</strong><small>${rfaEnabled?"Включены квалификационные предложения, оффершиты и права на игроков.":"Все истекающие игроки становятся свободными агентами, права и оффершиты отключены."}</small></label></section>`;
     const actionDock=selectedTeam?`<div class="team-select-dock">
       <div class="team-select-dock-meta">
         <span class="team-select-dock-label">Выбран клуб</span>
@@ -256,6 +258,7 @@ export class Renderer{
         <p>Начните обычную карьеру или сразу перейдите в режим фэнтези-драфта. Выбранная команда станет вашей точкой входа в новое сохранение.</p>
       </div>
       <div class="team-select-content">
+        ${settingsPanel}
         ${renderSection("Популярные клубы",popularTeams)}
         ${renderSection("Все клубы",otherTeams)}
       </div>

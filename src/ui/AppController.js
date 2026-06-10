@@ -14,6 +14,7 @@ export class AppController{
   #matchPlaybackTimer=null;
   #calendarPanelTab="standings";
   #notificationVisibleCount=6;
+  #newGameSettings={restrictedFreeAgencyEnabled:true};
   #seasonContractDecisionOpen=false;
   #seasonContractDecisionFilter="pending";
   #seasonContractDecisionSelectedPlayerId=null;
@@ -133,7 +134,7 @@ export class AppController{
       this.#renderer.renderResetButton();
       return;
     }
-    this.#renderer.renderTeamSelection(this.#teams,this.#state.activeTeamId,this.#pendingTeamId);
+    this.#renderer.renderTeamSelection(this.#teams,this.#state.activeTeamId,this.#pendingTeamId,this.#newGameSettings);
     this.#renderer.renderCalendar(calendarDateLabel,dayInfo,true,{
       tab:this.#calendarPanelTab,
       activeTeamId:this.#state.activeTeamId,
@@ -315,6 +316,12 @@ export class AppController{
     }
     if(action==="calendar-tab"){
       this.#calendarPanelTab=clickable.dataset.value||"standings";
+      this.#renderScreen();
+      return;
+    }
+    if(action==="new-game-rfa-toggle"){
+      this.#newGameSettings={...this.#newGameSettings,restrictedFreeAgencyEnabled:clickable.checked};
+      this.#state.updateGameSettings(this.#newGameSettings);
       this.#renderScreen();
       return;
     }
@@ -748,6 +755,7 @@ export class AppController{
       return;
     }
     if(action==="draft-intro-start" && this.#draftIntroTeamId){
+      this.#state.updateGameSettings(this.#newGameSettings);
       this.#startFantasyDraft(this.#draftIntroTeamId);
       this.#persistDraftState();
       this.#renderScreen();
@@ -801,6 +809,7 @@ export class AppController{
       return;
     }
     if(action==="confirm-team" && this.#pendingTeamId){
+      this.#state.updateGameSettings(this.#newGameSettings);
       this.#state.setActiveTeamId(this.#pendingTeamId);
       this.#teamStatsTeamId=this.#pendingTeamId;
       this.#pendingTeamId=null;
@@ -873,6 +882,7 @@ export class AppController{
     if(saved.stage==="intro" && saved.selectedTeamId){
       const selectedTeam=this.#teams.find(team=>team.id===saved.selectedTeamId);
       if(selectedTeam){
+        this.#newGameSettings={...this.#newGameSettings,...(saved.gameSettings||{})};
         this.#draftIntroTeamId=saved.selectedTeamId;
         return;
       }
@@ -891,13 +901,16 @@ export class AppController{
       filterPosition:saved.filterPosition||"ALL",
       selectedPlayerId:saved.selectedPlayerId||null
     };
+    this.#newGameSettings={...this.#newGameSettings,...(saved.gameSettings||{})};
+    this.#state.updateGameSettings(this.#newGameSettings);
     this.#completeDraftIfReady();
   }
   #persistDraftState(){
     if(this.#draftIntroTeamId){
       this.#userStore.saveDraft({
         stage:"intro",
-        selectedTeamId:this.#draftIntroTeamId
+        selectedTeamId:this.#draftIntroTeamId,
+        gameSettings:this.#newGameSettings
       });
       return;
     }
@@ -905,6 +918,7 @@ export class AppController{
     this.#userStore.saveDraft({
       stage:"live",
       selectedTeamId:this.#draftState.selectedTeamId,
+      gameSettings:this.#newGameSettings,
       sortBy:this.#draftState.sortBy,
       filterPosition:this.#draftState.filterPosition,
       selectedPlayerId:this.#draftState.selectedPlayerId,

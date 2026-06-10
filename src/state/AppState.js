@@ -66,6 +66,9 @@ const normalizeTransferLedger = (items = []) =>
   (Array.isArray(items) ? items : [])
     .filter((entry) => entry?.id && entry?.teamId && entry?.playerId)
     .map((entry) => ({ ...entry }));
+const normalizeGameSettings = (settings = {}) => ({
+  restrictedFreeAgencyEnabled: settings.restrictedFreeAgencyEnabled !== false,
+});
 
 export class AppState {
   #teams;
@@ -92,6 +95,7 @@ export class AppState {
   #notifications = [];
   #seasonHistory = [];
   #seasonState;
+  #gameSettings = normalizeGameSettings();
   #retiredPlayerIds = new Set();
   #transferLedger = [];
 
@@ -140,6 +144,7 @@ export class AppState {
   get activeTeamId() { return this.#activeTeamId; }
   get activeTeam() { return this.#teams.find((team) => team.id === this.#activeTeamId) || null; }
   get seasonHistory() { return [...this.#seasonHistory]; }
+  get gameSettings() { return { ...this.#gameSettings }; }
   getSeasonState() {
     return {
       ...this.#seasonState,
@@ -190,6 +195,11 @@ export class AppState {
     this.#activeTeamId = teamId;
   }
 
+  updateGameSettings(settings) {
+    if (this.#activeTeamId) return;
+    this.#gameSettings = normalizeGameSettings({ ...this.#gameSettings, ...(settings || {}) });
+  }
+
   getVisibleCalendarDay() {
     return this.#activeTeamId ? this.#calendar.getCurrentForTeam(this.#activeTeamId) : this.#calendar.getCurrent();
   }
@@ -219,7 +229,7 @@ export class AppState {
   }
 
   getActiveTeamRestrictedRightsRows() {
-    if (!this.#activeTeamId) return [];
+    if (!this.#activeTeamId || !this.#gameSettings.restrictedFreeAgencyEnabled) return [];
     const playersById = new Map(this.getAllKnownPlayers().map((player) => [player.id, player]));
     return (this.#seasonState?.restrictedRightsOffers || [])
       .filter((entry) => entry?.status === "pending" && entry.rightsTeamId === this.#activeTeamId)
@@ -240,6 +250,7 @@ export class AppState {
   }
 
   getExternalPlayerRows() {
+    if (!this.#gameSettings.restrictedFreeAgencyEnabled) return [];
     const teamsById = new Map(this.#teams.map((team) => [team.id, team]));
     const seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
     return this.#externalPlayers
@@ -280,7 +291,7 @@ export class AppState {
   }
 
   getExternalRightsPlayers(teamId) {
-    if (!teamId) return [];
+    if (!teamId || !this.#gameSettings.restrictedFreeAgencyEnabled) return [];
     const pendingPlayerIds = new Set(
       (this.#seasonState?.restrictedRightsOffers || [])
         .filter((entry) => entry?.status === "pending")
@@ -319,7 +330,9 @@ export class AppState {
   }
 
   getActiveTeamFreeAgentRows() {
-    return this.#contracts.getFreeAgentRows(this.getAvailableFreeAgents());
+    const rows = this.#contracts.getFreeAgentRows(this.getAvailableFreeAgents());
+    if (this.#gameSettings.restrictedFreeAgencyEnabled) return rows;
+    return rows.map((row) => ({ ...row, freeAgentStatus: "НСА" }));
   }
 
   getSeasonContractDecisionRows(offersByPlayerId = {}) {
@@ -340,6 +353,7 @@ export class AppState {
         const latestContract = contracts[contracts.length - 1] || currentContract;
         const hasFutureContract = parseSeasonEnd(latestContract.season) > parseSeasonEnd(seasonLabel);
         const age = calculateAge(player.identity?.birthDate, this.#getEffectiveNegotiationDate());
+        const ufaStatus = this.#gameSettings.restrictedFreeAgencyEnabled ? getUfaStatus(age, player.career?.khlGamesPlayed || 0) : "NSA";
         const preview = hasFutureContract
           ? null
           : this.#contracts.getRenewalPreview(team, player, offersByPlayerId[player.id] || null, context);
@@ -355,7 +369,7 @@ export class AppState {
           ovr: player.currentOvr ?? player.ovr,
           photoUrl: getPlayerPhotoUrl(player),
           khlGamesPlayed: player.career?.khlGamesPlayed || 0,
-          ufaStatus: getUfaStatus(age, player.career?.khlGamesPlayed || 0),
+          ufaStatus,
           location,
           salaryRub: currentContract.salaryRub || 0,
           contractType: this.#contracts.getContractTypeLabel(currentContract.type),
@@ -383,7 +397,7 @@ export class AppState {
   }
 
   getSeasonExternalRightsDecisionRows(offersByPlayerId = {}) {
-    if (!this.activeTeam) return [];
+    if (!this.activeTeam || !this.#gameSettings.restrictedFreeAgencyEnabled) return [];
     const seasonLabel = this.#calendar.seasonLabel;
     const context = this.#buildNegotiationContext(this.activeTeam);
     return this.#externalPlayers
@@ -516,6 +530,7 @@ export class AppState {
   }
 
   matchRestrictedRightsOffer(offerId, offer) {
+    if (!this.#gameSettings.restrictedFreeAgencyEnabled) return { accepted: false, message: "Права ОСА отключены в настройках игры." };
     const entry = (this.#seasonState?.restrictedRightsOffers || []).find(
       (candidate) => candidate.id === offerId && candidate.rightsTeamId === this.#activeTeamId && candidate.status === "pending",
     );
@@ -555,6 +570,7 @@ export class AppState {
   }
 
   releaseRestrictedRightsOffer(offerId) {
+    if (!this.#gameSettings.restrictedFreeAgencyEnabled) return { accepted: false, message: "Права ОСА отключены в настройках игры." };
     const entry = (this.#seasonState?.restrictedRightsOffers || []).find(
       (candidate) => candidate.id === offerId && candidate.rightsTeamId === this.#activeTeamId && candidate.status === "pending",
     );
@@ -615,6 +631,7 @@ export class AppState {
   }
 
   queueExternalRightsOffer(playerId, offer) {
+    if (!this.#gameSettings.restrictedFreeAgencyEnabled) return null;
     const player = this.#externalPlayers.find((entry) => entry.id === playerId && entry.externalCareer?.rightsTeamId === this.#activeTeamId);
     if (!this.activeTeam || !player || this.#hasPendingExternalRightsOffer(playerId)) return null;
     const season = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
@@ -756,7 +773,7 @@ export class AppState {
 
   canStartSeason() {
     if (!(this.#seasonState?.phase === "preseason" && this.#seasonState?.preseasonOpen)) return false;
-    if ((this.#seasonState?.restrictedRightsOffers || []).some((entry) => entry?.status === "pending" && entry.rightsTeamId === this.#activeTeamId)) return false;
+    if (this.#gameSettings.restrictedFreeAgencyEnabled && (this.#seasonState?.restrictedRightsOffers || []).some((entry) => entry?.status === "pending" && entry.rightsTeamId === this.#activeTeamId)) return false;
     const dates = this.#seasonState?.preseasonDates || [];
     return (Number(this.#seasonState?.preseasonIndex) || 0) >= Math.max(0, dates.length - 1);
   }
@@ -836,8 +853,9 @@ export class AppState {
       buildContext: (team) => this.#buildNegotiationContext(team),
       pushNotification: (notification) => this.#pushNotification(notification),
       releaseRightsPlayerIds: options.releaseRightsPlayerIds || [],
+      restrictedFreeAgencyEnabled: this.#gameSettings.restrictedFreeAgencyEnabled,
     });
-    transition.seasonState.externalRightsOffers = this.#buildTransitionExternalRightsOffers(options.externalRightsOffers || [], transition.seasonState);
+    transition.seasonState.externalRightsOffers = this.#gameSettings.restrictedFreeAgencyEnabled ? this.#buildTransitionExternalRightsOffers(options.externalRightsOffers || [], transition.seasonState) : [];
     this.#processExternalPlayerReturns(transition);
     this.#processAiExternalRightsActions(transition);
     this.#addNorthAmericaDeparturesToExternalPool(transition);
@@ -873,6 +891,7 @@ export class AppState {
       contracts: this.#contracts.exportContracts(),
       standings: this.#standings.getSnapshot(),
       rosters: createRosterSnapshots(this.#teams),
+      gameSettings: this.#gameSettings,
       notifications: this.#notifications,
       seasonHistory: this.#seasonHistory,
       seasonState: this.#seasonState,
@@ -884,6 +903,7 @@ export class AppState {
   importState(saved) {
     if (!saved) return;
     this.#retiredPlayerIds = new Set(Array.isArray(saved.retiredPlayerIds) ? saved.retiredPlayerIds : []);
+    this.#gameSettings = normalizeGameSettings(saved.gameSettings);
     this.#transferLedger = normalizeTransferLedger(saved.transferLedger);
     this.#activeTeamId = saved.activeTeamId || null;
     if (saved.calendar) this.#calendar.importState(saved.calendar);
@@ -1266,6 +1286,7 @@ export class AppState {
     const byId = new Map(this.#externalPlayers.map((player) => [player.id, player]));
     leavingPlayers.forEach((player) => byId.set(player.id, player));
     this.#externalPlayers = [...byId.values()];
+    if (!this.#gameSettings.restrictedFreeAgencyEnabled) return;
     leavingPlayers
       .filter((player) => player.externalCareer?.rightsTeamId === this.#activeTeamId)
       .forEach((player) => this.#pushNotification({
@@ -1300,7 +1321,7 @@ export class AppState {
       const { player, ufaStatus, rightsTeamId, fromLeague } = candidate;
       const rightsTeam = this.#teams.find((team) => team.id === rightsTeamId) || null;
 
-      if (ufaStatus === "NSA" || !rightsTeam) {
+      if (!this.#gameSettings.restrictedFreeAgencyEnabled || ufaStatus === "NSA" || !rightsTeam) {
         player.affiliation.teamId = null;
         player.affiliation.contractId = null;
         player.affiliation.acquiredDay = null;
@@ -1310,7 +1331,7 @@ export class AppState {
           id: `notification-external-fa-${player.id}-${Date.now()}`,
           type: "free-agent-market",
           title: "Возвращение из НХЛ / АХЛ",
-          message: `${player.name} освободился из ${fromLeague} и вышел на рынок свободных агентов как НСА`,
+          message: `${player.name} освободился из ${fromLeague} и вышел на рынок свободных агентов`,
           day: this.#calendar.currentDay,
           createdAt: new Date().toISOString(),
           playerId: player.id,
@@ -1378,6 +1399,7 @@ export class AppState {
   }
 
   #processAiExternalRightsActions(transition) {
+    if (!this.#gameSettings.restrictedFreeAgencyEnabled) return;
     const seasonLabel = transition?.seasonState?.seasonLabel;
     if (!seasonLabel) return;
     const seasonDate = `${parseSeasonEnd(seasonLabel)}-05-31`;
