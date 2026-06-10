@@ -203,6 +203,7 @@ export class SeasonTransitionService {
         preseasonOffers: [],
         restrictedRightsOffers,
         offerSheetCompensations: [],
+        northAmericaWarningSeason: null,
       },
       freeAgents: collectUniqueFreeAgents(activePlayers),
       retiredPlayerIds: [...retiredPlayerIds],
@@ -414,6 +415,7 @@ export class SeasonTransitionService {
     player.affiliation.contractId = null;
     player.affiliation.acquiredDay = null;
     player.expectedLineIndex = null;
+    player.northAmericaIntent = null;
   }
 
   #buildRetirementNotification(entry, day, isUserTeamPlayer) {

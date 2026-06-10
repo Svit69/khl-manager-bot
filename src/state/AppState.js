@@ -69,6 +69,11 @@ const normalizeTransferLedger = (items = []) =>
 const normalizeGameSettings = (settings = {}) => ({
   restrictedFreeAgencyEnabled: settings.restrictedFreeAgencyEnabled !== false,
 });
+const toDate = (value) => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+const getNorthAmericaWarningDate = (seasonLabel) => new Date(Date.UTC(parseSeasonEnd(seasonLabel), 2, 15));
 
 export class AppState {
   #teams;
@@ -123,6 +128,7 @@ export class AppState {
       externalRightsOffers: [],
       restrictedRightsOffers: [],
       offerSheetCompensations: [],
+      northAmericaWarningSeason: null,
       preseasonIndex: 0,
     };
     this.#transferLedger = [];
@@ -999,6 +1005,7 @@ export class AppState {
       externalRightsOffers: [],
       restrictedRightsOffers: [],
       offerSheetCompensations: [],
+      northAmericaWarningSeason: null,
       preseasonIndex: 0,
     };
     this.#syncSeasonReferenceDate();
@@ -1018,6 +1025,7 @@ export class AppState {
       this.#calendar.advanceDay();
       this.#syncSeasonReferenceDate();
       this.#runMonthlyAiRenewals(previousDate, this.#calendar.currentDate);
+      this.#runNorthAmericaInterestWarnings(this.#calendar.currentDate);
       this.#syncSeasonPhase();
       return null;
     }
@@ -1066,6 +1074,7 @@ export class AppState {
     this.#calendar.ensurePlayoffs(this.getStandingsTable());
     this.#syncSeasonReferenceDate();
     this.#runMonthlyAiRenewals(previousDate, this.#calendar.currentDate);
+    this.#runNorthAmericaInterestWarnings(this.#calendar.currentDate);
     this.#lastMatch = focusedMatches[0] || null;
     this.#syncSeasonPhase();
     return this.#lastMatch;
@@ -1794,6 +1803,58 @@ export class AppState {
       buildContext: (team) => this.#buildNegotiationContext(team),
     });
     notifications.forEach((notification) => this.#pushNotification(notification));
+  }
+
+  #runNorthAmericaInterestWarnings(currentDate) {
+    if (!this.#activeTeamId || !["regular", "playoffs"].includes(this.#seasonState?.phase)) return;
+    const seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
+    if (this.#seasonState?.northAmericaWarningSeason === seasonLabel) return;
+    const warningDate = getNorthAmericaWarningDate(seasonLabel);
+    const current = toDate(currentDate);
+    if (!current || current < warningDate) return;
+    const candidates = this.#buildNorthAmericaInterestCandidates(seasonLabel, currentDate);
+    candidates.slice(0, 4).forEach((entry) => this.#pushNorthAmericaInterestNotification(entry, seasonLabel));
+    this.#seasonState = { ...this.#seasonState, northAmericaWarningSeason: seasonLabel };
+  }
+
+  #buildNorthAmericaInterestCandidates(seasonLabel, currentDate) {
+    const seasonEnd = parseSeasonEnd(seasonLabel);
+    return [...(this.activeTeam?.getRoster() || []), ...(this.activeTeam?.juniorPlayers || [])]
+      .map((player) => {
+        const contracts = this.#contracts.getContractsForPlayer(player.id);
+        const currentContract = contracts.find((contract) => contract.season === seasonLabel);
+        if (!currentContract) return null;
+        const latest = contracts.reduce((best, contract) => (
+          parseSeasonEnd(contract.season) > parseSeasonEnd(best?.season) ? contract : best
+        ), currentContract);
+        const targetSeasonLabel = parseSeasonEnd(latest.season) > seasonEnd ? latest.season : seasonLabel;
+        const seasonDate = targetSeasonLabel === seasonLabel ? currentDate : `${parseSeasonEnd(targetSeasonLabel)}-05-31`;
+        const risk = this.#prospectDepartures.assess(player, { seasonLabel: targetSeasonLabel, seasonDate });
+        const minimumScore = targetSeasonLabel === seasonLabel ? 35 : 50;
+        if (!risk?.shouldSignal || risk.score < minimumScore) return null;
+        return { player, risk, targetSeasonLabel, hasFutureContract: targetSeasonLabel !== seasonLabel };
+      })
+      .filter(Boolean)
+      .sort((left, right) => right.risk.score - left.risk.score || right.player.ovr - left.player.ovr);
+  }
+
+  #pushNorthAmericaInterestNotification({ player, risk, targetSeasonLabel, hasFutureContract }, seasonLabel) {
+    const id = `notification-na-watch-${seasonLabel}-${player.id}`;
+    if (this.#notifications.some((notification) => notification.id === id)) return;
+    if (hasFutureContract) {
+      player.northAmericaIntent = { seasonLabel, targetSeasonLabel, league: risk.league, riskScore: risk.score, createdAtDay: this.#calendar.currentDay };
+    }
+    const ending = hasFutureContract ? `после окончания контракта ${formatContractEndDate(targetSeasonLabel)}` : "уже после этого сезона";
+    this.#pushNotification({
+      id,
+      type: "offseason-departure",
+      title: "Интерес НХЛ / АХЛ",
+      message: `${player.name}: представители ${risk.league} следят за игроком, он может рассмотреть отъезд ${ending}. Риск: ${risk.score}/100.`,
+      day: this.#calendar.currentDay,
+      createdAt: new Date().toISOString(),
+      playerId: player.id,
+      read: false,
+    });
   }
 
   #didMonthChange(previousDate, currentDate) {

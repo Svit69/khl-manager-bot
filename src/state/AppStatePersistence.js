@@ -21,6 +21,7 @@ export const createPlayerSnapshots = (players) =>
       photoUrl: player.identity?.photoUrl || null,
     },
     hiddenTraits: normalizeHiddenTraits(player.hiddenTraits),
+    northAmericaIntent: player.northAmericaIntent ? { ...player.northAmericaIntent } : null,
     externalCareer: player.externalCareer ? { ...player.externalCareer } : null,
     fatigueScore: player.fatigueScore,
     form: player.form,
@@ -60,6 +61,7 @@ export const createMissingSavedPlayers = (snapshots, existingPlayers, seasonLabe
           secondaryPositions: identity.secondaryPositions || [],
         },
         hiddenTraits: normalizeHiddenTraits(snapshot.hiddenTraits),
+        northAmericaIntent: snapshot.northAmericaIntent ? { ...snapshot.northAmericaIntent } : null,
         externalCareer: snapshot.externalCareer ? { ...snapshot.externalCareer } : null,
         attributes: snapshot.attributes?.attributesJson || DEFAULT_ATTRIBUTES,
         potential: { ...DEFAULT_POTENTIAL, ...(snapshot.potential || {}) },
@@ -83,6 +85,7 @@ export const createMissingSavedPlayers = (snapshots, existingPlayers, seasonLabe
         getSnapshotSeasonId(snapshot, seasonLabel),
         profile,
       );
+      if (snapshot.northAmericaIntent) player.northAmericaIntent = { ...snapshot.northAmericaIntent };
       if (snapshot.seasonStats) player.seasonStats.importSnapshot(snapshot.seasonStats);
       if ("expectedLineIndex" in snapshot) player.expectedLineIndex = snapshot.expectedLineIndex;
       return player;
@@ -105,6 +108,7 @@ export const restorePlayerSnapshots = (players, snapshots) => {
     if (snapshot.identity && "photoUrl" in snapshot.identity) player.identity.photoUrl = snapshot.identity.photoUrl;
     if (snapshot.identity && "secondaryPositions" in snapshot.identity) player.identity.secondaryPositions = snapshot.identity.secondaryPositions;
     if ("hiddenTraits" in snapshot) player.hiddenTraits = normalizeHiddenTraits(snapshot.hiddenTraits);
+    if ("northAmericaIntent" in snapshot) player.northAmericaIntent = snapshot.northAmericaIntent ? { ...snapshot.northAmericaIntent } : null;
     if ("externalCareer" in snapshot) player.externalCareer = snapshot.externalCareer ? { ...snapshot.externalCareer } : null;
     if ("photoUrl" in snapshot) player.identity.photoUrl = snapshot.photoUrl;
     if ("teamId" in snapshot) player.affiliation.teamId = snapshot.teamId;
@@ -124,6 +128,7 @@ export const normalizeSeasonState = (savedSeasonState, seasonLabel) =>
       externalRightsOffers: Array.isArray(savedSeasonState.externalRightsOffers) ? savedSeasonState.externalRightsOffers : [],
       restrictedRightsOffers: Array.isArray(savedSeasonState.restrictedRightsOffers) ? savedSeasonState.restrictedRightsOffers : [],
       offerSheetCompensations: Array.isArray(savedSeasonState.offerSheetCompensations) ? savedSeasonState.offerSheetCompensations : [],
+      northAmericaWarningSeason: savedSeasonState.northAmericaWarningSeason || null,
       preseasonIndex: Number(savedSeasonState.preseasonIndex) || 0,
     }
     : {
@@ -136,5 +141,6 @@ export const normalizeSeasonState = (savedSeasonState, seasonLabel) =>
       externalRightsOffers: [],
       restrictedRightsOffers: [],
       offerSheetCompensations: [],
+      northAmericaWarningSeason: null,
       preseasonIndex: 0,
     };
