@@ -42,6 +42,11 @@ import {
   restorePlayerSnapshots,
 } from "./AppStatePersistence.js";
 import {
+  collectSavedExternalPlayerIds,
+  excludeExternalRightsPlayersFromActivePool,
+  shouldRestoreExternalRightsPlayer,
+} from "./AppStateExternalImport.js";
+import {
   applyFantasyDraftAssignments,
   createRosterSnapshots,
   importSavedRosters,
@@ -991,6 +996,7 @@ export class AppState {
       if (saved.calendarResults) this.#calendar.importResults(saved.calendarResults);
     }
     if (saved.contracts) this.#contracts.importContracts(saved.contracts);
+    const savedExternalPlayerIds = collectSavedExternalPlayerIds(saved.externalPlayers);
     if (Array.isArray(saved.externalPlayers)) {
       const missingExternalPlayers = createMissingSavedPlayers(
         saved.externalPlayers,
@@ -999,8 +1005,7 @@ export class AppState {
       );
       this.#externalPlayers = [...this.#externalPlayers, ...missingExternalPlayers];
       restorePlayerSnapshots(this.#externalPlayers, saved.externalPlayers);
-      const savedExternalIds = new Set(saved.externalPlayers.map((player) => player?.id).filter(Boolean));
-      this.#externalPlayers = this.#externalPlayers.filter((player) => savedExternalIds.has(player.id));
+      this.#externalPlayers = this.#externalPlayers.filter((player) => savedExternalPlayerIds.has(player.id));
     }
     if (saved.rosters) {
       this.#juniors.ensureSavedJuniorPlayers({
@@ -1021,7 +1026,7 @@ export class AppState {
     }
     const activeSavedPlayerIds = new Set((saved.players || []).map((player) => player?.id).filter(Boolean));
     this.#externalPlayers = this.#externalPlayers.filter(
-      (player) => !activeSavedPlayerIds.has(player.id) && !this.#retiredPlayerIds.has(player.id),
+      (player) => shouldRestoreExternalRightsPlayer(player, activeSavedPlayerIds, savedExternalPlayerIds, this.#retiredPlayerIds),
     );
     if (saved.rosters) {
       importSavedRosters({
@@ -1043,7 +1048,7 @@ export class AppState {
       ...this.#freeAgents,
     ].map((player) => [player.id, player])).values()];
 
-    const activePlayers = basePlayers.filter((player) => !this.#retiredPlayerIds.has(player.id));
+    const activePlayers = excludeExternalRightsPlayersFromActivePool(basePlayers, this.#externalPlayers, this.#retiredPlayerIds);
     this.#freeAgents = dedupeFreeAgents(activePlayers);
     this.#seasonTransition.rebuildRosters(this.#teams, activePlayers);
     if (saved.standings) this.#standings.importSnapshot(saved.standings);
