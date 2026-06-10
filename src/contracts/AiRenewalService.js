@@ -16,9 +16,11 @@ import { TEAM_ROSTER_TARGET_SIZE } from "../season/RosterTargets.js";
 
 export class AiRenewalService {
   #contracts;
+  #capGuard;
 
-  constructor(contractService) {
+  constructor(contractService, capGuard = null) {
     this.#contracts = contractService;
+    this.#capGuard = capGuard;
   }
 
   processMonthlyRenewals({ teams, activeTeamId, standingsTable, currentDate, currentDay, allPlayers, buildContext }) {
@@ -48,6 +50,7 @@ export class AiRenewalService {
           candidate,
           context,
           plan,
+          canSubmitOffer: this.#capGuard?.canSubmitOffer,
         });
         if (result?.acceptedContract) {
           notifications.push(
@@ -108,6 +111,7 @@ export class AiRenewalService {
         if (candidate.priorityScore < 14) continue;
         const offerKey = `${team.id}:${candidate.player.id}`;
         if (existingOfferKeys.has(offerKey)) continue;
+        if (!this.#canSubmitOffer(team, candidate.player, candidate.openingOffer, context, "freeAgent")) continue;
 
         offers.push({
           playerId: candidate.player.id,
@@ -149,6 +153,7 @@ export class AiRenewalService {
           candidate,
           context,
           plan,
+          canSubmitOffer: this.#capGuard?.canSubmitOffer,
         });
         if (result?.acceptedContract) {
           notifications.push(
@@ -194,6 +199,7 @@ export class AiRenewalService {
           candidate,
           context,
           plan,
+          canSubmitOffer: this.#capGuard?.canSubmitOffer,
         });
         if (!result?.acceptedContract) continue;
 
@@ -210,6 +216,10 @@ export class AiRenewalService {
     }
 
     return notifications;
+  }
+
+  #canSubmitOffer(team, player, offer, context, mode) {
+    return this.#capGuard?.canSubmitOffer ? this.#capGuard.canSubmitOffer(team, player, offer, context, mode) : true;
   }
 }
 

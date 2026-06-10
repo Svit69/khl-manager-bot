@@ -14,7 +14,7 @@ export class AppController{
   #matchPlaybackTimer=null;
   #calendarPanelTab="standings";
   #notificationVisibleCount=6;
-  #newGameSettings={restrictedFreeAgencyEnabled:true};
+  #newGameSettings={restrictedFreeAgencyEnabled:true,salaryCapEnabled:true};
   #seasonContractDecisionOpen=false;
   #seasonContractDecisionFilter="pending";
   #seasonContractDecisionSelectedPlayerId=null;
@@ -330,6 +330,12 @@ export class AppController{
       this.#renderScreen();
       return;
     }
+    if(action==="new-game-cap-toggle"){
+      this.#newGameSettings={...this.#newGameSettings,salaryCapEnabled:clickable.checked};
+      this.#state.updateGameSettings(this.#newGameSettings);
+      this.#renderScreen();
+      return;
+    }
     if(action==="mark-notifications-read"){
       if(this.#state.markNotificationsRead()){
         this.#notificationVisibleCount=6;
@@ -405,6 +411,11 @@ export class AppController{
         ? this.#state.queueExternalRightsOffer(playerId,this.#offerByPlayerId.get(playerId))
         : this.#state.submitActiveTeamNegotiation(playerId,this.#offerByPlayerId.get(playerId));
       if(result){
+        if(result.decision==="salaryCap"){
+          this.#seasonContractOutcomes.set(playerId,result.message);
+          this.#renderScreen();
+          return;
+        }
         const label=result.decision==="accept"
           ?"Игрок согласился и продлен"
           :(result.decision==="counter"
@@ -735,6 +746,11 @@ export class AppController{
         ? this.#state.submitFreeAgentSigning(playerId,offer)
         : this.#state.submitActiveTeamNegotiation(playerId,offer);
       if(result){
+        if(result.decision==="salaryCap"){
+          this.#outcomeByPlayerId.set(playerId,result.message);
+          this.#renderScreen();
+          return;
+        }
         const label=result.decision==="accept"
           ?"\u2705 \u0421\u043e\u0433\u043b\u0430\u0441\u0435\u043d"
           :(result.decision==="queued"

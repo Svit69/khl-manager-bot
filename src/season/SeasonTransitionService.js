@@ -42,7 +42,7 @@ export class SeasonTransitionService {
     this.#development = developmentService;
   }
 
-  advanceToNextSeason({ teams, calendar, activeTeamId, standingsTable, scorerTable, allPlayers, buildContext, pushNotification, releaseRightsPlayerIds = [], restrictedFreeAgencyEnabled = true }) {
+  advanceToNextSeason({ teams, calendar, activeTeamId, standingsTable, scorerTable, allPlayers, buildContext, canSubmitOffer = null, pushNotification, releaseRightsPlayerIds = [], restrictedFreeAgencyEnabled = true }) {
     const currentSeasonLabel = calendar.seasonLabel;
     const nextSeasonStartYear = calendar.seasonStartYear + 1;
     const nextSeasonLabel = formatSeasonLabel(nextSeasonStartYear);
@@ -115,6 +115,7 @@ export class SeasonTransitionService {
             nextSeasonLabel,
             allPlayers: activePlayers,
             buildContext,
+            canSubmitOffer,
           });
           if (offerSheet) restrictedRightsOffers.push(offerSheet);
         }
@@ -241,7 +242,7 @@ export class SeasonTransitionService {
     };
   }
 
-  #ensureMinimumRosterDepth({ teams, activeTeamId, allPlayers, buildContext, negotiationDate, seasonLabel = null }) {
+  #ensureMinimumRosterDepth({ teams, activeTeamId, allPlayers, buildContext, canSubmitOffer = null, negotiationDate, seasonLabel = null }) {
     const movements = { signings: [], departures: [] };
     const positionTargets = TEAM_ROSTER_POSITION_TARGETS;
     const getGroup = (playerOrPosition) => {
@@ -330,8 +331,10 @@ export class SeasonTransitionService {
               context,
             );
             const offer = { years: 1, salaryRub: roundSalaryRub(preview.teamAdjustedDemand * 1.08) };
+            if (canSubmitOffer && !canSubmitOffer(team, candidate, offer, context)) continue;
             let result = this.#contracts.submitFreeAgentOffer(team, candidate, offer, context);
             if (result?.decision === "counter" && result.counter) {
+              if (canSubmitOffer && !canSubmitOffer(team, candidate, result.counter, context)) continue;
               result = this.#contracts.submitFreeAgentOffer(team, candidate, result.counter, context);
             }
             if (result?.decision !== "accept") {
@@ -339,6 +342,7 @@ export class SeasonTransitionService {
                 years: 1,
                 salaryRub: roundSalaryRub(preview.teamAdjustedDemand * 1.2),
               };
+              if (canSubmitOffer && !canSubmitOffer(team, candidate, fallbackOffer, context)) continue;
               result = this.#contracts.submitFreeAgentOffer(team, candidate, fallbackOffer, context);
             }
             if (result?.decision === "accept") {
@@ -353,11 +357,13 @@ export class SeasonTransitionService {
 
           if (!signedPlayer) {
             const emergencyPlayer = this.#createEmergencyDepthPlayer(team, preferredGroup || "FWD", negotiationDate);
+            const emergencyOffer = { years: 1, salaryRub: 500000 };
+            if (canSubmitOffer && !canSubmitOffer(team, emergencyPlayer, emergencyOffer, context)) break;
             allPlayers.push(emergencyPlayer);
             this.#contracts.finalizeFreeAgentSigning(
               team,
               emergencyPlayer,
-              { years: 1, salaryRub: 500000 },
+              emergencyOffer,
               { currentDate: negotiationDate, seasonLabel },
             );
             team.reservePlayers.push(emergencyPlayer);
@@ -436,7 +442,7 @@ export class SeasonTransitionService {
     };
   }
 
-  #buildRestrictedRightsOfferSheet({ teams, activeTeamId, player, nextSeasonLabel, allPlayers, buildContext, minimumOvr = 71 }) {
+  #buildRestrictedRightsOfferSheet({ teams, activeTeamId, player, nextSeasonLabel, allPlayers, buildContext, canSubmitOffer = null, minimumOvr = 71 }) {
     if (!player || (player.ovr || 0) < minimumOvr) return null;
     const rightsTeam = (teams || []).find((team) => team.id === activeTeamId) || null;
     const candidates = (teams || [])
@@ -455,6 +461,7 @@ export class SeasonTransitionService {
           },
           context,
         );
+        if (canSubmitOffer && !canSubmitOffer(team, player, preview.offer, { ...context, seasonLabel: nextSeasonLabel })) return null;
         const roleScore = Number(preview?.projectedRoleScore ?? preview?.roleScore) || 0;
         const salaryRatio = Number(preview?.salaryRatio) || 0;
         const score = (Number(player.ovr) || 0) + roleScore * 1.8 + salaryRatio * 8 + this.#stableOfferSheetNoise(player, team);

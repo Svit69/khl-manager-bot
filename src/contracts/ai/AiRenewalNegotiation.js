@@ -1,7 +1,10 @@
 ﻿import { calculateAge, parseSeasonEnd } from "../SeasonUtils.js";
 import { roundSalaryRub } from "./AiRenewalShared.js";
 
-export const runRenewalNegotiation = ({ contracts, team, candidate, context, plan }) => {
+export const runRenewalNegotiation = ({ contracts, team, candidate, context, plan, canSubmitOffer = null }) => {
+  if (canSubmitOffer && !canSubmitOffer(team, candidate.player, candidate.openingOffer, context, "renewal")) {
+    return { attempted: false, acceptedContract: null };
+  }
   const firstResult = contracts.submitRenewalOffer(team, candidate.player, candidate.openingOffer, context);
   if (firstResult?.decision === "accept") {
     return { attempted: true, acceptedContract: firstResult.newContracts?.[firstResult.newContracts.length - 1] || null };
@@ -13,6 +16,9 @@ export const runRenewalNegotiation = ({ contracts, team, candidate, context, pla
   if (!isRenewalCounterAcceptable(candidate, firstResult.counter, plan)) {
     return { attempted: true, acceptedContract: null };
   }
+  if (canSubmitOffer && !canSubmitOffer(team, candidate.player, firstResult.counter, context, "renewal")) {
+    return { attempted: true, acceptedContract: null };
+  }
 
   const secondResult = contracts.submitRenewalOffer(team, candidate.player, firstResult.counter, context);
   if (secondResult?.decision === "accept") {
@@ -21,7 +27,10 @@ export const runRenewalNegotiation = ({ contracts, team, candidate, context, pla
   return { attempted: true, acceptedContract: null };
 };
 
-export const runFreeAgentNegotiation = ({ contracts, team, candidate, context, plan }) => {
+export const runFreeAgentNegotiation = ({ contracts, team, candidate, context, plan, canSubmitOffer = null }) => {
+  if (canSubmitOffer && !canSubmitOffer(team, candidate.player, candidate.openingOffer, context, "freeAgent")) {
+    return { attempted: false, acceptedContract: null };
+  }
   const firstResult = contracts.submitFreeAgentOffer(team, candidate.player, candidate.openingOffer, context);
   if (firstResult?.decision === "accept") {
     return { attempted: true, acceptedContract: firstResult.newContracts?.[firstResult.newContracts.length - 1] || null };
@@ -31,6 +40,9 @@ export const runFreeAgentNegotiation = ({ contracts, team, candidate, context, p
   }
 
   if (!isFreeAgentCounterAcceptable(candidate, firstResult.counter, plan)) {
+    return { attempted: true, acceptedContract: null };
+  }
+  if (canSubmitOffer && !canSubmitOffer(team, candidate.player, firstResult.counter, context, "freeAgent")) {
     return { attempted: true, acceptedContract: null };
   }
 

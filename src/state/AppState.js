@@ -4,8 +4,9 @@ import { AiRenewalService } from "../contracts/AiRenewalService.js";
 import { ContractService } from "../contracts/ContractService.js";
 import { ContractType } from "../contracts/ContractType.js";
 import { getFallbackMarketSalaryRub } from "../contracts/FallbackMarketSalary.js";
+import { SalaryCapService } from "../contracts/SalaryCapService.js";
 import { StandingsTracker } from "../stats/StandingsTracker.js";
-import { calculateAge, formatContractEndDate, parseSeasonEnd, setSeasonReferenceDate } from "../contracts/SeasonUtils.js";
+import { calculateAge, formatContractEndDate, formatNextSeason, parseSeasonEnd, setSeasonReferenceDate } from "../contracts/SeasonUtils.js";
 import { PlayerDevelopmentService } from "../progression/PlayerDevelopmentService.js";
 import { TradeService } from "../trade/TradeService.js";
 import {
@@ -68,6 +69,7 @@ const normalizeTransferLedger = (items = []) =>
     .map((entry) => ({ ...entry }));
 const normalizeGameSettings = (settings = {}) => ({
   restrictedFreeAgencyEnabled: settings.restrictedFreeAgencyEnabled !== false,
+  salaryCapEnabled: settings.salaryCapEnabled !== false,
 });
 const toDate = (value) => {
   const date = new Date(value);
@@ -84,6 +86,7 @@ export class AppState {
   #standings = new StandingsTracker();
   #sim = new MatchSimulator();
   #contracts;
+  #salaryCap = new SalaryCapService();
   #development = new PlayerDevelopmentService();
   #juniors = new JuniorTeamService();
   #trade;
@@ -111,7 +114,10 @@ export class AppState {
     this.#externalPlayers = [...externalPlayers];
     this.#contracts = new ContractService(contracts);
     this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#calendar.seasonLabel });
-    this.#aiRenewals = new AiRenewalService(this.#contracts);
+    this.#aiRenewals = new AiRenewalService(this.#contracts, {
+      canSubmitOffer: (team, player, offer, context, mode) =>
+        this.#canSubmitContractOffer(team, player, offer, mode, context).allowed,
+    });
     this.#seasonTransition = new SeasonTransitionService(this.#contracts, this.#aiRenewals, this.#development);
     this.#trade = new TradeService({
       getPlayerContracts: (playerId) => this.#contracts.getContractsForPlayer(playerId),
@@ -504,6 +510,8 @@ export class AppState {
   submitTradeWithTeam(teamId, givePlayerIds, receivePlayerIds) {
     const opponent = this.#teams.find((team) => team.id === teamId);
     if (!this.activeTeam || !opponent) return null;
+    const capAssessment = this.#assessTradeSalaryCap(opponent, givePlayerIds, receivePlayerIds);
+    if (!capAssessment.allowed) return this.#buildSalaryCapRejection(capAssessment);
     const result = this.#trade.executeTrade(this.activeTeam, opponent, givePlayerIds, receivePlayerIds, {
       userRightsPlayers: this.getExternalRightsPlayers(this.#activeTeamId),
       aiRightsPlayers: this.getExternalRightsPlayers(opponent.id),
@@ -532,7 +540,11 @@ export class AppState {
 
   submitActiveTeamNegotiation(playerId, offer) {
     const player = this.#findActiveTeamPlayer(playerId);
-    return player ? this.#contracts.submitRenewalOffer(this.activeTeam, player, offer, this.#buildNegotiationContext(this.activeTeam)) : null;
+    if (!player) return null;
+    const context = this.#buildNegotiationContext(this.activeTeam);
+    const capAssessment = this.#canSubmitContractOffer(this.activeTeam, player, offer, "renewal", context);
+    if (!capAssessment.allowed) return this.#buildSalaryCapRejection(capAssessment, this.activeTeam);
+    return this.#contracts.submitRenewalOffer(this.activeTeam, player, offer, context);
   }
 
   matchRestrictedRightsOffer(offerId, offer) {
@@ -549,6 +561,11 @@ export class AppState {
       years: Math.max(Number(bestOffer.years) || 1, Number(offer?.years) || 1),
       salaryRub: this.#roundSalaryRub(Math.max(Number(bestOffer.salaryRub) || 0, Number(offer?.salaryRub) || 0)),
     };
+    const capAssessment = this.#canSubmitContractOffer(this.activeTeam, player, submittedOffer, "freeAgent", {
+      ...this.#buildNegotiationContext(this.activeTeam),
+      seasonLabel: entry.season || this.#seasonState?.seasonLabel,
+    });
+    if (!capAssessment.allowed) return this.#buildSalaryCapRejection(capAssessment, this.activeTeam);
     const contract = this.#contracts.matchRestrictedFreeAgentOffer(
       player,
       this.#activeTeamId,
@@ -584,6 +601,11 @@ export class AppState {
     const player = this.getAllKnownPlayers().find((candidate) => candidate.id === entry.playerId);
     const newTeam = this.#teams.find((candidate) => candidate.id === entry.offerTeamId);
     if (!player || !newTeam) return { accepted: false, message: "Не удалось завершить переход ОСА." };
+    const capAssessment = this.#canSubmitContractOffer(newTeam, player, entry.offer, "freeAgent", {
+      ...this.#buildNegotiationContext(newTeam),
+      seasonLabel: entry.season || this.#seasonState?.seasonLabel,
+    });
+    if (!capAssessment.allowed) return this.#buildSalaryCapRejection(capAssessment, newTeam);
 
     const contract = this.#contracts.signRestrictedFreeAgentOfferSheet(
       player,
@@ -625,7 +647,10 @@ export class AppState {
     if (this.#seasonState?.phase === "preseason" && this.#seasonState?.preseasonOpen) {
       return this.#queuePreseasonFreeAgentOffer(player, offer);
     }
-    const result = this.#contracts.submitFreeAgentOffer(this.activeTeam, player, offer, this.#buildNegotiationContext(this.activeTeam));
+    const context = this.#buildNegotiationContext(this.activeTeam);
+    const capAssessment = this.#canSubmitContractOffer(this.activeTeam, player, offer, "freeAgent", context);
+    if (!capAssessment.allowed) return this.#buildSalaryCapRejection(capAssessment, this.activeTeam);
+    const result = this.#contracts.submitFreeAgentOffer(this.activeTeam, player, offer, context);
     if (result?.decision === "accept") {
       player.affiliation.acquiredDay = this.#calendar.currentDay;
       this.activeTeam.reservePlayers.push(player);
@@ -644,6 +669,11 @@ export class AppState {
     const offerWindow = this.#externalRightsInterest.buildOfferWindow(player, season);
     if (!offerWindow.canOffer) return { decision: "locked", reason: offerWindow.label };
     const preview = this.#contracts.getFreeAgentPreview(this.activeTeam, player, offer, this.#buildNegotiationContext(this.activeTeam));
+    const capAssessment = this.#canSubmitContractOffer(this.activeTeam, player, preview.offer, "freeAgent", {
+      ...this.#buildNegotiationContext(this.activeTeam),
+      seasonLabel: season,
+    });
+    if (!capAssessment.allowed) return this.#buildSalaryCapRejection(capAssessment, this.activeTeam);
     const nextDecisionIndex = Math.min((this.#seasonState?.preseasonDates || []).length - 1, (Number(this.#seasonState?.preseasonIndex) || 0) + 1);
     const nextDecisionDate = getPreseasonNextDate(this.#seasonState?.preseasonDates || [], this.#seasonState?.preseasonIndex || 0);
     player.externalCareer = { ...(player.externalCareer || {}), lastKhlOfferSeason: season };
@@ -806,6 +836,8 @@ export class AppState {
       activeTeamId: this.#activeTeamId,
       allPlayers: this.getAllPlayers(),
       buildContext: (team) => this.#buildNegotiationContext(team),
+      canSubmitOffer: (team, player, offer, context) =>
+        this.#canSubmitContractOffer(team, player, offer, "freeAgent", context).allowed,
       negotiationDate: preseasonDate,
       seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
     });
@@ -857,6 +889,8 @@ export class AppState {
       scorerTable: this.#stats.getSeasonStats(),
       allPlayers: this.getAllPlayers(),
       buildContext: (team) => this.#buildNegotiationContext(team),
+      canSubmitOffer: (team, player, offer, context) =>
+        this.#canSubmitContractOffer(team, player, offer, "freeAgent", context).allowed,
       pushNotification: (notification) => this.#pushNotification(notification),
       releaseRightsPlayerIds: options.releaseRightsPlayerIds || [],
       restrictedFreeAgencyEnabled: this.#gameSettings.restrictedFreeAgencyEnabled,
@@ -1133,10 +1167,19 @@ export class AppState {
       .sort((left, right) => (right.ovr - left.ovr) || left.name.localeCompare(right.name, "ru"))[0];
     if (!candidate) return false;
 
+    const offer = { years: 1, salaryRub: getFallbackMarketSalaryRub(candidate) };
+    if (!this.#canSubmitContractOffer(
+      team,
+      candidate,
+      offer,
+      "freeAgent",
+      { currentDate: this.#calendar.currentDate, seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel },
+    ).allowed) return false;
+
     this.#contracts.finalizeFreeAgentSigning(
       team,
       candidate,
-      { years: 1, salaryRub: getFallbackMarketSalaryRub(candidate) },
+      offer,
       { currentDate: this.#calendar.currentDate, seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel },
     );
     candidate.affiliation.acquiredDay = this.#calendar.currentDay;
@@ -1421,6 +1464,8 @@ export class AppState {
       contracts: this.#contracts,
       decisionService: this.#externalRightsOffers,
       buildContext: (team) => ({ ...this.#buildNegotiationContext(team), currentDate: seasonDate, seasonLabel }),
+      canSubmitOffer: (team, player, offer, context) =>
+        this.#canSubmitContractOffer(team, player, offer, "freeAgent", context).allowed,
     });
     actions.forEach((action) => this.#applyAiExternalRightsAction(action, transition, seasonLabel));
     this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
@@ -1509,6 +1554,54 @@ export class AppState {
     return this.#teams.find((team) => team.id === teamId)?.name || "";
   }
 
+  #canSubmitContractOffer(team, player, offer, mode, context = null) {
+    if (!this.#gameSettings.salaryCapEnabled) return { allowed: true, failures: [] };
+    if (!team?.id || !player?.id || !offer) return { allowed: false, failures: [] };
+    const startSeason = mode === "renewal"
+      ? this.#getRenewalStartSeason(player)
+      : this.#contracts.getSigningStartSeason(context);
+    return this.#salaryCap.assessOffer({
+      contracts: this.#contracts.exportContracts(),
+      teamId: team.id,
+      playerId: player.id,
+      startSeason,
+      offer,
+    });
+  }
+
+  #assessTradeSalaryCap(opponent, givePlayerIds, receivePlayerIds) {
+    if (!this.#gameSettings.salaryCapEnabled) return { allowed: true, failures: [] };
+    return this.#salaryCap.assessTrade({
+      contracts: this.#contracts.exportContracts(),
+      userTeamId: this.#activeTeamId,
+      aiTeamId: opponent?.id,
+      givePlayerIds,
+      receivePlayerIds,
+      seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
+    });
+  }
+
+  #getRenewalStartSeason(player) {
+    const contracts = this.#contracts.getContractsForPlayer(player.id);
+    const lastContract = contracts[contracts.length - 1];
+    return lastContract?.season ? formatNextSeason(lastContract.season) : this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
+  }
+
+  #buildSalaryCapRejection(assessment, team = null) {
+    const failure = assessment?.failures?.[0] || {};
+    const teamName = team?.name || this.#getTeamName(failure.teamId) || "Клуб";
+    const cap = formatSalaryMillions(failure.capRub);
+    const projected = formatSalaryMillions(failure.projectedPayrollRub);
+    return {
+      accepted: false,
+      decision: "salaryCap",
+      message: failure.season
+        ? `${teamName} превышает потолок зарплат на сезон ${failure.season}: ${projected} млн из ${cap} млн.`
+        : "Контракт не помещается под потолок зарплат.",
+      assessment,
+    };
+  }
+
   #buildNegotiationContext(team) {
     const rank = this.#standings.getRank(team.id, this.#teams);
     const teamsCount = this.#teams.length;
@@ -1529,6 +1622,11 @@ export class AppState {
 
   #queuePreseasonFreeAgentOffer(player, offer) {
     const preview = this.#contracts.getFreeAgentPreview(this.activeTeam, player, offer, this.#buildNegotiationContext(this.activeTeam));
+    const capAssessment = this.#canSubmitContractOffer(this.activeTeam, player, preview.offer, "freeAgent", {
+      ...this.#buildNegotiationContext(this.activeTeam),
+      seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
+    });
+    if (!capAssessment.allowed) return this.#buildSalaryCapRejection(capAssessment, this.activeTeam);
     const nextDecisionIndex = Math.min(
       (this.#seasonState?.preseasonDates || []).length - 1,
       (Number(this.#seasonState?.preseasonIndex) || 0) + 1,
@@ -1597,6 +1695,11 @@ export class AppState {
     const preview = this.#contracts.getFreeAgentPreview(team, player, entry.offer, { ...this.#buildNegotiationContext(team), currentDate: decisionDate });
     const decision = this.#externalRightsOffers.buildDecision({ player, offer: entry.offer, preview, teamId: team.id, decisionDate, seasonLabel: entry.season });
     if (decision.accepted) {
+      const capAssessment = this.#canSubmitContractOffer(team, player, entry.offer, "freeAgent", { currentDate: decisionDate, seasonLabel: entry.season });
+      if (!capAssessment.allowed) {
+        this.#pushNotification({ id: `notification-external-offer-cap-${player.id}-${Date.now()}`, type: "free-agent-market", title: "Потолок зарплат", message: `${player.name} готов вернуться, но контракт не помещается под потолок ${team.name}.`, day: this.#calendar.currentDay, createdAt: new Date().toISOString(), playerId: player.id, read: false });
+        return;
+      }
       this.#contracts.finalizeFreeAgentSigning(team, player, entry.offer, { currentDate: decisionDate, seasonLabel: entry.season });
       player.affiliation.acquiredDay = this.#calendar.currentDay;
       this.#activateExternalPlayer(player, team, entry.season);
@@ -1628,6 +1731,9 @@ export class AppState {
     );
     let preseasonOffers = [...(this.#seasonState?.preseasonOffers || [])];
     aiOffers.forEach((entry) => {
+      const team = this.#teams.find((candidate) => candidate.id === entry.teamId);
+      const player = this.getAvailableFreeAgents().find((candidate) => candidate.id === entry.playerId);
+      if (!this.#canSubmitContractOffer(team, player, entry.offer, "freeAgent", { currentDate: decisionDate, seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel }).allowed) return;
       preseasonOffers = upsertCompetitiveOffer(preseasonOffers, {
         ...entry,
         decisionIndex,
@@ -1700,6 +1806,11 @@ export class AppState {
   #finalizeCompetitiveFreeAgentSigning(player, winningOffer, decisionDate, competingOffers) {
     const team = this.#teams.find((entry) => entry.id === winningOffer.teamId);
     if (!team) return;
+    const capAssessment = this.#canSubmitContractOffer(team, player, winningOffer.offer, "freeAgent", {
+      currentDate: decisionDate,
+      seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
+    });
+    if (!capAssessment.allowed) return;
 
     const newContracts = this.#contracts.finalizeFreeAgentSigning(team, player, winningOffer.offer, {
       currentDate: decisionDate,

@@ -108,6 +108,7 @@
 }
 .team-select-settings h3{margin:0 0 4px;color:#f4f8f4;font-size:17px}
 .team-select-settings p{margin:0;color:#9fb0c6;font-size:13px;font-weight:700}
+.team-select-toggle-list{display:grid;gap:12px;min-width:min(520px,100%)}
 .team-select-toggle{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;align-items:center;min-width:min(420px,100%);cursor:pointer}
 .team-select-toggle input{position:absolute;opacity:0;pointer-events:none}
 .team-select-toggle span{grid-row:1 / 3;width:46px;height:26px;border-radius:999px;background:rgba(255,255,255,.16);position:relative;transition:.18s ease}
