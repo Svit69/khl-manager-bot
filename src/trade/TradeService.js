@@ -8,6 +8,10 @@ const LOW_QUALITY_PACKAGE_WEIGHTS = Object.freeze([0.75, 0.18, 0.08, 0.04]);
 const MID_QUALITY_PACKAGE_WEIGHTS = Object.freeze([0.9, 0.28, 0.14, 0.06]);
 
 const buildByIdMap = (players) => new Map((players || []).map((player) => [player.id, player]));
+const normalizeAssetSelection = (ids) => (ids || []).map((id) => {
+  const [type, value] = String(id).includes(":") ? String(id).split(":") : ["legacy", id];
+  return { type, id: value };
+});
 const sum = (items) => (items || []).reduce((acc, value) => acc + (Number(value) || 0), 0);
 const round = (value) => Math.round((Number(value) || 0) * 10) / 10;
 
@@ -159,10 +163,12 @@ export class TradeService {
     const userRightsById = buildByIdMap(userRightsPlayers);
     const aiRightsById = buildByIdMap(aiRightsPlayers);
 
-    const givePlayers = [...new Set(givePlayerIds || [])].map((id) => userById.get(id)).filter(Boolean);
-    const receivePlayers = [...new Set(receivePlayerIds || [])].map((id) => aiById.get(id)).filter(Boolean);
-    const giveRightsPlayers = [...new Set(givePlayerIds || [])].map((id) => userRightsById.get(id)).filter(Boolean);
-    const receiveRightsPlayers = [...new Set(receivePlayerIds || [])].map((id) => aiRightsById.get(id)).filter(Boolean);
+    const giveSelection = normalizeAssetSelection([...new Set(givePlayerIds || [])]);
+    const receiveSelection = normalizeAssetSelection([...new Set(receivePlayerIds || [])]);
+    const givePlayers = giveSelection.filter((entry) => entry.type !== "rights").map((entry) => userById.get(entry.id)).filter(Boolean);
+    const receivePlayers = receiveSelection.filter((entry) => entry.type !== "rights").map((entry) => aiById.get(entry.id)).filter(Boolean);
+    const giveRightsPlayers = giveSelection.filter((entry) => entry.type === "rights").map((entry) => userRightsById.get(entry.id)).filter(Boolean);
+    const receiveRightsPlayers = receiveSelection.filter((entry) => entry.type === "rights").map((entry) => aiRightsById.get(entry.id)).filter(Boolean);
     const context = {
       currentDay: typeof this.#getCurrentDay === "function" ? this.#getCurrentDay() : null,
       seasonLabel: typeof this.#getSeasonLabel === "function" ? this.#getSeasonLabel() : null,

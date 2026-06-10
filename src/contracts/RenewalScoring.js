@@ -490,6 +490,7 @@ const calculateTeamAdjustedDemand = (player, team, context, marketSalary, reason
   const isFreeAgent = Boolean(context?.isFreeAgent);
   const rank = context?.teamRank ?? null;
   const enoughTeamData = (context?.teamGamesPlayed ?? 0) >= MIN_TEAM_GAMES_FOR_PERFORMANCE;
+  const northAmericaRisk = context?.northAmericaInterestByPlayerId?.get?.(player.id) || null;
 
   if (isFreeAgent) {
     const projectedRole = getProjectedRoleInfo(team, player);
@@ -530,6 +531,12 @@ const calculateTeamAdjustedDemand = (player, team, context, marketSalary, reason
       if (rank <= 4) factor *= 0.98;
       else if (rank > 8) factor *= 1.03;
     }
+
+    if (northAmericaRisk) {
+      const pressure = clamp((Number(northAmericaRisk.score) || 0) / 100, 0.06, 0.18);
+      factor *= 1 + pressure;
+      reasons.push({ text: `Интерес ${northAmericaRisk.league || "НХЛ / АХЛ"} повышает цену удержания`, value: 0 });
+    }
   }
 
   if (isLegioner(player) && enoughTeamData && rank !== null && rank > 8) {
@@ -538,6 +545,14 @@ const calculateTeamAdjustedDemand = (player, team, context, marketSalary, reason
   }
 
   return roundSalaryRub(marketSalary * factor);
+};
+
+const northAmericaInterestScore = (player, context, reasons) => {
+  const risk = context?.northAmericaInterestByPlayerId?.get?.(player.id) || null;
+  if (!risk || context?.isFreeAgent) return 0;
+  const score = -Math.round(clamp((Number(risk.score) || 0) / 10, 3, 9));
+  reasons.push({ text: `Есть спрос из ${risk.league || "НХЛ / АХЛ"}: нужен сильнее контракт для удержания`, value: score });
+  return score;
 };
 
 const freeAgentTeamStrengthAppeal = (player, team, context, reasons) => {
@@ -636,6 +651,8 @@ export const evaluateRenewalWillingness = ({
 
   const competitiveOutlookScore = topPlayerCompetitiveOutlookScore(player, context, reasons);
   willingness += competitiveOutlookScore;
+
+  willingness += northAmericaInterestScore(player, context, reasons);
 
   const performanceScore = personalPerformanceScore(player, context, reasons);
   willingness += performanceScore;

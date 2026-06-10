@@ -18,6 +18,7 @@ export class AppController{
   #seasonContractDecisionOpen=false;
   #seasonContractDecisionFilter="pending";
   #seasonContractDecisionSelectedPlayerId=null;
+  #seasonContractDecisionSelectedRowKey=null;
   #seasonContractReleasePlayerIds=new Set();
   #seasonContractQualifiedPlayerIds=new Set();
   #seasonExternalOfferPlayerIds=new Set();
@@ -257,7 +258,7 @@ export class AppController{
       if(this.#seasonContractDecisionFilter==="release")return this.#seasonContractReleasePlayerIds.has(row.playerId);
       return true;
     });
-    const selectedRow=visibleRows.find(row=>row.playerId===this.#seasonContractDecisionSelectedPlayerId) || visibleRows[0] || rows.find(row=>row.playerId===this.#seasonContractDecisionSelectedPlayerId) || rows[0] || null;
+    const selectedRow=visibleRows.find(row=>(row.rowKey||row.playerId)===this.#seasonContractDecisionSelectedRowKey) || visibleRows[0] || rows.find(row=>row.playerId===this.#seasonContractDecisionSelectedPlayerId) || rows[0] || null;
     if(selectedRow?.preview&&!this.#offerByPlayerId.has(selectedRow.playerId)){
       this.#offerByPlayerId.set(selectedRow.playerId,selectedRow.preview.offer);
     }
@@ -267,6 +268,7 @@ export class AppController{
       filteredRows:visibleRows,
       selectedRow,
       selectedPlayerId:selectedRow?.playerId||null,
+      selectedRowKey:selectedRow?.rowKey||selectedRow?.playerId||null,
       filter:this.#seasonContractDecisionFilter,
       releasePlayerIds:this.#seasonContractReleasePlayerIds,
       qualifiedPlayerIds:this.#seasonContractQualifiedPlayerIds,
@@ -367,6 +369,7 @@ export class AppController{
     }
     if(action==="season-contract-select"){
       this.#seasonContractDecisionSelectedPlayerId=clickable.dataset.playerId||null;
+      this.#seasonContractDecisionSelectedRowKey=clickable.dataset.rowKey||this.#seasonContractDecisionSelectedPlayerId;
       this.#renderScreen();
       return;
     }
@@ -543,10 +546,10 @@ export class AppController{
       return;
     }
     if(action==="trade-toggle-give"){
-      const playerId=clickable.dataset.playerId;
-      if(!playerId)return;
-      if(this.#tradeGivePlayerIds.has(playerId))this.#tradeGivePlayerIds.delete(playerId);
-      else this.#tradeGivePlayerIds.add(playerId);
+      const assetKey=clickable.dataset.assetKey||clickable.dataset.playerId;
+      if(!assetKey)return;
+      if(this.#tradeGivePlayerIds.has(assetKey))this.#tradeGivePlayerIds.delete(assetKey);
+      else this.#tradeGivePlayerIds.add(assetKey);
       this.#tradeMessage="";
       this.#renderScreen();
       return;
@@ -561,10 +564,10 @@ export class AppController{
       return;
     }
     if(action==="trade-toggle-receive"){
-      const playerId=clickable.dataset.playerId;
-      if(!playerId)return;
-      if(this.#tradeReceivePlayerIds.has(playerId))this.#tradeReceivePlayerIds.delete(playerId);
-      else this.#tradeReceivePlayerIds.add(playerId);
+      const assetKey=clickable.dataset.assetKey||clickable.dataset.playerId;
+      if(!assetKey)return;
+      if(this.#tradeReceivePlayerIds.has(assetKey))this.#tradeReceivePlayerIds.delete(assetKey);
+      else this.#tradeReceivePlayerIds.add(assetKey);
       this.#tradeMessage="";
       this.#renderScreen();
       return;

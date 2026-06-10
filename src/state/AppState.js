@@ -374,6 +374,7 @@ export class AppState {
           : null;
         return {
           rowType: "khl",
+          rowKey: `khl:${player.id}`,
           playerId: player.id,
           displayName: player.name,
           position: player.identity?.primaryPosition || "",
@@ -421,6 +422,7 @@ export class AppState {
         const preview = this.#contracts.getFreeAgentPreview(this.activeTeam, player, offersByPlayerId[player.id] || null, context);
         return {
           rowType: "external",
+          rowKey: `external:${player.id}`,
           playerId: player.id,
           displayName: player.name,
           position: player.identity?.primaryPosition || "",
@@ -1368,10 +1370,19 @@ export class AppState {
     });
     this.#externalPlayers = result.players;
     transition.externalSignings = [];
+    const userExternalOfferPlayerIds = new Set((transition.seasonState?.externalRightsOffers || [])
+      .filter((entry) => entry?.teamId === this.#activeTeamId && entry.status === "pending")
+      .map((entry) => entry.playerId));
 
     (result.returnCandidates || []).forEach((candidate) => {
       const { player, ufaStatus, rightsTeamId, fromLeague } = candidate;
       const rightsTeam = this.#teams.find((team) => team.id === rightsTeamId) || null;
+      if (this.#gameSettings.restrictedFreeAgencyEnabled && rightsTeam?.id === this.#activeTeamId && !userExternalOfferPlayerIds.has(player.id)) {
+        player.externalCareer = { ...(player.externalCareer || {}), rightsTeamId: rightsTeam.id, availableToKhl: true };
+        player.affiliation.teamId = null;
+        player.affiliation.contractId = null;
+        return;
+      }
 
       if (!this.#gameSettings.restrictedFreeAgencyEnabled || ufaStatus === "NSA" || !rightsTeam) {
         player.affiliation.teamId = null;
@@ -1608,15 +1619,21 @@ export class AppState {
     const teamStats = this.#standings.getTeamStats(team.id);
     const teamGamesPlayed = teamStats?.gp || 0;
     const currentDate = this.#getEffectiveNegotiationDate();
+    const seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
+    const northAmericaInterestByPlayerId = new Map((team.getRoster?.() || []).map((player) => [
+      player.id,
+      this.#prospectDepartures.assess(player, { seasonLabel, seasonDate: currentDate }),
+    ]).filter(([, risk]) => risk?.shouldSignal || risk?.score >= 40));
     return {
       teamRank: rank,
       teamsCount,
       teamGamesPlayed,
       currentDate,
-      seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
+      seasonLabel,
       isInTop8: rank !== null && rank <= 8,
       teamRoster: team.getRoster(),
       allPlayers: this.getAllPlayers(),
+      northAmericaInterestByPlayerId,
     };
   }
 
