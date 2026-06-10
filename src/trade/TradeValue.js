@@ -1,5 +1,6 @@
-import { calculateAge, parseSeasonEnd } from "../contracts/SeasonUtils.js";
+import { calculateAge } from "../contracts/SeasonUtils.js";
 import { PlayerPosition } from "../models/PlayerPosition.js";
+import { scoreTradeContractValue } from "./TradeContractValue.js";
 
 const ROLE_SCORE_BY_LINE = Object.freeze({
   1: 8,
@@ -26,52 +27,6 @@ const getAgeScore = (age) => {
   if (age <= 30) return 2;
   if (age <= 33) return -4;
   return -10;
-};
-
-const estimateMarketSalary = (ovr) => Math.max(800000, Math.round((ovr - 50) * 1800000));
-
-const getContractScore = (player, contracts, context = null, reasons = []) => {
-  const ovr = Number(player?.ovr) || 0;
-  const age = calculateAge(player?.identity?.birthDate, context?.currentDate);
-  const latest = [...(contracts || [])]
-    .sort((a, b) => String(a.season || "").localeCompare(String(b.season || "")))
-    .slice(-1)[0];
-  if (!latest?.salaryRub) return 0;
-  const market = estimateMarketSalary(ovr);
-  const ratio = market / Math.max(1, latest.salaryRub);
-  let score = 0;
-  if (ratio >= 1.25) {
-    score += 10;
-    reasons.push("выгодная зарплата относительно рынка");
-  } else if (ratio >= 1.05) {
-    score += 6;
-    reasons.push("контракт немного выгоднее рынка");
-  } else if (ratio >= 0.9) {
-    score += 2;
-  } else if (ratio >= 0.75) {
-    score -= 4;
-    reasons.push("зарплата выше рыночной оценки");
-  } else {
-    score -= 10;
-    reasons.push("тяжелый контракт");
-  }
-
-  const currentSeasonEnd = parseSeasonEnd(context?.seasonLabel);
-  const remainingYears = currentSeasonEnd
-    ? contracts.filter((contract) => parseSeasonEnd(contract.season) >= currentSeasonEnd).length
-    : contracts.length;
-  if (remainingYears <= 1 && ovr >= 76) {
-    score -= 4;
-    reasons.push("короткий срок контракта снижает ценность");
-  } else if (remainingYears >= 2 && ratio >= 1.05 && age <= 29) {
-    score += Math.min(5, remainingYears + 1);
-    reasons.push("несколько лет контроля по хорошей цене");
-  } else if (remainingYears >= 3 && age >= 32 && ratio < 0.95) {
-    score -= 5;
-    reasons.push("длинный дорогой контракт ветерана");
-  }
-
-  return score;
 };
 
 const getNeedAdjustment = (team, position, reasons = []) => {
@@ -173,13 +128,13 @@ export const explainTradeValueForTeam = (team, player, contracts, context = null
     (ovr * 0.82) +
     (potential * 0.15) +
     getAgeScore(age) +
-    getContractScore(player, contracts, context, reasons) +
+    scoreTradeContractValue(player, contracts, context, reasons) +
     roleScore +
     getRecentAcquisitionPenalty(player, context?.currentDay, reasons) +
     (progress * 0.35) +
     getProductionScore(player, age, reasons);
   const needAdjusted = raw * (1 + getNeedAdjustment(team, player.identity?.primaryPosition, reasons));
-  const value = Math.max(20, Math.min(120, Math.round(needAdjusted * 10) / 10));
+  const value = Math.max(-45, Math.min(120, Math.round(needAdjusted * 10) / 10));
   return { value, reasons: [...new Set(reasons)].slice(0, 4) };
 };
 

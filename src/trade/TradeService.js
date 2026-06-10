@@ -71,10 +71,12 @@ const createPackageEvaluation = (items, valueKey, anchorOvr = null) => {
       ? MID_QUALITY_PACKAGE_WEIGHTS
       : PACKAGE_CORRELATION_WEIGHTS;
   const effective = round(sorted.reduce((total, entry, index) => {
+    const entryValue = Number(entry[valueKey]) || 0;
+    if (entryValue < 0) return total + entryValue;
     const baseWeight = weights[index] ?? 0.08;
     const weight = index === 0 ? 1 : baseWeight * gapPenalty;
     const topWeight = index === 0 && qualityGap >= 8 ? weights[0] : weight;
-    return total + (Number(entry[valueKey]) || 0) * topWeight;
+    return total + entryValue * topWeight;
   }, 0));
   return {
     simple,
