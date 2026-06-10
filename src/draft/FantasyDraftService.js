@@ -42,13 +42,15 @@ export class FantasyDraftService {
   #pickIndex = 0;
   #draftOrder;
   #teamArchetypeById = new Map();
+  #salaryCap;
 
-  constructor(teams, players, userTeamId, rounds = DRAFT_ROUNDS) {
+  constructor(teams, players, userTeamId, rounds = DRAFT_ROUNDS, salaryCap = {}) {
     this.#draftId = generateUuid();
     this.#teams = [...teams];
     this.#rounds = rounds;
     this.#userTeamId = userTeamId;
     this.#availablePlayers = [...players];
+    this.#salaryCap = this.#normalizeSalaryCap(salaryCap);
     this.#teams.forEach((team, index) => {
       this.#pickedByTeamId.set(team.id, []);
       this.#teamArchetypeById.set(team.id, TEAM_DRAFT_ARCHETYPES[index % TEAM_DRAFT_ARCHETYPES.length]);
@@ -56,9 +58,9 @@ export class FantasyDraftService {
     this.#draftOrder = this.#buildDraftOrder();
   }
 
-  static fromSnapshot(teams, players, snapshot) {
+  static fromSnapshot(teams, players, snapshot, salaryCap = {}) {
     if (!snapshot) return null;
-    const service = new FantasyDraftService(teams, players, snapshot.userTeamId, Math.max(DRAFT_ROUNDS, Number(snapshot.rounds) || DRAFT_ROUNDS));
+    const service = new FantasyDraftService(teams, players, snapshot.userTeamId, Math.max(DRAFT_ROUNDS, Number(snapshot.rounds) || DRAFT_ROUNDS), salaryCap);
     const playersById = new Map(players.map((player) => [player.id, player]));
     const readPlayers = (ids) => (ids || []).map((id) => playersById.get(id)).filter(Boolean);
 
@@ -140,11 +142,14 @@ export class FantasyDraftService {
       sortBy,
       filterPosition,
       availablePlayers: sorted,
+      salaryCap: this.#buildSalaryCapView(previewPlayer),
       userRosterByPosition: this.getUserRosterByPosition(),
       teams: this.#teams.map((team) => ({
         id: team.id,
         name: team.name,
-        pickedCount: (this.#pickedByTeamId.get(team.id) || []).length
+        pickedCount: (this.#pickedByTeamId.get(team.id) || []).length,
+        payrollRub: this.#salaryCap.enabled ? this.#getTeamPayroll(team.id) : null,
+        capRub: this.#salaryCap.enabled ? this.#salaryCap.capRub : null,
       })),
       pickLog: [...this.#pickLog],
       flow: [
@@ -165,6 +170,7 @@ export class FantasyDraftService {
     if (!team) return null;
     const playerIndex = this.#availablePlayers.findIndex((player) => player.id === playerId);
     if (playerIndex === -1) return null;
+    if (!this.#canFitPlayer(team.id, this.#availablePlayers[playerIndex])) return { rejected: true, reason: "salaryCap" };
 
     const player = this.#availablePlayers.splice(playerIndex, 1)[0];
     this.#pickedByTeamId.get(team.id).push(player);
@@ -182,7 +188,7 @@ export class FantasyDraftService {
   autoPickUntilUserTurn() {
     while (!this.isComplete && !this.isUserTurn()) {
       const currentTeam = this.getCurrentTeam();
-      const best = currentTeam ? this.#selectBestAiPick(currentTeam) : [...this.#availablePlayers].sort(compareByOvr)[0];
+      const best = currentTeam ? this.#selectBestAiPick(currentTeam) : this.#availablePlayers.find((player) => this.#canFitPlayer(currentTeam?.id, player)) || [...this.#availablePlayers].sort(compareByOvr)[0];
       if (!best) break;
       this.pickPlayer(best.id);
     }
@@ -219,7 +225,8 @@ export class FantasyDraftService {
 
     let bestPlayer = null;
     let bestScore = -Infinity;
-    for (const player of this.#availablePlayers) {
+    const candidates = this.#availablePlayers.filter((player) => this.#canFitPlayer(team.id, player));
+    for (const player of (candidates.length ? candidates : this.#availablePlayers)) {
       const score = this.#scoreAiPick(player, {
         round,
         phase,
@@ -236,6 +243,31 @@ export class FantasyDraftService {
       }
     }
     return bestPlayer;
+  }
+
+  #normalizeSalaryCap(salaryCap = {}) {
+    return { enabled: Boolean(salaryCap.enabled), capRub: Number(salaryCap.capRub) || 0, seasonLabel: salaryCap.seasonLabel || "", salaryByPlayerId: salaryCap.salaryByPlayerId || {} };
+  }
+
+  #getPlayerSalary(player) {
+    return Number(this.#salaryCap.salaryByPlayerId?.[player?.id]) || 0;
+  }
+
+  #getTeamPayroll(teamId, extraPlayer = null) {
+    const picked = this.#pickedByTeamId.get(teamId) || [];
+    return [...picked, extraPlayer].filter(Boolean).reduce((sum, player) => sum + this.#getPlayerSalary(player), 0);
+  }
+
+  #canFitPlayer(teamId, player) {
+    if (!this.#salaryCap.enabled || !teamId) return true;
+    return this.#getTeamPayroll(teamId, player) <= this.#salaryCap.capRub;
+  }
+
+  #buildSalaryCapView(previewPlayer = null) {
+    if (!this.#salaryCap.enabled) return null;
+    const userPayrollRub = this.#getTeamPayroll(this.#userTeamId);
+    const selectedSalaryRub = this.#getPlayerSalary(previewPlayer);
+    return { ...this.#salaryCap, userPayrollRub, remainingRub: Math.max(0, this.#salaryCap.capRub - userPayrollRub), selectedSalaryRub, selectedFits: !previewPlayer || userPayrollRub + selectedSalaryRub <= this.#salaryCap.capRub };
   }
 
   #getDraftPhase(round) {

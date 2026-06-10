@@ -38,6 +38,10 @@ const getNationBadge=nationality=>{
   const code=String(nationality||"").trim().toUpperCase()||"N/A";
   return `<span class="nation-badge-inline">${renderNationFlagIcon(code,`Флаг ${code}`,"nation-flag-inline")}<span>${code}</span></span>`;
 };
+const formatMillions=value=>{
+  const millions=(Number(value)||0)/1000000;
+  return Number.isInteger(millions)?String(millions):millions.toFixed(1);
+};
 const renderDraftPositionBlock=(label,players)=>{
   const names=(players||[]).map(player=>player.name).join(", ");
   return `<div class="draft-pos"><div class="muted">${label} (${players.length})</div><div>${names||"—"}</div></div>`;
@@ -274,10 +278,10 @@ export class Renderer{
       this.#matchEl.innerHTML=`<h2>Состав</h2><div class="roster-grid roster-grid-cards">${cards}</div>`;
     }
   }
-  renderContracts(rows,negotiation,restrictedRights=[],externalPlayers=[]){
+  renderContracts(rows,negotiation,restrictedRights=[],externalPlayers=[],salaryCap=null){
     const container=document.getElementById("teamTabContent");
-    if(container){container.innerHTML=this.#contractTab.render(rows,negotiation,restrictedRights,externalPlayers);return;}
-    this.#matchEl.innerHTML=this.#contractTab.render(rows,negotiation,restrictedRights,externalPlayers);
+    if(container){container.innerHTML=this.#contractTab.render(rows,negotiation,restrictedRights,externalPlayers,salaryCap);return;}
+    this.#matchEl.innerHTML=this.#contractTab.render(rows,negotiation,restrictedRights,externalPlayers,salaryCap);
   }
   renderTeamStatistics(rows,sortBy="points",selectedTeamId=null,teams=[],activeTeamId=null){
     const container=document.getElementById("teamTabContent");
@@ -307,10 +311,10 @@ export class Renderer{
     if(!view?.row)return;
     this.#teamEl.insertAdjacentHTML("beforeend",this.#offerSheetPopup.render(view));
   }
-  renderFreeAgents(rows,negotiation){
+  renderFreeAgents(rows,negotiation,salaryCap=null){
     const container=document.getElementById("teamTabContent");
-    if(container){container.innerHTML=this.#freeAgentTab.render(rows,negotiation);return;}
-    this.#matchEl.innerHTML=this.#freeAgentTab.render(rows,negotiation);
+    if(container){container.innerHTML=this.#freeAgentTab.render(rows,negotiation,salaryCap);return;}
+    this.#matchEl.innerHTML=this.#freeAgentTab.render(rows,negotiation,salaryCap);
   }
   renderConfirmSelection(team){
     this.renderTeamSelection([team],null,team.id);
@@ -375,7 +379,8 @@ export class Renderer{
     const teamRows=draft.teams.map(item=>{
       const isCurrent=item.id===draft.currentTeamId;
       const isUser=item.id===team.id;
-      return `<div class="draft-team-row${isCurrent?" current":""}${isUser?" user":""}"><span class="draft-team-name">${item.name}</span><span class="draft-team-count">${item.pickedCount}/${draftRounds}</span></div>`;
+      const payroll=item.payrollRub!==null&&item.payrollRub!==undefined?`<small>${formatMillions(item.payrollRub)} / ${formatMillions(item.capRub)} млн</small>`:"";
+      return `<div class="draft-team-row${isCurrent?" current":""}${isUser?" user":""}"><span class="draft-team-name">${item.name}${payroll}</span><span class="draft-team-count">${item.pickedCount}/${draftRounds}</span></div>`;
     }).join("");
     const orderPreview=draft.upcomingOrder.map(item=>{
       const pickTeam=draft.teams.find(teamItem=>teamItem.id===item.teamId);
@@ -391,8 +396,12 @@ export class Renderer{
       renderDraftPositionBlock("ВРТ",userRoster.G||[])
     ].join("");
     const status=draft.isComplete?"Драфт завершен":(draft.isUserTurn?`Ваш пик: ${draft.currentTeamName}`:`Пикает: ${draft.currentTeamName}`);
+    const salaryCap=draft.salaryCap||null;
+    const capSummary=salaryCap?`<div class="draft-cap-summary"><div><span>Потолок ${salaryCap.seasonLabel}</span><strong>${formatMillions(salaryCap.userPayrollRub)} / ${formatMillions(salaryCap.capRub)} млн</strong></div><div><span>Доступно</span><strong>${formatMillions(salaryCap.remainingRub)} млн</strong></div><div><span>Выбранный</span><strong>${formatMillions(salaryCap.selectedSalaryRub)} млн</strong></div></div>`:"";
+    const capMessage=salaryCap&&!salaryCap.selectedFits?`<div class="draft-warning">Игрок не помещается под потолок зарплат.</div>`:"";
+    const draftMessage=draft.message?`<div class="draft-warning">${draft.message}</div>`:"";
     const confirmText=selectedPlayer?`Задрафтовать: ${selectedPlayer.name}`:"Выберите игрока";
-    const confirmDisabled=!draft.isUserTurn||!selectedPlayer?"disabled":"";
+    const confirmDisabled=!draft.isUserTurn||!selectedPlayer||(salaryCap&&!salaryCap.selectedFits)?"disabled":"";
     const sortControls=`<div class="draft-toolbar-group">${[
       {id:"ovr",label:"OVR"},
       {id:"position",label:"Позиция"},
@@ -406,12 +415,13 @@ export class Renderer{
       {id:"ЗАЩ",label:"ЗАЩ"},
       {id:"ВРТ",label:"ВРТ"}
     ].map(item=>`<button class="chip-btn${draft.filterPosition===item.id?" active":""}" data-action="draft-filter" data-position="${item.id}">${item.label}</button>`).join("")}</div>`;
-    const actionBar=`<div class="draft-action"><div class="draft-action-text"><div class="muted">Статус</div><div>${status}</div><div class="muted">Выбрано: ${selectedPlayer?`${selectedPlayer.name} • ${selectedPlayer.identity.primaryPosition} • OVR ${selectedPlayer.ovr}`:"—"}</div></div><div class="draft-action-buttons"><button class="btn secondary" data-action="draft-cancel">Отмена</button><button class="btn" ${confirmDisabled} data-action="draft-confirm-pick">${confirmText}</button></div></div>`;
+    const actionBar=`<div class="draft-action"><div class="draft-action-text"><div class="muted">Статус</div><div>${status}</div><div class="muted">Выбрано: ${selectedPlayer?`${selectedPlayer.name} • ${selectedPlayer.identity.primaryPosition} • OVR ${selectedPlayer.ovr}`:"—"}</div>${capMessage}${draftMessage}</div><div class="draft-action-buttons"><button class="btn secondary" data-action="draft-cancel">Отмена</button><button class="btn" ${confirmDisabled} data-action="draft-confirm-pick">${confirmText}</button></div></div>`;
     const cards=draft.availablePlayers.map(player=>{
       const age=calculateAge(player.identity.birthDate);
       const selectedClass=player.id===draft.selectedPlayerId?" selected":"";
       const nation=getNationBadge(player.identity.nationality);
-      return `<button class="draft-list-row${selectedClass}" data-action="draft-select" data-player-id="${player.id}"><div class="draft-list-row-pos">${player.identity.primaryPosition||"—"}</div><img class="player-photo" src="${getPlayerPhotoUrl(player)}" alt="${player.name}" ${PHOTO_FALLBACK_ATTR}/><div class="draft-list-row-main"><div class="draft-list-row-name">${player.name}</div><div class="draft-list-row-meta">${nation}</div></div><div class="draft-list-row-stat"><span class="draft-list-row-stat-label">OVR</span><strong>${player.ovr}</strong></div><div class="draft-list-row-stat"><span class="draft-list-row-stat-label">Возраст</span><strong>${age}</strong></div></button>`;
+      const salaryRub=salaryCap?.salaryByPlayerId?.[player.id]||0;
+      return `<button class="draft-list-row${selectedClass}" data-action="draft-select" data-player-id="${player.id}"><div class="draft-list-row-pos">${player.identity.primaryPosition||"—"}</div><img class="player-photo" src="${getPlayerPhotoUrl(player)}" alt="${player.name}" ${PHOTO_FALLBACK_ATTR}/><div class="draft-list-row-main"><div class="draft-list-row-name">${player.name}</div><div class="draft-list-row-meta">${nation}</div></div><div class="draft-list-row-stat"><span class="draft-list-row-stat-label">OVR</span><strong>${player.ovr}</strong></div><div class="draft-list-row-stat"><span class="draft-list-row-stat-label">Возраст</span><strong>${age}</strong></div>${salaryCap?`<div class="draft-list-row-stat"><span class="draft-list-row-stat-label">ЗП</span><strong>${formatMillions(salaryRub)}</strong></div>`:""}</button>`;
     }).join("");
     const recentPicks=(draft.pickLog||[]).slice(-5).reverse().map(item=>`<div class="draft-recent-row"><span>#${item.pickNumber}</span><span>${item.teamName}</span><span>${item.playerName}</span></div>`).join("")||`<div class="muted">Пиков пока нет</div>`;
     const attrs=previewPlayer?.attributes?.attributesJson||{};
@@ -421,8 +431,9 @@ export class Renderer{
       return `<div class="draft-attr-row"><span>${labels[key]||key}</span><div class="draft-attr-bar"><span style="width:${pct}%"></span></div><strong>${value}</strong></div>`;
     }).join("");
     const previewAge=previewPlayer?calculateAge(previewPlayer.identity.birthDate):null;
-    const previewCard=previewPlayer?`<div class="draft-preview-head"><img class="draft-preview-photo" src="${getPlayerPhotoUrl(previewPlayer)}" alt="${previewPlayer.name}" ${PHOTO_FALLBACK_ATTR}/><div class="draft-preview-title"><div class="draft-preview-ovr">${previewPlayer.ovr}</div><div class="draft-preview-name">${previewPlayer.name}</div><div class="draft-preview-meta">${previewPlayer.identity.primaryPosition} • ${previewAge} лет • ${getNationBadge(previewPlayer.identity.nationality)}</div></div></div><div class="draft-preview-attrs">${attrRows||'<div class="muted">Атрибуты недоступны</div>'}</div>`:`<div class="muted">Игрок не выбран</div>`;
-    this.#teamEl.innerHTML=`<div class="draft-screen"><div class="draft-top">${draftHeader}<div class="draft-order-strip">${orderPreview}</div></div><div class="draft-layout"><section class="draft-left"><div class="draft-card"><div class="draft-card-head"><h2>Доступные игроки</h2><div class="muted">${draft.availablePlayers.length} в пуле</div></div><div class="draft-toolbar"><div><div class="muted">Сортировка</div>${sortControls}</div><div><div class="muted">Фильтр по позиции</div>${filterControls}</div></div>${actionBar}<div class="draft-list">${cards||"<div class=\"muted\">Нет игроков</div>"}</div></div></section><aside class="draft-right"><div class="draft-card"><div class="draft-card-head"><h2>Просмотр игрока</h2><div class="muted">Имя • позиция • OVR • возраст • нация</div></div>${previewCard}</div><div class="draft-card"><div class="draft-card-head"><h2>Ваш драфт-борд</h2><div class="muted">${team.name}</div></div>${renderDraftNeedsGrid(userRoster)}<div class="draft-panel">${rosterPanel}</div></div><div class="draft-card"><div class="draft-card-head"><h2>Команды</h2><div class="muted">${draftRounds} раундов • змейка</div></div><div class="draft-team-list">${teamRows}</div></div><div class="draft-card"><div class="draft-card-head"><h2>Последние пики</h2><div class="muted">Live log</div></div><div class="draft-recent-list">${recentPicks}</div></div></aside></div></div>`;
+    const previewSalary=salaryCap&&previewPlayer?` • ЗП ${formatMillions(salaryCap.selectedSalaryRub)} млн`:"";
+    const previewCard=previewPlayer?`<div class="draft-preview-head"><img class="draft-preview-photo" src="${getPlayerPhotoUrl(previewPlayer)}" alt="${previewPlayer.name}" ${PHOTO_FALLBACK_ATTR}/><div class="draft-preview-title"><div class="draft-preview-ovr">${previewPlayer.ovr}</div><div class="draft-preview-name">${previewPlayer.name}</div><div class="draft-preview-meta">${previewPlayer.identity.primaryPosition} • ${previewAge} лет • ${getNationBadge(previewPlayer.identity.nationality)}${previewSalary}</div></div></div><div class="draft-preview-attrs">${attrRows||'<div class="muted">Атрибуты недоступны</div>'}</div>`:`<div class="muted">Игрок не выбран</div>`;
+    this.#teamEl.innerHTML=`<div class="draft-screen"><div class="draft-top">${draftHeader}${capSummary}<div class="draft-order-strip">${orderPreview}</div></div><div class="draft-layout"><section class="draft-left"><div class="draft-card"><div class="draft-card-head"><h2>Доступные игроки</h2><div class="muted">${draft.availablePlayers.length} в пуле</div></div><div class="draft-toolbar"><div><div class="muted">Сортировка</div>${sortControls}</div><div><div class="muted">Фильтр по позиции</div>${filterControls}</div></div>${actionBar}<div class="draft-list">${cards||"<div class=\"muted\">Нет игроков</div>"}</div></div></section><aside class="draft-right"><div class="draft-card"><div class="draft-card-head"><h2>Просмотр игрока</h2><div class="muted">Имя • позиция • OVR • возраст • нация</div></div>${previewCard}</div><div class="draft-card"><div class="draft-card-head"><h2>Ваш драфт-борд</h2><div class="muted">${team.name}</div></div>${renderDraftNeedsGrid(userRoster)}<div class="draft-panel">${rosterPanel}</div></div><div class="draft-card"><div class="draft-card-head"><h2>Команды</h2><div class="muted">${draftRounds} раундов • змейка</div></div><div class="draft-team-list">${teamRows}</div></div><div class="draft-card"><div class="draft-card-head"><h2>Последние пики</h2><div class="muted">Live log</div></div><div class="draft-recent-list">${recentPicks}</div></div></aside></div></div>`;
     this.#matchEl.innerHTML="";
   }  renderCalendar(currentDateLabel,info,isLocked,panelData={}){
     const activeTab=panelData?.tab||"standings";

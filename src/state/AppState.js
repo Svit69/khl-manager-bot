@@ -157,6 +157,15 @@ export class AppState {
   get activeTeam() { return this.#teams.find((team) => team.id === this.#activeTeamId) || null; }
   get seasonHistory() { return [...this.#seasonHistory]; }
   get gameSettings() { return { ...this.#gameSettings }; }
+  getSalaryCapSummary(teamId = this.#activeTeamId, seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel) {
+    if (!this.#gameSettings.salaryCapEnabled || !teamId) return null;
+    const contracts = this.#exportContractRows();
+    const payrollRub = contracts
+      .filter((contract) => contract.teamId === teamId && contract.season === seasonLabel)
+      .reduce((sum, contract) => sum + (Number(contract.salaryRub) || 0), 0);
+    const capRub = this.#salaryCap.getCapRub(seasonLabel);
+    return { enabled: true, seasonLabel, capRub, payrollRub, remainingRub: Math.max(0, capRub - payrollRub) };
+  }
   getSeasonState() {
     return {
       ...this.#seasonState,
@@ -234,6 +243,20 @@ export class AppState {
     return [...this.#teams.flatMap((team) => team.getRoster()), ...this.#freeAgents].filter(
       (player) => !this.#retiredPlayerIds.has(player.id),
     );
+  }
+
+  getFantasyDraftSalaryCapOptions() {
+    const seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
+    const contracts = this.#exportContractRows();
+    return {
+      enabled: this.#gameSettings.salaryCapEnabled,
+      seasonLabel,
+      capRub: this.#salaryCap.getCapRub(seasonLabel),
+      salaryByPlayerId: Object.fromEntries(this.getFantasyDraftPlayerPool().map((player) => [
+        player.id,
+        this.#getPlayerSalaryForSeason(player.id, seasonLabel, contracts),
+      ])),
+    };
   }
 
   getActiveTeamContractRows() {
@@ -537,7 +560,15 @@ export class AppState {
 
   getActiveTeamNegotiationPreview(playerId, offer) {
     const player = this.#findActiveTeamPlayer(playerId);
-    return player ? this.#contracts.getRenewalPreview(this.activeTeam, player, offer, this.#buildNegotiationContext(this.activeTeam)) : null;
+    if (!player) return null;
+    const context = this.#buildNegotiationContext(this.activeTeam);
+    return this.#attachSalaryCapPreview(
+      this.#contracts.getRenewalPreview(this.activeTeam, player, offer, context),
+      this.activeTeam,
+      player,
+      "renewal",
+      context,
+    );
   }
 
   submitActiveTeamNegotiation(playerId, offer) {
@@ -638,9 +669,15 @@ export class AppState {
 
   getFreeAgentSigningPreview(playerId, offer) {
     const player = this.getAvailableFreeAgents().find((entry) => entry.id === playerId);
-    return this.activeTeam && player
-      ? this.#contracts.getFreeAgentPreview(this.activeTeam, player, offer, this.#buildNegotiationContext(this.activeTeam))
-      : null;
+    if (!this.activeTeam || !player) return null;
+    const context = this.#buildNegotiationContext(this.activeTeam);
+    return this.#attachSalaryCapPreview(
+      this.#contracts.getFreeAgentPreview(this.activeTeam, player, offer, context),
+      this.activeTeam,
+      player,
+      "freeAgent",
+      context,
+    );
   }
 
   submitFreeAgentSigning(playerId, offer) {
@@ -1601,6 +1638,24 @@ export class AppState {
   #exportContractRows() {
     const payload = this.#contracts.exportContracts();
     return Array.isArray(payload) ? payload : payload?.contracts || [];
+  }
+
+  #getPlayerSalaryForSeason(playerId, seasonLabel, contracts = this.#exportContractRows()) {
+    const exact = (contracts || []).find((contract) => contract.playerId === playerId && contract.season === seasonLabel);
+    if (exact) return Number(exact.salaryRub) || 0;
+    const latest = (contracts || []).filter((contract) => contract.playerId === playerId).sort((left, right) => parseSeasonEnd(right.season) - parseSeasonEnd(left.season))[0];
+    return Number(latest?.salaryRub) || getFallbackMarketSalaryRub(this.getAllKnownPlayers().find((player) => player.id === playerId));
+  }
+
+  #attachSalaryCapPreview(preview, team, player, mode, context = null) {
+    if (!preview || !this.#gameSettings.salaryCapEnabled) return preview;
+    const startSeason = mode === "renewal" ? this.#getRenewalStartSeason(player) : this.#contracts.getSigningStartSeason(context);
+    const contracts = this.#exportContractRows();
+    const payrollRub = contracts
+      .filter((contract) => contract.teamId === team.id && contract.season === startSeason && contract.playerId !== player.id)
+      .reduce((sum, contract) => sum + (Number(contract.salaryRub) || 0), 0);
+    const capRub = this.#salaryCap.getCapRub(startSeason);
+    return { ...preview, salaryCap: { enabled: true, seasonLabel: startSeason, capRub, payrollRub, remainingRub: Math.max(0, capRub - payrollRub), offerFits: payrollRub + (Number(preview.offer?.salaryRub) || 0) <= capRub } };
   }
 
   #buildSalaryCapRejection(assessment, team = null) {

@@ -280,6 +280,19 @@
 .draft-current-team{font-weight:800;color:#f0f4ff}
 .draft-progress{height:6px;background:#16243a;border-radius:999px;overflow:hidden}
 .draft-progress span{display:block;height:100%;background:linear-gradient(90deg,#57d0ff,#71ffb3)}
+.draft-cap-summary{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  padding:10px;
+  border:1px solid rgba(113,255,179,.2);
+  border-radius:12px;
+  background:rgba(113,255,179,.07);
+}
+.draft-cap-summary div{display:grid;gap:3px;min-width:0}
+.draft-cap-summary span{color:#8ca6c9;font-size:10px;font-weight:900;text-transform:uppercase}
+.draft-cap-summary strong{color:#f2fff8;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.draft-warning{margin-top:4px;color:#ffd0d0;font-size:12px;font-weight:800}
 .draft-order-strip{
   display:flex;
   gap:8px;
@@ -388,7 +401,7 @@
   border-radius:10px;
   padding:7px 8px;
   display:grid;
-  grid-template-columns:40px 42px minmax(0,1fr) auto auto;
+  grid-template-columns:40px 42px minmax(0,1fr) auto auto auto;
   gap:8px;
   align-items:center;
   text-align:left;
@@ -500,7 +513,8 @@
 }
 .draft-team-row.current{border-color:#7fe2ff;background:rgba(26,47,71,.65)}
 .draft-team-row.user .draft-team-name::after{content:" • ВЫ";color:#89f1ff;font-weight:800}
-.draft-team-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+.draft-team-name{display:grid;gap:2px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+.draft-team-name small{color:#8ca6c9;font-size:10px;font-weight:800}
 .draft-team-count{font-size:12px;color:var(--muted);font-weight:700}
 .draft-recent-row{
   display:grid;

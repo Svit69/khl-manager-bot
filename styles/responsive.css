@@ -237,6 +237,7 @@
   .draft-list{max-height:38vh}
   .draft-list-row{grid-template-columns:36px 38px minmax(0,1fr) auto}
   .draft-list-row-stat:last-child{display:none}
+  .draft-cap-summary,.salary-cap-summary,.negotiation-cap-hint{grid-template-columns:1fr}
   .draft-preview-head{grid-template-columns:84px 1fr}
   .draft-preview-photo{width:84px;height:84px}
   .draft-needs-grid{grid-template-columns:1fr}

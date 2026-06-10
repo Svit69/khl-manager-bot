@@ -21,6 +21,13 @@
 .negotiation-reason.pos{background:rgba(41,179,122,.18);color:#b9ffdf}
 .negotiation-reason.neg{background:rgba(194,88,88,.18);color:#ffd0d0}
 .negotiation-offer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.salary-cap-summary,.negotiation-cap-hint{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 10px}
+.salary-cap-summary{grid-template-columns:1.2fr .8fr;padding:10px;border:1px solid rgba(128,247,202,.2);border-radius:12px;background:rgba(128,247,202,.07)}
+.negotiation-cap-hint{margin:0;padding:8px;border-radius:10px;border:1px solid rgba(128,247,202,.22);background:rgba(128,247,202,.07)}
+.negotiation-cap-hint.danger{border-color:rgba(255,117,117,.35);background:rgba(255,117,117,.08)}
+.salary-cap-summary div,.negotiation-cap-hint div{display:grid;gap:3px;min-width:0}
+.salary-cap-summary span,.negotiation-cap-hint span{color:#8fa7c7;font-size:10px;font-weight:900;text-transform:uppercase}
+.salary-cap-summary strong,.negotiation-cap-hint strong{color:#edf6ff;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .negotiation-salary-box{display:grid;gap:6px}
 .negotiation-salary-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .negotiation-salary-input{
@@ -75,11 +82,12 @@
 }
 .osa-rights-top{
   display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(180px,auto);
+  grid-template-columns:minmax(240px,1.25fr) minmax(180px,.75fr);
   gap:12px;
   align-items:start;
 }
-.osa-rights-top>div:first-child,.osa-rights-offer{display:grid;gap:3px}
+.osa-rights-player,.osa-rights-offer{display:grid;gap:3px;min-width:0}
+.osa-rights-player strong{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.15}
 .external-players-panel{display:grid;gap:12px;margin:0 0 14px;padding:14px;border:1px solid rgba(112,157,211,.28);border-radius:18px;background:linear-gradient(135deg,rgba(126,214,255,.10),rgba(255,203,108,.06)),linear-gradient(180deg,rgba(9,18,37,.9),rgba(5,10,24,.94));box-shadow:0 18px 44px rgba(0,0,0,.24)}
 .external-players-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .external-players-head h3{margin:0 0 3px;font-size:17px}

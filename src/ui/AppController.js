@@ -9,6 +9,7 @@ export class AppController{
   #transferTeamId=null;
   #draftIntroTeamId=null;
   #draftState=null;
+  #draftMessage="";
   #dragRosterSlot=null;
   #matchPlayback=null;
   #matchPlaybackTimer=null;
@@ -68,7 +69,8 @@ export class AppController{
           this.#state.getActiveTeamContractRows(),
           this.#buildNegotiationState(),
           this.#buildRestrictedRightsState(),
-          this.#state.getExternalPlayerRows()
+          this.#state.getExternalPlayerRows(),
+          this.#state.getSalaryCapSummary()
         );
       }else if(this.#activeTab==="teamStats"){
         const selectedTeamId=this.#teamStatsTeamId||this.#state.activeTeamId;
@@ -80,7 +82,7 @@ export class AppController{
           this.#state.activeTeamId
         );
       }else if(this.#activeTab==="freeAgents"){
-        this.#renderer.renderFreeAgents(this.#state.getActiveTeamFreeAgentRows(),this.#buildNegotiationState());
+        this.#renderer.renderFreeAgents(this.#state.getActiveTeamFreeAgentRows(),this.#buildNegotiationState(),this.#state.getSalaryCapSummary());
       }else if(this.#activeTab==="trades"){
         this.#renderer.renderTrades(this.#buildTradeState());
       }else if(this.#activeTab==="transfers"){
@@ -106,6 +108,7 @@ export class AppController{
       if(selectedTeam){
         const draftView=this.#draftState.service.getView(this.#draftState.sortBy,this.#draftState.filterPosition);
         draftView.selectedPlayerId=this.#draftState.selectedPlayerId;
+        draftView.message=this.#draftMessage;
         this.#renderer.renderFantasyDraft(draftView,selectedTeam);
       }
       this.#renderer.renderCalendar(calendarDateLabel,dayInfo,true,{
@@ -807,6 +810,7 @@ export class AppController{
     if(action==="draft-select" && this.#draftState){
       const playerId=clickable.dataset.playerId;
       this.#draftState.selectedPlayerId=this.#draftState.selectedPlayerId===playerId?null:playerId;
+      this.#draftMessage="";
       this.#persistDraftState();
       this.#renderScreen();
       return;
@@ -815,8 +819,11 @@ export class AppController{
       const selectedPlayerId=this.#draftState.selectedPlayerId;
       if(!selectedPlayerId || !this.#draftState.service.hasAvailablePlayer(selectedPlayerId))return;
       const picked=this.#draftState.service.pickPlayer(selectedPlayerId);
-      if(picked){
+      if(picked?.rejected){
+        this.#draftMessage="Игрок не помещается под потолок зарплат. Выберите более дешевый вариант.";
+      }else if(picked){
         this.#draftState.selectedPlayerId=null;
+        this.#draftMessage="";
         this.#draftState.service.autoPickUntilUserTurn();
         this.#completeDraftIfReady();
         this.#persistDraftState();
@@ -882,7 +889,7 @@ export class AppController{
   }
   #startFantasyDraft(selectedTeamId){
     const allPlayers=this.#state.getFantasyDraftPlayerPool();
-    const service=new FantasyDraftService(this.#teams,allPlayers,selectedTeamId);
+    const service=new FantasyDraftService(this.#teams,allPlayers,selectedTeamId,undefined,this.#state.getFantasyDraftSalaryCapOptions());
     this.#draftState={service,selectedTeamId,sortBy:"ovr",filterPosition:"ALL",selectedPlayerId:null};
     this.#draftIntroTeamId=null;
     this.#pendingTeamId=null;
@@ -915,8 +922,10 @@ export class AppController{
     }
     const selectedTeam=this.#teams.find(team=>team.id===saved.selectedTeamId);
     if(!selectedTeam){this.#userStore.clearDraft();return;}
+    this.#newGameSettings={...this.#newGameSettings,...(saved.gameSettings||{})};
+    this.#state.updateGameSettings(this.#newGameSettings);
     const allPlayers=this.#state.getAllPlayers();
-    const service=FantasyDraftService.fromSnapshot(this.#teams,allPlayers,saved.service);
+    const service=FantasyDraftService.fromSnapshot(this.#teams,allPlayers,saved.service,this.#state.getFantasyDraftSalaryCapOptions());
     if(!service){this.#userStore.clearDraft();return;}
     this.#draftState={
       service,
@@ -925,8 +934,6 @@ export class AppController{
       filterPosition:saved.filterPosition||"ALL",
       selectedPlayerId:saved.selectedPlayerId||null
     };
-    this.#newGameSettings={...this.#newGameSettings,...(saved.gameSettings||{})};
-    this.#state.updateGameSettings(this.#newGameSettings);
     this.#completeDraftIfReady();
   }
   #persistDraftState(){
