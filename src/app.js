@@ -26,4 +26,12 @@ const renderer=new Renderer();
 const controller=new AppController(state,calendar,teams,renderer,userStore);
 controller.initialize();
 
-if("serviceWorker" in navigator){navigator.serviceWorker.register("./sw.js")}
+if("serviceWorker" in navigator){
+  const refreshKey="khl-sw-refresh-v146";
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{
+    if(sessionStorage.getItem(refreshKey)==="1")return;
+    sessionStorage.setItem(refreshKey,"1");
+    window.location.reload();
+  });
+  navigator.serviceWorker.register("./sw.js").then(registration=>registration.update()).catch(()=>{});
+}

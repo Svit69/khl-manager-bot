@@ -1,9 +1,10 @@
-const CACHE_NAME="khl-manager-v145";
+const CACHE_NAME="khl-manager-v146";
 const ASSETS=[
   "./",
   "./index.html",
   "./styles.css",
   "./styles/base.css",
+  "./styles/scrollbars.css",
   "./styles/team-select.css",
   "./styles/roster-cards.css",
   "./styles/team-hub.css",
@@ -19,6 +20,7 @@ const ASSETS=[
   "./src/contracts/ContractServiceRows.js",
   "./src/contracts/ContractServiceMarket.js",
   "./src/contracts/ContractServiceNegotiation.js",
+  "./src/trade/TradeContractValue.js",
   "./src/progression/PlayerDevelopmentShared.js",
   "./src/progression/PlayerDevelopmentComponents.js",
   "./src/progression/PlayerDevelopmentAttributes.js",
@@ -26,9 +28,11 @@ const ASSETS=[
   "./src/utils/PlayerPhoto.js",
   "./src/state/AppStateNotifications.js",
   "./src/state/AppStateMatchEffects.js",
+  "./src/state/AppStateExternalImport.js",
   "./src/state/AppStatePersistence.js",
   "./src/state/AppStateRoster.js",
   "./src/ui/TeamStatsTabRenderer.js",
+  "./src/ui/ExternalRightsCardRenderer.js",
   "./src/ui/JuniorTeamTabRenderer.js",
   "./src/ui/TransferTabRenderer.js",
   "./src/ui/SeasonContractDecisionRenderer.js",
@@ -549,8 +553,8 @@ self.addEventListener("install",e=>{self.skipWaiting();e.waitUntil(caches.open(C
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==CACHE_NAME).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
 self.addEventListener("fetch",e=>{
   const url=new URL(e.request.url);
-  const isModule=url.pathname.includes("/src/")&&url.pathname.endsWith(".js");
-  if(isModule){
+  const isFreshAsset=e.request.mode==="navigate"||url.pathname.endsWith(".html")||url.pathname.endsWith(".css")||(url.pathname.includes("/src/")&&url.pathname.endsWith(".js"));
+  if(isFreshAsset){
     e.respondWith(fetch(e.request).then(r=>{
       const copy=r.clone();
       caches.open(CACHE_NAME).then(c=>c.put(e.request,copy));
