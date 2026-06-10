@@ -1,3 +1,5 @@
+const getNameFitClass = (name = "") => name.length > 28 ? "name-fit-xs" : name.length > 22 ? "name-fit-sm" : "";
+
 export class FreeAgentTabRenderer {
   render(rows, negotiation) {
     const content = rows
@@ -7,7 +9,7 @@ export class FreeAgentTabRenderer {
         const negotiationPanel =
           negotiation && negotiation.playerId === row.playerId ? this.#renderNegotiationPanel(negotiation) : "";
 
-        return `<div class="contract-card"><div class="contract-row"><div class="contract-row-top"><span class="contract-player-name">${row.displayName}</span><span class="contract-chip ${status === "НСА" ? "warning" : "ok"}">${status}</span></div><div class="contract-meta-grid"><span>Позиция: <strong>${row.position}</strong></span><span>OVR: <strong>${row.ovr}</strong></span><span>Возраст: <strong>${row.age}</strong></span><span>Свободный агент</span></div>${controls}</div>${negotiationPanel}</div>`;
+        return `<div class="contract-card"><div class="contract-row"><div class="contract-row-top"><span class="contract-player-name ${getNameFitClass(row.displayName)}" title="${row.displayName}">${row.displayName}</span><span class="contract-chip ${status === "НСА" ? "warning" : "ok"}">${status}</span></div><div class="contract-meta-grid"><span>Позиция: <strong>${row.position}</strong></span><span>OVR: <strong>${row.ovr}</strong></span><span>Возраст: <strong>${row.age}</strong></span><span>Свободный агент</span></div>${controls}</div>${negotiationPanel}</div>`;
       })
       .join("");
 

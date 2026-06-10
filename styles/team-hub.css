@@ -435,6 +435,9 @@
   color:#f4f8f4;
   font-size:22px;
   font-weight:900;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 .team-stats-leader-meta{
   color:#8f9b94;
@@ -475,6 +478,9 @@
   position:relative;
   display:inline-flex;
 }
+.team-stats-team-picker{width:min(380px,100%)}
+.team-stats-team-picker .trade-team-menu{left:0;right:auto}
+.team-stats-team-picker .trade-team-picker-current strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .team-stats-select{
   min-width:220px;
   min-height:40px;

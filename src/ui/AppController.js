@@ -314,6 +314,11 @@ export class AppController{
       this.#renderScreen();
       return;
     }
+    if(action==="team-stats-select-team"){
+      this.#teamStatsTeamId=clickable.dataset.teamId||this.#state.activeTeamId;
+      this.#renderScreen();
+      return;
+    }
     if(action==="calendar-tab"){
       this.#calendarPanelTab=clickable.dataset.value||"standings";
       this.#renderScreen();

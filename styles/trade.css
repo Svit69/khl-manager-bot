@@ -285,9 +285,9 @@
 .trade-player-name{
   display:block;
   min-width:0;
-  white-space:normal;
-  overflow:visible;
-  overflow-wrap:anywhere;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
   font-size:17px;
   line-height:1.14;
   font-weight:800;
@@ -444,8 +444,9 @@
 }
 .trade-summary-name{
   min-width:0;
-  white-space:normal;
-  overflow-wrap:anywhere;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 .trade-summary-name small{color:#ffd28a;font-size:11px;font-weight:800}
 .trade-summary-value{

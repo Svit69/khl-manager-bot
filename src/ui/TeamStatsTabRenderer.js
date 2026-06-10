@@ -40,10 +40,25 @@ const buildSummary = (rows) => {
   return { totals, leader };
 };
 
-const renderTeamOptions = (teams, selectedTeamId) =>
-  (teams || [])
-    .map((team) => `<option value="${team.id}"${team.id === selectedTeamId ? " selected" : ""}>${team.name}</option>`)
-    .join("");
+const getNameFitClass = (name = "") => name.length > 28 ? "name-fit-xs" : name.length > 22 ? "name-fit-sm" : "";
+
+const renderTeamPicker = (teams, selectedTeamId, selectedTeam) => `
+  <details class="trade-team-picker team-stats-team-picker">
+    <summary>
+      <span class="trade-team-picker-label">Команда</span>
+      <span class="trade-team-picker-current">
+        ${selectedTeam?.logoUrl ? `<img src="${selectedTeam.logoUrl}" alt="${selectedTeam.name}">` : `<span class="trade-team-picker-placeholder">?</span>`}
+        <strong>${selectedTeam?.name || "Выберите команду"}</strong>
+      </span>
+    </summary>
+    <div class="trade-team-menu">
+      ${(teams || []).map((team) => `<button class="trade-team-option${team.id === selectedTeamId ? " active" : ""}" data-action="team-stats-select-team" data-team-id="${team.id}">
+        <img src="${team.logoUrl}" alt="${team.name}">
+        <span><strong>${team.name}</strong><small>${team.city || team.shortName || ""}</small></span>
+      </button>`).join("")}
+    </div>
+  </details>
+`;
 
 export class TeamStatsTabRenderer {
   render(rows, sortBy = "points", selectedTeamId = null, teams = [], activeTeamId = null) {
@@ -80,11 +95,7 @@ export class TeamStatsTabRenderer {
         <div class="team-stats-toolbar">
           <div class="team-stats-toolbar-block">
             <span class="team-stats-toolbar-label">Команда</span>
-            <label class="team-stats-select-wrap">
-              <select class="team-stats-select" data-action="team-stats-team-select">
-                ${renderTeamOptions(teams, selectedTeamId)}
-              </select>
-            </label>
+            ${renderTeamPicker(teams, selectedTeamId, selectedTeam)}
             ${activeTeam && selectedTeamId !== activeTeamId ? `<span class="team-stats-toolbar-hint">Сейчас просматривается соперник</span>` : ""}
           </div>
           <div class="team-stats-toolbar-block team-stats-toolbar-block--right">
@@ -103,7 +114,7 @@ export class TeamStatsTabRenderer {
             <div class="team-stats-leader-kicker">Лидер команды</div>
             <div class="team-stats-leader-main">
               <div>
-                <div class="team-stats-leader-name">${leader.displayName}</div>
+                <div class="team-stats-leader-name ${getNameFitClass(leader.displayName)}" title="${leader.displayName}">${leader.displayName}</div>
                 <div class="team-stats-leader-meta">${leader.position} • OVR ${leader.ovr}</div>
               </div>
               <div class="team-stats-leader-points">${leader.points} О</div>
@@ -129,7 +140,7 @@ export class TeamStatsTabRenderer {
                   <div class="team-stats-player">
                     <span class="team-stats-rank">${index + 1}</span>
                     <div class="team-stats-player-copy">
-                      <strong>${row.displayName}</strong>
+                      <strong class="${getNameFitClass(row.displayName)}" title="${row.displayName}">${row.displayName}</strong>
                       <span>${row.position} • OVR ${row.ovr}</span>
                     </div>
                   </div>

@@ -1,3 +1,5 @@
+const getNameFitClass = (name = "") => name.length > 28 ? "name-fit-xs" : name.length > 22 ? "name-fit-sm" : "";
+
 export class ContractTabRenderer {
   render(rows, negotiation, restrictedRights = [], externalPlayers = []) {
     const restrictedMarkup = this.#renderRestrictedRights(restrictedRights);
@@ -16,7 +18,7 @@ export class ContractTabRenderer {
         const negotiationPanel =
           negotiation && negotiation.playerId === row.playerId ? this.#renderNegotiationPanel(negotiation) : "";
 
-        return `<div class="contract-card"><div class="contract-row"><div class="contract-row-top"><span class="contract-player-name">${row.displayName}</span><span class="contract-chip ${status === "НСА" ? "warning" : "ok"}">${status}</span></div><div class="contract-meta-grid"><span>Позиция: <strong>${row.position}</strong></span><span>OVR: <strong>${row.ovr}</strong></span><span>Возраст: <strong>${row.age}</strong></span><span>${contractInfo}</span></div>${lockNotice}${controls}</div>${negotiationPanel}</div>`;
+        return `<div class="contract-card"><div class="contract-row"><div class="contract-row-top"><span class="contract-player-name ${getNameFitClass(row.displayName)}" title="${row.displayName}">${row.displayName}</span><span class="contract-chip ${status === "НСА" ? "warning" : "ok"}">${status}</span></div><div class="contract-meta-grid"><span>Позиция: <strong>${row.position}</strong></span><span>OVR: <strong>${row.ovr}</strong></span><span>Возраст: <strong>${row.age}</strong></span><span>${contractInfo}</span></div>${lockNotice}${controls}</div>${negotiationPanel}</div>`;
       })
       .join("");
 
@@ -28,26 +30,25 @@ export class ContractTabRenderer {
     const cards = rows.map((row) => {
       const rightsClass = row.isActiveTeamRights ? "is-owned" : "";
       const availability = row.availableToKhl
-        ? '<span class="external-player-state available">Готов вернуться</span>'
-        : `<span class="external-player-state">${row.statusLabel}</span>`;
+        ? '<span class="external-player-state available">Доступен</span>'
+        : `<span class="external-player-state contract">Контракт NHL/AHL</span>`;
       const contractLabel = row.contractUntil ? `Контракт: ${row.contractUntil}` : "Без контракта";
-      const offerClass = row.offerWindow?.canOffer ? "available" : "";
-      const offerLabel = row.offerWindow?.label || "Статус оффера неизвестен";
+      const offerClass = row.offerWindow?.canOffer ? "available" : "locked";
+      const offerLabel = row.offerWindow?.canOffer ? (row.offerWindow?.label || "Можно сделать оффер") : "Оффер после освобождения";
       const reasons = (row.returnInterestReasons || [])
-        .map((reason) => `<span>${reason.value >= 0 ? "+" : ""}${reason.value} ${reason.text}</span>`)
-        .join("");
+        .map((reason) => `${reason.value >= 0 ? "+" : ""}${reason.value} ${reason.text}`)
+        .join(" • ");
       return `<div class="external-player-card ${rightsClass}">
         <div class="external-player-main">
-          <div class="external-player-name"><strong>${row.displayName}</strong>${availability}</div>
+          <div class="external-player-name"><strong class="${getNameFitClass(row.displayName)}" title="${row.displayName}">${row.displayName}</strong>${availability}</div>
           <span>${row.position} • OVR ${row.ovr} • ${row.age} лет</span>
         </div>
         <div class="external-player-meta">
-          <span>${row.league}</span>
-          <span>${contractLabel}</span>
-          <span>Права: <strong>${row.rightsTeamName}</strong>${row.isActiveTeamRights ? '<b class="external-rights-owned">Ваши права</b>' : ""}</span>
-          <span>Интерес к КХЛ: <strong>${row.returnInterestLabel} (${row.returnInterestScore ?? 0}/100)</strong></span>
-          <span class="external-player-state ${offerClass}">${offerLabel}</span>
-          ${reasons ? `<div class="external-interest-reasons">${reasons}</div>` : ""}
+          <div class="external-player-stat"><span>Лига</span><strong>${row.league}</strong></div>
+          <div class="external-player-stat"><span>Соглашение</span><strong>${contractLabel}</strong></div>
+          <div class="external-player-stat"><span>Права</span><strong>${row.rightsTeamName}</strong></div>
+          <div class="external-player-stat"><span>Интерес</span><strong>${row.returnInterestLabel} ${row.returnInterestScore ?? 0}/100</strong></div>
+          <div class="external-player-footer"><span class="external-player-state ${offerClass}">${offerLabel}</span>${reasons ? `<button class="external-reason-tip" title="${reasons}" aria-label="Причины интереса">i</button>` : ""}${row.isActiveTeamRights ? '<b class="external-rights-owned">Ваши права</b>' : ""}</div>
         </div>
       </div>`;
     }).join("");

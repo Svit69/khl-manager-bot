@@ -5,6 +5,7 @@ const formatDelta = (value) => {
   if (typeof value !== "number" || Number.isNaN(value)) return "—";
   return `${value > 0 ? "+" : ""}${value}`;
 };
+const getNameFitClass = (name = "") => name.length > 28 ? "name-fit-xs" : name.length > 22 ? "name-fit-sm" : "";
 
 const renderPlayerPickRow = (side, player, selectedIds) => {
   const age = calculateAge(player.identity?.birthDate);
@@ -15,7 +16,7 @@ const renderPlayerPickRow = (side, player, selectedIds) => {
   return `<button class="trade-player-row${selected ? " selected" : ""}" data-action="trade-toggle-${side}" data-player-id="${player.id}">
     <img class="trade-player-photo" src="${getPlayerPhotoUrl(player)}" alt="${player.name}" ${PHOTO_FALLBACK_ATTR}>
     <div class="trade-player-main">
-      <span class="trade-player-name" title="${player.name}">${player.name}</span>
+      <span class="trade-player-name ${getNameFitClass(player.name)}" title="${player.name}">${player.name}</span>
       <span class="trade-player-subtitle"><span>${position}</span><span>${age} лет</span>${assetLabel}</span>
     </div>
     <div class="trade-player-rating">
@@ -29,7 +30,7 @@ const renderSelectedSummary = (items, emptyLabel) => {
   if (!items?.length) return `<div class="trade-summary-empty">${emptyLabel}</div>`;
   return items.map((item) => `
     <div class="trade-summary-row">
-      <span class="trade-summary-name" title="${item.player.name}">${item.player.name}${item.assetType === "rights" ? ' <small>права</small>' : ""}</span>
+      <span class="trade-summary-name ${getNameFitClass(item.player.name)}" title="${item.player.name}">${item.player.name}${item.assetType === "rights" ? ' <small>права</small>' : ""}</span>
       <span class="trade-summary-value">${item.userValue}</span>
     </div>
   `).join("");
