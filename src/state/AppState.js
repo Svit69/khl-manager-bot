@@ -6,6 +6,7 @@ import { ContractType } from "../contracts/ContractType.js";
 import { getFallbackMarketSalaryRub } from "../contracts/FallbackMarketSalary.js";
 import { SalaryCapService } from "../contracts/SalaryCapService.js";
 import { buildTradeSalaryCapPreview } from "../contracts/TradeSalaryCapPreview.js";
+import { CoachFitService } from "../coaches/CoachFitService.js";
 import { HeadCoach } from "../models/HeadCoach.js";
 import { StandingsTracker } from "../stats/StandingsTracker.js";
 import { calculateAge, formatContractEndDate, formatNextSeason, parseSeasonEnd, setSeasonReferenceDate } from "../contracts/SeasonUtils.js";
@@ -97,6 +98,7 @@ export class AppState {
   #sim = new MatchSimulator();
   #contracts;
   #salaryCap = new SalaryCapService();
+  #coachFit = new CoachFitService();
   #development = new PlayerDevelopmentService();
   #juniors = new JuniorTeamService();
   #trade;
@@ -212,7 +214,20 @@ export class AppState {
   getActiveTeamCoachView() {
     if (!this.#gameSettings.coachesEnabled || !this.#activeTeamId) return null;
     const coach = this.getCoachByTeamId(this.#activeTeamId);
-    return { coach, team: this.activeTeam, freeCoaches: this.getFreeCoaches() };
+    return { coach, team: this.activeTeam, fit: this.#getCoachFitForTeam(this.activeTeam), freeCoaches: this.getFreeCoaches() };
+  }
+
+  #getCoachFitForTeam(team, context = {}) {
+    if (!this.#gameSettings.coachesEnabled || !team?.id) return null;
+    return this.#coachFit.evaluateTeam(this.getCoachByTeamId(team.id), team, context);
+  }
+
+  #buildCoachEffectsByTeamId(phase = "regular") {
+    if (!this.#gameSettings.coachesEnabled) return {};
+    return Object.fromEntries(this.#teams.map((team) => {
+      const fit = this.#getCoachFitForTeam(team, { isPlayoff: phase === "playoffs" });
+      return [team.id, fit?.effect || null];
+    }).filter(([, effect]) => effect));
   }
 
   getStandingsTable() { return this.#standings.getTable(this.#teams); }
@@ -1149,19 +1164,23 @@ export class AppState {
 
     const focusedMatches = [];
     const playedTeams = new Set();
+    const phase = day?.phase || "regular";
+    const coachEffects = this.#buildCoachEffectsByTeamId(phase);
     matches.forEach((match) => {
-      this.#prepareAiTeamForMatch(match.home, day?.phase || "regular");
-      this.#prepareAiTeamForMatch(match.away, day?.phase || "regular");
-      const simulated = this.#sim.simulateMatch(match.home, match.away, { phase: day?.phase || "regular" });
+      this.#prepareAiTeamForMatch(match.home, phase);
+      this.#prepareAiTeamForMatch(match.away, phase);
+      const simulated = this.#sim.simulateMatch(match.home, match.away, { phase, coachEffectsByTeamId: coachEffects });
       this.#calendar.recordResult(day.day, match.id, simulated);
       if (day?.phase !== "playoffs") this.#standings.recordMatch(simulated);
       this.#stats.recordMatch(simulated);
       applyMatchPlayerStats(simulated);
       const homeDevelopmentEvents = this.#development.applyMatchDevelopment(simulated.home, simulated.summary?.home, {
         teamGamesPlayed: this.#standings.getTeamStats(simulated.home.id)?.gp || 0,
+        coachDevelopmentMultiplier: coachEffects[simulated.home.id]?.developmentMultiplier || 1,
       });
       const awayDevelopmentEvents = this.#development.applyMatchDevelopment(simulated.away, simulated.summary?.away, {
         teamGamesPlayed: this.#standings.getTeamStats(simulated.away.id)?.gp || 0,
+        coachDevelopmentMultiplier: coachEffects[simulated.away.id]?.developmentMultiplier || 1,
       });
       this.#pushDevelopmentNotifications(simulated.home, homeDevelopmentEvents, day.day);
       this.#pushDevelopmentNotifications(simulated.away, awayDevelopmentEvents, day.day);

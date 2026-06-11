@@ -26,8 +26,9 @@ const getProfilePosition=profile=>profile.slotPosition||profile.player.identity?
 export class MatchSimulator{
   simulateMatch(home,away,options={}){
     const isPlayoff=options?.phase==="playoffs";
-    const homeContext=this.#buildTeamContext(home,{isPlayoff});
-    const awayContext=this.#buildTeamContext(away,{isPlayoff});
+    const coachEffects=options?.coachEffectsByTeamId||{};
+    const homeContext=this.#buildTeamContext(home,{isPlayoff,coachEffect:coachEffects[home.id]});
+    const awayContext=this.#buildTeamContext(away,{isPlayoff,coachEffect:coachEffects[away.id]});
     const homePlayerStats=this.#createPlayerStatsMap(homeContext);
     const awayPlayerStats=this.#createPlayerStatsMap(awayContext);
 
@@ -106,7 +107,7 @@ export class MatchSimulator{
     };
   }
 
-  #buildTeamContext(team,{isPlayoff=false}={}){
+  #buildTeamContext(team,{isPlayoff=false,coachEffect=null}={}){
     const lines=(team.lines||[]).map((line,lineIndex)=>{
       const playerProfiles=(line.players||[]).filter(Boolean).map((player,slotIndex)=>
         this.#buildMatchProfile(player,line.positions?.[slotIndex]||player.identity?.primaryPosition,{isPlayoff})
@@ -137,8 +138,8 @@ export class MatchSimulator{
     const goalies=team.getRoster().filter(player=>player.identity?.primaryPosition==="ВРТ");
     const goalie=goalies.sort((a,b)=>b.ovr-a.ovr)[0]||null;
     const goalieProfile=goalie?this.#buildMatchProfile(goalie,"ВРТ"):null;
-    const attackRating=this.#weightedLineRating(lines,"offenseRating");
-    const defenseRating=this.#weightedLineRating(lines,"defenseRating");
+    const attackRating=this.#weightedLineRating(lines,"offenseRating")*(coachEffect?.attackMultiplier||1);
+    const defenseRating=this.#weightedLineRating(lines,"defenseRating")*(coachEffect?.defenseMultiplier||1);
     const playerUsageFactors=this.#buildPlayerUsageFactors(lines);
     const specialTeams=this.#buildSpecialTeams(lines);
     const traitImpact=this.#buildTeamTraitImpact(lines);
@@ -156,6 +157,7 @@ export class MatchSimulator{
       playerUsageFactors,
       specialTeams,
       traitImpact,
+      coachEffect,
       shiftSchedule:this.#buildShiftSchedule(lines)
     };
   }
@@ -310,7 +312,7 @@ export class MatchSimulator{
   }
 
   #buildPenaltyEvents(teamContext,isOvertime){
-    const base=(isOvertime?0.25:2.4)*(teamContext.traitImpact?.penaltyBias||1);
+    const base=(isOvertime?0.25:2.4)*(teamContext.traitImpact?.penaltyBias||1)*(teamContext.coachEffect?.penaltyMultiplier||1);
     const penaltyCount=poissonSample(base+rand(-0.25,0.55));
     const candidateSeconds=Array.from({length:penaltyCount},()=>(
       isOvertime

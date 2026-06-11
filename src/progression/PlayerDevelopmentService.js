@@ -64,7 +64,7 @@ export class PlayerDevelopmentService {
     const teamGamesPlayed = Math.max(games, Number(context?.teamGamesPlayed) || 0);
     const reserveRegression = getReserveInactivityRegression(player, age, games, avgIceTime, teamGamesPlayed);
 
-    const developmentDelta = this.#scaleDevelopmentDelta(player, age, clamp(
+    const developmentDelta = this.#applyCoachDevelopmentMultiplier(this.#scaleDevelopmentDelta(player, age, clamp(
       getAgeDevelopmentComponent(player, age) +
         getUsageDevelopmentComponent(player, age, games, avgIceTime, matchStat, context) +
         getPerformanceDevelopmentComponent(
@@ -97,7 +97,7 @@ export class PlayerDevelopmentService {
         getRehabilitationComponent(player, matchStat, avgIceTime),
       -0.18,
       0.22,
-    ), potentialGap, avgIceTime);
+    ), potentialGap, avgIceTime), context);
 
     player.potential.addDevelopmentProgress(developmentDelta);
     const events = this.#applyAttributeThreshold(player, pointsPerGame, shotsPerGame, age, {});
@@ -125,7 +125,7 @@ export class PlayerDevelopmentService {
     const potentialGap = (player.potential?.potential || player.ovr) - player.ovr;
     const volatility = getPlayerVolatility(player, age);
 
-    const offseasonDelta = this.#scaleDevelopmentDelta(player, age, clamp(
+    const offseasonDelta = this.#applyCoachDevelopmentMultiplier(this.#scaleDevelopmentDelta(player, age, clamp(
       getAgeDevelopmentComponent(player, age) * 0.6 +
         getUsageDevelopmentComponent(player, age, games, avgIceTime, { games: 1 }, { teamGamesPlayed: games }) * 0.35 +
         getPerformanceDevelopmentComponent(
@@ -147,7 +147,7 @@ export class PlayerDevelopmentService {
           0.75,
       -0.18,
       0.24,
-    ), potentialGap, avgIceTime);
+    ), potentialGap, avgIceTime), context);
 
     player.potential.addDevelopmentProgress(offseasonDelta);
     const events = this.#applyAttributeThreshold(player, pointsPerGame, shotsPerGame, age, {
@@ -192,6 +192,11 @@ export class PlayerDevelopmentService {
     const events = this.#applyAttributeThreshold(player, 0, 0, age, {});
     this.#applyPotentialThreshold(player, potentialDecay);
     return events;
+  }
+
+  #applyCoachDevelopmentMultiplier(delta, context) {
+    const multiplier = Number(context?.coachDevelopmentMultiplier) || 1;
+    return delta > 0 ? delta * multiplier : delta;
   }
 
   #applyAttributeThreshold(player, pointsPerGame, shotsPerGame, age, extraEventFields) {

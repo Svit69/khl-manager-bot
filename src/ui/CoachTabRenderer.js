@@ -1,4 +1,5 @@
 import { PHOTO_FALLBACK_ATTR } from "../utils/PlayerPhoto.js";
+import { renderCoachFit } from "./CoachFitRenderer.js";
 
 const RATING_LABELS = Object.freeze({
   tactics: "Tactics",
@@ -24,7 +25,7 @@ const renderFreeCoach = (coach) => `<div class="coach-market-row">
 export class CoachTabRenderer {
   render(view) {
     if (!view?.coach) return `<section class="coach-screen"><div class="coach-empty">Главный тренер не назначен.</div></section>`;
-    const { coach, team, freeCoaches = [] } = view;
+    const { coach, team, freeCoaches = [], fit = null } = view;
     const ratings = Object.entries(coach.ratings || {}).map(renderRating).join("");
     return `<section class="coach-screen">
       <header class="coach-hero">
@@ -40,6 +41,7 @@ export class CoachTabRenderer {
       </div>
       <div class="coach-board">
         <section class="coach-panel"><h3>Coach Attributes</h3>${ratings}</section>
+        ${renderCoachFit(fit)}
         <section class="coach-panel"><h3>Available Coaches</h3>${freeCoaches.map(renderFreeCoach).join("") || `<div class="coach-empty">Свободных тренеров нет</div>`}</section>
       </div>
     </section>`;

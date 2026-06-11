@@ -322,6 +322,9 @@
   .calendar-panel-scroll.playoffs{max-height:280px}
   .calendar-playoff-team{grid-template-columns:30px minmax(0,1fr) 24px;font-size:11px;padding:7px 8px}
   .calendar-playoff-round{padding:8px}
+  .coach-hero,.coach-summary,.coach-board{grid-template-columns:1fr}
+  .coach-overall{height:64px}
+  .coach-fit-grid,.coach-fit-impact,.coach-fit-lists{grid-template-columns:1fr}
 }
 
 @media (max-width: 760px){
