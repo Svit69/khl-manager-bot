@@ -46,6 +46,7 @@ import {
   collectSavedExternalPlayerIds,
   collectSavedExternalPlayerSnapshots,
   excludeExternalRightsPlayersFromActivePool,
+  mergeExternalRightsPlayers,
   shouldRestoreExternalRightsPlayer,
 } from "./AppStateExternalImport.js";
 import {
@@ -988,10 +989,11 @@ export class AppState {
   }
 
   exportState() {
+    const allPlayers = this.getAllPlayers();
     return {
       calendar: this.#calendar.exportState(),
-      players: createPlayerSnapshots(this.getAllPlayers()),
-      externalPlayers: createPlayerSnapshots(this.#externalPlayers),
+      players: createPlayerSnapshots(allPlayers),
+      externalPlayers: createPlayerSnapshots(mergeExternalRightsPlayers(this.#externalPlayers, allPlayers)),
       stats: this.#stats.getSeasonStats(),
       activeTeamId: this.#activeTeamId,
       contracts: this.#contracts.exportContracts(),
