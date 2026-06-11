@@ -30,6 +30,10 @@ export class HeadCoach {
     return beforeBirthday ? age - 1 : age;
   }
 
+  assignToTeam(teamId, contractUntil) { this.teamId = teamId || null; this.contractUntil = contractUntil || null; }
+  releaseToMarket() { this.assignToTeam(null, null); }
+  extendContractUntil(contractUntil) { if (contractUntil) this.contractUntil = contractUntil; }
+
   exportSnapshot() {
     return {
       id: this.id, teamId: this.teamId, firstName: this.firstName, lastName: this.lastName,

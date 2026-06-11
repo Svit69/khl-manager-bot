@@ -7,6 +7,7 @@ export class AppController{
   #teamStatsSort="points";
   #teamStatsTeamId=null;
   #transferTeamId=null;
+  #coachMessage="";
   #draftIntroTeamId=null;
   #draftState=null;
   #draftMessage="";
@@ -73,7 +74,9 @@ export class AppController{
           this.#state.getSalaryCapSummary()
         );
       }else if(this.#activeTab==="coach"){
-        this.#renderer.renderCoach(this.#state.getActiveTeamCoachView());
+        const coachView=this.#state.getActiveTeamCoachView();
+        if(coachView)coachView.message=this.#coachMessage;
+        this.#renderer.renderCoach(coachView);
       }else if(this.#activeTab==="teamStats"){
         const selectedTeamId=this.#teamStatsTeamId||this.#state.activeTeamId;
         this.#renderer.renderTeamStatistics(
@@ -320,6 +323,7 @@ export class AppController{
       if(tab!=="teamStats")this.#teamStatsSort="points";
       if(tab==="teamStats"&&!this.#teamStatsTeamId)this.#teamStatsTeamId=this.#state.activeTeamId;
       if(tab!=="trades"){this.#tradeMessage="";}
+      if(tab!=="coach"){this.#coachMessage="";}
       this.#selectedNegotiationPlayerId=null;
       this.#renderScreen();
       return;
@@ -606,6 +610,27 @@ export class AppController{
         this.#tradeReceivePlayerIds.clear();
         this.#userStore.saveState(this.#state.exportState());
       }
+      this.#renderScreen();
+      return;
+    }
+    if(action==="coach-renew"){
+      const result=this.#state.renewActiveTeamCoach(Number(clickable.dataset.years)||1);
+      this.#coachMessage=result?.message||"Не удалось продлить контракт тренера.";
+      if(result?.accepted)this.#userStore.saveState(this.#state.exportState());
+      this.#renderScreen();
+      return;
+    }
+    if(action==="coach-terminate"){
+      const result=this.#state.terminateActiveTeamCoach();
+      this.#coachMessage=result?.message||"Не удалось расторгнуть контракт тренера.";
+      if(result?.accepted)this.#userStore.saveState(this.#state.exportState());
+      this.#renderScreen();
+      return;
+    }
+    if(action==="coach-sign"){
+      const result=this.#state.signFreeCoach(clickable.dataset.coachId,2);
+      this.#coachMessage=result?.message||"Не удалось подписать тренера.";
+      if(result?.accepted)this.#userStore.saveState(this.#state.exportState());
       this.#renderScreen();
       return;
     }

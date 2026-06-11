@@ -173,6 +173,28 @@ export class AppState {
   get gameSettings() { return { ...this.#gameSettings }; }
   getCoachByTeamId(teamId) { return this.#coaches.find((coach) => coach.teamId === teamId) || null; }
   getFreeCoaches() { return this.#coaches.filter((coach) => !coach.teamId).sort((left, right) => right.overall - left.overall); }
+  renewActiveTeamCoach(years = 1) {
+    const coach = this.getCoachByTeamId(this.#activeTeamId);
+    if (!coach) return { accepted: false, message: "Главный тренер не назначен." };
+    const contractUntil = this.#getCoachContractUntil(coach, years);
+    coach.extendContractUntil(contractUntil);
+    return { accepted: true, message: `${coach.name}: контракт продлен до ${this.#formatCoachContract(contractUntil)}.` };
+  }
+  terminateActiveTeamCoach() {
+    const coach = this.getCoachByTeamId(this.#activeTeamId);
+    if (!coach) return { accepted: false, message: "Главный тренер уже отсутствует." };
+    coach.releaseToMarket();
+    return { accepted: true, message: `${coach.name} выведен на рынок свободных тренеров.` };
+  }
+  signFreeCoach(coachId, years = 2) {
+    const coach = this.#coaches.find((entry) => entry.id === coachId && !entry.teamId);
+    if (!this.#activeTeamId || !coach) return { accepted: false, message: "Тренер недоступен для подписания." };
+    const current = this.getCoachByTeamId(this.#activeTeamId);
+    if (current) current.releaseToMarket();
+    const contractUntil = this.#getCoachContractUntil(null, years);
+    coach.assignToTeam(this.#activeTeamId, contractUntil);
+    return { accepted: true, message: `${coach.name} подписан до ${this.#formatCoachContract(contractUntil)}.` };
+  }
   getSalaryCapSummary(teamId = this.#activeTeamId, seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel) {
     if (!this.#gameSettings.salaryCapEnabled || !teamId) return null;
     const contracts = this.#exportContractRows();
@@ -228,6 +250,17 @@ export class AppState {
       const fit = this.#getCoachFitForTeam(team, { isPlayoff: phase === "playoffs" });
       return [team.id, fit?.effect || null];
     }).filter(([, effect]) => effect));
+  }
+
+  #getCoachContractUntil(coach, years = 1) {
+    const currentSeasonEnd = parseSeasonEnd(this.#seasonState?.seasonLabel || this.#calendar.seasonLabel);
+    const currentContractEnd = Number(String(coach?.contractUntil || "").slice(0, 4)) || currentSeasonEnd;
+    const endYear = Math.max(currentSeasonEnd, currentContractEnd) + Math.max(1, Number(years) || 1);
+    return `${endYear}-05-31`;
+  }
+
+  #formatCoachContract(contractUntil) {
+    return contractUntil ? new Date(contractUntil).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "2-digit", timeZone: "UTC" }) : "без контракта";
   }
 
   getStandingsTable() { return this.#standings.getTable(this.#teams); }

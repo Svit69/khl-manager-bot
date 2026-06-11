@@ -29,7 +29,7 @@ const controller=new AppController(state,calendar,teams,renderer,userStore);
 controller.initialize();
 
 if("serviceWorker" in navigator){
-  const refreshKey="khl-sw-refresh-v150";
+  const refreshKey="khl-sw-refresh-v151";
   navigator.serviceWorker.addEventListener("controllerchange",()=>{
     if(sessionStorage.getItem(refreshKey)==="1")return;
     sessionStorage.setItem(refreshKey,"1");

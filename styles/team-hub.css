@@ -1450,7 +1450,7 @@
 .coach-summary,.coach-board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 .coach-summary div,.coach-panel{padding:12px;border-radius:14px;border:1px solid rgba(118,163,233,.14);background:rgba(255,255,255,.035)}
 .coach-summary strong{display:block;margin-top:4px;color:#f5f9ff;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.coach-board{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr) minmax(260px,.85fr)}
+.coach-board{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(230px,.72fr) minmax(260px,.85fr)}
 .coach-panel{display:grid;gap:9px;align-content:start}
 .coach-panel h3{margin:0 0 4px}
 .coach-rating-row{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 42px;gap:10px;padding:9px 10px;border-radius:11px;background:rgba(255,255,255,.04);overflow:hidden}
@@ -1458,6 +1458,15 @@
 .coach-rating-row strong,.coach-market-row strong,.coach-market-row em{position:relative;z-index:1;color:#f5f9ff;text-align:right;font-style:normal}
 .coach-rating-row em{position:absolute;inset:auto 0 0;height:3px;background:linear-gradient(90deg,#80f7ca,#7ed6ff)}
 .coach-market-row{display:grid;grid-template-columns:minmax(0,1fr) 100px 62px;gap:10px;padding:10px;border-radius:11px;background:rgba(255,255,255,.04)}
+.coach-market-row--action{grid-template-columns:minmax(0,1fr) 88px 58px 70px;align-items:center}
+.coach-market-sign,.coach-action{height:34px;border:0;border-radius:10px;background:linear-gradient(135deg,#80f7ca,#7ed6ff);color:#041122;font:inherit;font-size:11px;font-weight:950;cursor:pointer;white-space:nowrap}
+.coach-market-sign:hover,.coach-action:hover{filter:brightness(1.06)}
+.coach-action-grid{display:grid;grid-template-columns:1fr;gap:8px}
+.coach-action.secondary{background:rgba(255,255,255,.08);color:#f5f9ff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.coach-action.danger{background:rgba(255,92,92,.14);color:#ffb3b3;box-shadow:inset 0 0 0 1px rgba(255,92,92,.25)}
+.coach-management-note{padding:9px 10px;border-radius:10px;background:rgba(255,255,255,.04);color:#9fb7de;font-size:12px;font-weight:800}
+.coach-management-note strong{color:#f5f9ff}
+.coach-management-message{padding:10px 12px;border-radius:12px;background:rgba(128,247,202,.1);border:1px solid rgba(128,247,202,.2);color:#dfffee;font-weight:850}
 .coach-empty{padding:14px;border-radius:14px;background:rgba(255,255,255,.04);color:#9fb7de}
 .coach-fit-panel{background:linear-gradient(145deg,rgba(128,247,202,.07),rgba(126,214,255,.045)),rgba(255,255,255,.035)}
 .coach-fit-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
