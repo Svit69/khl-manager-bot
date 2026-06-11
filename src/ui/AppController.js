@@ -250,10 +250,10 @@ export class AppController{
     };
   }
   #decorateTradeCandidates(players){
-    return (players||[]).map(player=>({
-      ...player,
-      tradeSalaryRub:player.externalCareer?null:this.#state.getTradePlayerSalaryRub(player.id)
-    }));
+    return (players||[]).map(player=>{
+      player.tradeSalaryRub=player.externalCareer?null:this.#state.getTradePlayerSalaryRub(player.id);
+      return player;
+    });
   }
   #buildSeasonContractDecisionView(){
     if(!this.#seasonContractDecisionOpen || !this.#state.activeTeam)return {isOpen:false};
