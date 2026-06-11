@@ -6,6 +6,7 @@ import { ContractType } from "../contracts/ContractType.js";
 import { getFallbackMarketSalaryRub } from "../contracts/FallbackMarketSalary.js";
 import { SalaryCapService } from "../contracts/SalaryCapService.js";
 import { buildTradeSalaryCapPreview } from "../contracts/TradeSalaryCapPreview.js";
+import { HeadCoach } from "../models/HeadCoach.js";
 import { StandingsTracker } from "../stats/StandingsTracker.js";
 import { calculateAge, formatContractEndDate, formatNextSeason, parseSeasonEnd, setSeasonReferenceDate } from "../contracts/SeasonUtils.js";
 import { PlayerDevelopmentService } from "../progression/PlayerDevelopmentService.js";
@@ -78,6 +79,7 @@ const normalizeTransferLedger = (items = []) =>
 const normalizeGameSettings = (settings = {}) => ({
   restrictedFreeAgencyEnabled: settings.restrictedFreeAgencyEnabled !== false,
   salaryCapEnabled: settings.salaryCapEnabled !== false,
+  coachesEnabled: settings.coachesEnabled !== false,
 });
 const toDate = (value) => {
   const date = new Date(value);
@@ -114,12 +116,14 @@ export class AppState {
   #gameSettings = normalizeGameSettings();
   #retiredPlayerIds = new Set();
   #transferLedger = [];
+  #coaches;
 
-  constructor(teams, calendar, contracts, freeAgents = [], externalPlayers = []) {
+  constructor(teams, calendar, contracts, freeAgents = [], externalPlayers = [], coaches = []) {
     this.#teams = teams;
     this.#calendar = calendar;
     this.#freeAgents = dedupeFreeAgents(freeAgents);
     this.#externalPlayers = [...externalPlayers];
+    this.#coaches = [...coaches];
     this.#contracts = new ContractService(contracts);
     this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#calendar.seasonLabel });
     this.#aiRenewals = new AiRenewalService(this.#contracts, {
@@ -165,6 +169,8 @@ export class AppState {
   get activeTeam() { return this.#teams.find((team) => team.id === this.#activeTeamId) || null; }
   get seasonHistory() { return [...this.#seasonHistory]; }
   get gameSettings() { return { ...this.#gameSettings }; }
+  getCoachByTeamId(teamId) { return this.#coaches.find((coach) => coach.teamId === teamId) || null; }
+  getFreeCoaches() { return this.#coaches.filter((coach) => !coach.teamId).sort((left, right) => right.overall - left.overall); }
   getSalaryCapSummary(teamId = this.#activeTeamId, seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel) {
     if (!this.#gameSettings.salaryCapEnabled || !teamId) return null;
     const contracts = this.#exportContractRows();
@@ -201,6 +207,12 @@ export class AppState {
       canStartSeason: this.canStartSeason(),
       latestArchive: this.#seasonHistory[0] || null,
     };
+  }
+
+  getActiveTeamCoachView() {
+    if (!this.#gameSettings.coachesEnabled || !this.#activeTeamId) return null;
+    const coach = this.getCoachByTeamId(this.#activeTeamId);
+    return { coach, team: this.activeTeam, freeCoaches: this.getFreeCoaches() };
   }
 
   getStandingsTable() { return this.#standings.getTable(this.#teams); }
@@ -1000,6 +1012,7 @@ export class AppState {
       standings: this.#standings.getSnapshot(),
       rosters: createRosterSnapshots(this.#teams),
       gameSettings: this.#gameSettings,
+      coaches: this.#coaches.map((coach) => coach.exportSnapshot()),
       notifications: this.#notifications,
       seasonHistory: this.#seasonHistory,
       seasonState: this.#seasonState,
@@ -1012,6 +1025,7 @@ export class AppState {
     if (!saved) return;
     this.#retiredPlayerIds = new Set(Array.isArray(saved.retiredPlayerIds) ? saved.retiredPlayerIds : []);
     this.#gameSettings = normalizeGameSettings(saved.gameSettings);
+    if (Array.isArray(saved.coaches)) this.#coaches = saved.coaches.map((coach) => HeadCoach.fromSnapshot(coach));
     this.#transferLedger = normalizeTransferLedger(saved.transferLedger);
     this.#activeTeamId = saved.activeTeamId || null;
     if (saved.calendar) this.#calendar.importState(saved.calendar);

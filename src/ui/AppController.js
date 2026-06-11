@@ -15,7 +15,7 @@ export class AppController{
   #matchPlaybackTimer=null;
   #calendarPanelTab="standings";
   #notificationVisibleCount=6;
-  #newGameSettings={restrictedFreeAgencyEnabled:true,salaryCapEnabled:true};
+  #newGameSettings={restrictedFreeAgencyEnabled:true,salaryCapEnabled:true,coachesEnabled:true};
   #seasonContractDecisionOpen=false;
   #seasonContractDecisionFilter="pending";
   #seasonContractDecisionSelectedPlayerId=null;
@@ -53,7 +53,7 @@ export class AppController{
         unreadCount:this.#state.getUnreadNotificationCount(),
         unreadItems:this.#state.getUnreadNotifications(this.#notificationVisibleCount),
         totalUnread:this.#state.getUnreadNotificationTotal()
-      });
+      },this.#state.gameSettings);
       this.#renderer.renderCalendar(calendarDateLabel,dayInfo,false,{
         tab:this.#calendarPanelTab,
         activeTeamId:this.#state.activeTeamId,
@@ -72,6 +72,8 @@ export class AppController{
           this.#state.getExternalPlayerRows(),
           this.#state.getSalaryCapSummary()
         );
+      }else if(this.#activeTab==="coach"){
+        this.#renderer.renderCoach(this.#state.getActiveTeamCoachView());
       }else if(this.#activeTab==="teamStats"){
         const selectedTeamId=this.#teamStatsTeamId||this.#state.activeTeamId;
         this.#renderer.renderTeamStatistics(
@@ -345,6 +347,12 @@ export class AppController{
     }
     if(action==="new-game-cap-toggle"){
       this.#newGameSettings={...this.#newGameSettings,salaryCapEnabled:clickable.checked};
+      this.#state.updateGameSettings(this.#newGameSettings);
+      this.#renderScreen();
+      return;
+    }
+    if(action==="new-game-coaches-toggle"){
+      this.#newGameSettings={...this.#newGameSettings,coachesEnabled:clickable.checked};
       this.#state.updateGameSettings(this.#newGameSettings);
       this.#renderScreen();
       return;

@@ -4,6 +4,7 @@ import { TeamStatsTabRenderer } from "./TeamStatsTabRenderer.js";
 import { TradeTabRenderer } from "./TradeTabRenderer.js";
 import { JuniorTeamTabRenderer } from "./JuniorTeamTabRenderer.js";
 import { TransferTabRenderer } from "./TransferTabRenderer.js";
+import { CoachTabRenderer } from "./CoachTabRenderer.js";
 import { SeasonContractDecisionRenderer } from "./SeasonContractDecisionRenderer.js";
 import { OfferSheetPopupRenderer } from "./OfferSheetPopupRenderer.js";
 import { calculateAge } from "../contracts/SeasonUtils.js";
@@ -187,7 +188,7 @@ const renderReserveStrip=players=>{
   if(!players?.length)return `<div class="team-reserve-empty">Запасных нет</div>`;
   return `<div class="team-reserve-strip">${players.map((player,index)=>renderRosterSlotCard(player,{kind:"reserve",index},"hockey-card--reserve")).join("")}</div>`;
 };
-const renderTeamSidebar=(team,activeTab)=>`<aside class="team-sidebar"><img class="team-sidebar-logo" src="${team.logoUrl}" alt="${team.name}"/><div class="team-sidebar-nav"><button class="team-nav-link${activeTab==="roster"?" active":""}" data-tab="roster">Состав</button><button class="team-nav-link${activeTab==="junior"?" active":""}" data-tab="junior">Молодежка</button><button class="team-nav-link${activeTab==="contracts"?" active":""}" data-tab="contracts">Контракты</button><button class="team-nav-link${activeTab==="teamStats"?" active":""}" data-tab="teamStats">Статистика команды</button><button class="team-nav-link${activeTab==="transfers"?" active":""}" data-tab="transfers">Движение</button><button class="team-nav-link${activeTab==="freeAgents"?" active":""}" data-tab="freeAgents">Свободные агенты</button><button class="team-nav-link${activeTab==="trades"?" active":""}" data-tab="trades">Обмены</button></div></aside>`;
+const renderTeamSidebar=(team,activeTab,settings={})=>`<aside class="team-sidebar"><img class="team-sidebar-logo" src="${team.logoUrl}" alt="${team.name}"/><div class="team-sidebar-nav"><button class="team-nav-link${activeTab==="roster"?" active":""}" data-tab="roster">Состав</button>${settings.coachesEnabled!==false?`<button class="team-nav-link${activeTab==="coach"?" active":""}" data-tab="coach">Тренер</button>`:""}<button class="team-nav-link${activeTab==="junior"?" active":""}" data-tab="junior">Молодежка</button><button class="team-nav-link${activeTab==="contracts"?" active":""}" data-tab="contracts">Контракты</button><button class="team-nav-link${activeTab==="teamStats"?" active":""}" data-tab="teamStats">Статистика команды</button><button class="team-nav-link${activeTab==="transfers"?" active":""}" data-tab="transfers">Движение</button><button class="team-nav-link${activeTab==="freeAgents"?" active":""}" data-tab="freeAgents">Свободные агенты</button><button class="team-nav-link${activeTab==="trades"?" active":""}" data-tab="trades">Обмены</button></div></aside>`;
 const renderNotificationCenter=notifications=>{
   const unreadCount=Math.max(0,Number(notifications?.unreadCount)||0);
   const unreadItems=notifications?.unreadItems||[];
@@ -213,7 +214,7 @@ const renderNotificationCenter=notifications=>{
   </div>`;
 };
 export class Renderer{
-  #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();#teamStatsTab=new TeamStatsTabRenderer();#freeAgentTab=new FreeAgentTabRenderer();#tradeTab=new TradeTabRenderer();#juniorTab=new JuniorTeamTabRenderer();#transferTab=new TransferTabRenderer();#seasonContractDecision=new SeasonContractDecisionRenderer();#offerSheetPopup=new OfferSheetPopupRenderer();
+  #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();#teamStatsTab=new TeamStatsTabRenderer();#freeAgentTab=new FreeAgentTabRenderer();#tradeTab=new TradeTabRenderer();#juniorTab=new JuniorTeamTabRenderer();#transferTab=new TransferTabRenderer();#coachTab=new CoachTabRenderer();#seasonContractDecision=new SeasonContractDecisionRenderer();#offerSheetPopup=new OfferSheetPopupRenderer();
   constructor(){
     this.#teamEl=document.getElementById("teamPanel");
     this.#calEl=document.getElementById("calendarPanel");
@@ -221,11 +222,11 @@ export class Renderer{
     this.#userEl=document.getElementById("userBadge");
   }
   renderUser(user){this.#userEl.textContent=`ID: ${user.id}`}
-  renderTeam(team,activeTab,activeRosterUnit="1",selectedRosterSlot=null,notifications=null){
+  renderTeam(team,activeTab,activeRosterUnit="1",selectedRosterSlot=null,notifications=null,settings={}){
     const rosterView=activeTab==="roster"
       ? `<div class="team-club-shell"><div class="team-roster-stage"><div class="line-view-panel">${renderRosterUnitButtons(activeRosterUnit)}${renderRosterUnitCards(team,activeRosterUnit,selectedRosterSlot)}</div></div><div class="team-reserve-wrap">${renderReserveStrip(team.reservePlayers||[])}</div></div>`
       : "";
-    const sidebar=renderTeamSidebar(team,activeTab);
+    const sidebar=renderTeamSidebar(team,activeTab,settings);
     this.#teamEl.innerHTML=`<div class="team-screen">${sidebar}<div class="team-screen-main"><div class="team-screen-header"><div><div class="team-screen-title">${team.name}</div><div class="team-screen-subtitle">${team.city}, ${team.shortName}</div></div><div class="team-screen-status">${renderNotificationCenter(notifications)}<span class="team-screen-status-pill">Club Hub</span><span class="team-screen-status-pill team-screen-status-pill-muted">${activeTab==="roster"?"Основной состав":"Управление клубом"}</span></div></div>${rosterView}<div id="teamTabContent"></div></div></div>`;
   }
   renderTeamSelection(teams,activeTeamId,selectedTeamId=null,settings={}){
@@ -235,6 +236,7 @@ export class Renderer{
     const selectedTeam=teams.find(team=>team.id===selectedTeamId)||null;
     const rfaEnabled=settings.restrictedFreeAgencyEnabled!==false;
     const capEnabled=settings.salaryCapEnabled!==false;
+    const coachesEnabled=settings.coachesEnabled!==false;
     const renderCard=team=>`<button class="team-select-card${selectedTeamId===team.id?" active":""}" data-team-id="${team.id}">
       <div class="team-select-card-glow"></div>
       <div class="team-select-card-body">
@@ -244,7 +246,7 @@ export class Renderer{
       </div>
     </button>`;
     const renderSection=(title,cards)=>cards.length?`<section class="team-select-section"><h3>${title}</h3><div class="team-select-grid">${cards.map(renderCard).join("")}</div></section>`:"";
-    const careerSettingsPanel=`<section class="team-select-settings"><div><h3>Настройки карьеры</h3><p>Можно изменить до выбора клуба.</p></div><div class="team-select-toggle-list"><label class="team-select-toggle"><input type="checkbox" data-action="new-game-rfa-toggle" ${rfaEnabled?"checked":""}><span></span><strong>ОСА / НСА и права игроков</strong><small>${rfaEnabled?"Квалификационные предложения, оффершиты и права на игроков включены.":"Все истекающие игроки становятся свободными агентами, права и оффершиты отключены."}</small></label><label class="team-select-toggle"><input type="checkbox" data-action="new-game-cap-toggle" ${capEnabled?"checked":""}><span></span><strong>Потолок зарплат КХЛ</strong><small>${capEnabled?"Клубы должны уложиться в лимит: 900 млн, 950 млн, 1 млрд, затем +100 млн за сезон.":"Подписания и обмены не ограничиваются общей платежкой клуба."}</small></label></div></section>`;
+    const careerSettingsPanel=`<section class="team-select-settings"><div><h3>Настройки карьеры</h3><p>Можно изменить до выбора клуба.</p></div><div class="team-select-toggle-list"><label class="team-select-toggle"><input type="checkbox" data-action="new-game-rfa-toggle" ${rfaEnabled?"checked":""}><span></span><strong>ОСА / НСА и права игроков</strong><small>${rfaEnabled?"Квалификационные предложения, оффершиты и права на игроков включены.":"Все истекающие игроки становятся свободными агентами, права и оффершиты отключены."}</small></label><label class="team-select-toggle"><input type="checkbox" data-action="new-game-cap-toggle" ${capEnabled?"checked":""}><span></span><strong>Потолок зарплат КХЛ</strong><small>${capEnabled?"Клубы должны уложиться в лимит: 900 млн, 950 млн, 1 млрд, затем +100 млн за сезон.":"Подписания и обмены не ограничиваются общей платежкой клуба."}</small></label><label class="team-select-toggle"><input type="checkbox" data-action="new-game-coaches-toggle" ${coachesEnabled?"checked":""}><span></span><strong>Главные тренеры</strong><small>${coachesEnabled?"У клубов есть Head Coach, стиль и тренерские рейтинги.":"Вкладка тренера и тренерские параметры отключены."}</small></label></div></section>`;
     const actionDock=selectedTeam?`<div class="team-select-dock">
       <div class="team-select-dock-meta">
         <span class="team-select-dock-label">Выбран клуб</span>
@@ -302,6 +304,11 @@ export class Renderer{
     const container=document.getElementById("teamTabContent");
     if(container){container.innerHTML=this.#juniorTab.render(view);return;}
     this.#matchEl.innerHTML=this.#juniorTab.render(view);
+  }
+  renderCoach(view){
+    const container=document.getElementById("teamTabContent");
+    if(container){container.innerHTML=this.#coachTab.render(view);return;}
+    this.#matchEl.innerHTML=this.#coachTab.render(view);
   }
   renderSeasonContractDecision(view){
     if(!view?.isOpen)return;
