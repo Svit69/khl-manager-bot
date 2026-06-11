@@ -1,16 +1,19 @@
 export const collectSavedExternalPlayerIds = (savedExternalPlayers = []) =>
   new Set((savedExternalPlayers || []).map((player) => player?.id).filter(Boolean));
 
+const LEGACY_BROKEN_EXTERNAL_RIGHTS_ID = "external-rights-undefined";
+const hasStableExternalRightsId = (player) => player?.id && player.id !== LEGACY_BROKEN_EXTERNAL_RIGHTS_ID;
+
 export const isExternalRightsSnapshot = (player) => {
   const career = player?.externalCareer;
-  if (!player?.id || !career?.rightsTeamId) return false;
+  if (!hasStableExternalRightsId(player) || !career?.rightsTeamId) return false;
   return !["returned_khl", "khl_market"].includes(career.status);
 };
 
 export const collectSavedExternalPlayerSnapshots = (saved = {}) => {
   const snapshotsById = new Map();
   (saved.externalPlayers || []).forEach((player) => {
-    if (player?.id) snapshotsById.set(player.id, player);
+    if (hasStableExternalRightsId(player)) snapshotsById.set(player.id, player);
   });
   (saved.players || [])
     .filter((player) => isExternalRightsSnapshot(player))

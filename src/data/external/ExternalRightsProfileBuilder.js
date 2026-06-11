@@ -9,7 +9,7 @@ export class ExternalRightsProfileBuilder {
   buildPlayerProfile(record) {
     const position = this.resolvePosition(record.position);
     return {
-      id: this.createPlayerId(record.slug),position,
+      id: this.createPlayerId(record.photoSlug),position,
       identity: {
         firstName: record.firstName,lastName: record.lastName,displayName: `${record.firstName} ${record.lastName}`,
         birthDate: record.birthDate,nationality: this.resolveNationality(record.nationality),isGoalie: false,

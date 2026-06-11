@@ -1059,7 +1059,6 @@ export class AppState {
       );
       this.#externalPlayers = [...this.#externalPlayers, ...missingExternalPlayers];
       restorePlayerSnapshots(this.#externalPlayers, savedExternalPlayers);
-      this.#externalPlayers = this.#externalPlayers.filter((player) => savedExternalPlayerIds.has(player.id));
     }
     if (saved.rosters) {
       this.#juniors.ensureSavedJuniorPlayers({
