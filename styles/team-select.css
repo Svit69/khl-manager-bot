@@ -110,13 +110,17 @@
 .team-select-settings p{margin:0;color:#9fb0c6;font-size:13px;font-weight:700}
 .team-select-toggle-list{display:grid;gap:12px;min-width:min(520px,100%)}
 .team-select-toggle{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;align-items:center;min-width:min(420px,100%);cursor:pointer}
-.team-select-toggle input{position:absolute;opacity:0;pointer-events:none}
+.team-select-toggle>input[type="checkbox"]{position:absolute;opacity:0;pointer-events:none}
 .team-select-toggle span{grid-row:1 / 3;width:46px;height:26px;border-radius:999px;background:rgba(255,255,255,.16);position:relative;transition:.18s ease}
 .team-select-toggle span::after{content:"";position:absolute;top:4px;left:4px;width:18px;height:18px;border-radius:50%;background:#d6deea;transition:.18s ease}
 .team-select-toggle input:checked+span{background:#80f7ca}
 .team-select-toggle input:checked+span::after{left:24px;background:#071018}
 .team-select-toggle strong{color:#edf6ef;font-size:14px}
 .team-select-toggle small{color:#9fb0c6;font-size:12px;font-weight:700;line-height:1.35}
+.team-select-cap-controls{grid-column:2;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.team-select-cap-controls label{display:grid;gap:4px;cursor:default}
+.team-select-cap-controls input,.team-select-cap-controls select{width:100%;min-width:0;height:34px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.08);color:#edf6ef;font:inherit;font-size:12px;font-weight:800;padding:0 10px}
+.team-select-cap-controls option{background:#07121e;color:#edf6ef}
 .team-select-section h3{
   color:#b7c5c5;
   font-size:13px;

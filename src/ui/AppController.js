@@ -16,7 +16,7 @@ export class AppController{
   #matchPlaybackTimer=null;
   #calendarPanelTab="standings";
   #notificationVisibleCount=6;
-  #newGameSettings={restrictedFreeAgencyEnabled:true,salaryCapEnabled:true,coachesEnabled:true};
+  #newGameSettings={restrictedFreeAgencyEnabled:true,salaryCapEnabled:true,salaryCapBaseRub:900000000,salaryCapGrowthRub:50000000,coachesEnabled:true};
   #seasonContractDecisionOpen=false;
   #seasonContractDecisionFilter="pending";
   #seasonContractDecisionSelectedPlayerId=null;
@@ -196,6 +196,17 @@ export class AppController{
     }
     if(action==="junior-position-filter"){
       this.#juniorPositionFilter=changed.value||"all";
+      this.#renderScreen();
+    }
+    if(action==="new-game-cap-base"){
+      const millions=Math.max(500,Number(changed.value)||900);
+      this.#newGameSettings={...this.#newGameSettings,salaryCapBaseRub:Math.round(millions*1000000)};
+      this.#state.updateGameSettings(this.#newGameSettings);
+      this.#renderScreen();
+    }
+    if(action==="new-game-cap-growth"){
+      this.#newGameSettings={...this.#newGameSettings,salaryCapGrowthRub:Number(changed.value)||0};
+      this.#state.updateGameSettings(this.#newGameSettings);
       this.#renderScreen();
     }
     if(action==="season-contract-salary-input"){

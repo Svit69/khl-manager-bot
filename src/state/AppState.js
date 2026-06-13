@@ -83,6 +83,8 @@ const normalizeTransferLedger = (items = []) =>
 const normalizeGameSettings = (settings = {}) => ({
   restrictedFreeAgencyEnabled: settings.restrictedFreeAgencyEnabled !== false,
   salaryCapEnabled: settings.salaryCapEnabled !== false,
+  salaryCapBaseRub: Math.max(500000000, Number(settings.salaryCapBaseRub) || 900000000),
+  salaryCapGrowthRub: [0, 50000000, 100000000].includes(Number(settings.salaryCapGrowthRub)) ? Number(settings.salaryCapGrowthRub) : 50000000,
   coachesEnabled: settings.coachesEnabled !== false,
 });
 const toDate = (value) => {
@@ -217,7 +219,7 @@ export class AppState {
     const payrollRub = contracts
       .filter((contract) => contract.teamId === teamId && contract.season === seasonLabel)
       .reduce((sum, contract) => sum + (Number(contract.salaryRub) || 0), 0);
-    const capRub = this.#salaryCap.getCapRub(seasonLabel);
+    const capRub = this.#getSalaryCapRub(seasonLabel);
     return { enabled: true, seasonLabel, capRub, payrollRub, remainingRub: Math.max(0, capRub - payrollRub) };
   }
 
@@ -231,7 +233,7 @@ export class AppState {
       givePlayerIds,
       receivePlayerIds,
       seasonLabel,
-      getCapRub: (season) => this.#salaryCap.getCapRub(season),
+      getCapRub: (season) => this.#getSalaryCapRub(season),
     });
   }
 
@@ -287,6 +289,14 @@ export class AppState {
 
   #formatCoachSalary(salaryRub) {
     return `${Math.round((Number(salaryRub) || 0) / 1000000)} млн`;
+  }
+
+  #getSalaryCapConfig() {
+    return { custom: true, baseRub: this.#gameSettings.salaryCapBaseRub, growthRub: this.#gameSettings.salaryCapGrowthRub };
+  }
+
+  #getSalaryCapRub(seasonLabel) {
+    return this.#salaryCap.getCapRub(seasonLabel, this.#getSalaryCapConfig());
   }
 
   #processCoachOffseason(transition) {
@@ -386,7 +396,7 @@ export class AppState {
     return {
       enabled: this.#gameSettings.salaryCapEnabled,
       seasonLabel,
-      capRub: this.#salaryCap.getCapRub(seasonLabel),
+      capRub: this.#getSalaryCapRub(seasonLabel),
       salaryByPlayerId: Object.fromEntries(this.getFantasyDraftPlayerPool().map((player) => [
         player.id,
         this.#getPlayerSalaryForSeason(player.id, seasonLabel, contracts),
@@ -1759,6 +1769,7 @@ export class AppState {
       playerId: player.id,
       startSeason,
       offer,
+      capConfig: this.#getSalaryCapConfig(),
     });
   }
 
@@ -1771,6 +1782,7 @@ export class AppState {
       givePlayerIds,
       receivePlayerIds,
       seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
+      capConfig: this.#getSalaryCapConfig(),
     });
   }
 
@@ -1799,7 +1811,7 @@ export class AppState {
     const payrollRub = contracts
       .filter((contract) => contract.teamId === team.id && contract.season === startSeason && contract.playerId !== player.id)
       .reduce((sum, contract) => sum + (Number(contract.salaryRub) || 0), 0);
-    const capRub = this.#salaryCap.getCapRub(startSeason);
+    const capRub = this.#getSalaryCapRub(startSeason);
     return { ...preview, salaryCap: { enabled: true, seasonLabel: startSeason, capRub, payrollRub, remainingRub: Math.max(0, capRub - payrollRub), offerFits: payrollRub + (Number(preview.offer?.salaryRub) || 0) <= capRub } };
   }
 

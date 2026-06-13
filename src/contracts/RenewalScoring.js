@@ -533,7 +533,7 @@ const calculateTeamAdjustedDemand = (player, team, context, marketSalary, reason
     }
 
     if (northAmericaRisk) {
-      const pressure = clamp((Number(northAmericaRisk.score) || 0) / 100, 0.06, 0.18);
+      const pressure = clamp((Number(northAmericaRisk.score) || 0) / 85, 0.1, 0.32);
       factor *= 1 + pressure;
       reasons.push({ text: `Интерес ${northAmericaRisk.league || "НХЛ / АХЛ"} повышает цену удержания`, value: 0 });
     }
@@ -550,8 +550,18 @@ const calculateTeamAdjustedDemand = (player, team, context, marketSalary, reason
 const northAmericaInterestScore = (player, context, reasons) => {
   const risk = context?.northAmericaInterestByPlayerId?.get?.(player.id) || null;
   if (!risk || context?.isFreeAgent) return 0;
-  const score = -Math.round(clamp((Number(risk.score) || 0) / 10, 3, 9));
+  const score = -Math.round(clamp((Number(risk.score) || 0) / 7, 5, 14));
   reasons.push({ text: `Есть спрос из ${risk.league || "НХЛ / АХЛ"}: нужен сильнее контракт для удержания`, value: score });
+  return score;
+};
+
+const northAmericaCommitmentPenalty = (risk, salaryRatio, context, reasons) => {
+  if (!risk || context?.isFreeAgent) return 0;
+  const riskScore = Number(risk.score) || 0;
+  const weakTeam = (context?.teamRank || 0) > 8 ? 4 : 0;
+  const moneyShield = salaryRatio >= 1.25 ? 4 : salaryRatio >= 1.1 ? 2 : 0;
+  const score = -Math.round(clamp(riskScore / 9 + weakTeam - moneyShield, 3, 16));
+  reasons.push({ text: `${risk.league || "НХЛ / АХЛ"} остается реальной карьерной альтернативой`, value: score });
   return score;
 };
 
@@ -665,6 +675,7 @@ export const evaluateRenewalWillingness = ({
 
   const { score: salaryScore, ratio: salaryRatio } = salarySatisfactionScore(offerSalary, teamAdjustedDemand, reasons);
   willingness += salaryScore;
+  willingness += northAmericaCommitmentPenalty(context?.northAmericaInterestByPlayerId?.get?.(player.id), salaryRatio, context, reasons);
 
   const badOfferPenalty = repeatedBadOfferScore(context, reasons);
   willingness += badOfferPenalty;

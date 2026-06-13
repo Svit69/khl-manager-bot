@@ -2,38 +2,40 @@ import { formatNextSeason, parseSeasonStart } from "./SeasonUtils.js";
 const BASE_SEASON_START = 2025;
 const CAP_BY_INDEX = [900000000, 950000000, 1000000000];
 export class SalaryCapService {
-  getCapRub(seasonLabel) {
+  getCapRub(seasonLabel, config = {}) {
+    if (config?.custom) {
+      return Math.max(500000000, Number(config.baseRub) || 900000000) + Math.max(0, parseSeasonStart(seasonLabel) - BASE_SEASON_START) * Math.max(0, Number(config.growthRub) || 0);
+    }
     const index = Math.max(0, parseSeasonStart(seasonLabel) - BASE_SEASON_START);
     return CAP_BY_INDEX[index] || 1000000000 + (index - 2) * 100000000;
   }
-  assessOffer({ contracts, teamId, playerId, startSeason, offer }) {
+  assessOffer({ contracts, teamId, playerId, startSeason, offer, capConfig = {} }) {
     const seasons = this.#buildOfferSeasons(startSeason, offer?.years);
     const failures = seasons
-      .map((season) => this.#assessSeason({ contracts, teamId, playerId, season, salaryRub: offer?.salaryRub }))
+      .map((season) => this.#assessSeason({ contracts, teamId, playerId, season, salaryRub: offer?.salaryRub, capConfig }))
       .filter((entry) => entry.projectedPayrollRub > entry.capRub);
     return { allowed: failures.length === 0, failures };
   }
-  assessTrade({ contracts, userTeamId, aiTeamId, givePlayerIds, receivePlayerIds, seasonLabel }) {
+  assessTrade({ contracts, userTeamId, aiTeamId, givePlayerIds, receivePlayerIds, seasonLabel, capConfig = {} }) {
     const outgoingIds = this.#contractAssetIds(givePlayerIds);
     const incomingIds = this.#contractAssetIds(receivePlayerIds);
     const playerIds = [...new Set([...outgoingIds, ...incomingIds])];
     const seasons = [...new Set((contracts || []).filter((contract) => playerIds.includes(contract.playerId) && parseSeasonStart(contract.season) >= parseSeasonStart(seasonLabel)).map((contract) => contract.season))];
     return [
-      this.#assessTradeTeam({ contracts, teamId: userTeamId, outgoingIds, incomingIds, seasons }),
-      this.#assessTradeTeam({ contracts, teamId: aiTeamId, outgoingIds: incomingIds, incomingIds: outgoingIds, seasons }),
+      this.#assessTradeTeam({ contracts, teamId: userTeamId, outgoingIds, incomingIds, seasons, capConfig }),
+      this.#assessTradeTeam({ contracts, teamId: aiTeamId, outgoingIds: incomingIds, incomingIds: outgoingIds, seasons, capConfig }),
     ].find((assessment) => !assessment.allowed) || { allowed: true, failures: [] };
   }
-  #assessSeason({ contracts, teamId, playerId, season, salaryRub }) {
-    return { teamId, season, capRub: this.getCapRub(season), projectedPayrollRub: this.#sumTeamContracts(contracts, teamId, season, playerId) + (Number(salaryRub) || 0) };
+  #assessSeason({ contracts, teamId, playerId, season, salaryRub, capConfig }) {
+    return { teamId, season, capRub: this.getCapRub(season, capConfig), projectedPayrollRub: this.#sumTeamContracts(contracts, teamId, season, playerId) + (Number(salaryRub) || 0) };
   }
-  #assessTradeTeam({ contracts, teamId, outgoingIds, incomingIds, seasons }) {
-    const failures = (seasons || [])
-      .map((season) => {
-        const payrollRub = this.#sumTeamContracts(contracts, teamId, season);
-        const outgoingRub = this.#sumPlayerContracts(contracts, outgoingIds, season);
-        const incomingRub = this.#sumPlayerContracts(contracts, incomingIds, season);
-        return { teamId, season, capRub: this.getCapRub(season), projectedPayrollRub: payrollRub - outgoingRub + incomingRub };
-      })
+  #assessTradeTeam({ contracts, teamId, outgoingIds, incomingIds, seasons, capConfig }) {
+    const failures = (seasons || []).map((season) => {
+      const payrollRub = this.#sumTeamContracts(contracts, teamId, season);
+      const outgoingRub = this.#sumPlayerContracts(contracts, outgoingIds, season);
+      const incomingRub = this.#sumPlayerContracts(contracts, incomingIds, season);
+      return { teamId, season, capRub: this.getCapRub(season, capConfig), projectedPayrollRub: payrollRub - outgoingRub + incomingRub };
+    })
       .filter((entry) => entry.projectedPayrollRub > entry.capRub);
     return { allowed: failures.length === 0, failures };
   }

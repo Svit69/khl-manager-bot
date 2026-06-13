@@ -24,9 +24,9 @@ export class KhlNorthAmericaInterestService {
     const activeIntent = player?.northAmericaIntent?.targetSeasonLabel === seasonLabel ? 18 : 0;
     if (age >= 25 || potential < 80 || gap < 2 || ovr < 70) return null;
     const score = clamp(
-      (potential - 78) * 8 + gap * 6 + (24 - age) * 4 + (ovr - 72) * 1.5 + activeIntent,
+      (potential - 78) * 9 + gap * 7 + (24 - age) * 4.5 + (ovr - 72) * 1.8 + activeIntent,
       0,
-      92,
+      97,
     );
     const league = potential >= 84 || ovr >= 80 ? "NHL" : "AHL";
     const roll = stableUnit(`${player.id}:${seasonLabel}:na-path`) * 100;
