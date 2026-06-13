@@ -17,11 +17,16 @@ const buildRatings = (record) => ({
 
 const buildPhotoUrl = (photo) =>
   photo ? `./coach-photo/${String(photo).toLowerCase()}.png` : "./player-photo/default.png";
+const buildSalaryRub = (ratings, games) => {
+  const overall = Math.round(Object.values(ratings).reduce((sum, value) => sum + value, 0) / 8);
+  return Math.round((12 + Math.max(0, overall - 62) * 1.45 + Math.min(14, (Number(games) || 0) / 95)) * 1000000);
+};
 
 export const createCoaches = (teams = []) => {
   const teamByShortName = new Map((teams || []).map((team) => [team.shortName, team]));
   return coachRecords.map((record) => {
     const team = record.team ? teamByShortName.get(record.team) : null;
+    const ratings = buildRatings(record);
     return new HeadCoach({
       id: `coach-${slugify(record.firstName)}-${slugify(record.lastName)}`,
       teamId: team?.id || null,
@@ -33,8 +38,9 @@ export const createCoaches = (teams = []) => {
       seasonsCoached: record.seasons,
       khlGamesCoached: record.games,
       style: record.style,
-      ratings: buildRatings(record),
+      ratings,
       contractUntil: record.contractUntil,
+      salaryRub: buildSalaryRub(ratings, record.games),
     });
   });
 };

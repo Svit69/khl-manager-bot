@@ -614,7 +614,7 @@ export class AppController{
       return;
     }
     if(action==="coach-renew"){
-      const result=this.#state.renewActiveTeamCoach(Number(clickable.dataset.years)||1);
+      const result=this.#state.renewActiveTeamCoach(Number(clickable.dataset.years)||1,Number(clickable.dataset.factor)||1);
       this.#coachMessage=result?.message||"Не удалось продлить контракт тренера.";
       if(result?.accepted)this.#userStore.saveState(this.#state.exportState());
       this.#renderScreen();
@@ -628,7 +628,7 @@ export class AppController{
       return;
     }
     if(action==="coach-sign"){
-      const result=this.#state.signFreeCoach(clickable.dataset.coachId,2);
+      const result=this.#state.signFreeCoach(clickable.dataset.coachId,2,Number(clickable.dataset.factor)||1.05);
       this.#coachMessage=result?.message||"Не удалось подписать тренера.";
       if(result?.accepted)this.#userStore.saveState(this.#state.exportState());
       this.#renderScreen();
