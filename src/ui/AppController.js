@@ -17,6 +17,8 @@ export class AppController{
   #calendarPanelTab="standings";
   #notificationVisibleCount=6;
   #newGameSettings={restrictedFreeAgencyEnabled:true,salaryCapEnabled:true,salaryCapBaseRub:900000000,salaryCapGrowthRub:50000000,coachesEnabled:true};
+  #capComplianceOpen=false;
+  #capReleasePlayerIds=new Set();
   #seasonContractDecisionOpen=false;
   #seasonContractDecisionFilter="pending";
   #seasonContractDecisionSelectedPlayerId=null;
@@ -50,11 +52,28 @@ export class AppController{
       ? this.#state.currentSeasonDateLabel
       : (dayInfo?.dateLabel||this.#state.currentSeasonDateLabel);
     if(this.#state.activeTeam){
+      const needsCapCompliance=this.#state.needsSalaryCapCompliance();
+      if(needsCapCompliance)this.#capComplianceOpen=true;
+      if(this.#capComplianceOpen && !needsCapCompliance)this.#capComplianceOpen=false;
       this.#renderer.renderTeam(this.#state.activeTeam,this.#activeTab,this.#activeRosterUnit,null,{
         unreadCount:this.#state.getUnreadNotificationCount(),
         unreadItems:this.#state.getUnreadNotifications(this.#notificationVisibleCount),
         totalUnread:this.#state.getUnreadNotificationTotal()
       },this.#state.gameSettings);
+      if(this.#capComplianceOpen){
+        this.#renderer.renderSalaryCapCompliance(this.#state.getSalaryCapComplianceView([...this.#capReleasePlayerIds]));
+        this.#renderer.renderCalendar(calendarDateLabel,dayInfo,true,{
+          tab:this.#calendarPanelTab,
+          activeTeamId:this.#state.activeTeamId,
+          standings:this.#state.getStandingsTable(),
+          scorers:this.#state.getTopScorers(10),
+          schedule:this.#state.getCalendarScheduleRows(),
+          playoffs:this.#state.getPlayoffBracketData(),
+          seasonState
+        });
+        this.#renderer.renderResetButton();
+        return;
+      }
       this.#renderer.renderCalendar(calendarDateLabel,dayInfo,false,{
         tab:this.#calendarPanelTab,
         activeTeamId:this.#state.activeTeamId,
@@ -130,7 +149,7 @@ export class AppController{
     }
     if(this.#draftIntroTeamId){
       const selectedTeam=this.#teams.find(team=>team.id===this.#draftIntroTeamId);
-      if(selectedTeam)this.#renderer.renderFantasyDraftIntro(selectedTeam);
+      if(selectedTeam)this.#renderer.renderFantasyDraftIntro(selectedTeam,this.#newGameSettings);
       this.#renderer.renderCalendar(calendarDateLabel,dayInfo,true,{
         tab:this.#calendarPanelTab,
         activeTeamId:this.#state.activeTeamId,
@@ -369,6 +388,34 @@ export class AppController{
     if(action==="new-game-coaches-toggle"){
       this.#newGameSettings={...this.#newGameSettings,coachesEnabled:clickable.checked};
       this.#state.updateGameSettings(this.#newGameSettings);
+      this.#renderScreen();
+      return;
+    }
+    if(action==="cap-release-toggle"){
+      const playerId=clickable.dataset.playerId;
+      if(this.#capReleasePlayerIds.has(playerId))this.#capReleasePlayerIds.delete(playerId);
+      else if(playerId)this.#capReleasePlayerIds.add(playerId);
+      this.#renderScreen();
+      return;
+    }
+    if(action==="cap-release-auto"){
+      this.#capReleasePlayerIds.clear();
+      const view=this.#state.getSalaryCapComplianceView();
+      let projected=view?.payrollRub||0;
+      (view?.rows||[]).sort((left,right)=>right.score-left.score).forEach(row=>{
+        if(projected<=view.capRub)return;
+        this.#capReleasePlayerIds.add(row.player.id);
+        projected-=row.salaryRub;
+      });
+      this.#renderScreen();
+      return;
+    }
+    if(action==="cap-release-confirm"){
+      if(this.#state.applySalaryCapComplianceReleases([...this.#capReleasePlayerIds])){
+        this.#capComplianceOpen=false;
+        this.#capReleasePlayerIds.clear();
+        this.#userStore.saveState(this.#state.exportState());
+      }
       this.#renderScreen();
       return;
     }
@@ -896,6 +943,8 @@ export class AppController{
       this.#state.setActiveTeamId(this.#pendingTeamId);
       this.#teamStatsTeamId=this.#pendingTeamId;
       this.#pendingTeamId=null;
+      this.#capReleasePlayerIds.clear();
+      this.#capComplianceOpen=this.#state.needsSalaryCapCompliance();
       this.#userStore.saveState(this.#state.exportState());
       this.#renderScreen();
       return;
@@ -903,6 +952,10 @@ export class AppController{
     if(action==="cancel-team"){this.#pendingTeamId=null;this.#renderScreen();return;}
     if(clickable?.id==="resetBtn"){this.#resetGame();return;}
     if(clickable?.id!=="playBtn"||!this.#state.activeTeamId)return;
+    if(this.#capComplianceOpen){
+      this.#renderScreen();
+      return;
+    }
     if(this.#state.canAdvanceToNextSeason()){
       const offersByPlayerId=Object.fromEntries(this.#offerByPlayerId);
       const rows=this.#getSeasonDecisionRows(offersByPlayerId);

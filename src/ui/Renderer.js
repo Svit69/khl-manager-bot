@@ -7,6 +7,7 @@ import { TransferTabRenderer } from "./TransferTabRenderer.js";
 import { CoachTabRenderer } from "./CoachTabRenderer.js";
 import { SeasonContractDecisionRenderer } from "./SeasonContractDecisionRenderer.js";
 import { OfferSheetPopupRenderer } from "./OfferSheetPopupRenderer.js";
+import { SalaryCapComplianceRenderer } from "./SalaryCapComplianceRenderer.js";
 import { calculateAge } from "../contracts/SeasonUtils.js";
 import { adjustedOvrForPosition } from "../utils/positionFit.js";
 import { getPlayerPhotoUrl, PHOTO_FALLBACK_ATTR } from "../utils/PlayerPhoto.js";
@@ -214,7 +215,7 @@ const renderNotificationCenter=notifications=>{
   </div>`;
 };
 export class Renderer{
-  #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();#teamStatsTab=new TeamStatsTabRenderer();#freeAgentTab=new FreeAgentTabRenderer();#tradeTab=new TradeTabRenderer();#juniorTab=new JuniorTeamTabRenderer();#transferTab=new TransferTabRenderer();#coachTab=new CoachTabRenderer();#seasonContractDecision=new SeasonContractDecisionRenderer();#offerSheetPopup=new OfferSheetPopupRenderer();
+  #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();#teamStatsTab=new TeamStatsTabRenderer();#freeAgentTab=new FreeAgentTabRenderer();#tradeTab=new TradeTabRenderer();#juniorTab=new JuniorTeamTabRenderer();#transferTab=new TransferTabRenderer();#coachTab=new CoachTabRenderer();#seasonContractDecision=new SeasonContractDecisionRenderer();#offerSheetPopup=new OfferSheetPopupRenderer();#capCompliance=new SalaryCapComplianceRenderer();
   constructor(){
     this.#teamEl=document.getElementById("teamPanel");
     this.#calEl=document.getElementById("calendarPanel");
@@ -237,8 +238,6 @@ export class Renderer{
     const rfaEnabled=settings.restrictedFreeAgencyEnabled!==false;
     const capEnabled=settings.salaryCapEnabled!==false;
     const coachesEnabled=settings.coachesEnabled!==false;
-    const capBaseMillions=Math.round((Number(settings.salaryCapBaseRub)||900000000)/1000000);
-    const capGrowthRub=Number(settings.salaryCapGrowthRub) || 0;
     const renderCard=team=>`<button class="team-select-card${selectedTeamId===team.id?" active":""}" data-team-id="${team.id}">
       <div class="team-select-card-glow"></div>
       <div class="team-select-card-body">
@@ -248,8 +247,7 @@ export class Renderer{
       </div>
     </button>`;
     const renderSection=(title,cards)=>cards.length?`<section class="team-select-section"><h3>${title}</h3><div class="team-select-grid">${cards.map(renderCard).join("")}</div></section>`:"";
-    const capControls=capEnabled?`<div class="team-select-cap-controls"><label><small>Старт, млн</small><input type="number" min="500" step="50" value="${Math.max(500,capBaseMillions)}" data-action="new-game-cap-base"></label><label><small>Рост</small><select data-action="new-game-cap-growth"><option value="0"${capGrowthRub===0?" selected":""}>0 млн</option><option value="50000000"${capGrowthRub===50000000?" selected":""}>50 млн</option><option value="100000000"${capGrowthRub===100000000?" selected":""}>100 млн</option></select></label></div>`:"";
-    const careerSettingsPanel=`<section class="team-select-settings"><div><h3>Настройки карьеры</h3><p>Можно изменить до выбора клуба.</p></div><div class="team-select-toggle-list"><label class="team-select-toggle"><input type="checkbox" data-action="new-game-rfa-toggle" ${rfaEnabled?"checked":""}><span></span><strong>ОСА / НСА и права игроков</strong><small>${rfaEnabled?"Квалификационные предложения, оффершиты и права на игроков включены.":"Все истекающие игроки становятся свободными агентами, права и оффершиты отключены."}</small></label><label class="team-select-toggle"><input type="checkbox" data-action="new-game-cap-toggle" ${capEnabled?"checked":""}><span></span><strong>Потолок зарплат КХЛ</strong><small>${capEnabled?`Старт ${Math.max(500,capBaseMillions)} млн, рост ${Math.round(capGrowthRub/1000000)} млн за сезон.`:"Подписания и обмены не ограничиваются общей платежкой клуба."}</small>${capControls}</label><label class="team-select-toggle"><input type="checkbox" data-action="new-game-coaches-toggle" ${coachesEnabled?"checked":""}><span></span><strong>Главные тренеры</strong><small>${coachesEnabled?"У клубов есть Head Coach, стиль и тренерские рейтинги.":"Вкладка тренера и тренерские параметры отключены."}</small></label></div></section>`;
+    const careerSettingsPanel=`<section class="team-select-settings"><div><h3>Настройки карьеры</h3><p>Можно изменить до выбора клуба.</p></div><div class="team-select-toggle-list"><label class="team-select-toggle"><input type="checkbox" data-action="new-game-rfa-toggle" ${rfaEnabled?"checked":""}><span></span><strong>ОСА / НСА и права игроков</strong><small>${rfaEnabled?"Квалификационные предложения, оффершиты и права на игроков включены.":"Все истекающие игроки становятся свободными агентами, права и оффершиты отключены."}</small></label><label class="team-select-toggle"><input type="checkbox" data-action="new-game-cap-toggle" ${capEnabled?"checked":""}><span></span><strong>Потолок зарплат КХЛ</strong><small>${capEnabled?"Обычная карьера использует официальный рост потолка лиги.":"Подписания и обмены не ограничиваются общей платежкой клуба."}</small></label><label class="team-select-toggle"><input type="checkbox" data-action="new-game-coaches-toggle" ${coachesEnabled?"checked":""}><span></span><strong>Главные тренеры</strong><small>${coachesEnabled?"У клубов есть Head Coach, стиль и тренерские рейтинги.":"Вкладка тренера и тренерские параметры отключены."}</small></label></div></section>`;
     const actionDock=selectedTeam?`<div class="team-select-dock">
       <div class="team-select-dock-meta">
         <span class="team-select-dock-label">Выбран клуб</span>
@@ -274,6 +272,10 @@ export class Renderer{
       </div>
       ${actionDock}
     </section>`;
+  }
+  renderSalaryCapCompliance(view){
+    const container=document.getElementById("teamTabContent");
+    if(container)container.innerHTML=this.#capCompliance.render(view);
   }
   renderMyTeamRoster(team){
     const container=document.getElementById("teamTabContent");
@@ -329,7 +331,7 @@ export class Renderer{
   renderConfirmSelection(team){
     this.renderTeamSelection([team],null,team.id);
   }
-  renderFantasyDraftIntro(team){
+  renderFantasyDraftIntro(team,settings={}){
     const infoPills=[
       {label:"Режим",value:"23 раунда"},
       {label:"Порядок",value:"Snake draft"},
@@ -342,6 +344,9 @@ export class Renderer{
     ];
     const pills=infoPills.map(item=>`<div class="draft-intro-pill"><span>${item.label}</span><strong>${item.value}</strong></div>`).join("");
     const tags=featureTags.map(item=>`<div class="draft-intro-tag-row"><span class="draft-intro-tag draft-intro-tag-dark">${item.left}</span><span class="draft-intro-tag draft-intro-tag-light">${item.center}</span><span class="draft-intro-tag draft-intro-tag-accent">${item.right}</span></div>`).join("");
+    const capBaseMillions=Math.round((Number(settings.salaryCapBaseRub)||900000000)/1000000);
+    const capGrowthRub=Number(settings.salaryCapGrowthRub)||0;
+    const capControls=settings.salaryCapEnabled===false?"":`<div class="draft-cap-settings"><label><small>Start cap, млн</small><input type="number" min="500" step="50" value="${Math.max(500,capBaseMillions)}" data-action="new-game-cap-base"></label><label><small>Growth</small><select data-action="new-game-cap-growth"><option value="0"${capGrowthRub===0?" selected":""}>0 млн</option><option value="50000000"${capGrowthRub===50000000?" selected":""}>50 млн</option><option value="100000000"${capGrowthRub===100000000?" selected":""}>100 млн</option></select></label></div>`;
     this.#teamEl.innerHTML=`<section class="draft-intro-screen">
       <div class="draft-intro-rail draft-intro-rail-top"><span>KHL MANAGER</span><span>FANTASY DRAFT</span><span>BUILD YOUR TEAM</span><span>KHL MANAGER</span><span>FANTASY DRAFT</span><span>BUILD YOUR TEAM</span></div>
       <div class="draft-intro-main">
@@ -370,6 +375,7 @@ export class Renderer{
             </div>
           </div>
           <div class="draft-intro-feature-stack">${tags}</div>
+            ${capControls}
             <div class="draft-intro-actions">
               <button class="btn draft-intro-primary" data-action="draft-intro-start">Draft your team</button>
               <button class="btn secondary draft-intro-secondary" data-action="draft-intro-back">Назад</button>

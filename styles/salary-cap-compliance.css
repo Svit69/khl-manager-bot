@@ -1,0 +1,35 @@
+.cap-compliance-screen{display:grid;gap:16px;padding:14px}
+.cap-compliance-hero{
+  padding:22px;border-radius:18px;
+  background:linear-gradient(135deg,rgba(34,69,255,.9),rgba(0,188,135,.78));
+  color:#fff;box-shadow:0 22px 46px rgba(16,36,104,.3)
+}
+.cap-compliance-hero span{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.8px}
+.cap-compliance-hero h2{margin:8px 0;font-size:28px;line-height:1.05}
+.cap-compliance-hero p{max-width:760px;margin:0;color:rgba(255,255,255,.84);line-height:1.45}
+.cap-compliance-board{
+  display:grid;gap:12px;padding:14px;border:1px solid rgba(255,255,255,.1);
+  border-radius:18px;background:rgba(9,16,30,.92)
+}
+.cap-compliance-board.ready{border-color:rgba(95,255,178,.4);box-shadow:0 0 0 1px rgba(95,255,178,.18) inset}
+.cap-compliance-meter{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.cap-compliance-meter div{padding:12px;border-radius:14px;background:rgba(255,255,255,.07)}
+.cap-compliance-meter small{display:block;color:#90a7c7;font-size:11px;font-weight:900;text-transform:uppercase}
+.cap-compliance-meter strong{display:block;margin-top:4px;color:#fff;font-size:18px;white-space:nowrap}
+.cap-cut-list{display:grid;gap:8px;max-height:430px;overflow:auto;padding-right:4px}
+.cap-cut-row{
+  display:grid;grid-template-columns:minmax(170px,1fr) 58px 72px 90px;gap:10px;align-items:center;
+  width:100%;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:12px;
+  background:rgba(255,255,255,.045);color:#e9f4ff;text-align:left;cursor:pointer
+}
+.cap-cut-row:hover,.cap-cut-row.selected{border-color:#6fffd1;background:rgba(74,255,197,.12)}
+.cap-cut-name{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cap-cut-row span:not(.cap-cut-name){color:#a7b6ca;font-size:12px;font-weight:800;white-space:nowrap}
+.cap-cut-row strong{white-space:nowrap;text-align:right}
+.cap-compliance-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.cap-compliance-actions .btn{min-width:150px}
+@media (max-width:760px){
+  .cap-compliance-meter{grid-template-columns:1fr}
+  .cap-cut-row{grid-template-columns:minmax(0,1fr) 52px 62px 78px}
+  .cap-compliance-hero h2{font-size:23px}
+}
