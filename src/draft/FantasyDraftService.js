@@ -285,7 +285,7 @@ export class FantasyDraftService {
     for (let index = 0; index < remainingPicks; index++) {
       reserveRub += salaries[Math.min(salaries.length - 1, index * teamGap)] || 0;
     }
-    return reserveRub * 1.3;
+    return reserveRub * (this.#salaryCap.capRub >= 800000000 ? 0.72 : 2);
   }
 
 
