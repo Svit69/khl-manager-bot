@@ -1,0 +1,31 @@
+.calendar-panel-scroll.schedule{max-height:560px}
+.calendar-panel-list.schedule{background:linear-gradient(180deg,rgba(7,14,27,.92),rgba(9,18,34,.84));border-radius:16px}
+.month-schedule-section{display:grid;gap:10px;padding:10px}
+.month-schedule-section+.month-schedule-section{border-top:1px solid rgba(255,255,255,.08)}
+.month-schedule-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.month-schedule-head span{font-size:15px;font-weight:1000;color:#f4fbff;text-transform:capitalize}
+.month-schedule-head strong{font-size:11px;color:#0c1726;background:#8de7ff;border-radius:999px;padding:5px 9px}
+.month-schedule-grid{display:grid;gap:8px}
+.month-game-card{
+  display:grid;grid-template-columns:54px 86px minmax(0,1fr) 78px;gap:10px;align-items:center;
+  min-height:66px;padding:10px;border-radius:14px;border:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(135deg,rgba(16,35,61,.92),rgba(9,18,34,.9));box-shadow:0 10px 24px rgba(0,0,0,.14)
+}
+.month-game-card.mine{border-color:rgba(141,231,255,.5);box-shadow:0 0 0 1px rgba(141,231,255,.18) inset}
+.month-game-card.current{background:linear-gradient(135deg,rgba(78,87,255,.92),rgba(0,204,163,.68))}
+.month-game-card.rest{opacity:.76}
+.month-game-date{font-size:11px;font-weight:900;color:#b8ccec;text-transform:uppercase}
+.month-game-teams{display:flex;align-items:center;gap:7px;min-width:0}
+.month-game-teams span{
+  display:grid;place-items:center;width:34px;height:34px;border-radius:10px;
+  background:rgba(255,255,255,.1);color:#f3fbff;font-size:11px;font-weight:1000
+}
+.month-game-teams b{width:8px;height:8px;border-radius:999px;background:#8de7ff;box-shadow:0 0 14px rgba(141,231,255,.6)}
+.month-game-main{display:grid;gap:3px;min-width:0}
+.month-game-main strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;font-size:13px}
+.month-game-main span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#9eb5d5;font-size:11px;font-weight:700}
+.month-game-status{text-align:right;color:#f7fbff;font-size:12px;font-weight:1000;white-space:nowrap}
+@media (max-width:760px){
+  .month-game-card{grid-template-columns:42px 76px minmax(0,1fr);grid-template-areas:"date teams status" "main main main"}
+  .month-game-date{grid-area:date}.month-game-teams{grid-area:teams}.month-game-main{grid-area:main}.month-game-status{grid-area:status}
+}
