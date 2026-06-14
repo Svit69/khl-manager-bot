@@ -236,8 +236,9 @@ export class FantasyDraftService {
     if (!plannedCandidates.length && this.#salaryCap.enabled) {
       return fallbackCandidates.sort((left, right) => this.#getPlayerSalary(left) - this.#getPlayerSalary(right) || compareByOvr(left, right))[0] || null;
     }
-    const coreCandidates = this.#coreSelector.select(plannedCandidates, { round, capRub: this.#salaryCap.capRub });
-    const candidates = coreCandidates.length ? coreCandidates : (plannedCandidates.length ? plannedCandidates : fallbackCandidates);
+    const ratedCandidates = this.#applyEarlyRoundRatingFloor(plannedCandidates, round);
+    const coreCandidates = this.#coreSelector.select(ratedCandidates, { round, capRub: this.#salaryCap.capRub });
+    const candidates = coreCandidates.length ? coreCandidates : (ratedCandidates.length ? ratedCandidates : fallbackCandidates);
     for (const player of candidates) {
       const scoreContext = {
         round,
@@ -262,6 +263,12 @@ export class FantasyDraftService {
 
   #normalizeSalaryCap(salaryCap = {}) {
     return { enabled: Boolean(salaryCap.enabled), capRub: Number(salaryCap.capRub) || 0, seasonLabel: salaryCap.seasonLabel || "", salaryByPlayerId: salaryCap.salaryByPlayerId || {} };
+  }
+
+  #applyEarlyRoundRatingFloor(candidates, round) {
+    if (round > 2) return candidates;
+    const ratedCandidates = (candidates || []).filter((player) => (Number(player.ovr) || 0) >= 77);
+    return ratedCandidates.length ? ratedCandidates : candidates;
   }
 
   #getPlayerSalary(player) {
