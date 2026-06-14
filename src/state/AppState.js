@@ -324,11 +324,11 @@ export class AppState {
   }
 
   #getSalaryCapConfig() {
-    return { custom: false };
+    return { custom: true, baseRub: this.#gameSettings.salaryCapBaseRub, growthRub: this.#gameSettings.salaryCapGrowthRub };
   }
 
   #getDraftSalaryCapConfig() {
-    return { custom: true, baseRub: this.#gameSettings.salaryCapBaseRub, growthRub: this.#gameSettings.salaryCapGrowthRub };
+    return this.#getSalaryCapConfig();
   }
 
   #getSalaryCapRub(seasonLabel) {
