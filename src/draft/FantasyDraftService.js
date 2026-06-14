@@ -239,7 +239,7 @@ export class FantasyDraftService {
     const coreCandidates = this.#coreSelector.select(plannedCandidates, { round, capRub: this.#salaryCap.capRub });
     const candidates = coreCandidates.length ? coreCandidates : (plannedCandidates.length ? plannedCandidates : fallbackCandidates);
     for (const player of candidates) {
-      const score = this.#scoreAiPick(player, {
+      const scoreContext = {
         round,
         phase,
         teamId: team.id,
@@ -248,7 +248,10 @@ export class FantasyDraftService {
         deficits,
         totalDeficit,
         archetype
-      });
+      };
+      const score = coreCandidates.length
+        ? this.#scoreAiCorePick(player, scoreContext)
+        : this.#scoreAiPick(player, scoreContext);
       if (score > bestScore) {
         bestScore = score;
         bestPlayer = player;
@@ -378,6 +381,18 @@ export class FantasyDraftService {
 
     // Small noise prevents deterministic drafts but is too small to overturn clear BPA gaps.
     return score + tinyRandom;
+  }
+
+  #scoreAiCorePick(player, context) {
+    const ovr = Number(player.ovr) || 0;
+    const salaryM = Math.max(1, this.#getPlayerSalary(player) / 1000000);
+    const age = calculateAge(player.identity?.birthDate);
+    const potential = Number(player.potential?.potential) || ovr;
+    const capScore = this.#assessAiSalaryCapPick(player, context).score;
+    const primeBonus = age >= 24 && age <= 31 ? 14 : 0;
+    const youthPenalty = age <= 23 && potential <= ovr + 4 ? 10 : 0;
+    const upsideBonus = age <= 23 && potential >= ovr + 6 ? 3 : 0;
+    return ovr * 26 + primeBonus + upsideBonus + Math.min(26, salaryM * 0.24) - youthPenalty + capScore * 0.05 + rand(-0.4, 0.4);
   }
 
   #assessAiSalaryCapPick(player, context) {
