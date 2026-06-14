@@ -1,4 +1,5 @@
 ﻿import { calculateAge } from "../contracts/SeasonUtils.js";
+import { DraftCoreCandidateSelector } from "./DraftCoreCandidateSelector.js";
 import { DraftSalaryCapStrategy } from "./DraftSalaryCapStrategy.js";
 import { generateUuid } from "../utils/uuid.js";
 
@@ -44,6 +45,7 @@ export class FantasyDraftService {
   #draftOrder;
   #teamArchetypeById = new Map();
   #salaryCap;
+  #coreSelector = new DraftCoreCandidateSelector();
   #capStrategy = new DraftSalaryCapStrategy();
 
   constructor(teams, players, userTeamId, rounds = DRAFT_ROUNDS, salaryCap = {}) {
@@ -234,7 +236,8 @@ export class FantasyDraftService {
     if (!plannedCandidates.length && this.#salaryCap.enabled) {
       return fallbackCandidates.sort((left, right) => this.#getPlayerSalary(left) - this.#getPlayerSalary(right) || compareByOvr(left, right))[0] || null;
     }
-    const candidates = plannedCandidates.length ? plannedCandidates : fallbackCandidates;
+    const coreCandidates = this.#coreSelector.select(plannedCandidates, { round, capRub: this.#salaryCap.capRub });
+    const candidates = coreCandidates.length ? coreCandidates : (plannedCandidates.length ? plannedCandidates : fallbackCandidates);
     for (const player of candidates) {
       const score = this.#scoreAiPick(player, {
         round,
