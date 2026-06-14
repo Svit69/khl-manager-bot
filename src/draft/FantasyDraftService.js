@@ -1,10 +1,11 @@
 ﻿import { calculateAge } from "../contracts/SeasonUtils.js";
+import { DraftSalaryCapStrategy } from "./DraftSalaryCapStrategy.js";
 import { generateUuid } from "../utils/uuid.js";
 
 const POSITION_ALL = "ALL";
 const DEFAULT_SORT = "ovr";
 export const DRAFT_ROUNDS = 23;
-const DRAFT_POSITION_TARGETS = Object.freeze({ CTR: 5, LW: 5, RW: 5, DEF: 8, G: 0 });
+const DRAFT_POSITION_TARGETS = Object.freeze({ CTR: 5, LW: 5, RW: 5, DEF: 6, G: 2 });
 const TEAM_DRAFT_ARCHETYPES = Object.freeze(["balanced", "win-now", "youth"]);
 const DINAMO_MINSK_TEAM_ID = "6b9a4d2c-5f18-41d4-9b65-3d71d8a4f2c0";
 const BARYS_TEAM_ID = "0f7b8a2d-4d25-4c2e-9b5a-0f3d9e5a6b71";
@@ -43,6 +44,7 @@ export class FantasyDraftService {
   #draftOrder;
   #teamArchetypeById = new Map();
   #salaryCap;
+  #capStrategy = new DraftSalaryCapStrategy();
 
   constructor(teams, players, userTeamId, rounds = DRAFT_ROUNDS, salaryCap = {}) {
     this.#draftId = generateUuid();
@@ -225,8 +227,15 @@ export class FantasyDraftService {
 
     let bestPlayer = null;
     let bestScore = -Infinity;
-    const candidates = this.#availablePlayers.filter((player) => this.#canFitPlayer(team.id, player));
-    for (const player of (candidates.length ? candidates : this.#availablePlayers)) {
+    const plannedCandidates = this.#availablePlayers.filter((player) =>
+      this.#canFitAiPlayerPlan(team.id, player, { round, remainingTeamPicks })
+    );
+    const fallbackCandidates = this.#availablePlayers.filter((player) => this.#canFitPlayer(team.id, player));
+    if (!plannedCandidates.length && this.#salaryCap.enabled) {
+      return fallbackCandidates.sort((left, right) => this.#getPlayerSalary(left) - this.#getPlayerSalary(right) || compareByOvr(left, right))[0] || null;
+    }
+    const candidates = plannedCandidates.length ? plannedCandidates : fallbackCandidates;
+    for (const player of candidates) {
       const score = this.#scoreAiPick(player, {
         round,
         phase,
@@ -258,9 +267,36 @@ export class FantasyDraftService {
     return [...picked, extraPlayer].filter(Boolean).reduce((sum, player) => sum + this.#getPlayerSalary(player), 0);
   }
 
+  #getTeamPositionPayroll(teamId, positionKey) {
+    return (this.#pickedByTeamId.get(teamId) || [])
+      .filter((player) => this.#mapPlayerPositionKey(player.identity?.primaryPosition) === positionKey)
+      .reduce((sum, player) => sum + this.#getPlayerSalary(player), 0);
+  }
+
+  #getReplacementReserveRub(excludedPlayer, remainingPicks) {
+    if (!this.#salaryCap.enabled || remainingPicks <= 0) return 0;
+    const salaries = this.#availablePlayers
+      .filter((player) => player.id !== excludedPlayer?.id)
+      .map((player) => this.#getPlayerSalary(player))
+      .filter((salaryRub) => salaryRub > 0)
+      .sort((left, right) => left - right);
+    const teamGap = Math.max(1, this.#teams.length - 1);
+    let reserveRub = 0;
+    for (let index = 0; index < remainingPicks; index++) {
+      reserveRub += salaries[Math.min(salaries.length - 1, index * teamGap)] || 0;
+    }
+    return reserveRub * 1.3;
+  }
+
+
   #canFitPlayer(teamId, player) {
     if (!this.#salaryCap.enabled || !teamId) return true;
     return this.#getTeamPayroll(teamId, player) <= this.#salaryCap.capRub;
+  }
+
+  #canFitAiPlayerPlan(teamId, player, context) {
+    if (!this.#canFitPlayer(teamId, player)) return false;
+    return this.#assessAiSalaryCapPick(player, { ...context, teamId }).isViable;
   }
 
   #buildSalaryCapView(previewPlayer = null) {
@@ -335,9 +371,34 @@ export class FantasyDraftService {
     }
 
     score += this.#scoreNationalityPlan(player, context);
+    score += this.#assessAiSalaryCapPick(player, context).score;
 
     // Small noise prevents deterministic drafts but is too small to overturn clear BPA gaps.
     return score + tinyRandom;
+  }
+
+  #assessAiSalaryCapPick(player, context) {
+    const positionKey = this.#mapPlayerPositionKey(player.identity?.primaryPosition);
+    const teamId = context.teamId;
+    const picked = this.#pickedByTeamId.get(teamId) || [];
+    return this.#capStrategy.assessCandidate({
+      enabled: this.#salaryCap.enabled,
+      player,
+      teamId,
+      salaryRub: this.#getPlayerSalary(player),
+      payrollRub: this.#getTeamPayroll(teamId),
+      positionPayrollRub: this.#getTeamPositionPayroll(teamId, positionKey),
+      capRub: this.#salaryCap.capRub,
+      round: context.round,
+      rounds: this.#rounds,
+      remainingPicks: context.remainingTeamPicks,
+      requiredReserveRub: this.#getReplacementReserveRub(player, Math.max(0, context.remainingTeamPicks - 1)),
+      positionKey,
+      ovr: Number(player.ovr) || 0,
+      age: calculateAge(player.identity?.birthDate),
+      potential: Number(player.potential?.potential) || Number(player.ovr) || 0,
+      expensiveStars: picked.filter((item) => this.#getPlayerSalary(item) >= this.#salaryCap.capRub * 0.08).length,
+    });
   }
 
   #scoreNationalityPlan(player, context) {

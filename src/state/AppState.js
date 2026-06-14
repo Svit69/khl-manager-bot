@@ -429,13 +429,16 @@ export class AppState {
   getFantasyDraftSalaryCapOptions() {
     const seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
     const contracts = this.#exportContractRows();
+    const officialCapRub = this.#salaryCap.getCapRub(seasonLabel, this.#getSalaryCapConfig());
+    const draftCapRub = this.#salaryCap.getCapRub(seasonLabel, this.#getDraftSalaryCapConfig());
+    const salaryScale = officialCapRub > 0 ? Math.min(1, draftCapRub / officialCapRub) : 1;
     return {
       enabled: this.#gameSettings.salaryCapEnabled,
       seasonLabel,
-      capRub: this.#salaryCap.getCapRub(seasonLabel, this.#getDraftSalaryCapConfig()),
+      capRub: draftCapRub,
       salaryByPlayerId: Object.fromEntries(this.getFantasyDraftPlayerPool().map((player) => [
         player.id,
-        this.#getPlayerSalaryForSeason(player.id, seasonLabel, contracts),
+        Math.round(this.#getPlayerSalaryForSeason(player.id, seasonLabel, contracts) * salaryScale),
       ])),
     };
   }

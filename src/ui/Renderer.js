@@ -49,9 +49,9 @@ const renderDraftPositionBlock=(label,players)=>{
   return `<div class="draft-pos"><div class="muted">${label} (${players.length})</div><div>${names||"—"}</div></div>`;
 };
 const getDraftTargetByPosition=position=>{
-  if(position==="CTR")return 4;
-  if(position==="LW")return 4;
-  if(position==="RW")return 4;
+  if(position==="CTR")return 5;
+  if(position==="LW")return 5;
+  if(position==="RW")return 5;
   if(position==="DEF")return 6;
   if(position==="G")return 2;
   return 0;
