@@ -2,11 +2,11 @@ import { DraftMarketReserve } from "./DraftMarketReserve.js";
 export class DraftBudgetPaceGuard {
   #marketReserve = new DraftMarketReserve();
   selectCandidates(context) {
-    const isLowCap = context.enabled && context.capRub < 700000000;
+    const isLowCap = context.enabled && context.capRub <= 700000000;
     const reserved = context.candidates.filter((player) => this.#marketReserve.preservesReserve(player, context));
     const candidates = reserved.length ? reserved : context.candidates;
     if (isLowCap && !reserved.length) return this.#selectLowCapRescueCandidates({ ...context, candidates });
-    if (!context.enabled || context.capRub >= 700000000) {
+    if (!context.enabled || context.capRub > 700000000) {
       const paced = candidates.filter((player) => this.#preservesBudget(player, context));
       return paced.length ? paced : candidates;
     }
@@ -23,7 +23,7 @@ export class DraftBudgetPaceGuard {
     return context.payrollRub + context.getPlayerSalary(player) <= allowedPayrollRub;
   }
   #getFlexShare(round, capRub) {
-    const isLowCap = capRub < 700000000;
+    const isLowCap = capRub <= 700000000;
     if (isLowCap && round <= 5) return 0.1;
     if (isLowCap && round <= 10) return 0.055;
     if (isLowCap && round <= 16) return 0.025;
@@ -33,7 +33,7 @@ export class DraftBudgetPaceGuard {
     return 0;
   }
   #getBudgetRounds(context) {
-    return context.capRub < 700000000 ? context.rounds + 2 : context.rounds;
+    return context.capRub <= 700000000 ? context.rounds + 2 : context.rounds;
   }
   #selectLowCapRescueCandidates(context) {
     const remainingBudgetRub = Math.max(0, context.capRub - context.payrollRub);
