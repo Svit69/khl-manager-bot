@@ -17,6 +17,9 @@ const sumPlayerContracts = (contracts = [], playerIds = [], season) =>
 const pickWorstSeason = (rows = []) =>
   rows.sort((left, right) => left.projectedRemainingRub - right.projectedRemainingRub)[0] || null;
 
+const isTradeRowAllowed = (row) =>
+  row.projectedPayrollRub <= row.capRub || (row.payrollRub > row.capRub && row.projectedPayrollRub < row.payrollRub);
+
 const buildTeamPreview = ({ contracts, teamId, outgoingIds, incomingIds, seasons, getCapRub }) => {
   const rows = seasons.map((season) => {
     const payrollRub = sumContracts(contracts, teamId, season);
@@ -24,10 +27,11 @@ const buildTeamPreview = ({ contracts, teamId, outgoingIds, incomingIds, seasons
     const incomingRub = sumPlayerContracts(contracts, incomingIds, season);
     const projectedPayrollRub = payrollRub - outgoingRub + incomingRub;
     const capRub = getCapRub(season);
-    return { season, capRub, payrollRub, outgoingRub, incomingRub, projectedPayrollRub, deltaRub: incomingRub - outgoingRub, remainingRub: capRub - payrollRub, projectedRemainingRub: capRub - projectedPayrollRub };
+    const row = { season, capRub, payrollRub, outgoingRub, incomingRub, projectedPayrollRub, deltaRub: incomingRub - outgoingRub, remainingRub: capRub - payrollRub, projectedRemainingRub: capRub - projectedPayrollRub };
+    return { ...row, allowed: isTradeRowAllowed(row), reliefTrade: payrollRub > capRub && projectedPayrollRub < payrollRub };
   });
   const worst = pickWorstSeason([...rows]);
-  return { rows, worst, allowed: rows.every((row) => row.projectedPayrollRub <= row.capRub) };
+  return { rows, worst, allowed: rows.every((row) => row.allowed) };
 };
 
 export const buildTradeSalaryCapPreview = ({ contracts = [], userTeamId, aiTeamId, givePlayerIds = [], receivePlayerIds = [], seasonLabel, getCapRub }) => {

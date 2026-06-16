@@ -34,10 +34,13 @@ export class SalaryCapService {
       const payrollRub = this.#sumTeamContracts(contracts, teamId, season);
       const outgoingRub = this.#sumPlayerContracts(contracts, outgoingIds, season);
       const incomingRub = this.#sumPlayerContracts(contracts, incomingIds, season);
-      return { teamId, season, capRub: this.getCapRub(season, capConfig), projectedPayrollRub: payrollRub - outgoingRub + incomingRub };
+      return { teamId, season, capRub: this.getCapRub(season, capConfig), payrollRub, projectedPayrollRub: payrollRub - outgoingRub + incomingRub };
     })
-      .filter((entry) => entry.projectedPayrollRub > entry.capRub);
+      .filter((entry) => !this.#isTradeSeasonAllowed(entry));
     return { allowed: failures.length === 0, failures };
+  }
+  #isTradeSeasonAllowed(entry) {
+    return entry.projectedPayrollRub <= entry.capRub || (entry.payrollRub > entry.capRub && entry.projectedPayrollRub < entry.payrollRub);
   }
   #buildOfferSeasons(startSeason, years = 1) { let season = startSeason; return Array.from({ length: Math.max(1, Number(years) || 1) }, () => [season, season = formatNextSeason(season)][0]); }
   #sumTeamContracts(contracts, teamId, season, ignoredPlayerId = null) {

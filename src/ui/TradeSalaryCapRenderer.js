@@ -3,15 +3,12 @@ const formatMillions = (value) => {
   return `${Number.isInteger(millions) ? millions : millions.toFixed(1)} млн`;
 };
 
-const formatDelta = (value) => {
-  if (!value) return "0 млн";
-  return `${value > 0 ? "+" : ""}${formatMillions(value)}`;
-};
+const formatDelta = (value) => (!value ? "0 млн" : `${value > 0 ? "+" : ""}${formatMillions(value)}`);
 
 const renderTeamCap = (label, preview) => {
   const worst = preview?.worst;
   if (!worst) return "";
-  const tone = worst.projectedRemainingRub < 0 ? "danger" : worst.projectedRemainingRub < 25000000 ? "warn" : "ok";
+  const tone = worst.reliefTrade ? "warn" : (worst.projectedRemainingRub < 0 ? "danger" : worst.projectedRemainingRub < 25000000 ? "warn" : "ok");
   return `<div class="trade-cap-team ${tone}">
     <div class="trade-cap-team-head"><span>${label}</span><strong>${worst.season}</strong></div>
     <div class="trade-cap-track"><span style="width:${Math.min(100, Math.max(0, worst.projectedPayrollRub / Math.max(1, worst.capRub) * 100))}%"></span></div>
@@ -26,8 +23,11 @@ const renderTeamCap = (label, preview) => {
 
 export const renderTradeSalaryCap = (salaryCap) => {
   if (!salaryCap?.enabled) return "";
-  const statusClass = salaryCap.allowed ? "ok" : "danger";
-  const statusText = salaryCap.allowed ? "Пакет помещается под потолок" : "Пакет превышает потолок";
+  const isRelief = salaryCap.allowed && (salaryCap.user?.worst?.reliefTrade || salaryCap.ai?.worst?.reliefTrade);
+  const statusClass = salaryCap.allowed ? (isRelief ? "warn" : "ok") : "danger";
+  const statusText = salaryCap.allowed
+    ? (isRelief ? "Сделка снижает перегруз платежки" : "Пакет помещается под потолок")
+    : "Пакет превышает потолок";
   return `<section class="trade-cap-panel ${statusClass}">
     <div class="trade-cap-head"><div><span>Потолок зарплат</span><strong>${statusText}</strong></div></div>
     <div class="trade-cap-teams">
