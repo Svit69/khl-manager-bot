@@ -1,4 +1,4 @@
-const CACHE_NAME="khl-manager-v165";
+const CACHE_NAME="khl-manager-v168";
 const ASSETS=[
   "./",
   "./index.html",
@@ -17,6 +17,9 @@ const ASSETS=[
   "./styles/trade.css",
   "./styles/transfers.css",
   "./src/app.js",
+  "./src/draft/DraftBudgetPaceGuard.js",
+  "./src/draft/DraftCapRiskGovernor.js",
+  "./src/draft/DraftMarketReserve.js",
   "./src/contracts/ContractServiceShared.js",
   "./src/contracts/FallbackMarketSalary.js",
   "./src/contracts/ContractServiceRows.js",

@@ -1,4 +1,6 @@
 ﻿import { calculateAge } from "../contracts/SeasonUtils.js";
+import { DraftBudgetPaceGuard } from "./DraftBudgetPaceGuard.js";
+import { DraftCapRiskGovernor } from "./DraftCapRiskGovernor.js";
 import { generateUuid } from "../utils/uuid.js";
 
 const POSITION_ALL = "ALL";
@@ -43,6 +45,8 @@ export class FantasyDraftService {
   #draftOrder;
   #teamArchetypeById = new Map();
   #salaryCap;
+  #budgetGuard = new DraftBudgetPaceGuard();
+  #capGovernor = new DraftCapRiskGovernor();
 
   constructor(teams, players, userTeamId, rounds = DRAFT_ROUNDS, salaryCap = {}) {
     this.#draftId = generateUuid();
@@ -226,8 +230,21 @@ export class FantasyDraftService {
     let bestPlayer = null;
     let bestScore = -Infinity;
     const candidates = this.#availablePlayers.filter((player) => this.#canFitPlayer(team.id, player));
-    if (!candidates.length) return null;
-    for (const player of candidates) {
+    const scoringCandidates = this.#budgetGuard.selectCandidates({
+      enabled: this.#salaryCap.enabled,
+      capRub: this.#salaryCap.capRub,
+      candidates,
+      payrollRub: this.#getTeamPayroll(team.id),
+      pickedCount,
+      remainingPicks: remainingTeamPicks,
+      round,
+      rounds: this.#rounds,
+      teamCount: this.#teams.length,
+      getPlayerSalary: (player) => this.#getPlayerSalary(player),
+      compareByOvr,
+    });
+    if (!scoringCandidates.length) return null;
+    for (const player of scoringCandidates) {
       const score = this.#scoreAiPick(player, {
         round,
         phase,
@@ -257,6 +274,15 @@ export class FantasyDraftService {
   #getTeamPayroll(teamId, extraPlayer = null) {
     const picked = this.#pickedByTeamId.get(teamId) || [];
     return [...picked, extraPlayer].filter(Boolean).reduce((sum, player) => sum + this.#getPlayerSalary(player), 0);
+  }
+
+  #getPoolMinimumSalaryRub(excludedPlayer = null) {
+    const salaries = this.#availablePlayers
+      .filter((player) => player.id !== excludedPlayer?.id)
+      .map((player) => this.#getPlayerSalary(player))
+      .filter((salaryRub) => salaryRub > 0)
+      .sort((left, right) => left - right);
+    return salaries[Math.min(12, salaries.length - 1)] || 0;
   }
 
   #canFitPlayer(teamId, player) {
@@ -336,6 +362,16 @@ export class FantasyDraftService {
     }
 
     score += this.#scoreNationalityPlan(player, context);
+    score += this.#capGovernor.assess({
+      enabled: this.#salaryCap.enabled,
+      capRub: this.#salaryCap.capRub,
+      payrollRub: this.#getTeamPayroll(context.teamId),
+      salaryRub: this.#getPlayerSalary(player),
+      poolMinimumRub: this.#getPoolMinimumSalaryRub(player),
+      remainingPicks: context.remainingTeamPicks,
+      round: context.round,
+      ovr,
+    });
 
     // Small noise prevents deterministic drafts but is too small to overturn clear BPA gaps.
     return score + tinyRandom;
