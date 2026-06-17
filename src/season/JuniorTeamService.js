@@ -409,7 +409,7 @@ const getSeasonKey = (seasonLabel) => String(seasonLabel || "season-1").replace(
 const createJuniorPlayerId = (teamId, seasonLabel, index) => `junior-${teamId}-${getSeasonKey(seasonLabel)}-${index}`;
 
 export class JuniorTeamService {
-  ensureJuniorDepth({ teams, contracts, seasonLabel }) {
+  ensureJuniorDepth({ teams, contracts, seasonLabel, generationSeed = null }) {
     const created = [];
     (teams || []).forEach((team) => {
       if (!team.juniorTeam) return;
@@ -418,7 +418,7 @@ export class JuniorTeamService {
         team.juniorPlayers.forEach((player) => usedIds.add(player.id));
         let index = 0;
         while (usedIds.has(createJuniorPlayerId(team.id, seasonLabel, index))) index += 1;
-        const player = this.#createRegen(team, seasonLabel, index);
+        const player = this.#createRegen(team, seasonLabel, index, null, generationSeed);
         const contract = contracts.createJuniorContract(player, team.id, seasonLabel);
         player.affiliation.contractId = contract?.id || null;
         team.juniorPlayers.push(player);
@@ -428,7 +428,7 @@ export class JuniorTeamService {
     return created;
   }
 
-  ensureSavedJuniorPlayers({ teams, rosters, contracts, seasonLabel }) {
+  ensureSavedJuniorPlayers({ teams, rosters, contracts, seasonLabel, generationSeed = null }) {
     const allPlayersById = new Map(
       (teams || []).flatMap((team) => [...team.getRoster(), ...(team.juniorPlayers || [])]).map((player) => [player.id, player]),
     );
@@ -441,7 +441,7 @@ export class JuniorTeamService {
         if (allPlayersById.has(playerId) || !String(playerId || "").startsWith(prefix)) return;
         const index = Number(String(playerId).slice(prefix.length));
         if (!Number.isFinite(index)) return;
-        const player = this.#createRegen(team, seasonLabel, index, playerId);
+        const player = this.#createRegen(team, seasonLabel, index, playerId, generationSeed);
         const contract = contracts.createJuniorContract(player, team.id, seasonLabel);
         player.affiliation.contractId = contract?.id || null;
         team.juniorPlayers.push(player);
@@ -503,8 +503,9 @@ export class JuniorTeamService {
     return { released, promoted };
   }
 
-  #createRegen(team, seasonLabel, index, forcedId = null) {
-    const seed = hash(`${team.id}:${seasonLabel}:${index}`);
+  #createRegen(team, seasonLabel, index, forcedId = null, generationSeed = null) {
+    const seedPrefix = generationSeed ? `${generationSeed}:` : "";
+    const seed = hash(`${seedPrefix}${team.id}:${seasonLabel}:${index}`);
     const age = 16 + (seed % 5);
     const birthYear = getJuniorSeasonStartDate(seasonLabel).getUTCFullYear() - age;
     const position = getPositionNeed(team.juniorPlayers);

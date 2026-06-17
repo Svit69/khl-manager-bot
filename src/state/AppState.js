@@ -93,6 +93,10 @@ const toDate = (value) => {
   return Number.isNaN(date.getTime()) ? null : date;
 };
 const getNorthAmericaWarningDate = (seasonLabel) => new Date(Date.UTC(parseSeasonEnd(seasonLabel), 2, 15));
+const createJuniorGenerationSeed = () => {
+  const random = globalThis.crypto?.getRandomValues ? globalThis.crypto.getRandomValues(new Uint32Array(2)).join("-") : Math.random().toString(36).slice(2);
+  return `junior-seed-${Date.now()}-${random}`;
+};
 
 export class AppState {
   #teams;
@@ -129,6 +133,7 @@ export class AppState {
   #retiredPlayerIds = new Set();
   #transferLedger = [];
   #coaches;
+  #juniorGenerationSeed = createJuniorGenerationSeed();
 
   constructor(teams, calendar, contracts, freeAgents = [], externalPlayers = [], coaches = []) {
     this.#teams = teams;
@@ -137,7 +142,7 @@ export class AppState {
     this.#externalPlayers = [...externalPlayers];
     this.#coaches = [...coaches];
     this.#contracts = new ContractService(contracts);
-    this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#calendar.seasonLabel });
+    this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#calendar.seasonLabel, generationSeed: this.#juniorGenerationSeed });
     this.#aiRenewals = new AiRenewalService(this.#contracts, {
       canSubmitOffer: (team, player, offer, context, mode) =>
         this.#canSubmitContractOffer(team, player, offer, mode, context).allowed,
@@ -1002,6 +1007,10 @@ export class AppState {
     };
   }
 
+  getUsedPlayerPhotoUrls() {
+    return this.getAllKnownPlayers().map((player) => player.identity?.photoUrl).filter(Boolean);
+  }
+
   setJuniorPlayerPhoto(playerId, photoUrl) {
     if (!this.activeTeam || !playerId || !photoUrl) return false;
     const player = (this.activeTeam.juniorPlayers || []).find((entry) => entry.id === playerId);
@@ -1139,7 +1148,7 @@ export class AppState {
     });
     this.#releaseIneligibleJuniorPlayers({ notify: true });
     this.#juniors.applyOffseasonDevelopment(this.#teams, this.#getEffectiveNegotiationDate(), this.#seasonState.seasonLabel);
-    this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#seasonState.seasonLabel });
+    this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#seasonState.seasonLabel, generationSeed: this.#juniorGenerationSeed });
     this.#syncSeasonReferenceDate();
     this.#syncSeasonPhase();
     return transition;
@@ -1163,11 +1172,13 @@ export class AppState {
       seasonState: this.#seasonState,
       retiredPlayerIds: [...this.#retiredPlayerIds],
       transferLedger: this.#transferLedger,
+      juniorGenerationSeed: this.#juniorGenerationSeed,
     };
   }
 
   importState(saved) {
     if (!saved) return;
+    this.#juniorGenerationSeed = "juniorGenerationSeed" in saved ? saved.juniorGenerationSeed : null;
     this.#retiredPlayerIds = new Set(Array.isArray(saved.retiredPlayerIds) ? saved.retiredPlayerIds : []);
     this.#gameSettings = normalizeGameSettings(saved.gameSettings);
     if (Array.isArray(saved.coaches)) this.#coaches = saved.coaches.map((coach) => HeadCoach.fromSnapshot(coach));
@@ -1196,6 +1207,7 @@ export class AppState {
         rosters: saved.rosters,
         contracts: this.#contracts,
         seasonLabel: this.#calendar.seasonLabel,
+        generationSeed: this.#juniorGenerationSeed,
       });
     }
     let basePlayers = [...new Map([
@@ -1240,7 +1252,7 @@ export class AppState {
     this.#seasonHistory = Array.isArray(saved.seasonHistory) ? [...saved.seasonHistory] : [];
     this.#seasonState = normalizeSeasonState(saved.seasonState, this.#calendar.seasonLabel);
     this.#notifications = normalizeNotifications(saved.notifications, this.#calendar.currentDay);
-    this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#seasonState.seasonLabel });
+    this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#seasonState.seasonLabel, generationSeed: this.#juniorGenerationSeed });
     this.#syncSeasonReferenceDate();
     this.#syncSeasonPhase();
   }
@@ -1273,7 +1285,7 @@ export class AppState {
     this.#lastMatch = null;
     this.#stats.importStats([]);
     this.#standings.importSnapshot([]);
-    this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#seasonState.seasonLabel });
+    this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#seasonState.seasonLabel, generationSeed: this.#juniorGenerationSeed });
     this.getAllPlayers().forEach((player) => player.seasonStats.importSnapshot());
   }
 

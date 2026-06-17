@@ -1,4 +1,5 @@
 import { FantasyDraftService } from "../draft/FantasyDraftService.js";
+import { JuniorPhotoPool } from "../utils/JuniorPhotoPool.js";
 export class AppController{
   #state;#calendar;#teams;#renderer;#userStore;#pendingTeamId=null;#activeTab="roster";
   #selectedNegotiationPlayerId=null;#offerByPlayerId=new Map();#outcomeByPlayerId=new Map();
@@ -30,6 +31,7 @@ export class AppController{
   #dismissedOfferSheetPopupIds=new Set();
   #juniorPhotoStatusById=new Map();
   #juniorPhotoErrorById=new Map();
+  #juniorPhotoPool=new JuniorPhotoPool();
   #juniorPositionFilter="all";
   constructor(state,calendar,teams,renderer,userStore){
     this.#state=state;this.#calendar=calendar;this.#teams=teams;this.#renderer=renderer;this.#userStore=userStore;
@@ -1152,6 +1154,21 @@ export class AppController{
     if(!playerId || this.#juniorPhotoStatusById.get(playerId)==="loading")return;
     const player=this.#state.getJuniorPhotoRequest(playerId);
     if(!player)return;
+    const localPhotoUrl=this.#juniorPhotoPool.selectAvailablePhoto(player,this.#state.getUsedPlayerPhotoUrls());
+    if(localPhotoUrl){
+      this.#state.setJuniorPlayerPhoto(playerId,localPhotoUrl);
+      this.#userStore.saveState(this.#state.exportState());
+      this.#juniorPhotoStatusById.set(playerId,"ready");
+      this.#juniorPhotoErrorById.delete(playerId);
+      this.#renderScreen();
+      return;
+    }
+    if(String(player.nationality||"").toUpperCase()==="RU"){
+      this.#juniorPhotoStatusById.set(playerId,"error");
+      this.#juniorPhotoErrorById.set(playerId,"Фото в базе закончились.");
+      this.#renderScreen();
+      return;
+    }
     this.#juniorPhotoStatusById.set(playerId,"loading");
     this.#juniorPhotoErrorById.delete(playerId);
     this.#renderScreen();
