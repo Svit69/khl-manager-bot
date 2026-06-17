@@ -229,12 +229,13 @@ export class SeasonTransitionService {
     const playoffs = calendar.getPlayoffBracketData();
     const champion = playoffs?.champion || null;
     const activeStanding = (standingsTable || []).find((row) => row.teamId === activeTeamId) || null;
+    const teamByPlayerId = new Map((teams || []).flatMap((team) => team.getRoster().map((player) => [player.id, team.id])));
     return {
       seasonLabel: currentSeasonLabel,
       completedAt: new Date().toISOString(),
       champion: champion ? { teamId: champion.id, name: champion.name, shortName: champion.shortName } : null,
       standings: (standingsTable || []).map((row, index) => ({ rank: index + 1, ...row })),
-      scorers: (scorerTable || []).slice(0, 15).map((row, index) => ({ rank: index + 1, ...row })),
+      scorers: (scorerTable || []).slice(0, 15).map((row, index) => ({ rank: index + 1, teamId: teamByPlayerId.get(row.playerId) || null, ...row })),
       playoffs,
       activeTeamId,
       activeTeamStanding: activeStanding,

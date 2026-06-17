@@ -326,6 +326,9 @@
   .coach-hero,.coach-summary,.coach-board{grid-template-columns:1fr}
   .coach-overall{height:64px}
   .coach-fit-grid,.coach-fit-impact,.coach-fit-lists{grid-template-columns:1fr}
+  .legacy-card-hero,.legacy-grid,.legacy-info-grid,.legacy-number-grid{grid-template-columns:1fr}
+  .legacy-table-head,.legacy-row{grid-template-columns:70px minmax(0,1fr)}
+  .legacy-table-head span:nth-child(n+3),.legacy-row b,.legacy-row small{display:none}
 }
 
 @media (max-width: 760px){

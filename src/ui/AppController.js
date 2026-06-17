@@ -113,6 +113,8 @@ export class AppController{
         this.#renderer.renderTrades(this.#buildTradeState());
       }else if(this.#activeTab==="transfers"){
         this.#renderer.renderTransfers(this.#state.getTeamTransferView(this.#transferTeamId||this.#state.activeTeamId));
+      }else if(this.#activeTab==="legacy"){
+        this.#renderer.renderLegacy(this.#state.getActiveTeamLegacyView());
       }else if(this.#activeTab==="junior"){
         const juniorView=this.#state.getActiveTeamJuniorView();
         if(juniorView){

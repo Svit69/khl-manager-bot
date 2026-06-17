@@ -34,6 +34,8 @@ import { KhlProspectDepartureService } from "../season/KhlProspectDepartureServi
 import { JuniorTeamService } from "../season/JuniorTeamService.js";
 import { JuniorLeagueService } from "../season/JuniorLeagueService.js";
 import { JuniorDepartureRiskService } from "../season/JuniorDepartureRiskService.js";
+import { ClubLegacyService } from "../legacy/ClubLegacyService.js";
+import { LeagueHistoryService } from "../legacy/LeagueHistoryService.js";
 import { getJuniorIneligibilityReason, getJuniorSeasonAge } from "../season/JuniorEligibility.js";
 import { getJuniorPracticeProfile, getScoutedPotential } from "../season/JuniorScouting.js";
 import { getUfaStatus } from "../contracts/RenewalScoring.js";
@@ -128,6 +130,8 @@ export class AppState {
   #prospectDepartures = new KhlProspectDepartureService();
   #juniorLeague = new JuniorLeagueService();
   #juniorDepartures = new JuniorDepartureRiskService();
+  #clubLegacy = new ClubLegacyService();
+  #leagueHistory = new LeagueHistoryService();
   #lastMatch = null;
   #activeTeamId = null;
   #notifications = [];
@@ -301,6 +305,23 @@ export class AppState {
       fit: this.#getCoachFitForTeam(this.activeTeam),
       coachOffer: coach ? this.#coachContracts.buildOffer(coach, 1, 2) : null,
       freeCoaches: this.getFreeCoaches().map((entry) => ({ coach: entry, offer: this.#coachContracts.buildOffer(entry, 1.05, 2) })),
+    };
+  }
+
+  getActiveTeamLegacyView() {
+    if (!this.activeTeam) return null;
+    const currentRows = this.getTeamStatisticsRows(this.#activeTeamId, "points").map((row) => ({
+      playerId: row.playerId,
+      name: row.displayName || row.name,
+      goals: row.goals,
+      assists: row.assists,
+      points: row.points,
+      seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
+    }));
+    return {
+      team: this.activeTeam,
+      club: this.#clubLegacy.buildView({ team: this.activeTeam, seasonHistory: this.#seasonHistory, currentRows }),
+      league: this.#leagueHistory.buildView({ seasonHistory: this.#seasonHistory, teams: this.#teams }),
     };
   }
 
