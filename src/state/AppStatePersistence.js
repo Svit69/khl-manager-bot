@@ -105,8 +105,7 @@ export const restorePlayerSnapshots = (players, snapshots) => {
     if (snapshot.potential) player.potential.importSnapshot(snapshot.potential);
     if (snapshot.career) player.career?.importSnapshot?.(snapshot.career);
     if (snapshot.seasonStats) player.seasonStats.importSnapshot(snapshot.seasonStats);
-    if (snapshot.identity && "photoUrl" in snapshot.identity) player.identity.photoUrl = snapshot.identity.photoUrl;
-    if (snapshot.identity && "secondaryPositions" in snapshot.identity) player.identity.secondaryPositions = snapshot.identity.secondaryPositions;
+    if (snapshot.identity) player.identity.importSnapshot?.(snapshot.identity);
     if ("hiddenTraits" in snapshot) player.hiddenTraits = normalizeHiddenTraits(snapshot.hiddenTraits);
     if ("northAmericaIntent" in snapshot) player.northAmericaIntent = snapshot.northAmericaIntent ? { ...snapshot.northAmericaIntent } : null;
     if ("externalCareer" in snapshot) player.externalCareer = snapshot.externalCareer ? { ...snapshot.externalCareer } : null;
