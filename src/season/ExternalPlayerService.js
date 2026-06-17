@@ -46,7 +46,10 @@ const getReturnInterest = (player, career, age, roleStatus, seasonLabel) => {
     ahl_leader: 5,
     ahl_bubble: 18,
   }[roleStatus] || 0;
-  const ageModifier = age >= 29 ? 12 : age >= 27 ? 7 : age <= 22 ? -8 : 0;
+  const ovr = Number(player.ovr) || 0;
+  const potential = Number(player.potential?.potential) || ovr;
+  const ageModifier = age >= 33 ? 24 : age >= 30 ? 18 : age >= 28 ? 12 : age >= 27 ? 8 : age <= 22 ? -8 : 0;
+  const ceilingModifier = (ovr < 76 ? 14 : ovr < 80 ? 9 : 0) + (potential < 82 ? 7 : 0) + (age >= 29 && roleStatus !== "nhl_regular" ? 8 : 0);
   const noise = (stableUnit(`${player.id}:${seasonLabel}:return`) - 0.5) * 14;
   return Math.round(clamp(
     (Number(career.returnPreference) || 0) -
@@ -54,6 +57,7 @@ const getReturnInterest = (player, career, age, roleStatus, seasonLabel) => {
       (Number(career.seasonsOutsideKhl) || 0) * 4 +
       roleModifier +
       ageModifier +
+      ceilingModifier +
       noise,
     0,
     100,
@@ -67,12 +71,15 @@ const shouldExtendExternalContract = (player, career, roleStatus, seasonLabel) =
     ahl_leader: 8,
     ahl_bubble: -12,
   }[roleStatus] || 0;
+  const age = calculateAge(player.identity?.birthDate, `${parseSeasonEnd(seasonLabel)}-05-31`);
+  const nonElitePenalty = ((Number(player.ovr) || 0) < 80 ? 10 : 0) + (age >= 30 ? 12 : age >= 28 ? 6 : 0);
   const chance = clamp(
     18 +
       roleModifier +
       ((Number(player.ovr) || 0) - 75) * 2.5 +
       (Number(career.nhlAmbition) || 0) * 0.35 -
-      (Number(career.returnPreference) || 0) * 0.25,
+      (Number(career.returnPreference) || 0) * 0.25 -
+      nonElitePenalty,
     2,
     96,
   );

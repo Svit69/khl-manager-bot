@@ -7,14 +7,15 @@ const formatDelta = (value) => {
   return `${value > 0 ? "+" : ""}${value}`;
 };
 const getNameFitClass = (name = "") => name.length > 28 ? "name-fit-xs" : name.length > 22 ? "name-fit-sm" : "";
-const getTradeAssetKey = (player) => `${player.externalCareer ? "rights" : "player"}:${player.id}`;
+const isExternalRightsAsset = (player) => Boolean(player.externalCareer && !player.affiliation?.teamId);
+const getTradeAssetKey = (player) => `${isExternalRightsAsset(player) ? "rights" : "player"}:${player.id}`;
 
 const renderPlayerPickRow = (side, player, selectedIds) => {
   const age = calculateAge(player.identity?.birthDate);
   const assetKey = getTradeAssetKey(player);
   const selected = selectedIds.has(assetKey);
   const position = player.identity?.primaryPosition || "—";
-  const isRightsAsset = Boolean(player.externalCareer);
+  const isRightsAsset = isExternalRightsAsset(player);
   const assetLabel = isRightsAsset ? `<span class="trade-rights-chip">Права • ${player.externalCareer?.league || "НХЛ / АХЛ"}</span>` : "";
   const salaryLabel = formatTradeSalary(player.tradeSalaryRub);
   return `<button class="trade-player-row${selected ? " selected" : ""}" data-action="trade-toggle-${side}" data-player-id="${player.id}" data-asset-key="${assetKey}">

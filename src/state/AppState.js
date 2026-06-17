@@ -1269,6 +1269,7 @@ export class AppState {
     const activePlayers = excludeExternalRightsPlayersFromActivePool(basePlayers, this.#externalPlayers, this.#retiredPlayerIds);
     this.#freeAgents = dedupeFreeAgents(activePlayers);
     this.#seasonTransition.rebuildRosters(this.#teams, activePlayers);
+    this.#clearActiveRosterExternalCareers();
     if (saved.standings) this.#standings.importSnapshot(saved.standings);
     this.#calendar.ensurePlayoffs(this.getStandingsTable());
     this.#stats.importStats(saved.stats);
@@ -1428,8 +1429,11 @@ export class AppState {
     const available = this.getAvailableFreeAgents();
     const sameGroupCandidates = available
       .filter((player) => this.#getPlayerRotationGroup(player) === preferredGroup)
+      .filter((player) => calculateAge(player.identity?.birthDate, this.#calendar.currentDate) <= 27)
       .filter((player) => (Number(player.ovr) || 0) <= 76);
-    const fallbackCandidates = available.filter((player) => (Number(player.ovr) || 0) <= 74);
+    const fallbackCandidates = available
+      .filter((player) => calculateAge(player.identity?.birthDate, this.#calendar.currentDate) <= 27)
+      .filter((player) => (Number(player.ovr) || 0) <= 74);
     const candidate = [...(sameGroupCandidates.length ? sameGroupCandidates : fallbackCandidates)]
       .sort((left, right) => (right.ovr - left.ovr) || left.name.localeCompare(right.name, "ru"))[0];
     if (!candidate) return false;
@@ -1684,6 +1688,10 @@ export class AppState {
     (result.returnCandidates || []).forEach((candidate) => {
       const { player, ufaStatus, rightsTeamId, fromLeague } = candidate;
       const rightsTeam = this.#teams.find((team) => team.id === rightsTeamId) || null;
+      if (userExternalOfferPlayerIds.has(player.id)) {
+        player.externalCareer = { ...(player.externalCareer || {}), rightsTeamId: rightsTeam?.id || rightsTeamId, availableToKhl: true };
+        return;
+      }
       if (this.#gameSettings.restrictedFreeAgencyEnabled && rightsTeam?.id === this.#activeTeamId && !userExternalOfferPlayerIds.has(player.id)) {
         player.externalCareer = { ...(player.externalCareer || {}), rightsTeamId: rightsTeam.id, availableToKhl: true };
         player.affiliation.teamId = null;
@@ -1808,6 +1816,10 @@ export class AppState {
     if (!player?.id) return false;
     const wasExternal = this.#externalPlayers.some((candidate) => candidate.id === player.id);
     this.#externalPlayers = this.#externalPlayers.filter((candidate) => candidate.id !== player.id);
+    if (["returned_khl", "khl_market"].includes(status)) {
+      player.externalCareer = null;
+      return wasExternal;
+    }
     if (player.externalCareer) {
       player.externalCareer = {
         ...player.externalCareer,
@@ -1825,6 +1837,12 @@ export class AppState {
       team.reservePlayers.push(player);
     }
     return wasExternal;
+  }
+
+  #clearActiveRosterExternalCareers() {
+    this.#teams.flatMap((team) => team.getRoster?.() || []).forEach((player) => {
+      if (player?.affiliation?.teamId && player.externalCareer) player.externalCareer = null;
+    });
   }
 
   #recordRosterDepthMovements(result) {

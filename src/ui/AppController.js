@@ -288,7 +288,7 @@ export class AppController{
   }
   #decorateTradeCandidates(players){
     return (players||[]).map(player=>{
-      player.tradeSalaryRub=player.externalCareer?null:this.#state.getTradePlayerSalaryRub(player.id);
+      player.tradeSalaryRub=player.externalCareer&&!player.affiliation?.teamId?null:this.#state.getTradePlayerSalaryRub(player.id);
       return player;
     });
   }
