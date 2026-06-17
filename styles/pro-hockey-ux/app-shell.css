@@ -1,0 +1,48 @@
+.app{
+  width:min(1800px,100%);
+  margin:0 auto;
+  padding:18px;
+  gap:14px;
+}
+
+.header{
+  position:sticky;top:0;z-index:20;
+  min-height:64px;
+  padding:10px 14px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:rgba(10,18,31,.86);
+  backdrop-filter:blur(14px);
+  box-shadow:0 14px 32px rgba(0,0,0,.18);
+}
+
+.header h1{
+  display:flex;align-items:center;
+  gap:10px;
+  color:#fff;
+  font-size:20px;
+  font-weight:900;
+  letter-spacing:0;
+}
+
+.header h1::before{
+  content:"";
+  width:30px;height:30px;border-radius:8px;
+  background:linear-gradient(135deg,var(--accent),#fff0a8 52%,var(--accent-2) 53%);
+}
+
+.badge{
+  padding:7px 10px;border:1px solid var(--line);
+  border-radius:999px;
+  background:rgba(255,255,255,.04);
+  color:#d6dfed;
+  font-size:12px;
+  font-weight:800;
+}
+
+.panel{
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:linear-gradient(180deg,rgba(18,28,44,.94),rgba(12,20,34,.96));
+  box-shadow:var(--shadow);
+}

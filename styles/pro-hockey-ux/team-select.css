@@ -1,0 +1,47 @@
+.team-select-screen{
+  min-height:calc(100dvh - 108px);
+  padding:34px 0 112px;
+  border-radius:18px;
+  background:linear-gradient(135deg,#0c1628,#111b2c 52%,#09111f);
+  border-color:var(--line);
+}
+
+.team-select-hero{
+  max-width:1080px;
+  margin-bottom:26px;
+  text-align:left;justify-items:start;
+}
+
+.team-select-badge{
+  clip-path:none;
+  border-radius:999px;
+  background:rgba(244,197,66,.14);color:#ffe79a;
+  border:1px solid rgba(244,197,66,.28);
+}
+
+.team-select-mark{
+  font-size:clamp(46px,8vw,92px);
+  line-height:.9;color:#fff;
+  letter-spacing:0;
+  text-shadow:none;
+}
+
+.team-select-mark::before,.team-select-mark::after{display:none}
+
+.team-select-hero h2{
+  max-width:780px;
+  font-size:clamp(30px,5vw,56px);
+  line-height:.98;
+  letter-spacing:0;
+}
+
+.team-select-hero p{
+  max-width:760px;
+  color:#c6d3e5;
+  font-size:16px;
+}
+
+.team-select-settings,.team-select-card,.team-select-dock{
+  border-color:var(--line);
+  border-radius:14px;
+}

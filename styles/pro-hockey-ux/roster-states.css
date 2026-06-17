@@ -1,0 +1,40 @@
+/* Roster state feedback */
+
+.roster-slot-card.is-selected .hockey-card,
+.roster-slot-card:focus-within .hockey-card{
+  filter:drop-shadow(0 14px 24px rgba(244,197,66,.20));
+}
+
+.roster-slot-action{
+  min-height:32px;
+  color:#f4f7fb;
+  background:rgba(8,17,31,.92);
+}
+
+.empty-roster-slot{
+  border-color:rgba(121,215,255,.25);
+  background:rgba(121,215,255,.045);
+}
+
+.hockey-card-meta-row{color:#e7edf7}
+
+.team-stats-head,
+.team-stats-row,
+.junior-manager-table-head,
+.junior-manager-row{
+  border-color:rgba(170,190,220,.12);
+}
+
+.team-stats-row:hover,
+.junior-manager-row:hover,
+.trade-player-row:hover{
+  background:rgba(255,255,255,.055);
+}
+
+.team-notifications-popover{
+  border-radius:14px;
+  border-color:var(--line);
+  background:linear-gradient(180deg,rgba(18,28,44,.98),rgba(10,18,31,.99));
+}
+
+.team-notifications-icon{display:none}

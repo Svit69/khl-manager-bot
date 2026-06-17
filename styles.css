@@ -11,3 +11,15 @@
 @import url("./styles/responsive.css");
 @import url("./styles/trade.css");
 @import url("./styles/transfers.css");
+@import url("./styles/pro-hockey-ux/tokens.css");
+@import url("./styles/pro-hockey-ux/app-shell.css");
+@import url("./styles/pro-hockey-ux/interactions.css");
+@import url("./styles/pro-hockey-ux/team-select.css");
+@import url("./styles/pro-hockey-ux/team-select-cards.css");
+@import url("./styles/pro-hockey-ux/team-hub.css");
+@import url("./styles/pro-hockey-ux/team-hub-nav.css");
+@import url("./styles/pro-hockey-ux/calendar.css");
+@import url("./styles/pro-hockey-ux/roster.css");
+@import url("./styles/pro-hockey-ux/roster-states.css");
+@import url("./styles/pro-hockey-ux/responsive.css");
+@import url("./styles/pro-hockey-ux/reduced-motion.css");
