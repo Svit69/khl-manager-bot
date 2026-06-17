@@ -32,6 +32,8 @@ import { ExternalRightsInterestService } from "../season/ExternalRightsInterestS
 import { AiExternalRightsService } from "../season/AiExternalRightsService.js";
 import { KhlProspectDepartureService } from "../season/KhlProspectDepartureService.js";
 import { JuniorTeamService } from "../season/JuniorTeamService.js";
+import { JuniorLeagueService } from "../season/JuniorLeagueService.js";
+import { JuniorDepartureRiskService } from "../season/JuniorDepartureRiskService.js";
 import { getJuniorIneligibilityReason, getJuniorSeasonAge } from "../season/JuniorEligibility.js";
 import { getJuniorPracticeProfile, getScoutedPotential } from "../season/JuniorScouting.js";
 import { getUfaStatus } from "../contracts/RenewalScoring.js";
@@ -124,6 +126,8 @@ export class AppState {
   #externalRightsInterest = new ExternalRightsInterestService();
   #aiExternalRights = new AiExternalRightsService();
   #prospectDepartures = new KhlProspectDepartureService();
+  #juniorLeague = new JuniorLeagueService();
+  #juniorDepartures = new JuniorDepartureRiskService();
   #lastMatch = null;
   #activeTeamId = null;
   #notifications = [];
@@ -660,6 +664,11 @@ export class AppState {
   getActiveTeamJuniorView() {
     if (!this.activeTeam) return null;
     const seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
+    const hasMainContract = (player) => {
+      const nextSeason = `${parseSeasonEnd(seasonLabel)}/${parseSeasonEnd(seasonLabel) + 1}`;
+      const contract = this.#contracts.getContractForSeason(player.id, nextSeason);
+      return Boolean(contract && contract.type !== ContractType.THREE_WAY);
+    };
     const enrichJunior = (player) => {
       player.juniorSeasonAge = getJuniorSeasonAge(player, seasonLabel);
       const nextSeasonAge = getJuniorSeasonAge(player, `${parseSeasonEnd(seasonLabel)}/${parseSeasonEnd(seasonLabel) + 1}`);
@@ -693,6 +702,13 @@ export class AppState {
       })
       .filter((entry) => entry.canSend);
     const graduationClass = juniorEntries.filter((entry) => entry.isGraduating);
+    const league = this.#juniorLeague.buildSeasonView(this.#teams, seasonLabel);
+    const activeLeagueRow = league.rows.find((row) => row.teamId === this.#activeTeamId) || null;
+    const departureRisks = this.#juniorDepartures.buildRiskPreview({
+      teams: [this.activeTeam],
+      seasonLabel,
+      hasMainContract,
+    }).slice(0, 5);
     return {
       juniorTeam: this.activeTeam.juniorTeam,
       seasonLabel,
@@ -700,6 +716,10 @@ export class AppState {
       graduationClass,
       mainPlayers: eligibleMainPlayers,
       targetSize: 22,
+      league,
+      activeLeagueRow,
+      topScorers: league.scorers.filter((row) => row.teamId === this.#activeTeamId).slice(0, 5),
+      departureRisks,
     };
   }
 
@@ -1146,6 +1166,9 @@ export class AppState {
     (transition.externalSignings || []).forEach((entry) => {
       this.#recordPlayerMovement({ player: entry.player, fromTeamId: null, toTeamId: entry.toTeamId, method: "externalReturn" });
     });
+    const completedSeasonLabel = this.#seasonState.previousSeasonLabel || this.#seasonState.seasonLabel;
+    this.#applyJuniorLeagueDevelopmentBonuses(completedSeasonLabel);
+    this.#processJuniorNorthAmericaDepartures(completedSeasonLabel);
     this.#releaseIneligibleJuniorPlayers({ notify: true });
     this.#juniors.applyOffseasonDevelopment(this.#teams, this.#getEffectiveNegotiationDate(), this.#seasonState.seasonLabel);
     this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#seasonState.seasonLabel, generationSeed: this.#juniorGenerationSeed });
@@ -1595,6 +1618,48 @@ export class AppState {
         playerId: player.id,
         read: false,
       }));
+  }
+
+  #applyJuniorLeagueDevelopmentBonuses(seasonLabel) {
+    const scorerRows = this.#juniorLeague.buildSeasonView(this.#teams, seasonLabel).scorers;
+    const bonusByPlayerId = new Map(scorerRows.map((row) => [row.playerId, row.developmentBonus]));
+    this.#teams.flatMap((team) => team.juniorPlayers || []).forEach((player) => {
+      player.juniorLeagueDevelopmentBonus = bonusByPlayerId.get(player.id) || 0;
+    });
+  }
+
+  #processJuniorNorthAmericaDepartures(seasonLabel) {
+    if (!this.#gameSettings.restrictedFreeAgencyEnabled) return;
+    const events = this.#juniorDepartures.evaluateOffseason({
+      teams: this.#teams,
+      seasonLabel,
+      hasMainContract: (player) => {
+        const nextSeason = `${parseSeasonEnd(seasonLabel)}/${parseSeasonEnd(seasonLabel) + 1}`;
+        const contract = this.#contracts.getContractForSeason(player.id, nextSeason);
+        return Boolean(contract && contract.type !== ContractType.THREE_WAY);
+      },
+    });
+    if (!events.length) return;
+    const externalById = new Map(this.#externalPlayers.map((player) => [player.id, player]));
+    events.forEach((event) => this.#moveJuniorToExternalRights(event, externalById));
+    this.#externalPlayers = [...externalById.values()];
+  }
+
+  #moveJuniorToExternalRights(event, externalById) {
+    const { player, team, league, contractUntil } = event;
+    team.juniorPlayers.splice(0, team.juniorPlayers.length, ...team.juniorPlayers.filter((entry) => entry.id !== player.id));
+    player.externalCareer = { league, status: league === "NHL" ? "nhl_depth" : "ahl_leader", contractUntil, rightsTeamId: team.id, seasonsOutsideKhl: 0, returnInterest: league === "NHL" ? 22 : 42, availableToKhl: false, lastEvaluatedSeason: null };
+    player.affiliation.teamId = null;
+    player.affiliation.contractId = null;
+    player.affiliation.acquiredDay = null;
+    player.expectedLineIndex = null;
+    externalById.set(player.id, player);
+    this.#recordPlayerMovement({ player, fromTeamId: team.id, toTeamId: null, method: "juniorNorthAmerica", note: league });
+    if (team.id === this.#activeTeamId) this.#pushNotification(this.#buildJuniorDepartureNotification(event));
+  }
+
+  #buildJuniorDepartureNotification(event) {
+    return { id: `notification-junior-na-${event.player.id}-${Date.now()}`, type: "offseason-departure", title: "Юниор уехал в НХЛ / АХЛ", message: `${event.player.name} выбрал ${event.league}. Права КХЛ остаются у ${event.team.name}.`, day: this.#calendar.currentDay, createdAt: new Date().toISOString(), playerId: event.player.id, read: false };
   }
 
   #processExternalPlayerReturns(transition) {

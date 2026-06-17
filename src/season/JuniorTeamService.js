@@ -461,8 +461,9 @@ export class JuniorTeamService {
         const potentialGap = Math.max(0, (player.potential?.potential || player.ovr) - player.ovr);
         const practice = getJuniorPracticeProfile(player);
         const practiceBoost = Math.min(0.22, practice.khlGames * 0.014);
+        const leagueBoost = Math.min(0.18, Number(player.juniorLeagueDevelopmentBonus) || 0);
         const noPracticePenalty = age >= 19 && practice.khlGames === 0 ? 0.08 : 0;
-        const chance = Math.min(0.82, 0.18 + potentialGap * 0.035 + growth * 0.16 + practiceBoost - noPracticePenalty);
+        const chance = Math.min(0.88, 0.18 + potentialGap * 0.035 + growth * 0.16 + practiceBoost + leagueBoost - noPracticePenalty);
         const roll = (hash(`${player.id}:${seasonLabel || "season"}:junior-dev`) % 1000) / 1000;
         if (roll > chance) return;
         const attrs = Object.keys(player.attributes.attributesJson || {});

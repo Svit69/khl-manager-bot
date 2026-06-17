@@ -1,4 +1,5 @@
 import { getPlayerPhotoUrl, isPlaceholderPhoto, PHOTO_FALLBACK_ATTR } from "../utils/PlayerPhoto.js";
+import { renderJuniorLeaguePanel } from "./JuniorLeaguePanelRenderer.js";
 
 const POSITION_FILTERS = Object.freeze([
   ["all", "Все"],
@@ -98,7 +99,7 @@ const renderGraduate = (entry) => {
     ${renderPlayerHead(entry)}
     <div class="junior-manager-graduate-status">
       <strong>${entry.hasMainContract ? "Контракт основы есть" : "Нужен контракт основы"}</strong>
-      <span>${entry.hasMainContract ? "После сезона будет поднят в резерв" : "Без контракта уйдет в свободные агенты"}</span>
+      <span>${entry.hasMainContract ? "После сезона будет поднят в резерв" : "Без контракта может уйти в свободные агенты или Северную Америку"}</span>
     </div>
     <button class="junior-manager-action" ${entry.hasMainContract ? "disabled" : ""} data-action="sign-junior-main" data-player-id="${player.id}">
       ${entry.hasMainContract ? "Подписан" : "Подписать основу"}
@@ -165,6 +166,8 @@ export class JuniorTeamTabRenderer {
           ${renderSummary("Выпуск", graduationClass.length)}
         </div>
       </header>
+
+      ${renderJuniorLeaguePanel(view)}
 
       <section class="junior-manager-section">
         <div class="junior-manager-section-head">
