@@ -239,7 +239,7 @@ export class Renderer{
     const rfaEnabled=settings.restrictedFreeAgencyEnabled!==false;
     const capEnabled=settings.salaryCapEnabled!==false;
     const coachesEnabled=settings.coachesEnabled!==false;
-    const renderCard=team=>`<button class="team-select-card${selectedTeamId===team.id?" active":""}" data-team-id="${team.id}" aria-label="Выбрать клуб ${team.name}" aria-pressed="${selectedTeamId===team.id?"true":"false"}">
+    const renderCard=team=>`<button class="team-select-card${selectedTeamId===team.id?" active":""}" data-team-id="${team.id}">
       <div class="team-select-card-glow"></div>
       <div class="team-select-card-body">
         <img src="${team.logoUrl}" alt="${team.name}"/>
@@ -249,7 +249,7 @@ export class Renderer{
     </button>`;
     const renderSection=(title,cards)=>cards.length?`<section class="team-select-section"><h3>${title}</h3><div class="team-select-grid">${cards.map(renderCard).join("")}</div></section>`:"";
     const careerSettingsPanel=`<section class="team-select-settings"><div><h3>Настройки карьеры</h3><p>Можно изменить до выбора клуба.</p></div><div class="team-select-toggle-list"><label class="team-select-toggle"><input type="checkbox" data-action="new-game-rfa-toggle" ${rfaEnabled?"checked":""}><span></span><strong>ОСА / НСА и права игроков</strong><small>${rfaEnabled?"Квалификационные предложения, оффершиты и права на игроков включены.":"Все истекающие игроки становятся свободными агентами, права и оффершиты отключены."}</small></label><label class="team-select-toggle"><input type="checkbox" data-action="new-game-cap-toggle" ${capEnabled?"checked":""}><span></span><strong>Потолок зарплат КХЛ</strong><small>${capEnabled?"Выбранный потолок действует в драфте, контрактах и обменах.":"Подписания и обмены не ограничиваются общей платежкой клуба."}</small></label><label class="team-select-toggle"><input type="checkbox" data-action="new-game-coaches-toggle" ${coachesEnabled?"checked":""}><span></span><strong>Главные тренеры</strong><small>${coachesEnabled?"У клубов есть Head Coach, стиль и тренерские рейтинги.":"Вкладка тренера и тренерские параметры отключены."}</small></label></div></section>`;
-    const actionDock=selectedTeam?`<div class="team-select-dock" role="status">
+    const actionDock=selectedTeam?`<div class="team-select-dock">
       <div class="team-select-dock-meta">
         <span class="team-select-dock-label">Выбран клуб</span>
         <strong>${selectedTeam.name}</strong>
@@ -258,7 +258,7 @@ export class Renderer{
         <button class="btn secondary team-select-dock-btn team-select-dock-btn-ghost" data-action="start-fantasy-draft">Фэнтези драфт</button>
         <button class="btn team-select-dock-btn" data-action="confirm-team">Выбрать ${selectedTeam.name}</button>
       </div>
-    </div>`:`<div class="team-select-dock team-select-dock-empty" role="status"><div class="team-select-dock-meta"><span class="team-select-dock-label">Новая игра</span><strong>Выберите клуб, чтобы продолжить</strong></div></div>`;
+    </div>`:`<div class="team-select-dock team-select-dock-empty"><div class="team-select-dock-meta"><span class="team-select-dock-label">Новая игра</span><strong>Выберите клуб, чтобы продолжить</strong></div></div>`;
     this.#teamEl.innerHTML=`<section class="team-select-screen">
       <div class="team-select-hero">
         <span class="team-select-badge">Новый сезон</span>
