@@ -1,5 +1,6 @@
-.legacy-rafters-card{grid-column:auto}
-.legacy-rafter-grid{display:grid;gap:10px}
+.legacy-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.legacy-rafters-card{grid-column:1/-1;width:100%}
+.legacy-rafter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .legacy-rafter-card{display:grid;grid-template-columns:74px minmax(0,1fr);gap:12px;padding:12px;border-radius:14px;background:linear-gradient(145deg,rgba(250,204,21,.09),rgba(126,214,255,.06));border:1px solid rgba(250,204,21,.18)}
 .legacy-rafter-number{display:grid;place-items:center;align-content:center;min-height:86px;border-radius:12px;background:rgba(250,204,21,.12);border:1px solid rgba(250,204,21,.22)}
 .legacy-rafter-number strong{color:#facc15;font-size:34px;line-height:1}
@@ -29,6 +30,7 @@
 .legacy-rafter-facts div{border:1px solid rgba(255,255,255,.06)}
 
 @media (max-width:720px){
+  .legacy-grid,.legacy-rafter-grid{grid-template-columns:1fr}
   .legacy-rafter-card{grid-template-columns:1fr}
   .legacy-rafter-title{display:grid}
   .legacy-table-head,.legacy-row{grid-template-columns:1fr}
