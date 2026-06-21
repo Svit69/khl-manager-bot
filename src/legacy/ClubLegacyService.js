@@ -1,4 +1,5 @@
 import { CLUB_HISTORY } from "../data/clubHistory.js";
+import { RETIRED_NUMBERS_BY_TEAM } from "../data/retiredNumbers.js";
 
 const points = (row) => (Number(row?.points) || 0);
 const scorerKey = (row) => row?.playerId || row?.name;
@@ -13,7 +14,7 @@ export class ClubLegacyService {
       clubInfo: CLUB_HISTORY[team?.shortName] || null,
       allTimeLeaders: leaders.slice(0, 8),
       records: this.#buildRecords(rows, bestSeason),
-      retiredNumbers: this.#buildRetiredNumbers(leaders),
+      retiredNumbers: RETIRED_NUMBERS_BY_TEAM[team?.shortName] || this.#buildRetiredNumbers(leaders),
     };
   }
 
