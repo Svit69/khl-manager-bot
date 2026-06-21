@@ -12,8 +12,31 @@
 .legacy-rafter-facts{display:grid;grid-template-columns:1fr;gap:7px}
 .legacy-rafter-facts div{padding:8px;border-radius:10px;background:rgba(255,255,255,.05)}
 .legacy-rafter-facts strong{display:block;color:#f5f9ff;font-size:12px;line-height:1.35}
+.legacy-card h3,.legacy-head h3,.legacy-card p,.legacy-card span,.legacy-card small,.legacy-card strong,.legacy-row b{overflow-wrap:anywhere}
+.legacy-info-grid strong,.legacy-record strong,.legacy-row span,.legacy-row small,.legacy-number-card span{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.35}
+.legacy-head{align-items:flex-start;flex-wrap:wrap}
+.legacy-head span{max-width:100%;text-align:right;line-height:1.3}
+.legacy-card-hero{align-items:stretch}
+.legacy-info-grid div,.legacy-record{border:1px solid rgba(126,214,255,.1)}
+.legacy-table-head,.legacy-row{grid-template-columns:78px minmax(140px,1fr) minmax(120px,.8fr) minmax(150px,.9fr);align-items:start}
+.legacy-table-head span{line-height:1.2}
+.legacy-row{padding:11px 0;min-height:auto}
+.legacy-row strong,.legacy-row b,.legacy-row small{line-height:1.35}
+.legacy-row b{text-align:left}
+.legacy-row.compact{grid-template-columns:30px minmax(120px,1fr) 56px minmax(62px,.7fr)}
+.legacy-rafter-title{flex-wrap:wrap}
+.legacy-rafter-title span{white-space:normal;line-height:1.3}
+.legacy-rafter-facts div{border:1px solid rgba(255,255,255,.06)}
 
 @media (max-width:720px){
   .legacy-rafter-card{grid-template-columns:1fr}
   .legacy-rafter-title{display:grid}
+  .legacy-table-head,.legacy-row{grid-template-columns:1fr}
+  .legacy-table-head span:nth-child(n+3),.legacy-row b,.legacy-row small{display:block}
+  .legacy-table-head{display:none}
+  .legacy-row{gap:4px;padding:12px 0}
+  .legacy-row strong{color:#facc15}
+  .legacy-row.compact{grid-template-columns:32px minmax(0,1fr);align-items:start}
+  .legacy-row.compact b,.legacy-row.compact small{grid-column:2}
+  .legacy-head span{text-align:left}
 }
