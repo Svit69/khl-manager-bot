@@ -1,4 +1,4 @@
-﻿import { generateUuid } from "../utils/uuid.js";
+import { generateUuid } from "../utils/uuid.js";
 import { ContractType, contractTypeLabel } from "./ContractType.js";
 import { createContractNormalizer } from "./ContractNormalization.js";
 import { evaluateRenewalWillingness } from "./RenewalScoring.js";
@@ -414,6 +414,7 @@ export class ContractService {
       years: clamp(Number(offer?.years) || 1, 1, 4),
       salaryRub: roundSalaryRub(offer?.salaryRub),
     };
+    this.#releasedPlayerIds.add(player.id);
     const newContracts = this.#createFutureContracts({
       player,
       teamId: team.id,
@@ -424,7 +425,6 @@ export class ContractService {
     });
 
     player.affiliation.teamId = team.id;
-    this.#releasedPlayerIds.delete(player.id);
     player.potential?.resetFreeAgentInactivity?.();
     this.#clearBadOfferCount(player.id);
     this.#clearLastOffer(player.id);
