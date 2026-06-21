@@ -1,6 +1,7 @@
 import { createSkater } from "../data/playerFactory.js";
 import { RUSSIAN_SURNAME_ROOTS } from "../data/surnameRoots.js";
 import { EXTRA_RUSSIAN_SURNAME_ROOTS } from "../data/surnameRootsExtra.js";
+import { WEIGHTED_KAZAKH_FIRST_NAMES } from "../data/kazakhFirstNames.js";
 import { calculateAge } from "../contracts/SeasonUtils.js";
 import { PlayerPosition } from "../models/PlayerPosition.js";
 import { getJuniorHiddenTraits } from "../models/HiddenPlayerTraits.js";
@@ -119,6 +120,12 @@ const WEIGHTED_FIRST_NAMES = Object.freeze([
   ["Симеон", 2],
 ]);
 const FIRST_NAME_TOTAL_WEIGHT = WEIGHTED_FIRST_NAMES.reduce((sum, [, weight]) => sum + weight, 0);
+const KAZAKH_FIRST_NAME_TOTAL_WEIGHT = WEIGHTED_KAZAKH_FIRST_NAMES.reduce((sum, [, weight]) => sum + weight, 0);
+const FIRST_NAME_POOLS = Object.freeze({
+  RU: { items: WEIGHTED_FIRST_NAMES, totalWeight: FIRST_NAME_TOTAL_WEIGHT },
+  BY: { items: WEIGHTED_FIRST_NAMES, totalWeight: FIRST_NAME_TOTAL_WEIGHT },
+  KZ: { items: WEIGHTED_KAZAKH_FIRST_NAMES, totalWeight: KAZAKH_FIRST_NAME_TOTAL_WEIGHT },
+});
 const WEIGHTED_LAST_NAMES_RU = Object.freeze([
   ["Смирнов", 110],
   ["Кузнецов", 100],
@@ -276,7 +283,10 @@ const pickWeighted = (items, seed, totalWeight = null) => {
   return items[0][0];
 };
 
-const pickWeightedFirstName = (seed) => pickWeighted(WEIGHTED_FIRST_NAMES, seed, FIRST_NAME_TOTAL_WEIGHT);
+const pickWeightedFirstName = (nationality, seed) => {
+  const pool = FIRST_NAME_POOLS[nationality] || FIRST_NAME_POOLS.RU;
+  return pickWeighted(pool.items, seed, pool.totalWeight);
+};
 
 const getLastNamePool = (nationality) => LAST_NAME_POOLS[nationality] || WEIGHTED_LAST_NAMES_RU;
 const getSurnameRoots = (nationality) => SURNAME_ROOTS_BY_NATIONALITY[nationality] || RUSSIAN_SURNAME_ROOTS;
@@ -399,7 +409,7 @@ const getNationality = (team, seed) => {
 };
 
 const getNames = (nationality, seed, existingNames = new Set(), team = null) => {
-  const firstName = pickWeightedFirstName(hash(`${seed}:first-name`));
+  const firstName = pickWeightedFirstName(nationality, hash(`${seed}:first-name`));
   let lastName = pickLastName(nationality, seed, team);
   for (let attempt = 1; attempt <= 6 && existingNames.has(`${firstName} ${lastName}`); attempt += 1) {
     lastName = pickLastName(nationality, hash(`${seed}:last-name-reroll:${attempt}`), team);
