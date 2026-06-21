@@ -607,6 +607,9 @@ export const getUfaStatus = (age, khlGamesPlayed) => {
   return "OSA";
 };
 
+const getNegotiationUfaStatus = (age, khlGamesPlayed, context) =>
+  context?.restrictedFreeAgencyEnabled === false ? "NSA" : getUfaStatus(age, khlGamesPlayed);
+
 export const estimateMarketSalary = (player, lastContract, marketSalaryOverride = null) => {
   if (Number.isFinite(marketSalaryOverride) && marketSalaryOverride > 0) return marketSalaryOverride;
   if (lastContract?.salaryRub) return roundSalaryRub(lastContract.salaryRub);
@@ -648,7 +651,7 @@ export const evaluateRenewalWillingness = ({
   let willingness = 50;
 
   const age = calculateAge(player.identity.birthDate);
-  const ufaStatus = getUfaStatus(age, player.career?.khlGamesPlayed || 0);
+  const ufaStatus = getNegotiationUfaStatus(age, player.career?.khlGamesPlayed || 0, context);
   const projectedRole = getProjectedRoleInfo(team, player);
   const teamAdjustedDemand = calculateTeamAdjustedDemand(player, team, context, baseMarketSalary, reasons);
   const offerSalary = roundSalaryRub(offer?.salaryRub || teamAdjustedDemand);

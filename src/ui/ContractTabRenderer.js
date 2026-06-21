@@ -10,7 +10,7 @@ export class ContractTabRenderer {
     const content = rows
       .map((row) => {
         const contractInfo = row.contractEndDate ? `До ${row.contractEndDate}` : "Контракт не найден";
-        const status = this.#formatStatus(row.age, row.khlGamesPlayed);
+        const status = row.freeAgentStatus || this.#formatStatus(row.age, row.khlGamesPlayed);
         const isLocked = Boolean(row.isRenewalLocked);
         const buttonLabel = isLocked ? "Продлено" : "Продлить";
         const disabledAttr = isLocked ? "disabled" : "";

@@ -480,7 +480,10 @@ export class AppState {
   }
 
   getActiveTeamContractRows() {
-    return this.activeTeam ? this.#contracts.getTeamContractRows(this.activeTeam, this.#getEffectiveNegotiationDate()) : [];
+    if (!this.activeTeam) return [];
+    const rows = this.#contracts.getTeamContractRows(this.activeTeam, this.#getEffectiveNegotiationDate());
+    if (this.#gameSettings.restrictedFreeAgencyEnabled) return rows;
+    return rows.map((row) => ({ ...row, freeAgentStatus: "НСА" }));
   }
 
   getActiveTeamRestrictedRightsRows() {
@@ -2075,6 +2078,7 @@ export class AppState {
       teamGamesPlayed,
       currentDate,
       seasonLabel,
+      restrictedFreeAgencyEnabled: this.#gameSettings.restrictedFreeAgencyEnabled,
       isInTop8: rank !== null && rank <= 8,
       teamRoster: team.getRoster(),
       allPlayers: this.getAllPlayers(),
