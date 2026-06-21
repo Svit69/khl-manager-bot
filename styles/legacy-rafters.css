@@ -1,0 +1,19 @@
+.legacy-rafters-card{grid-column:auto}
+.legacy-rafter-grid{display:grid;gap:10px}
+.legacy-rafter-card{display:grid;grid-template-columns:74px minmax(0,1fr);gap:12px;padding:12px;border-radius:14px;background:linear-gradient(145deg,rgba(250,204,21,.09),rgba(126,214,255,.06));border:1px solid rgba(250,204,21,.18)}
+.legacy-rafter-number{display:grid;place-items:center;align-content:center;min-height:86px;border-radius:12px;background:rgba(250,204,21,.12);border:1px solid rgba(250,204,21,.22)}
+.legacy-rafter-number strong{color:#facc15;font-size:34px;line-height:1}
+.legacy-rafter-number span{font-size:10px;text-align:center}
+.legacy-rafter-body{display:grid;gap:9px;min-width:0}
+.legacy-rafter-title{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.legacy-rafter-title h4{margin:0;color:#f5f9ff;font-size:17px;line-height:1.1}
+.legacy-rafter-title span{white-space:nowrap}
+.legacy-rafter-body p{margin:0;color:#cfe2ff;font-size:13px;line-height:1.42}
+.legacy-rafter-facts{display:grid;grid-template-columns:1fr;gap:7px}
+.legacy-rafter-facts div{padding:8px;border-radius:10px;background:rgba(255,255,255,.05)}
+.legacy-rafter-facts strong{display:block;color:#f5f9ff;font-size:12px;line-height:1.35}
+
+@media (max-width:720px){
+  .legacy-rafter-card{grid-template-columns:1fr}
+  .legacy-rafter-title{display:grid}
+}
