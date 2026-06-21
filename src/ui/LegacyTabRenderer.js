@@ -1,3 +1,5 @@
+import { renderRafterCard } from "./LegacyRafterCardRenderer.js";
+
 const fmt = (value) => value || "—";
 const playerLine = (row) => row ? `${row.name || "—"} • ${row.points || 0} очков` : "Нет данных";
 
@@ -18,9 +20,13 @@ const renderLeader = (row, index) => `<div class="legacy-row compact">
   <strong>${index + 1}</strong><span>${row.name}</span><b>${row.points}</b><small>${row.goals}+${row.assists}</small>
 </div>`;
 
-const renderNumber = (row) => `<div class="legacy-number-card">
-  <strong>${row.number}</strong><span>${row.name}</span><small>${row.points} pts • ${row.seasons} seasons</small>
-</div>`;
+const renderRecords = (records = {}) => `<section class="legacy-card"><div class="legacy-head"><h3>Club Records</h3><span>Лучшие сезоны игроков клуба</span></div>
+  <div class="legacy-record"><small>Points Season</small><strong>${playerLine(records.bestSeason)}</strong></div>
+  <div class="legacy-record"><small>Goal Season</small><strong>${playerLine(records.bestGoalSeason)}</strong></div>
+  <div class="legacy-record"><small>Assist Season</small><strong>${playerLine(records.bestAssistSeason)}</strong></div>
+</section>`;
+
+const renderRafters = (items = []) => `<section class="legacy-card legacy-rafters-card"><div class="legacy-head"><h3>Rafters</h3><span>Выведенные номера клуба</span></div><div class="legacy-rafter-grid">${items.map(renderRafterCard).join("") || `<div class="legacy-empty">Стяги клуба еще не добавлены.</div>`}</div></section>`;
 
 export class LegacyTabRenderer {
   render(view) {
@@ -34,13 +40,9 @@ export class LegacyTabRenderer {
         <div class="legacy-list">${(league.champions || []).map(renderChampion).join("") || `<div class="legacy-empty">История появится после завершения сезона.</div>`}</div>
       </section>
       <div class="legacy-grid">
-        <section class="legacy-card"><div class="legacy-head"><h3>Club Records</h3><span>Лучшие сезоны игроков клуба</span></div>
-          <div class="legacy-record"><small>Points Season</small><strong>${playerLine(club.records?.bestSeason)}</strong></div>
-          <div class="legacy-record"><small>Goal Season</small><strong>${playerLine(club.records?.bestGoalSeason)}</strong></div>
-          <div class="legacy-record"><small>Assist Season</small><strong>${playerLine(club.records?.bestAssistSeason)}</strong></div>
-        </section>
+        ${renderRecords(club.records)}
         <section class="legacy-card"><div class="legacy-head"><h3>All-Time Scorers</h3><span>Лучшие бомбардиры клуба</span></div>${(club.allTimeLeaders || []).slice(0, 6).map(renderLeader).join("") || `<div class="legacy-empty">Нет данных.</div>`}</section>
-        <section class="legacy-card"><div class="legacy-head"><h3>Rafters</h3><span>Кандидаты на закрепление номера</span></div><div class="legacy-number-grid">${(club.retiredNumbers || []).map(renderNumber).join("") || `<div class="legacy-empty">Легенды еще формируются.</div>`}</div></section>
+        ${renderRafters(club.retiredNumbers)}
       </div>
     </section>`;
   }
