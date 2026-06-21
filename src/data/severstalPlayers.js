@@ -44,7 +44,7 @@ const severstalRoster = [
   ["chefanov", "Илья", "Чефанов", PlayerPosition.RW, [], photo("chefanov"), "2001-10-18", "RU", 2, 55, 100, 69, 72, 70, 70, 73, 74, "two-way", [3, 3]],
   ["abrosimov", "Руслан", "Абросимов", PlayerPosition.CTR, [], photo("abrosimov"), "2001-05-15", "RU", 5, 265, 100, 78, 81, 75, 72, 80, 81, "one-way", [10, 10]],
   ["veryayev", "Данил", "Веряев", PlayerPosition.LW, [PlayerPosition.RW], photo("veryayev"), "1998-07-13", "RU", 9, 391, 100, 67, 72, 75, 75, 70, 75, "one-way", [4]],
-  ["emil-pyanov", "Эмиль", "Пьянов", PlayerPosition.CTR, [], photo("emil-pyanov", false), "2005-01-31", "RU", 3, 41, 100, 70, 72, 70, 64, 72, 76, "two-way", [0.5, 1]],
+  ["emil-pyanov", "Эмиль", "Пьянов", PlayerPosition.CTR, [], photo("emil-pyanov"), "2005-01-31", "RU", 3, 41, 100, 70, 72, 70, 64, 72, 76, "two-way", [0.5, 1]],
 ];
 
 export const severstalPlayerProfiles = severstalRoster.map(([

@@ -1,5 +1,6 @@
 import { createSkater } from "../data/playerFactory.js";
 import { RUSSIAN_SURNAME_ROOTS } from "../data/surnameRoots.js";
+import { EXTRA_RUSSIAN_SURNAME_ROOTS } from "../data/surnameRootsExtra.js";
 import { calculateAge } from "../contracts/SeasonUtils.js";
 import { PlayerPosition } from "../models/PlayerPosition.js";
 import { getJuniorHiddenTraits } from "../models/HiddenPlayerTraits.js";
@@ -176,7 +177,7 @@ const WEIGHTED_LAST_NAMES_KZ = Object.freeze([
 ]);
 const TEAM_HERITAGE_LAST_NAME_CHANCE = 2;
 const HOCKEY_HISTORY_LAST_NAME_CHANCE = 2;
-const GENERATED_LAST_NAME_CHANCE = Object.freeze({ RU: 78, BY: 80, KZ: 84 });
+const GENERATED_LAST_NAME_CHANCE = Object.freeze({ RU: 92, BY: 90, KZ: 88 });
 const WEIGHTED_SURNAME_SUFFIXES = Object.freeze({
   RU: [["ов", 43], ["ев", 22], ["ин", 18], ["енко", 8], ["чук", 4], ["ич", 3], ["ый", 2]],
   BY: [["енко", 28], ["ич", 24], ["чук", 18], ["ов", 12], ["ев", 8], ["ин", 6], ["ый", 4]],
@@ -212,9 +213,13 @@ const KAZAKH_SURNAME_ROOTS = Object.freeze([
   ["Абзал", ["ов", "ев", "улы"]],
   ["Самат", ["ов", "ев", "ин"]],
 ]);
+const EXTENDED_RUSSIAN_SURNAME_ROOTS = Object.freeze([
+  ...RUSSIAN_SURNAME_ROOTS,
+  ...EXTRA_RUSSIAN_SURNAME_ROOTS,
+]);
 const SURNAME_ROOTS_BY_NATIONALITY = Object.freeze({
-  RU: RUSSIAN_SURNAME_ROOTS,
-  BY: RUSSIAN_SURNAME_ROOTS,
+  RU: EXTENDED_RUSSIAN_SURNAME_ROOTS,
+  BY: EXTENDED_RUSSIAN_SURNAME_ROOTS,
   KZ: KAZAKH_SURNAME_ROOTS,
 });
 const HOCKEY_HISTORY_LAST_NAMES = Object.freeze([

@@ -318,6 +318,7 @@ export class AppController{
       filteredRows:visibleRows,
       selectedRow,
       selectedPlayerId:selectedRow?.playerId||null,
+      salaryCap:this.#state.getSeasonContractSalaryCapSummary(),
       selectedRowKey:selectedRow?.rowKey||selectedRow?.playerId||null,
       filter:this.#seasonContractDecisionFilter,
       releasePlayerIds:this.#seasonContractReleasePlayerIds,
@@ -1165,7 +1166,7 @@ export class AppController{
       this.#renderScreen();
       return;
     }
-    if(String(player.nationality||"").toUpperCase()==="RU"){
+    if(this.#juniorPhotoPool.hasStockPhotoPool(player)){
       this.#juniorPhotoStatusById.set(playerId,"error");
       this.#juniorPhotoErrorById.set(playerId,"Фото в базе закончились.");
       this.#renderScreen();

@@ -32,6 +32,7 @@ import { ExternalRightsInterestService } from "../season/ExternalRightsInterestS
 import { AiExternalRightsService } from "../season/AiExternalRightsService.js";
 import { KhlProspectDepartureService } from "../season/KhlProspectDepartureService.js";
 import { JuniorTeamService } from "../season/JuniorTeamService.js";
+import { AiJuniorProspectSigningService } from "../season/AiJuniorProspectSigningService.js";
 import { JuniorLeagueService } from "../season/JuniorLeagueService.js";
 import { JuniorDepartureRiskService } from "../season/JuniorDepartureRiskService.js";
 import { ClubLegacyService } from "../legacy/ClubLegacyService.js";
@@ -130,6 +131,7 @@ export class AppState {
   #prospectDepartures = new KhlProspectDepartureService();
   #juniorLeague = new JuniorLeagueService();
   #juniorDepartures = new JuniorDepartureRiskService();
+  #aiJuniorSignings = new AiJuniorProspectSigningService();
   #clubLegacy = new ClubLegacyService();
   #leagueHistory = new LeagueHistoryService();
   #lastMatch = null;
@@ -236,6 +238,11 @@ export class AppState {
       .reduce((sum, contract) => sum + (Number(contract.salaryRub) || 0), 0);
     const capRub = this.#getSalaryCapRub(seasonLabel);
     return { enabled: true, seasonLabel, capRub, payrollRub, remainingRub: Math.max(0, capRub - payrollRub) };
+  }
+
+  getSeasonContractSalaryCapSummary() {
+    const currentSeason = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
+    return this.getSalaryCapSummary(this.#activeTeamId, formatNextSeason(currentSeason));
   }
 
   getSalaryCapComplianceView(selectedPlayerIds = []) {
@@ -1033,6 +1040,32 @@ export class AppState {
     return contract;
   }
 
+  #processAiJuniorProspectSignings(phase = "regular") {
+    if (phase !== "regular") return;
+    const seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
+    this.#aiJuniorSignings.process({
+      teams: this.#teams,
+      activeTeamId: this.#activeTeamId,
+      seasonLabel,
+      getCoachByTeamId: (teamId) => this.getCoachByTeamId(teamId),
+      getContractForSeason: (playerId, season) => this.#contracts.getContractForSeason(playerId, season),
+      canSubmitOffer: (team, player, offer) => this.#canSubmitContractOffer(team, player, offer, "renewal", { currentDate: this.#calendar.currentDate, seasonLabel }).allowed,
+      signPlayer: (team, player) => this.#signAiJuniorProspect(team, player, seasonLabel),
+    });
+  }
+
+  #signAiJuniorProspect(team, player, seasonLabel) {
+    const juniorIndex = team.juniorPlayers.findIndex((entry) => entry.id === player.id);
+    if (juniorIndex < 0) return false;
+    const contract = this.#contracts.signJuniorToMainContract(player, team.id, seasonLabel);
+    if (!contract) return false;
+    team.juniorPlayers.splice(juniorIndex, 1);
+    if (!team.getRoster().some((entry) => entry?.id === player.id)) team.reservePlayers.push(player);
+    player.expectedLineIndex = null;
+    this.#refreshExpectedRoles(team);
+    return true;
+  }
+
   getJuniorPhotoRequest(playerId) {
     if (!this.activeTeam || !playerId) return null;
     const player = (this.activeTeam.juniorPlayers || []).find((entry) => entry.id === playerId);
@@ -1344,6 +1377,7 @@ export class AppState {
       this.#syncSeasonReferenceDate();
       this.#runMonthlyAiRenewals(previousDate, this.#calendar.currentDate);
       this.#runNorthAmericaInterestWarnings(this.#calendar.currentDate);
+      this.#processAiJuniorProspectSignings(day?.phase || this.#seasonState?.phase || "regular");
       this.#syncSeasonPhase();
       return null;
     }
@@ -1397,6 +1431,7 @@ export class AppState {
     this.#syncSeasonReferenceDate();
     this.#runMonthlyAiRenewals(previousDate, this.#calendar.currentDate);
     this.#runNorthAmericaInterestWarnings(this.#calendar.currentDate);
+    this.#processAiJuniorProspectSignings(day?.phase || this.#seasonState?.phase || "regular");
     this.#processAiCoachChanges();
     this.#lastMatch = focusedMatches[0] || null;
     this.#syncSeasonPhase();
