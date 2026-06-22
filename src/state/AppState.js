@@ -230,12 +230,14 @@ export class AppState {
     const decision = this.#coachContracts.decide(coach, offer);
     if (!decision.accepted) return { accepted: false, message: `${coach.name} просит выше зарплату. Шанс был ${decision.chance}%.` };
     const current = this.getCoachByTeamId(this.#activeTeamId);
-    if (current) current.releaseToMarket({
-      seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
-      teamId: this.#activeTeamId,
-      games: this.#standings.getTeamStats(this.#activeTeamId)?.gp || 0,
-    });
-    current.aiMarketLockedUntilDay = this.#calendar.currentDay + 5;
+    if (current) {
+      current.releaseToMarket({
+        seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
+        teamId: this.#activeTeamId,
+        games: this.#standings.getTeamStats(this.#activeTeamId)?.gp || 0,
+      });
+      current.aiMarketLockedUntilDay = this.#calendar.currentDay + 5;
+    }
     const contractUntil = this.#getCoachContractUntil(null, years);
     coach.assignToTeam(this.#activeTeamId, contractUntil, offer.salaryRub);
     return { accepted: true, message: `${coach.name} подписан до ${this.#formatCoachContract(contractUntil)}, ${this.#formatCoachSalary(offer.salaryRub)}.` };
