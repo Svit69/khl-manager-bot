@@ -220,6 +220,7 @@ export class AppState {
       teamId: this.#activeTeamId,
       games: this.#standings.getTeamStats(this.#activeTeamId)?.gp || 0,
     });
+    coach.aiMarketLockedUntilDay = this.#calendar.currentDay + 5;
     return { accepted: true, message: `${coach.name} выведен на рынок свободных тренеров.` };
   }
   signFreeCoach(coachId, years = 2, factor = 1) {
@@ -234,6 +235,7 @@ export class AppState {
       teamId: this.#activeTeamId,
       games: this.#standings.getTeamStats(this.#activeTeamId)?.gp || 0,
     });
+    current.aiMarketLockedUntilDay = this.#calendar.currentDay + 5;
     const contractUntil = this.#getCoachContractUntil(null, years);
     coach.assignToTeam(this.#activeTeamId, contractUntil, offer.salaryRub);
     return { accepted: true, message: `${coach.name} подписан до ${this.#formatCoachContract(contractUntil)}, ${this.#formatCoachSalary(offer.salaryRub)}.` };
@@ -387,7 +389,7 @@ export class AppState {
       .forEach((event) => this.#pushCoachNotification("Развитие тренера", `${event.coach.name}: ${event.before} → ${event.after}`));
     const seasonEnd = parseSeasonEnd(transition?.seasonState?.previousSeasonLabel || this.#calendar.seasonLabel);
     this.#coaches.filter((coach) => coach.teamId && Number(String(coach.contractUntil || "").slice(0, 4)) <= seasonEnd)
-      .forEach((coach) => { const teamName = this.#getTeamName(coach.teamId); coach.releaseToMarket({ seasonLabel: transition?.archive?.seasonLabel, teamId: coach.teamId }); this.#pushCoachNotification("Тренерский рынок", `${coach.name} покинул ${teamName}: контракт завершен.`); });
+      .forEach((coach) => { const teamName = this.#getTeamName(coach.teamId); coach.releaseToMarket({ seasonLabel: transition?.archive?.seasonLabel, teamId: coach.teamId }); coach.aiMarketLockedUntilDay = this.#calendar.currentDay + 5; this.#pushCoachNotification("Тренерский рынок", `${coach.name} покинул ${teamName}: контракт завершен.`); });
     this.#processAiCoachChanges(true);
   }
 

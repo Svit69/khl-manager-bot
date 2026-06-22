@@ -1,8 +1,9 @@
 const formatDate = (value) => value ? new Date(value).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "2-digit", timeZone: "UTC" }) : "Свободен";
 const money = (rub) => `${Math.round((Number(rub) || 0) / 1000000)} млн`;
+const getMarketWindow = (coach) => Number(coach?.aiMarketLockedUntilDay) > 0 ? `<small>Окно для вас до дня ${coach.aiMarketLockedUntilDay}</small>` : "";
 
 export const renderCoachActions = (coach, message = "", offer = null) => `<section class="coach-panel coach-management-panel">
-  <h3>Управление</h3>
+  <h3>Переговоры по контракту</h3>
   <div class="coach-money-line"><span>Запрос</span><strong>${money(offer?.demandRub || coach?.salaryRub)}</strong></div>
   <div class="coach-action-grid">
     <button class="coach-action secondary" data-action="coach-renew" data-years="1" data-factor=".92">Эконом</button>
@@ -15,13 +16,13 @@ export const renderCoachActions = (coach, message = "", offer = null) => `<secti
 </section>`;
 
 const renderCoachMarketRow = ({ coach, offer }) => `<div class="coach-market-row coach-market-row--action">
-  <span title="${coach.name}">${coach.name}</span>
+  <span title="${coach.name}">${coach.name}${getMarketWindow(coach)}</span>
   <strong>${coach.style} • ${coach.overall}</strong>
   <em>${money(offer?.demandRub)}</em>
   <button class="coach-market-sign" data-action="coach-sign" data-coach-id="${coach.id}" data-factor="1.1">Подписать</button>
 </div>`;
 
-export const renderCoachMarket = (freeCoaches = []) => `<section class="coach-panel">
+export const renderCoachMarket = (freeCoaches = []) => `<section class="coach-panel coach-market-panel">
   <h3>Рынок тренеров</h3>
   ${freeCoaches.map((entry) => renderCoachMarketRow(entry.coach ? entry : { coach: entry, offer: null })).join("") || `<div class="coach-empty">Свободных тренеров нет</div>`}
 </section>`;

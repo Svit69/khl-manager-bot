@@ -4,11 +4,11 @@ import { renderCoachActions, renderCoachMarket } from "./CoachManagementRenderer
 
 const SKILL_LABELS = { tactics: "Тактика", offense: "Атака", defense: "Оборона", discipline: "Дисциплина", playerDevelopment: "Развитие", lockerRoom: "Раздевалка", conditioning: "Форма", playoffPoise: "Плей-офф" };
 const formatDate = (value) => value ? new Date(value).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "2-digit", timeZone: "UTC" }) : "Свободный агент";
+const money = (rub) => rub ? `${Math.round(Number(rub) / 1000000)} млн` : "—";
 const getTopSkill = (ratings = {}) => {
   const [key, value] = Object.entries(ratings).sort((left, right) => right[1] - left[1])[0] || [];
   return key ? `${SKILL_LABELS[key] || key} ${value}` : "—";
 };
-const money = (rub) => rub ? `${Math.round(Number(rub) / 1000000)} млн` : "—";
 const getBestPlayoffResult = (experience = {}) => {
   if (experience.championships) return "Чемпион";
   if (experience.finals) return "Финал";
@@ -31,11 +31,7 @@ export class CoachTabRenderer {
   render(view) {
     if (!view) return `<section class="coach-screen"><div class="coach-empty">Режим тренеров выключен.</div></section>`;
     const { coach, team, freeCoaches = [], fit = null, message = "", coachOffer = null } = view;
-    if (!coach) return `<section class="coach-screen">
-      <div class="coach-empty">Главный тренер не назначен.</div>
-      ${message ? `<div class="coach-management-message">${message}</div>` : ""}
-      ${renderCoachMarket(freeCoaches)}
-    </section>`;
+    if (!coach) return `<section class="coach-screen"><div class="coach-empty">Главный тренер не назначен.</div>${message ? `<div class="coach-management-message">${message}</div>` : ""}${renderCoachMarket(freeCoaches)}</section>`;
     return `<section class="coach-screen">
       <header class="coach-hero">
         <img class="coach-photo" src="${coach.photoUrl}" alt="${coach.name}" ${PHOTO_FALLBACK_ATTR}>
@@ -43,7 +39,8 @@ export class CoachTabRenderer {
         <div class="coach-overall"><span>РЕЙТ</span><strong>${coach.overall}</strong></div>
       </header>
       ${renderCoachSummary(coach)}
-      <div class="coach-board">${renderCoachFit(fit)}${renderCoachActions(coach, message, coachOffer)}${renderCoachMarket(freeCoaches)}</div>
+      <div class="coach-board">${renderCoachFit(fit)}${renderCoachActions(coach, message, coachOffer)}</div>
+      ${renderCoachMarket(freeCoaches)}
     </section>`;
   }
 }

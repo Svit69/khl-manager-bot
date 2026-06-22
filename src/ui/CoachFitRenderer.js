@@ -1,5 +1,6 @@
 const percent = (value) => `${Math.max(0, Math.min(100, Number(value) || 0))}%`;
 const formatImpact = (value) => `${value >= 1 ? "+" : ""}${Math.round((value - 1) * 1000) / 10}%`;
+const formatPenaltyImpact = (value) => `${Math.round((1 - (Number(value) || 1)) * 1000) / 10}%`;
 
 const metric = (label, value) => `<div class="coach-fit-metric">
   <span>${label}</span><strong>${value || "—"}</strong><em style="width:${percent(value)}"></em>
@@ -20,7 +21,7 @@ export const renderCoachFit = (fit) => {
       <span>Атака ${formatImpact(effect.attackMultiplier || 1)}</span>
       <span>Защита ${formatImpact(effect.defenseMultiplier || 1)}</span>
       <span>Рост ${formatImpact(effect.developmentMultiplier || 1)}</span>
-      <span>Штрафы ${formatImpact((effect.penaltyMultiplier || 1) * -1 + 2)}</span>
+      <span>Штрафы ${formatPenaltyImpact(effect.penaltyMultiplier || 1)}</span>
     </div>
   </section>`;
 };
