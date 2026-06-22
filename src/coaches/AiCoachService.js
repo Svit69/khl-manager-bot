@@ -14,7 +14,7 @@ export class AiCoachService {
       if (!vacancy && (!poor || row.gp % 7 !== 0)) return [];
       const replacement = free().find((candidate) => !coach || candidate.overall >= coach.overall + 2);
       if (!replacement) return [];
-      if (coach) coach.releaseToMarket();
+      if (coach) coach.releaseToMarket({ seasonLabel, teamId: team.id, games: row?.gp || 0 });
       const offer = contractService.buildOffer(replacement, 1.08, 2);
       replacement.assignToTeam(team.id, coachEndDate(seasonLabel, offer.years), offer.salaryRub);
       return [{ team, oldCoach: coach, newCoach: replacement, poor, day }];

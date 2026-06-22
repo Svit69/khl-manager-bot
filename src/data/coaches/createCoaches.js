@@ -1,5 +1,6 @@
 import { HeadCoach } from "../../models/HeadCoach.js";
 import { coachRecords } from "./coachRecords.js";
+import { buildCoachRecordExperience } from "./CoachRecordExperience.js";
 
 const slugify = (value) =>
   String(value || "").toLowerCase().replaceAll(" ", "-").replace(/[^\p{L}\p{N}-]/gu, "");
@@ -21,7 +22,6 @@ const buildSalaryRub = (ratings, games) => {
   const overall = Math.round(Object.values(ratings).reduce((sum, value) => sum + value, 0) / 8);
   return Math.round((12 + Math.max(0, overall - 62) * 1.45 + Math.min(14, (Number(games) || 0) / 95)) * 1000000);
 };
-
 export const createCoaches = (teams = []) => {
   const teamByShortName = new Map((teams || []).map((team) => [team.shortName, team]));
   return coachRecords.map((record) => {
@@ -39,6 +39,7 @@ export const createCoaches = (teams = []) => {
       khlGamesCoached: record.games,
       style: record.style,
       ratings,
+      experience: buildCoachRecordExperience(record),
       contractUntil: record.contractUntil,
       salaryRub: buildSalaryRub(ratings, record.games),
     });
