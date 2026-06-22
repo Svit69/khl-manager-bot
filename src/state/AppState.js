@@ -481,11 +481,19 @@ export class AppState {
       const salaryRub = this.#getPlayerSalaryForSeason(player.id, seasonLabel, contracts);
       return [player.id, salaryRub];
     });
+    const contractRows = this.getFantasyDraftPlayerPool().map((player) => [
+      player.id,
+      contracts
+        .filter((contract) => contract.playerId === player.id && parseSeasonStart(contract.season) >= parseSeasonStart(seasonLabel))
+        .sort((left, right) => parseSeasonStart(left.season) - parseSeasonStart(right.season))
+        .map((contract) => ({ season: contract.season, salaryRub: Number(contract.salaryRub) || 0 })),
+    ]);
     return {
       enabled: this.#gameSettings.salaryCapEnabled,
       seasonLabel,
       capRub: draftCapRub,
       salaryByPlayerId: Object.fromEntries(salaryRows),
+      contractByPlayerId: Object.fromEntries(contractRows),
     };
   }
 

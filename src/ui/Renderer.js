@@ -11,6 +11,7 @@ import { SalaryCapComplianceRenderer } from "./SalaryCapComplianceRenderer.js";
 import { CalendarMonthRenderer } from "./CalendarMonthRenderer.js";
 import { LegacyTabRenderer } from "./LegacyTabRenderer.js";
 import { TeamSidebarRenderer } from "./TeamSidebarRenderer.js";
+import { renderFantasyDraftView } from "./draft/FantasyDraftViewRenderer.js";
 import { calculateAge } from "../contracts/SeasonUtils.js";
 import { adjustedOvrForPosition } from "../utils/positionFit.js";
 import { getPlayerPhotoUrl, PHOTO_FALLBACK_ATTR } from "../utils/PlayerPhoto.js";
@@ -394,6 +395,9 @@ export class Renderer{
     this.#matchEl.innerHTML="";
   }
   renderFantasyDraft(draft,team){
+    this.#teamEl.innerHTML=renderFantasyDraftView(draft,team);
+    this.#matchEl.innerHTML="";
+    return;
     const selectedPlayer=draft.availablePlayers.find(player=>player.id===draft.selectedPlayerId)||null;
     const previewPlayer=selectedPlayer||draft.availablePlayers[0]||null;
     const draftRounds=draft.rounds||FANTASY_DRAFT_ROUNDS;
