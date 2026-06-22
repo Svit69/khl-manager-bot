@@ -524,6 +524,11 @@
 }
 .draft-need-bar{height:6px;border-radius:999px;background:#16243a;overflow:hidden}
 .draft-need-bar span{display:block;height:100%;background:linear-gradient(90deg,#66daff,#7effad)}
+.draft-picked-player{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center;margin-top:5px}
+.draft-picked-player span{min-width:0;color:#fff;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.draft-picked-player small{display:block;color:#8ca6c9;font-size:11px;font-weight:800}
+.draft-picked-player button{height:28px;border:1px solid rgba(255,117,117,.28);border-radius:8px;background:rgba(255,117,117,.11);color:#ffd0d0;font-size:11px;font-weight:900;cursor:pointer}
+.draft-picked-player button:hover{background:rgba(255,117,117,.18)}
 .draft-team-list,.draft-recent-list{display:grid;gap:6px}
 .draft-team-row{
   display:grid;

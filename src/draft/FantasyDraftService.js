@@ -204,6 +204,15 @@ export class FantasyDraftService {
     return result;
   }
 
+  releaseUserPlayer(playerId) {
+    const picked = this.#pickedByTeamId.get(this.#userTeamId) || [];
+    const playerIndex = picked.findIndex((player) => player.id === playerId);
+    if (playerIndex === -1) return null;
+    const [player] = picked.splice(playerIndex, 1);
+    if (!this.#availablePlayers.some((candidate) => candidate.id === player.id)) this.#availablePlayers.push(player);
+    return player;
+  }
+
   #groupPlayersByPosition(players) {
     const byPosition = { CTR: [], LW: [], RW: [], DEF: [], G: [] };
     players.forEach((player) => {

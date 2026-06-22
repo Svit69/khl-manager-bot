@@ -935,6 +935,16 @@ export class AppController{
       this.#renderScreen();
       return;
     }
+    if(action==="draft-release-player" && this.#draftState){
+      const released=this.#draftState.service.releaseUserPlayer(clickable.dataset.playerId);
+      if(released){
+        this.#draftState.selectedPlayerId=null;
+        this.#draftMessage=`${released.name} возвращен в пул драфта, место под потолком освобождено.`;
+        this.#persistDraftState();
+      }
+      this.#renderScreen();
+      return;
+    }
     if(action==="draft-cancel" && this.#draftState){
       this.#draftState=null;
       this.#draftIntroTeamId=null;
