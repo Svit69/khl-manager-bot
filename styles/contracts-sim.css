@@ -907,5 +907,12 @@
 .offer-sheet-grid div{display:grid;gap:5px;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.05)}
 .offer-sheet-grid span{color:#8fa0b8;font-size:10px;font-weight:900;text-transform:uppercase}
 .offer-sheet-grid strong{color:#edf6ef;font-size:15px}
+.offer-sheet-trade-packages{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.offer-sheet-trade-packages section{display:grid;gap:8px;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.045)}
+.offer-sheet-trade-packages h3{margin:0;color:#edf6ef;font-size:14px}
+.offer-sheet-player-list{display:grid;gap:7px;margin:0;padding:0;list-style:none}
+.offer-sheet-player-list li{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;color:#edf6ef;font-weight:900}
+.offer-sheet-player-list strong{min-width:0;overflow-wrap:anywhere}
+.offer-sheet-player-list span{flex:0 0 auto;color:#8fa0b8;font-size:12px;font-weight:800}
 .offer-sheet-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .reset-row{justify-content:flex-end;margin-top:8px}

@@ -16,6 +16,8 @@ import { HeadCoach } from "../models/HeadCoach.js";
 import { StandingsTracker } from "../stats/StandingsTracker.js";
 import { calculateAge, formatContractEndDate, formatNextSeason, parseSeasonEnd, parseSeasonStart, setSeasonReferenceDate } from "../contracts/SeasonUtils.js";
 import { PlayerDevelopmentService } from "../progression/PlayerDevelopmentService.js";
+import { AiIncomingTradeService } from "../trade/AiIncomingTradeService.js";
+import { calculateTradeValueForTeam } from "../trade/TradeValue.js";
 import { TradeService } from "../trade/TradeService.js";
 import {
   buildCompetitiveOfferDecision,
@@ -121,6 +123,7 @@ export class AppState {
   #aiCoaches = new AiCoachService();
   #development = new PlayerDevelopmentService();
   #juniors = new JuniorTeamService();
+  #aiIncomingTrades = new AiIncomingTradeService();
   #trade;
   #aiRenewals;
   #seasonTransition;
@@ -174,6 +177,9 @@ export class AppState {
       preseasonOffers: [],
       externalRightsOffers: [],
       restrictedRightsOffers: [],
+      aiTradeOffers: [],
+      aiTradeOfferCount: 0,
+      aiTradeOfferTarget: null,
       offerSheetCompensations: [],
       northAmericaWarningSeason: null,
       preseasonIndex: 0,
@@ -864,6 +870,77 @@ export class AppState {
     return result;
   }
 
+  getIncomingTradeOfferRows() {
+    return (this.#seasonState?.aiTradeOffers || [])
+      .filter((offer) => offer?.status === "pending" && Number(offer.expiresDay) >= this.#calendar.currentDay)
+      .map((offer) => this.#buildIncomingTradeOfferRow(offer))
+      .filter(Boolean);
+  }
+
+  acceptIncomingTradeOffer(offerId) {
+    const offer = (this.#seasonState?.aiTradeOffers || []).find((entry) => entry.id === offerId && entry.status === "pending");
+    if (!offer) return { accepted: false, message: "Предложение обмена уже недоступно." };
+    const result = this.submitTradeWithTeam(offer.teamId, offer.givePlayerIds, offer.receivePlayerIds);
+    this.#resolveIncomingTradeOffer(offerId, result?.accepted ? "accepted" : "failed");
+    return result;
+  }
+
+  declineIncomingTradeOffer(offerId) {
+    const offer = (this.#seasonState?.aiTradeOffers || []).find((entry) => entry.id === offerId && entry.status === "pending");
+    if (!offer) return false;
+    this.#resolveIncomingTradeOffer(offerId, "declined");
+    return true;
+  }
+
+  #buildIncomingTradeOfferRow(offer) {
+    const team = this.#teams.find((entry) => entry.id === offer.teamId);
+    const evaluation = team ? this.evaluateTradeWithTeam(team.id, offer.givePlayerIds, offer.receivePlayerIds) : null;
+    if (!team || !evaluation?.isValid) return null;
+    return { ...offer, teamName: team.name, teamLogoUrl: team.logoUrl, evaluation };
+  }
+
+  #resolveIncomingTradeOffer(offerId, status) {
+    this.#seasonState = {
+      ...this.#seasonState,
+      aiTradeOffers: (this.#seasonState?.aiTradeOffers || []).map((entry) => entry.id === offerId ? { ...entry, status } : entry),
+    };
+  }
+
+  #processAiIncomingTradeOffers(phase = "regular") {
+    if (phase !== "regular" || !this.activeTeam || this.#calendar.currentDay < 12) return;
+    this.#ensureAiTradeOfferPlan();
+    const offers = this.#seasonState?.aiTradeOffers || [];
+    if (offers.some((offer) => offer.status === "pending" && offer.expiresDay >= this.#calendar.currentDay)) return;
+    if ((Number(this.#seasonState.aiTradeOfferCount) || 0) >= (Number(this.#seasonState.aiTradeOfferTarget) || 2)) return;
+    if (!this.#isAiTradeOfferDue()) return;
+    const offer = this.#aiIncomingTrades.buildOffer({
+      teams: this.#teams, activeTeam: this.activeTeam, seasonLabel: this.#seasonState?.seasonLabel, day: this.#calendar.currentDay,
+      valueOf: (team, player) => calculateTradeValueForTeam(team, player, this.#contracts.getContractsForPlayer(player.id), { currentDay: this.#calendar.currentDay, seasonLabel: this.#seasonState?.seasonLabel }),
+      evaluateTrade: (teamId, giveIds, receiveIds) => this.evaluateTradeWithTeam(teamId, giveIds, receiveIds),
+      isCapAllowed: (teamId, giveIds, receiveIds) => this.#assessTradeSalaryCap(this.#teams.find((team) => team.id === teamId), giveIds, receiveIds).allowed,
+    });
+    if (!offer) return;
+    this.#seasonState.aiTradeOffers = [...offers, offer];
+    this.#seasonState.aiTradeOfferCount = (Number(this.#seasonState.aiTradeOfferCount) || 0) + 1;
+    this.#pushNotification({ id: `notification-ai-trade-${offer.id}`, type: "trade", title: "Предложение обмена", message: `${this.#getTeamName(offer.teamId)} предлагает обмен.`, day: this.#calendar.currentDay, createdAt: new Date().toISOString(), read: false });
+  }
+
+  #ensureAiTradeOfferPlan() {
+    if (Number(this.#seasonState?.aiTradeOfferTarget)) return;
+    const seed = `${this.#seasonState?.seasonLabel}:${this.#activeTeamId}`;
+    const hash = [...seed].reduce((sum, char) => (sum * 31 + char.charCodeAt(0)) % 997, 0);
+    this.#seasonState = { ...this.#seasonState, aiTradeOfferTarget: 2 + (hash % 3), aiTradeOfferCount: Number(this.#seasonState?.aiTradeOfferCount) || 0, aiTradeOffers: this.#seasonState?.aiTradeOffers || [] };
+  }
+
+  #isAiTradeOfferDue() {
+    const target = Number(this.#seasonState?.aiTradeOfferTarget) || 2;
+    const count = Number(this.#seasonState?.aiTradeOfferCount) || 0;
+    const seed = `${this.#seasonState?.seasonLabel}:${this.#activeTeamId}:${count}`;
+    const offset = [...seed].reduce((sum, char) => (sum + char.charCodeAt(0)) % 9, 0) - 4;
+    const plannedDay = 12 + Math.floor(((count + 1) * 68) / (target + 1)) + offset;
+    return this.#calendar.currentDay >= plannedDay;
+  }
+
   getActiveTeamNegotiationPreview(playerId, offer) {
     const player = this.#findActiveTeamPlayer(playerId);
     if (!player) return null;
@@ -1283,6 +1360,9 @@ export class AppState {
     this.#standings.importSnapshot([]);
     this.#lastMatch = null;
     this.#seasonState = transition.seasonState;
+    this.#seasonState.aiTradeOffers = [];
+    this.#seasonState.aiTradeOfferCount = 0;
+    this.#seasonState.aiTradeOfferTarget = null;
     this.#transferLedger = [];
     this.#recordTransitionMovements(transition);
     this.#processCoachOffseason(transition);
@@ -1426,6 +1506,9 @@ export class AppState {
       preseasonOffers: [],
       externalRightsOffers: [],
       restrictedRightsOffers: [],
+      aiTradeOffers: [],
+      aiTradeOfferCount: 0,
+      aiTradeOfferTarget: null,
       offerSheetCompensations: [],
       northAmericaWarningSeason: null,
       preseasonIndex: 0,
@@ -1449,6 +1532,7 @@ export class AppState {
       this.#runMonthlyAiRenewals(previousDate, this.#calendar.currentDate);
       this.#runNorthAmericaInterestWarnings(this.#calendar.currentDate);
       this.#processAiJuniorProspectSignings(day?.phase || this.#seasonState?.phase || "regular");
+      this.#processAiIncomingTradeOffers(day?.phase || this.#seasonState?.phase || "regular");
       this.#syncSeasonPhase();
       return null;
     }
@@ -1505,6 +1589,7 @@ export class AppState {
     this.#processAiJuniorProspectSignings(day?.phase || this.#seasonState?.phase || "regular");
     this.#processAiCoachChanges();
     this.#processCoachOfferDecisions();
+    this.#processAiIncomingTradeOffers(day?.phase || this.#seasonState?.phase || "regular");
     this.#lastMatch = focusedMatches[0] || null;
     this.#syncSeasonPhase();
     return this.#lastMatch;

@@ -7,6 +7,7 @@ import { TransferTabRenderer } from "./TransferTabRenderer.js";
 import { CoachTabRenderer } from "./CoachTabRenderer.js";
 import { SeasonContractDecisionRenderer } from "./SeasonContractDecisionRenderer.js";
 import { OfferSheetPopupRenderer } from "./OfferSheetPopupRenderer.js";
+import { IncomingTradePopupRenderer } from "./IncomingTradePopupRenderer.js";
 import { SalaryCapComplianceRenderer } from "./SalaryCapComplianceRenderer.js";
 import { CalendarMonthRenderer } from "./CalendarMonthRenderer.js";
 import { LegacyTabRenderer } from "./LegacyTabRenderer.js";
@@ -218,7 +219,7 @@ const renderNotificationCenter=notifications=>{
   </div>`;
 };
 export class Renderer{
-  #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();#teamStatsTab=new TeamStatsTabRenderer();#freeAgentTab=new FreeAgentTabRenderer();#tradeTab=new TradeTabRenderer();#juniorTab=new JuniorTeamTabRenderer();#transferTab=new TransferTabRenderer();#coachTab=new CoachTabRenderer();#legacyTab=new LegacyTabRenderer();#teamSidebarRenderer=new TeamSidebarRenderer();#seasonContractDecision=new SeasonContractDecisionRenderer();#offerSheetPopup=new OfferSheetPopupRenderer();#capCompliance=new SalaryCapComplianceRenderer();#monthCalendar=new CalendarMonthRenderer();
+  #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();#teamStatsTab=new TeamStatsTabRenderer();#freeAgentTab=new FreeAgentTabRenderer();#tradeTab=new TradeTabRenderer();#juniorTab=new JuniorTeamTabRenderer();#transferTab=new TransferTabRenderer();#coachTab=new CoachTabRenderer();#legacyTab=new LegacyTabRenderer();#teamSidebarRenderer=new TeamSidebarRenderer();#seasonContractDecision=new SeasonContractDecisionRenderer();#offerSheetPopup=new OfferSheetPopupRenderer();#incomingTradePopup=new IncomingTradePopupRenderer();#capCompliance=new SalaryCapComplianceRenderer();#monthCalendar=new CalendarMonthRenderer();
   constructor(){
     this.#teamEl=document.getElementById("teamPanel");
     this.#calEl=document.getElementById("calendarPanel");
@@ -330,6 +331,10 @@ export class Renderer{
   renderOfferSheetPopup(view){
     if(!view?.row)return;
     this.#teamEl.insertAdjacentHTML("beforeend",this.#offerSheetPopup.render(view));
+  }
+  renderIncomingTradePopup(view){
+    if(!view?.row)return;
+    this.#teamEl.insertAdjacentHTML("beforeend",this.#incomingTradePopup.render(view));
   }
   renderFreeAgents(rows,negotiation,salaryCap=null){
     const container=document.getElementById("teamTabContent");

@@ -29,6 +29,7 @@ export class AppController{
   #seasonExternalOfferPlayerIds=new Set();
   #seasonContractOutcomes=new Map();
   #dismissedOfferSheetPopupIds=new Set();
+  #dismissedIncomingTradeOfferIds=new Set();
   #juniorPhotoStatusById=new Map();
   #juniorPhotoErrorById=new Map();
   #juniorPhotoPool=new JuniorPhotoPool();
@@ -128,6 +129,7 @@ export class AppController{
       }
       this.#renderer.renderSeasonContractDecision(this.#buildSeasonContractDecisionView());
       this.#renderer.renderOfferSheetPopup(this.#buildOfferSheetPopupView());
+      this.#renderer.renderIncomingTradePopup(this.#buildIncomingTradePopupView());
       if(this.#matchPlayback)this.#renderer.renderMatchSimulationPopup(this.#matchPlayback);
       return;
     }
@@ -347,6 +349,10 @@ export class AppController{
     const row=this.#state.getActiveTeamRestrictedRightsRows().find(candidate=>!this.#dismissedOfferSheetPopupIds.has(candidate.id))||null;
     return {row};
   }
+  #buildIncomingTradePopupView(){
+    const row=this.#state.getIncomingTradeOfferRows().find(candidate=>!this.#dismissedIncomingTradeOfferIds.has(candidate.id))||null;
+    return {row};
+  }
   async #handleClick(event){
     const clickable=event.target?.closest?.("[data-team-id],[data-tab],[data-action],#resetBtn,#playBtn");
     const tab=clickable?.dataset?.tab;
@@ -440,6 +446,32 @@ export class AppController{
     if(action==="offer-sheet-popup-dismiss"){
       const offerId=clickable.dataset.offerId;
       if(offerId)this.#dismissedOfferSheetPopupIds.add(offerId);
+      this.#renderScreen();
+      return;
+    }
+    if(action==="incoming-trade-dismiss"){
+      const offerId=clickable.dataset.offerId;
+      if(offerId)this.#dismissedIncomingTradeOfferIds.add(offerId);
+      this.#renderScreen();
+      return;
+    }
+    if(action==="incoming-trade-decline"){
+      const offerId=clickable.dataset.offerId;
+      if(offerId&&this.#state.declineIncomingTradeOffer(offerId)){
+        this.#dismissedIncomingTradeOfferIds.delete(offerId);
+        this.#userStore.saveState(this.#state.exportState());
+      }
+      this.#renderScreen();
+      return;
+    }
+    if(action==="incoming-trade-accept"){
+      const offerId=clickable.dataset.offerId;
+      const result=offerId?this.#state.acceptIncomingTradeOffer(offerId):null;
+      this.#tradeMessage=result?.message||"Не удалось обработать предложение обмена.";
+      if(offerId&&result)this.#userStore.saveState(this.#state.exportState());
+      if(result?.accepted){
+        this.#dismissedIncomingTradeOfferIds.delete(offerId);
+      }
       this.#renderScreen();
       return;
     }

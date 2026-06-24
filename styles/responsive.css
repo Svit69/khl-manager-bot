@@ -261,6 +261,9 @@
   .season-contract-detail-grid,.season-contract-market,.season-contract-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   .season-contract-footer-main{justify-content:flex-start}
   .offer-sheet-grid{grid-template-columns:1fr}
+  .offer-sheet-trade-packages{grid-template-columns:1fr}
+  .offer-sheet-player-list li{display:grid}
+  .offer-sheet-player-list span{flex:auto}
   .offer-sheet-actions{justify-content:flex-start}
   .sim-modal{padding:8px}
   .sim-modal-card{
