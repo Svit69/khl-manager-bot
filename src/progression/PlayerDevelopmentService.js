@@ -12,6 +12,7 @@ import {
   getPotentialDevelopmentDelta,
   getPotentialGapComponent,
   getRatingGrowthDifficulty,
+  getHighPotentialKhlGrowthComponent,
   getRehabilitationComponent,
   getReserveInactivityRegression,
   getRoleExpectationComponent,
@@ -81,6 +82,7 @@ export class PlayerDevelopmentService {
           matchStat,
         ) +
         getPotentialGapComponent(potentialGap) +
+        getHighPotentialKhlGrowthComponent(player, age, games, avgIceTime, teamGamesPlayed) +
         getPeakAgeRealizationComponent(
           player,
           age,
@@ -145,6 +147,7 @@ export class PlayerDevelopmentService {
         ) *
           0.4 +
         getPotentialGapComponent(potentialGap) * 0.5 +
+        getHighPotentialKhlGrowthComponent(player, age, games, avgIceTime, games) * 0.65 +
         getRoleExpectationComponent(player, age, games, avgIceTime, games) * 0.65 +
         getRoleUsagePressureComponent(player, age, games, avgIceTime, games) * 0.75 +
         getVeteranRoleTrajectoryComponent(player, age, games, avgIceTime, pointsPerGame, expected, games) * 0.75 +

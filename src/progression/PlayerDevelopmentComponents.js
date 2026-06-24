@@ -163,6 +163,16 @@ export const getRoleUsagePressureComponent = (player, age, games, avgIceTime, te
 export const getRolePotentialPressureDelta = (player, age, games, avgIceTime, teamGamesPlayed) =>
   roleUsageEvaluator.calculateRolePressure(player, { age, games, avgIceTime, teamGamesPlayed }).potential;
 
+export const getHighPotentialKhlGrowthComponent = (player, age, games, avgIceTime, teamGamesPlayed) => {
+  if (age > 22 || games < 5 || avgIceTime < 6 || teamGamesPlayed < 8) return 0;
+  const ovr = Number(player?.ovr) || 0;
+  const potentialGap = (Number(player?.potential?.potential) || ovr) - ovr;
+  if (ovr >= 72 || potentialGap < 8) return 0;
+  const participationRate = games / Math.max(1, teamGamesPlayed);
+  const usage = clamp((avgIceTime - 6) * 0.004 + participationRate * 0.035, 0, 0.055);
+  return clamp(0.018 + (potentialGap - 8) * 0.006 + usage, 0, 0.11);
+};
+
 export const getRoleExpectationComponent = (player, age, games, avgIceTime, teamGamesPlayed) => {
   const ovr = Number(player?.ovr) || 70;
   const lineIndex = Number(player?.expectedLineIndex) || null;

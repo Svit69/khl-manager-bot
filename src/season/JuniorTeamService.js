@@ -380,9 +380,9 @@ const getAttributeProfile = (position, ovr, seed) => {
 
 const getBaseOvr = (age, seed) => {
   const ranges = {
-    16: [48, 60],
-    17: [50, 63],
-    18: [52, 66],
+    16: [50, 61],
+    17: [53, 64],
+    18: [56, 67],
     19: [55, 68],
     20: [57, 70],
   };
@@ -472,19 +472,19 @@ export class JuniorTeamService {
       (team.juniorPlayers || []).forEach((player) => {
         if (player.identity?.isGoalie) return;
         const age = calculateAge(player.identity?.birthDate, seasonDate);
-        const growth = age <= 18 ? 1 : age <= 20 ? 0.7 : 0.25;
+        const growth = age <= 17 ? 1.25 : age === 18 ? 1.05 : age <= 20 ? 0.7 : 0.25;
         const potentialGap = Math.max(0, (player.potential?.potential || player.ovr) - player.ovr);
         const practice = getJuniorPracticeProfile(player);
-        const practiceBoost = Math.min(0.22, practice.khlGames * 0.014);
-        const leagueBoost = Math.min(0.18, Number(player.juniorLeagueDevelopmentBonus) || 0);
-        const noPracticePenalty = age >= 19 && practice.khlGames === 0 ? 0.08 : 0;
-        const chance = Math.min(0.88, 0.18 + potentialGap * 0.035 + growth * 0.16 + practiceBoost + leagueBoost - noPracticePenalty);
+        const practiceBoost = Math.min(0.24, practice.khlGames * 0.014);
+        const leagueBoost = Math.min(0.22, Number(player.juniorLeagueDevelopmentBonus) || 0);
+        const noPracticePenalty = age >= 19 && practice.khlGames === 0 ? 0.05 : 0;
+        const chance = Math.min(0.95, 0.24 + potentialGap * 0.045 + growth * 0.18 + practiceBoost + leagueBoost - noPracticePenalty);
         const roll = (hash(`${player.id}:${seasonLabel || "season"}:junior-dev`) % 1000) / 1000;
         if (roll > chance) return;
         const attrs = Object.keys(player.attributes.attributesJson || {});
         const key = attrs[hash(`${player.id}:attr`) % attrs.length];
         player.attributes.applyAttributeDelta(key, 1);
-        if (practice.khlGames >= 18 && potentialGap >= 6) {
+        if ((potentialGap >= 12 && age <= 18) || (practice.khlGames >= 18 && potentialGap >= 6)) {
           const bonusKey = attrs[hash(`${player.id}:${seasonLabel || "season"}:practice-attr`) % attrs.length];
           player.attributes.applyAttributeDelta(bonusKey, 1);
         }
@@ -522,7 +522,7 @@ export class JuniorTeamService {
   #createRegen(team, seasonLabel, index, forcedId = null, generationSeed = null) {
     const seedPrefix = generationSeed ? `${generationSeed}:` : "";
     const seed = hash(`${seedPrefix}${team.id}:${seasonLabel}:${index}`);
-    const age = 16 + (seed % 5);
+    const age = 16 + (seed % 2);
     const birthYear = getJuniorSeasonStartDate(seasonLabel).getUTCFullYear() - age;
     const position = getPositionNeed(team.juniorPlayers);
     const secondaryPositions = getForwardSecondaryPositions(position, seed);
@@ -531,7 +531,7 @@ export class JuniorTeamService {
     const { firstName, lastName } = getNames(nationality, seed, existingNames, team);
     const ovr = getBaseOvr(age, seed);
     const talentRoll = seed % 100;
-    const potentialGap = talentRoll >= 95 ? 18 + (seed % 5) : talentRoll >= 70 ? 11 + (seed % 7) : 5 + (seed % 8);
+    const potentialGap = talentRoll >= 95 ? 20 + (seed % 5) : talentRoll >= 70 ? 13 + (seed % 7) : 6 + (seed % 8);
     const playerId = forcedId || createJuniorPlayerId(team.id, seasonLabel, index);
     const profile = {
       id: playerId,
