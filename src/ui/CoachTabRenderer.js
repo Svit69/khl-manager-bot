@@ -4,7 +4,6 @@ import { renderCoachActions, renderCoachMarket } from "./CoachManagementRenderer
 
 const SKILL_LABELS = { tactics: "Тактика", offense: "Атака", defense: "Оборона", discipline: "Дисциплина", playerDevelopment: "Развитие", lockerRoom: "Раздевалка", conditioning: "Форма", playoffPoise: "Плей-офф" };
 const formatDate = (value) => value ? new Date(value).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "2-digit", timeZone: "UTC" }) : "Свободный агент";
-const money = (rub) => rub ? `${Math.round(Number(rub) / 1000000)} млн` : "—";
 const getTopSkill = (ratings = {}) => {
   const [key, value] = Object.entries(ratings).sort((left, right) => right[1] - left[1])[0] || [];
   return key ? `${SKILL_LABELS[key] || key} ${value}` : "—";
@@ -19,7 +18,7 @@ const getBestPlayoffResult = (experience = {}) => {
 const renderCoachSummary = (coach) => `<div class="coach-summary">
   <div><span>Контракт</span><strong>${formatDate(coach.contractUntil)}</strong></div>
   <div><span>Стиль</span><strong>${coach.style}</strong></div>
-  <div><span>Зарплата</span><strong>${money(coach.salaryRub)}</strong></div>
+  <div><span>Амбиции</span><strong>${coach.ambition || 65}</strong></div>
   <div><span>Сильная сторона</span><strong>${getTopSkill(coach.ratings)}</strong></div>
   <div><span>Опыт</span><strong>${coach.experience?.leagueSeasons || coach.seasonsCoached} сез. / ${coach.khlGamesCoached} игр</strong></div>
   <div><span>Плей-офф</span><strong>${coach.experience?.playoffAppearances || 0} раз</strong></div>
@@ -35,7 +34,7 @@ export class CoachTabRenderer {
     return `<section class="coach-screen">
       <header class="coach-hero">
         <img class="coach-photo" src="${coach.photoUrl}" alt="${coach.name}" ${PHOTO_FALLBACK_ATTR}>
-        <div class="coach-title"><span>Главный тренер • ${team?.name || ""}</span><h2>${coach.name}</h2><p>${coach.style} • ${coach.nationality}</p></div>
+        <div class="coach-title"><span>Главный тренер · ${team?.name || ""}</span><h2>${coach.name}</h2><p>${coach.style} · ${coach.nationality}</p></div>
         <div class="coach-overall"><span>РЕЙТ</span><strong>${coach.overall}</strong></div>
       </header>
       ${renderCoachSummary(coach)}

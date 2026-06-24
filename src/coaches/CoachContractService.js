@@ -1,33 +1,50 @@
 import { clamp } from "../contracts/SeasonUtils.js";
 
-const MILLION = 1000000;
-const roundMillions = (value) => Math.round((Number(value) || 0) / MILLION) * MILLION;
+const average = (values) => values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
+const getTeamRank = (standings, teamId) => (standings || []).findIndex((entry) => entry.teamId === teamId) + 1;
+const getRosterStrength = (team) => average((team?.getRoster?.() || []).map((player) => Number(player.ovr) || 65)) || 68;
+const getReason = (condition, text) => condition ? text : null;
 
 export class CoachContractService {
-  getDemandRub(coach) {
-    const overall = Number(coach?.overall) || 68;
-    const games = Number(coach?.khlGamesCoached) || 0;
-    const reputation = Math.min(18, games / 75);
-    return roundMillions(clamp((12 + Math.max(0, overall - 62) * 1.9 + reputation) * MILLION, 10000000, 125000000));
+  buildOffer(coach, team, context = {}, years = 2) {
+    const offerYears = clamp(Math.round(Number(years) || 2), 1, 4);
+    const fit = Math.round(Number(context.fit?.teamFit) || 70);
+    const rank = getTeamRank(context.standings, team?.id);
+    const teamCount = Math.max(1, (context.teams || []).length);
+    const strength = getRosterStrength(team);
+    const ambition = Number(coach?.ambition) || 65;
+    const contenderScore = rank ? ((teamCount + 1 - rank) / teamCount) * 22 : (strength - 66) * 0.9;
+    const rebuildPenalty = ambition > 75 && strength < 72 ? (ambition - 75) * 0.45 : 0;
+    const styleConflict = fit < 62;
+    const interest = clamp(Math.round(
+      42 + (fit - 70) * 0.55 + contenderScore + (strength - 72) * 0.55
+      + Math.min(10, offerYears * 3) + Math.min(8, Number(coach?.experienceScore) || 0)
+      - rebuildPenalty - (styleConflict ? 18 : 0),
+    ), 5, 98);
+    return {
+      years: offerYears,
+      interest,
+      chance: interest,
+      styleFit: fit,
+      styleConflict,
+      ambition,
+      decisionDay: (Number(context.day) || 0) + 3,
+      reasons: [
+        getReason(styleConflict, "конфликт стиля"),
+        getReason(ambition >= 78, "высокая амбициозность"),
+        getReason(rank > 0 && rank <= Math.ceil(teamCount / 3), "борьба за верх таблицы"),
+        getReason(strength < 70, "риск перестройки состава"),
+      ].filter(Boolean),
+    };
   }
 
-  buildOffer(coach, factor = 1, years = 2) {
-    const demandRub = this.getDemandRub(coach);
-    const salaryRub = roundMillions(demandRub * (Number(factor) || 1));
-    const chance = this.getAcceptanceChance(coach, { salaryRub, years }, demandRub);
-    return { years: Math.max(1, Number(years) || 1), salaryRub, demandRub, chance };
+  chooseBestOffer(coach, offers = []) {
+    return [...offers].sort((left, right) =>
+      (right.interest - left.interest) || (right.years - left.years))[0] || null;
   }
 
-  getAcceptanceChance(coach, offer, demandRub = this.getDemandRub(coach)) {
-    const salaryRatio = (Number(offer?.salaryRub) || 0) / Math.max(1, demandRub);
-    const years = Math.max(1, Number(offer?.years) || 1);
-    const ambition = ((Number(coach?.overall) || 70) - 70) * 0.8;
-    return Math.round(clamp(38 + (salaryRatio - 0.9) * 185 + Math.min(8, years * 2) - ambition, 6, 96));
-  }
-
-  decide(coach, offer) {
-    const demandRub = this.getDemandRub(coach);
-    const chance = this.getAcceptanceChance(coach, offer, demandRub);
-    return { accepted: Math.random() * 100 <= chance, chance, demandRub };
+  shouldRenewAfterPlayoffs(coach, { stage = 0, rank = 0, teamCount = 1 } = {}) {
+    const strongSeason = rank > 0 && rank <= Math.ceil(Math.max(1, teamCount) / 3);
+    return stage >= 3 || (stage >= 2 && strongSeason) || (stage >= 1 && Number(coach?.overall) >= 82);
   }
 }

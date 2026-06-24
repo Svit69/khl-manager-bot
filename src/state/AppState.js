@@ -11,6 +11,7 @@ import { AiCoachService } from "../coaches/AiCoachService.js";
 import { CoachContractService } from "../coaches/CoachContractService.js";
 import { CoachDevelopmentService } from "../coaches/CoachDevelopmentService.js";
 import { CoachFitService } from "../coaches/CoachFitService.js";
+import { getTeamPlayoffStage } from "../coaches/CoachPlayoffStage.js";
 import { HeadCoach } from "../models/HeadCoach.js";
 import { StandingsTracker } from "../stats/StandingsTracker.js";
 import { calculateAge, formatContractEndDate, formatNextSeason, parseSeasonEnd, parseSeasonStart, setSeasonReferenceDate } from "../contracts/SeasonUtils.js";
@@ -143,6 +144,7 @@ export class AppState {
   #retiredPlayerIds = new Set();
   #transferLedger = [];
   #coaches;
+  #coachOffers = [];
   #juniorGenerationSeed = createJuniorGenerationSeed();
 
   constructor(teams, calendar, contracts, freeAgents = [], externalPlayers = [], coaches = []) {
@@ -200,17 +202,13 @@ export class AppState {
   getFreeCoaches() { return this.#coaches.filter((coach) => !coach.teamId).sort((left, right) => right.overall - left.overall); }
   getCoachContractOffer(coachId, factor = 1, years = 2) {
     const coach = this.#coaches.find((entry) => entry.id === coachId) || null;
-    return coach ? this.#coachContracts.buildOffer(coach, factor, years) : null;
+    return coach && this.activeTeam ? this.#buildCoachOffer(coach, this.activeTeam, years) : null;
   }
   renewActiveTeamCoach(years = 1, factor = 1) {
     const coach = this.getCoachByTeamId(this.#activeTeamId);
     if (!coach) return { accepted: false, message: "Главный тренер не назначен." };
-    const offer = this.#coachContracts.buildOffer(coach, factor, years);
-    const decision = this.#coachContracts.decide(coach, offer);
-    if (!decision.accepted) return { accepted: false, message: `${coach.name} отклонил предложение. Шанс был ${decision.chance}%.` };
-    const contractUntil = this.#getCoachContractUntil(coach, years);
-    coach.assignToTeam(this.#activeTeamId, contractUntil, offer.salaryRub);
-    return { accepted: true, message: `${coach.name}: контракт до ${this.#formatCoachContract(contractUntil)}, ${this.#formatCoachSalary(offer.salaryRub)}.` };
+    const offer = this.#submitCoachOffer(coach, this.activeTeam, years, "user");
+    return { accepted: true, message: `${coach.name}: оффер отправлен. Интерес ${offer.interest}%, решение в день ${offer.decisionDay}.` };
   }
   terminateActiveTeamCoach() {
     const coach = this.getCoachByTeamId(this.#activeTeamId);
@@ -220,27 +218,13 @@ export class AppState {
       teamId: this.#activeTeamId,
       games: this.#standings.getTeamStats(this.#activeTeamId)?.gp || 0,
     });
-    coach.aiMarketLockedUntilDay = this.#calendar.currentDay + 5;
     return { accepted: true, message: `${coach.name} выведен на рынок свободных тренеров.` };
   }
   signFreeCoach(coachId, years = 2, factor = 1) {
     const coach = this.#coaches.find((entry) => entry.id === coachId && !entry.teamId);
     if (!this.#activeTeamId || !coach) return { accepted: false, message: "Тренер недоступен для подписания." };
-    const offer = this.#coachContracts.buildOffer(coach, factor, years);
-    const decision = this.#coachContracts.decide(coach, offer);
-    if (!decision.accepted) return { accepted: false, message: `${coach.name} просит выше зарплату. Шанс был ${decision.chance}%.` };
-    const current = this.getCoachByTeamId(this.#activeTeamId);
-    if (current) {
-      current.releaseToMarket({
-        seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
-        teamId: this.#activeTeamId,
-        games: this.#standings.getTeamStats(this.#activeTeamId)?.gp || 0,
-      });
-      current.aiMarketLockedUntilDay = this.#calendar.currentDay + 5;
-    }
-    const contractUntil = this.#getCoachContractUntil(null, years);
-    coach.assignToTeam(this.#activeTeamId, contractUntil, offer.salaryRub);
-    return { accepted: true, message: `${coach.name} подписан до ${this.#formatCoachContract(contractUntil)}, ${this.#formatCoachSalary(offer.salaryRub)}.` };
+    const offer = this.#submitCoachOffer(coach, this.activeTeam, years, "user");
+    return { accepted: true, message: `${coach.name}: оффер отправлен. Интерес ${offer.interest}%, решение в день ${offer.decisionDay}.` };
   }
   getSalaryCapSummary(teamId = this.#activeTeamId, seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel) {
     if (!this.#gameSettings.salaryCapEnabled || !teamId) return null;
@@ -318,12 +302,18 @@ export class AppState {
   getActiveTeamCoachView() {
     if (!this.#gameSettings.coachesEnabled || !this.#activeTeamId) return null;
     const coach = this.getCoachByTeamId(this.#activeTeamId);
+    const userOffers = this.#coachOffers.filter((offer) => offer.teamId === this.#activeTeamId);
     return {
       coach,
       team: this.activeTeam,
       fit: this.#getCoachFitForTeam(this.activeTeam),
-      coachOffer: coach ? this.#coachContracts.buildOffer(coach, 1, 2) : null,
-      freeCoaches: this.getFreeCoaches().map((entry) => ({ coach: entry, offer: this.#coachContracts.buildOffer(entry, 1.05, 2) })),
+      coachOffer: coach ? { ...this.#buildCoachOffer(coach, this.activeTeam, 2), pendingOffer: userOffers.find((offer) => offer.coachId === coach.id) || null } : null,
+      pendingCoachOffers: userOffers,
+      freeCoaches: this.getFreeCoaches().map((entry) => ({
+        coach: entry,
+        offer: this.#buildCoachOffer(entry, this.activeTeam, 2),
+        pendingOffer: userOffers.find((offer) => offer.coachId === entry.id) || null,
+      })),
     };
   }
 
@@ -349,6 +339,45 @@ export class AppState {
     return this.#coachFit.evaluateTeam(this.getCoachByTeamId(team.id), team, context);
   }
 
+  #buildCoachOffer(coach, team, years = 2) {
+    return this.#coachContracts.buildOffer(coach, team, {
+      fit: this.#coachFit.evaluateTeam(coach, team),
+      standings: this.getStandingsTable(),
+      teams: this.#teams,
+      day: this.#calendar.currentDay,
+    }, years);
+  }
+
+  #submitCoachOffer(coach, team, years = 2, source = "ai") {
+    const offer = { ...this.#buildCoachOffer(coach, team, years), coachId: coach.id, teamId: team.id, source, submittedDay: this.#calendar.currentDay };
+    this.#coachOffers = this.#coachOffers.filter((entry) => entry.coachId !== coach.id || entry.teamId !== team.id);
+    this.#coachOffers.push(offer);
+    return offer;
+  }
+
+  #processCoachOfferDecisions() {
+    const dueCoachIds = [...new Set(this.#coachOffers.filter((offer) => offer.decisionDay <= this.#calendar.currentDay).map((offer) => offer.coachId))];
+    dueCoachIds.forEach((coachId) => {
+      const coach = this.#coaches.find((entry) => entry.id === coachId);
+      const offers = this.#coachOffers.filter((offer) => offer.coachId === coachId && offer.decisionDay <= this.#calendar.currentDay);
+      const winner = coach ? this.#coachContracts.chooseBestOffer(coach, offers) : null;
+      const team = this.#teams.find((entry) => entry.id === winner?.teamId);
+      if (!coach || !team) return;
+      if ((Number(winner.interest) || 0) < 35) {
+        if (offers.some((offer) => offer.source === "user")) this.#pushCoachNotification("Тренер отказался", `${coach.name} не принял проект: интерес ${winner.interest}%.`);
+        return;
+      }
+      const previousCoach = this.getCoachByTeamId(team.id);
+      if (previousCoach && previousCoach.id !== coach.id) previousCoach.releaseToMarket({ seasonLabel: this.#seasonState?.seasonLabel, teamId: team.id, games: this.#standings.getTeamStats(team.id)?.gp || 0 });
+      coach.assignToTeam(team.id, this.#getCoachContractUntil(coach, winner.years), 0);
+      const userOffer = offers.find((offer) => offer.source === "user");
+      const title = winner.source === "user" ? "Тренер подписан" : "Тренер выбрал рынок";
+      const result = winner.source === "user" ? `${coach.name} принял ваш проект.` : `${coach.name} выбрал ${team.name}${userOffer ? " вместо вашего предложения" : ""}.`;
+      this.#pushCoachNotification(title, result);
+    });
+    this.#coachOffers = this.#coachOffers.filter((offer) => !dueCoachIds.includes(offer.coachId));
+  }
+
   #buildCoachEffectsByTeamId(phase = "regular") {
     if (!this.#gameSettings.coachesEnabled) return {};
     return Object.fromEntries(this.#teams.map((team) => {
@@ -368,10 +397,6 @@ export class AppState {
     return contractUntil ? new Date(contractUntil).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "2-digit", timeZone: "UTC" }) : "без контракта";
   }
 
-  #formatCoachSalary(salaryRub) {
-    return `${Math.round((Number(salaryRub) || 0) / 1000000)} млн`;
-  }
-
   #getSalaryCapConfig() {
     return { custom: true, baseRub: this.#gameSettings.salaryCapBaseRub, growthRub: this.#gameSettings.salaryCapGrowthRub };
   }
@@ -384,22 +409,43 @@ export class AppState {
     return this.#salaryCap.getCapRub(seasonLabel, this.#getSalaryCapConfig());
   }
 
+  #renewSuccessfulAiCoaches(transition, seasonEnd) {
+    const archive = transition?.archive || {};
+    const standings = archive.standings || [];
+    const teamCount = Math.max(1, this.#teams.length);
+    this.#coaches.filter((coach) => coach.teamId && coach.teamId !== this.#activeTeamId).forEach((coach) => {
+      if (Number(String(coach.contractUntil || "").slice(0, 4)) > seasonEnd) return;
+      const stage = getTeamPlayoffStage(archive.playoffs, coach.teamId);
+      const rank = standings.findIndex((entry) => entry.teamId === coach.teamId) + 1;
+      if (!this.#coachContracts.shouldRenewAfterPlayoffs(coach, { stage, rank, teamCount })) return;
+      coach.extendContractUntil(this.#getCoachContractUntil(coach, 2));
+      this.#pushCoachNotification("Продление тренера", `${this.#getTeamName(coach.teamId)} сохранил ${coach.name} после успешного сезона.`);
+    });
+  }
+
   #processCoachOffseason(transition) {
     if (!this.#gameSettings.coachesEnabled) return;
     const seasonDate = this.#getEffectiveNegotiationDate();
     this.#coachDevelopment.applySeason(this.#coaches, this.#teams, transition?.archive || {}, seasonDate)
       .forEach((event) => this.#pushCoachNotification("Развитие тренера", `${event.coach.name}: ${event.before} → ${event.after}`));
     const seasonEnd = parseSeasonEnd(transition?.seasonState?.previousSeasonLabel || this.#calendar.seasonLabel);
+    this.#renewSuccessfulAiCoaches(transition, seasonEnd);
     this.#coaches.filter((coach) => coach.teamId && Number(String(coach.contractUntil || "").slice(0, 4)) <= seasonEnd)
-      .forEach((coach) => { const teamName = this.#getTeamName(coach.teamId); coach.releaseToMarket({ seasonLabel: transition?.archive?.seasonLabel, teamId: coach.teamId }); coach.aiMarketLockedUntilDay = this.#calendar.currentDay + 5; this.#pushCoachNotification("Тренерский рынок", `${coach.name} покинул ${teamName}: контракт завершен.`); });
+      .forEach((coach) => { const teamName = this.#getTeamName(coach.teamId); coach.releaseToMarket({ seasonLabel: transition?.archive?.seasonLabel, teamId: coach.teamId }); this.#pushCoachNotification("Тренерский рынок", `${coach.name} покинул ${teamName}: контракт завершен.`); });
     this.#processAiCoachChanges(true);
+    this.#processCoachOfferDecisions();
   }
 
   #processAiCoachChanges(forceVacancies = false) {
     if (!this.#gameSettings.coachesEnabled) return;
-    this.#aiCoaches.process({ teams: this.#teams, coaches: this.#coaches, standings: this.getStandingsTable(), activeTeamId: this.#activeTeamId, seasonLabel: this.#seasonState?.seasonLabel, day: this.#calendar.currentDay, contractService: this.#coachContracts })
+    this.#aiCoaches.process({ teams: this.#teams, coaches: this.#coaches, standings: this.getStandingsTable(), activeTeamId: this.#activeTeamId, buildOffer: (coach, team, years) => this.#buildCoachOffer(coach, team, years) })
       .filter((entry) => forceVacancies || entry.poor || !entry.oldCoach)
-      .forEach((entry) => this.#pushCoachNotification("Тренерская перестановка", `${entry.team.name}: ${entry.oldCoach?.name || "вакансия"} → ${entry.newCoach.name}`));
+      .forEach((entry) => {
+        if (this.#coachOffers.some((offer) => offer.teamId === entry.team.id)) return;
+        if (entry.oldCoach) entry.oldCoach.releaseToMarket({ seasonLabel: this.#seasonState?.seasonLabel, teamId: entry.team.id, games: this.#standings.getTeamStats(entry.team.id)?.gp || 0 });
+        const offer = this.#submitCoachOffer(entry.newCoach, entry.team, entry.offer?.years || 2, "ai");
+        this.#pushCoachNotification("Оффер тренеру", `${entry.team.name}: проект для ${entry.newCoach.name}, интерес ${offer.interest}%.`);
+      });
   }
 
   #pushCoachNotification(title, message) {
@@ -1267,6 +1313,7 @@ export class AppState {
       rosters: createRosterSnapshots(this.#teams),
       gameSettings: this.#gameSettings,
       coaches: this.#coaches.map((coach) => coach.exportSnapshot()),
+      coachOffers: this.#coachOffers,
       notifications: this.#notifications,
       seasonHistory: this.#seasonHistory,
       seasonState: this.#seasonState,
@@ -1282,6 +1329,7 @@ export class AppState {
     this.#retiredPlayerIds = new Set(Array.isArray(saved.retiredPlayerIds) ? saved.retiredPlayerIds : []);
     this.#gameSettings = normalizeGameSettings(saved.gameSettings);
     if (Array.isArray(saved.coaches)) this.#coaches = saved.coaches.map((coach) => HeadCoach.fromSnapshot(coach));
+    this.#coachOffers = Array.isArray(saved.coachOffers) ? saved.coachOffers : [];
     this.#transferLedger = normalizeTransferLedger(saved.transferLedger);
     this.#activeTeamId = saved.activeTeamId || null;
     if (saved.calendar) this.#calendar.importState(saved.calendar);
@@ -1456,6 +1504,7 @@ export class AppState {
     this.#runNorthAmericaInterestWarnings(this.#calendar.currentDate);
     this.#processAiJuniorProspectSignings(day?.phase || this.#seasonState?.phase || "regular");
     this.#processAiCoachChanges();
+    this.#processCoachOfferDecisions();
     this.#lastMatch = focusedMatches[0] || null;
     this.#syncSeasonPhase();
     return this.#lastMatch;
@@ -2045,7 +2094,8 @@ export class AppState {
     const payload = this.#contracts.exportContracts();
     if (Array.isArray(payload)) return payload;
     const releasedIds = new Set(payload?.releasedPlayerIds || []);
-    return (payload?.contracts || []).filter((contract) => !releasedIds.has(contract.playerId));
+    const createdIds = new Set((payload?.createdContracts || []).map((contract) => contract.id));
+    return (payload?.contracts || []).filter((contract) => !releasedIds.has(contract.playerId) || createdIds.has(contract.id));
   }
 
   #getPlayerSalaryForSeason(playerId, seasonLabel, contracts = this.#exportContractRows()) {

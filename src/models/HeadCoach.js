@@ -8,8 +8,8 @@ export class HeadCoach {
     this.photoUrl = profile.photoUrl || "./player-photo/default.png";this.birthDate = profile.birthDate;this.nationality = profile.nationality;
     this.seasonsCoached = Number(profile.seasonsCoached) || 0;this.khlGamesCoached = Number(profile.khlGamesCoached) || 0;
     this.style = profile.style;this.ratings = { ...profile.ratings };this.experience = buildCoachExperience(profile.experience || profile);
-    this.aiMarketLockedUntilDay = Number(profile.aiMarketLockedUntilDay) || 0;
-    this.contractUntil = profile.contractUntil || null;this.salaryRub = Number(profile.salaryRub) || Math.round((12 + Math.max(0, this.overall - 62) * 1.45 + Math.min(14, this.khlGamesCoached / 95)) * 1000000);
+    this.ambition = Number(profile.ambition) || clamp(Math.round(55 + Math.max(0, this.overall - 70) * 1.15 + this.experienceScore * 1.8), 45, 95);
+    this.contractUntil = profile.contractUntil || null;
   }
 
   get name() { return `${this.firstName} ${this.lastName}`; }
@@ -26,7 +26,7 @@ export class HeadCoach {
     const beforeBirthday = now.getUTCMonth() < date.getUTCMonth() || (now.getUTCMonth() === date.getUTCMonth() && now.getUTCDate() < date.getUTCDate());
     return beforeBirthday ? age - 1 : age;
   }
-  assignToTeam(teamId, contractUntil, salaryRub = this.salaryRub) { this.teamId = teamId || null;this.contractUntil = contractUntil || null;this.salaryRub = Number(salaryRub) || 0;if (teamId) this.aiMarketLockedUntilDay = 0; }
+  assignToTeam(teamId, contractUntil) { this.teamId = teamId || null;this.contractUntil = contractUntil || null; }
   releaseToMarket(context = {}) { this.recordSeasonExperience(context);this.assignToTeam(null, null, 0); }
   extendContractUntil(contractUntil) { if (contractUntil) this.contractUntil = contractUntil; }
   adjustRatings(delta) { Object.keys(this.ratings).forEach((key) => { this.ratings[key] = clamp(Math.round((this.ratings[key] || 65) + delta), 45, 99); }); }
@@ -41,7 +41,7 @@ export class HeadCoach {
     id: this.id, teamId: this.teamId, firstName: this.firstName, lastName: this.lastName, photoUrl: this.photoUrl,
     birthDate: this.birthDate, nationality: this.nationality, seasonsCoached: this.seasonsCoached, khlGamesCoached: this.khlGamesCoached,
     style: this.style, ratings: { ...this.ratings }, experience: { ...this.experience, seasonLog: [...(this.experience.seasonLog || [])] },
-    contractUntil: this.contractUntil, salaryRub: this.salaryRub, aiMarketLockedUntilDay: this.aiMarketLockedUntilDay,
+    ambition: this.ambition, contractUntil: this.contractUntil,
   }; }
   static fromSnapshot(snapshot) { return new HeadCoach(snapshot); }
 }
