@@ -10,8 +10,8 @@ const PERIOD_SECONDS=20*60;
 const PENALTY_MINUTES=2;
 const SHOT_BIN_SECONDS=10;
 const BASE_SKATERS=5;
-const FORWARD_USAGE_WEIGHTS=[0.37,0.29,0.21,0.13];
-const DEFENSE_USAGE_WEIGHTS=[0.41,0.33,0.18,0.08];
+const FORWARD_USAGE_WEIGHTS=[0.39,0.3,0.21,0.1];
+const DEFENSE_USAGE_WEIGHTS=[0.42,0.34,0.17,0.07];
 const LATE_GAME_PUSH_SECONDS=5*60;
 const FORWARD_SHIFT_BINS=[5,5,4,4];
 const DEFENSE_SHIFT_BINS=[6,5,5,4];
@@ -634,7 +634,7 @@ export class MatchSimulator{
     }
 
     if((attackingState?.forwardLineIndex??0)>=3 && mode==="ev" && ["slot","rush","one_timer","rebound"].includes(momentType)){
-      weight*=0.86;
+      weight*=0.78;
     }
 
     const suppression=clamp(1-((defensePressure-72)/160),0.84,1.06);
@@ -663,7 +663,7 @@ export class MatchSimulator{
     if(["rush","cycle"].includes(momentType))weight+=(attrs.speed||60)*0.08;
     if(["slot","one_timer"].includes(momentType))weight+=(attrs.skill||60)*0.08;
     if(momentType==="point_shot" && position==="ЗАЩ")weight*=1.18;
-    if((attackingState?.forwardLineIndex??0)>=3 && mode==="ev")weight*=0.94;
+    if((attackingState?.forwardLineIndex??0)>=3 && mode==="ev")weight*=0.86;
     if(mode==="pp")weight*=1.06;
     if(hasHiddenTrait(profile.player,HiddenPlayerTrait.PLAYMAKER))weight*=1.18;
     if(mode==="pp"&&hasHiddenTrait(profile.player,HiddenPlayerTrait.POWER_PLAY_SPECIALIST))weight*=1.08;
@@ -701,7 +701,7 @@ export class MatchSimulator{
     }else if(momentType==="point_shot"){
       weight*=0.88;
     }
-    if(lineIndex>=3 && mode==="ev")weight*=0.88;
+    if(lineIndex>=3 && mode==="ev")weight*=0.78;
     if(mode==="pp" && position!=="ЗАЩ")weight*=1.08;
     if(mode==="pp"&&hasHiddenTrait(profile.player,HiddenPlayerTrait.POWER_PLAY_SPECIALIST))weight*=1.1;
     return Math.max(0.1,weight);

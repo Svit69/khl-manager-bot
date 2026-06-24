@@ -15,7 +15,9 @@ import {
   getRehabilitationComponent,
   getReserveInactivityRegression,
   getRoleExpectationComponent,
+  getRolePotentialPressureDelta,
   getRoleRegressionComponent,
+  getRoleUsagePressureComponent,
   getUsageDevelopmentComponent,
   getVeteranRoleTrajectoryComponent,
   getYoungPotentialTrajectoryDelta,
@@ -92,6 +94,7 @@ export class PlayerDevelopmentService {
         this.#getYoungMatchLoadBonus(player, age, matchStat) +
         reserveRegression.development +
         getRoleExpectationComponent(player, age, games, avgIceTime, teamGamesPlayed) +
+        getRoleUsagePressureComponent(player, age, games, avgIceTime, teamGamesPlayed) +
         getRoleRegressionComponent(player, age, games, avgIceTime) +
         getVeteranRoleTrajectoryComponent(player, age, games, avgIceTime, pointsPerGame, expected, teamGamesPlayed) +
         getRehabilitationComponent(player, matchStat, avgIceTime),
@@ -105,6 +108,7 @@ export class PlayerDevelopmentService {
     const potentialDelta = this.#scalePotentialDelta(age,
       getPotentialDevelopmentDelta(player, age, games, avgIceTime, pointsPerGame, shotsPerGame, expected, matchStat) +
       getYoungPotentialTrajectoryDelta(player, age, games, avgIceTime, pointsPerGame, expected, teamGamesPlayed) +
+      getRolePotentialPressureDelta(player, age, games, avgIceTime, teamGamesPlayed) +
       reserveRegression.potential);
     this.#applyPotentialThreshold(player, potentialDelta);
 
@@ -142,6 +146,7 @@ export class PlayerDevelopmentService {
           0.4 +
         getPotentialGapComponent(potentialGap) * 0.5 +
         getRoleExpectationComponent(player, age, games, avgIceTime, games) * 0.65 +
+        getRoleUsagePressureComponent(player, age, games, avgIceTime, games) * 0.75 +
         getVeteranRoleTrajectoryComponent(player, age, games, avgIceTime, pointsPerGame, expected, games) * 0.75 +
         getPeakAgeRealizationComponent(player, age, potentialGap, games, avgIceTime, pointsPerGame, shotsPerGame, expected) *
           0.75,
@@ -157,7 +162,8 @@ export class PlayerDevelopmentService {
     const potentialDelta = this.#scalePotentialDelta(
       age,
       getPotentialDevelopmentDelta(player, age, games, avgIceTime, pointsPerGame, shotsPerGame, expected, { games: 1 }) * 0.7 +
-        getYoungPotentialTrajectoryDelta(player, age, games, avgIceTime, pointsPerGame, expected, games) * 0.55,
+        getYoungPotentialTrajectoryDelta(player, age, games, avgIceTime, pointsPerGame, expected, games) * 0.55 +
+        getRolePotentialPressureDelta(player, age, games, avgIceTime, games) * 0.7,
     );
     this.#applyPotentialThreshold(player, potentialDelta);
 

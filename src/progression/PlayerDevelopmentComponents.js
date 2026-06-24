@@ -1,5 +1,8 @@
 import { calculateAge, clamp } from "../contracts/SeasonUtils.js";
 import { isForwardPosition } from "./PlayerDevelopmentShared.js";
+import { PlayerRoleUsageEvaluator } from "./PlayerRoleUsageEvaluator.js";
+
+const roleUsageEvaluator = new PlayerRoleUsageEvaluator();
 
 export const getExpectedProduction = (player) => {
   const ovr = Number(player.ovr) || 70;
@@ -149,9 +152,16 @@ export const getRatingGrowthDifficulty = (player, age, potentialGap, avgIceTime)
   else if (lineIndex === 2 && avgIceTime >= 14) difficulty *= 0.94;
   else if (lineIndex === 4) difficulty *= 1.08;
   else if (!lineIndex) difficulty *= 1.15;
+  difficulty *= roleUsageEvaluator.calculateRolePressure(player, { age, games: 12, avgIceTime, teamGamesPlayed: 12 }).difficultyMultiplier;
 
   return clamp(difficulty, 0.55, 2.8);
 };
+
+export const getRoleUsagePressureComponent = (player, age, games, avgIceTime, teamGamesPlayed) =>
+  roleUsageEvaluator.calculateRolePressure(player, { age, games, avgIceTime, teamGamesPlayed }).development;
+
+export const getRolePotentialPressureDelta = (player, age, games, avgIceTime, teamGamesPlayed) =>
+  roleUsageEvaluator.calculateRolePressure(player, { age, games, avgIceTime, teamGamesPlayed }).potential;
 
 export const getRoleExpectationComponent = (player, age, games, avgIceTime, teamGamesPlayed) => {
   const ovr = Number(player?.ovr) || 70;
