@@ -62,6 +62,39 @@ const getLineInfo = (team, player) => {
   return { lineIndex: null, slotIndex: null, slotPosition: null };
 };
 
+const getExpectedLineByRating = (player) => {
+  const ovr = Number(player?.ovr) || 0;
+  const group = getPositionGroup(player?.identity?.primaryPosition);
+  if (group === "G") return ovr >= 80 ? 1 : ovr >= 74 ? 2 : null;
+  if (group === "D") return ovr >= 82 ? 1 : ovr >= 78 ? 2 : ovr >= 74 ? 3 : null;
+  if (ovr >= 82) return 1;
+  if (ovr >= 78) return 2;
+  if (ovr >= 75) return 3;
+  return null;
+};
+
+const getRoleMismatchSeverity = (player, lineIndex) => {
+  const expectedLine = player?.expectedLineIndex || getExpectedLineByRating(player);
+  if (!expectedLine || !lineIndex || lineIndex <= expectedLine) return 0;
+  return lineIndex - expectedLine;
+};
+
+const getPlayoffNegotiationScore = (playoffStage) => {
+  if (!Number.isFinite(playoffStage)) return 0;
+  if (playoffStage >= 5) return 6;
+  if (playoffStage >= 4) return 4;
+  if (playoffStage >= 3) return 2;
+  return playoffStage === 0 ? -4 : 0;
+};
+
+const pushPlayoffNegotiationReason = (playoffStage, score, reasons) => {
+  if (!score) return;
+  reasons.push({ text: playoffStage >= 5 ? "Клуб выиграл плей-офф" : playoffStage > 0 ? "Клуб показал результат в плей-офф" : "Клуб не прошел в плей-офф", value: score });
+};
+
+const getContextPlayoffStage = (context) =>
+  context?.playoffStage === null || context?.playoffStage === undefined ? NaN : Number(context.playoffStage);
+
 const getTeamRosterByGroup = (team, group, excludePlayerId = null) => {
   const roster = team?.getRoster?.() || [];
   return roster.filter(
@@ -182,7 +215,7 @@ const roleFitScore = (player, team, reasons, context) => {
     return 0;
   }
 
-  const expectedLine = player.expectedLineIndex || null;
+  const expectedLine = player.expectedLineIndex || getExpectedLineByRating(player);
   const { lineIndex, slotPosition } = getLineInfo(team, player);
   const secondaryPositions = player.identity?.secondaryPositions || [];
   let score = 0;
@@ -198,8 +231,9 @@ const roleFitScore = (player, team, reasons, context) => {
       score += 6;
       reasons.push({ text: `Получает роль выше ожиданий (${lineIndex} звено вместо ${expectedLine})`, value: 6 });
     } else {
-      score -= 10;
-      reasons.push({ text: `Играет ниже ожиданий (${lineIndex} звено вместо ${expectedLine})`, value: -10 });
+      const penalty = -Math.min(18, 8 + getRoleMismatchSeverity(player, lineIndex) * 5);
+      score += penalty;
+      reasons.push({ text: `Играет ниже ожиданий (${lineIndex} звено вместо ${expectedLine})`, value: penalty });
     }
   } else if (lineIndex <= 2) {
     score += 5;
@@ -219,12 +253,18 @@ const roleFitScore = (player, team, reasons, context) => {
     }
   }
 
-  return clamp(score, -15, 15);
+  return clamp(score, -22, 15);
 };
 
 const teamPerformanceScore = (context, reasons) => {
   const teamGamesPlayed = context?.teamGamesPlayed ?? 0;
+  const playoffStage = getContextPlayoffStage(context);
   if (teamGamesPlayed < MIN_TEAM_GAMES_FOR_PERFORMANCE) {
+    const playoffScore = getPlayoffNegotiationScore(playoffStage);
+    if (playoffScore) {
+      pushPlayoffNegotiationReason(playoffStage, playoffScore, reasons);
+      return playoffScore;
+    }
     reasons.push({
       text: `Недостаточно командных матчей для оценки таблицы (нужно ${MIN_TEAM_GAMES_FOR_PERFORMANCE})`,
       value: 0,
@@ -238,18 +278,25 @@ const teamPerformanceScore = (context, reasons) => {
     return 0;
   }
 
+  let score = 0;
   if (rank <= 4) {
+    score = 10;
     reasons.push({ text: `Команда идет очень высоко (${rank} место)`, value: 10 });
-    return 10;
-  }
-  if (rank <= 8) {
+  } else if (rank <= 8) {
+    score = 7;
     reasons.push({ text: `Команда в зоне плей-офф (${rank} место)`, value: 7 });
-    return 7;
+  } else {
+    score = rank >= (context?.teamsCount || 0) - 1 ? -10 : -7;
+    reasons.push({ text: `Команда вне топ-8 (${rank} место)`, value: score });
   }
 
-  const penalty = rank >= (context?.teamsCount || 0) - 1 ? -10 : -7;
-  reasons.push({ text: `Команда вне топ-8 (${rank} место)`, value: penalty });
-  return penalty;
+  if (Number.isFinite(playoffStage)) {
+    const playoffScore = getPlayoffNegotiationScore(playoffStage);
+    pushPlayoffNegotiationReason(playoffStage, playoffScore, reasons);
+    score += playoffScore;
+  }
+
+  return clamp(score, -12, 14);
 };
 
 const topPlayerCompetitiveOutlookScore = (player, context, reasons) => {
@@ -485,8 +532,16 @@ const salarySatisfactionScore = (offerSalary, targetSalary, reasons) => {
   return { score: roundedScore, ratio };
 };
 
+const getRatingDemandFactor = (player) => {
+  const ovr = Number(player?.ovr) || 0;
+  if (ovr >= 84) return 1.18;
+  if (ovr >= 80) return 1.12;
+  if (ovr >= 75) return 1.06;
+  return 1;
+};
+
 const calculateTeamAdjustedDemand = (player, team, context, marketSalary, reasons) => {
-  let factor = 1;
+  let factor = getRatingDemandFactor(player);
   const isFreeAgent = Boolean(context?.isFreeAgent);
   const rank = context?.teamRank ?? null;
   const enoughTeamData = (context?.teamGamesPlayed ?? 0) >= MIN_TEAM_GAMES_FOR_PERFORMANCE;
@@ -516,11 +571,18 @@ const calculateTeamAdjustedDemand = (player, team, context, marketSalary, reason
     }
   } else {
     const { lineIndex, slotPosition } = getLineInfo(team, player);
+    const roleMismatch = getRoleMismatchSeverity(player, lineIndex);
     if (lineIndex === 1) factor *= 1.08;
     else if (lineIndex === 2) factor *= 1.04;
     else if (lineIndex === 3) factor *= 0.99;
     else if (lineIndex === 4) factor *= 0.94;
     else factor *= 0.9;
+
+    if (roleMismatch > 0) {
+      const rolePremium = 1 + Math.min(0.28, roleMismatch * 0.09 + Math.max(0, (Number(player.ovr) || 0) - 78) * 0.015);
+      factor *= rolePremium;
+      reasons.push({ text: `Роль ниже уровня игрока повышает запрос по контракту`, value: 0 });
+    }
 
     if (slotPosition && slotPosition !== player.identity?.primaryPosition) {
       const secondaryPositions = player.identity?.secondaryPositions || [];
@@ -542,6 +604,13 @@ const calculateTeamAdjustedDemand = (player, team, context, marketSalary, reason
   if (isLegioner(player) && enoughTeamData && rank !== null && rank > 8) {
     factor *= 1.06;
     reasons.push({ text: "Легионер в слабой команде ждет чуть больше гарантий по деньгам", value: 0 });
+  }
+
+  const playoffStage = getContextPlayoffStage(context);
+  if (Number.isFinite(playoffStage)) {
+    if (playoffStage >= 5) factor *= 1.05;
+    else if (playoffStage >= 4) factor *= 1.03;
+    else if (playoffStage === 0 && (Number(player.ovr) || 0) >= 75) factor *= 1.06;
   }
 
   return roundSalaryRub(marketSalary * factor);

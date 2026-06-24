@@ -2235,10 +2235,18 @@ export class AppState {
       seasonLabel,
       restrictedFreeAgencyEnabled: this.#gameSettings.restrictedFreeAgencyEnabled,
       isInTop8: rank !== null && rank <= 8,
+      playoffStage: this.#getNegotiationPlayoffStage(team.id),
       teamRoster: team.getRoster(),
       allPlayers: this.getAllPlayers(),
       northAmericaInterestByPlayerId,
     };
+  }
+
+  #getNegotiationPlayoffStage(teamId) {
+    const currentPlayoffs = this.#calendar.getPlayoffBracketData?.();
+    if (currentPlayoffs?.active) return getTeamPlayoffStage(currentPlayoffs, teamId);
+    const latestArchive = this.#seasonHistory?.[0] || null;
+    return latestArchive?.playoffs ? getTeamPlayoffStage(latestArchive.playoffs, teamId) : null;
   }
 
   #queuePreseasonFreeAgentOffer(player, offer) {

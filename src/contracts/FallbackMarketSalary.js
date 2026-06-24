@@ -11,14 +11,14 @@ const FALLBACK_SALARY_CURVE = Object.freeze([
   [70, 5000000],
   [72, 8000000],
   [74, 12000000],
-  [76, 18000000],
-  [78, 26000000],
-  [80, 36000000],
-  [82, 50000000],
-  [84, 65000000],
-  [86, 82000000],
-  [88, 100000000],
-  [90, 120000000],
+  [76, 22000000],
+  [78, 34000000],
+  [80, 50000000],
+  [82, 70000000],
+  [84, 90000000],
+  [86, 112000000],
+  [88, 138000000],
+  [90, 165000000],
 ]);
 
 export const getFallbackMarketSalaryRub = (playerOrOvr) => {
@@ -35,5 +35,5 @@ export const getFallbackMarketSalaryRub = (playerOrOvr) => {
   }
 
   const [lastOvr, lastSalary] = FALLBACK_SALARY_CURVE[FALLBACK_SALARY_CURVE.length - 1];
-  return roundSalaryRub(lastSalary + Math.max(0, ovr - lastOvr) * 12000000);
+  return roundSalaryRub(lastSalary + Math.max(0, ovr - lastOvr) * 16000000);
 };

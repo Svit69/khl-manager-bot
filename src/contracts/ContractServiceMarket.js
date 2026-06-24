@@ -52,6 +52,13 @@ const getSeasonMarketModifier = ({ player, peers, context }) => {
   return 1 + clamp(premium * progressFactor, -0.1, 0.15);
 };
 
+const getRatingMarketFloorFactor = (ovr) => {
+  if (ovr >= 84) return 1.12;
+  if (ovr >= 80) return 1.08;
+  if (ovr >= 75) return 1.04;
+  return 1;
+};
+
 export const estimateMarketSalary = ({ player, context, lastContract, getReferenceSalary }) => {
   const allPlayers = Array.isArray(context?.allPlayers) ? context.allPlayers : [];
   const playerOvr = Number(player.ovr) || 0;
@@ -71,12 +78,13 @@ export const estimateMarketSalary = ({ player, context, lastContract, getReferen
     .filter((salary) => Number.isFinite(salary) && salary > 0);
 
   const marketModifier = getSeasonMarketModifier({ player, peers, context });
+  const ratingFloor = getFallbackMarketSalaryRub(player) * getRatingMarketFloorFactor(playerOvr);
   const rangeLabel = `${getMarketGroupLabel(marketGroup)} - OVR ${minOvr}-${maxOvr}`;
 
   if (peerSalaries.length) {
     const averageSalary = peerSalaries.reduce((total, value) => total + value, 0) / peerSalaries.length;
     return {
-      salaryRub: roundSalaryRub(Math.max(1000000, averageSalary * marketModifier)),
+      salaryRub: roundSalaryRub(Math.max(ratingFloor, averageSalary * marketModifier)),
       sampleSize: peerSalaries.length,
       rangeLabel,
     };
@@ -96,13 +104,13 @@ export const estimateMarketSalary = ({ player, context, lastContract, getReferen
   if (expandedPeerSalaries.length) {
     const averageSalary = expandedPeerSalaries.reduce((total, value) => total + value, 0) / expandedPeerSalaries.length;
     return {
-      salaryRub: roundSalaryRub(Math.max(500000, averageSalary * marketModifier)),
+      salaryRub: roundSalaryRub(Math.max(ratingFloor, averageSalary * marketModifier)),
       sampleSize: expandedPeerSalaries.length,
       rangeLabel: `${getMarketGroupLabel(marketGroup)} - OVR ${playerOvr - 3}-${playerOvr + 3}`,
     };
   }
 
-  const fallbackBase = lastContract?.salaryRub || fallbackSalary;
+  const fallbackBase = Math.max(ratingFloor, Number(lastContract?.salaryRub) || fallbackSalary);
   return {
     salaryRub: roundSalaryRub(fallbackBase * marketModifier),
     sampleSize: 0,
