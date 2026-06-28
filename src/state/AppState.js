@@ -1217,7 +1217,7 @@ export class AppState {
 
   #assignJuniorStockPhotoIfNeeded(player) {
     if (!player?.identity || !isPlaceholderPhoto(player.identity.photoUrl)) return;
-    const photoUrl = this.#juniorPhotoPool.selectAvailablePhoto(player, this.getUsedPlayerPhotoUrls(), "ai-signing");
+    const photoUrl = this.#juniorPhotoPool.selectAvailablePhoto(player, this.getUsedPlayerPhotoUrls(player.id), "ai-signing");
     if (photoUrl) player.identity.photoUrl = photoUrl;
   }
 
@@ -1236,8 +1236,11 @@ export class AppState {
     };
   }
 
-  getUsedPlayerPhotoUrls() {
-    return this.getAllKnownPlayers().map((player) => player.identity?.photoUrl).filter(Boolean);
+  getUsedPlayerPhotoUrls(excludedPlayerId = null) {
+    return this.getAllKnownPlayers()
+      .filter((player) => player.id !== excludedPlayerId)
+      .map((player) => player.identity?.photoUrl)
+      .filter(Boolean);
   }
 
   setJuniorPlayerPhoto(playerId, photoUrl) {

@@ -1199,7 +1199,7 @@ export class AppController{
     if(!playerId || this.#juniorPhotoStatusById.get(playerId)==="loading")return;
     const player=this.#state.getJuniorPhotoRequest(playerId);
     if(!player)return;
-    const localPhotoUrl=this.#juniorPhotoPool.selectAvailablePhoto(player,this.#state.getUsedPlayerPhotoUrls());
+    const localPhotoUrl=this.#juniorPhotoPool.selectAvailablePhoto(player,this.#state.getUsedPlayerPhotoUrls(playerId),playerId);
     if(localPhotoUrl){
       this.#state.setJuniorPlayerPhoto(playerId,localPhotoUrl);
       this.#userStore.saveState(this.#state.exportState());
