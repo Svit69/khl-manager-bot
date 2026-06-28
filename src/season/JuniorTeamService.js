@@ -308,6 +308,8 @@ const joinGeneratedLastName = (root, suffix) => {
   if (root.endsWith("ов") && suffix === "ов") return root;
   if (root.endsWith("ев") && suffix === "ев") return root;
   if (root.endsWith("ин") && suffix === "ин") return root;
+  if (/[аея]$/iu.test(root) && (suffix === "ов" || suffix === "ев")) return `${root}ев`;
+  if (/о$/iu.test(root) && (suffix === "ов" || suffix === "ев")) return `${root.slice(0, -1)}ов`;
   if (root.endsWith("й") && suffix.startsWith("с")) return `${root.slice(0, -1)}${suffix}`;
   return `${root}${suffix}`;
 };
