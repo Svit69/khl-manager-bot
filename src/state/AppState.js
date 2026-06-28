@@ -1207,7 +1207,7 @@ export class AppState {
     if (juniorIndex < 0) return false;
     const contract = this.#contracts.signJuniorToMainContract(player, team.id, seasonLabel);
     if (!contract) return false;
-    this.#assignJuniorStockPhotoIfNeeded(player);
+    this.#assignJuniorStockPhotoIfNeeded(player, seasonLabel);
     team.juniorPlayers.splice(juniorIndex, 1);
     if (!team.getRoster().some((entry) => entry?.id === player.id)) team.reservePlayers.push(player);
     player.expectedLineIndex = null;
@@ -1215,10 +1215,17 @@ export class AppState {
     return true;
   }
 
-  #assignJuniorStockPhotoIfNeeded(player) {
+  #assignJuniorStockPhotoIfNeeded(player, seasonLabel) {
     if (!player?.identity || !isPlaceholderPhoto(player.identity.photoUrl)) return;
+    if (!this.#isGiftedAiJuniorProspect(player, seasonLabel)) return;
     const photoUrl = this.#juniorPhotoPool.selectAvailablePhoto(player, this.getUsedPlayerPhotoUrls(player.id), "ai-signing");
     if (photoUrl) player.identity.photoUrl = photoUrl;
+  }
+
+  #isGiftedAiJuniorProspect(player, seasonLabel) {
+    const scouted = getScoutedPotential(player, seasonLabel);
+    const potential = Number(player?.potential?.potential) || Number(scouted?.high) || Number(player?.ovr) || 0;
+    return potential >= 80;
   }
 
   getJuniorPhotoRequest(playerId) {
