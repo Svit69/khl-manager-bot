@@ -13,10 +13,10 @@ export class AiCoachService {
       const coach = coaches.find((entry) => entry.teamId === team.id);
       const rank = (standings || []).findIndex((entry) => entry.teamId === team.id) + 1;
       const scoreRate = row ? row.pts / Math.max(1, row.gp * 2) : 1;
-      const poor = row && row.gp >= 8 && rank > playoffLine(teams) && scoreRate < 0.53;
-      const severe = row && row.gp >= 14 && rank > playoffLine(teams) + 1 && scoreRate < 0.46;
+      const poor = row && row.gp >= 18 && rank > playoffLine(teams) + 1 && scoreRate < 0.45;
+      const severe = row && row.gp >= 32 && rank > playoffLine(teams) + 3 && scoreRate < 0.38;
       const vacancy = !coach;
-      if (!vacancy && (!poor || (row.gp % 3 !== 0 && !severe))) return [];
+      if (!vacancy && (!poor || (row.gp % 12 !== 0 && (!severe || row.gp % 6 !== 0)))) return [];
 
       const picked = getFreeCoaches()
         .map((candidate) => ({ candidate, offer: buildOffer(candidate, team, 2) }))

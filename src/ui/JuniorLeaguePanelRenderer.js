@@ -22,7 +22,7 @@ export const renderJuniorLeaguePanel = (view) => {
         <h3>Молодежная лига</h3>
         <span>Результаты влияют на развитие, статус роли и интерес Северной Америки</span>
       </div>
-      ${active ? `<div class="junior-league-badge">#${active.rank} · ${active.points} очк. · ${active.playoffStatus}</div>` : ""}
+      ${active ? `<div class="junior-league-badge">#${active.rank} - ${active.points} очк. - ${active.playoffStatus}</div>` : ""}
     </div>
     <div class="junior-league-grid">
       <div class="junior-league-card"><h4>Таблица</h4>${leagueRows.map(renderTableRow).join("")}</div>

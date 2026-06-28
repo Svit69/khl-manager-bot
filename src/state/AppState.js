@@ -13,6 +13,8 @@ import { CoachDevelopmentService } from "../coaches/CoachDevelopmentService.js";
 import { CoachFitService } from "../coaches/CoachFitService.js";
 import { getTeamPlayoffStage } from "../coaches/CoachPlayoffStage.js";
 import { HeadCoach } from "../models/HeadCoach.js";
+import { JuniorPhotoPool } from "../utils/JuniorPhotoPool.js";
+import { isPlaceholderPhoto } from "../utils/PlayerPhoto.js";
 import { StandingsTracker } from "../stats/StandingsTracker.js";
 import { calculateAge, formatContractEndDate, formatNextSeason, parseSeasonEnd, parseSeasonStart, setSeasonReferenceDate } from "../contracts/SeasonUtils.js";
 import { PlayerDevelopmentService } from "../progression/PlayerDevelopmentService.js";
@@ -123,6 +125,7 @@ export class AppState {
   #aiCoaches = new AiCoachService();
   #development = new PlayerDevelopmentService();
   #juniors = new JuniorTeamService();
+  #juniorPhotoPool = new JuniorPhotoPool();
   #aiIncomingTrades = new AiIncomingTradeService();
   #trade;
   #aiRenewals;
@@ -157,7 +160,7 @@ export class AppState {
     this.#externalPlayers = [...externalPlayers];
     this.#coaches = [...coaches];
     this.#contracts = new ContractService(contracts);
-    this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#calendar.seasonLabel, generationSeed: this.#juniorGenerationSeed });
+    this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#calendar.seasonLabel, generationSeed: this.#juniorGenerationSeed, ageSpread: true });
     this.#aiRenewals = new AiRenewalService(this.#contracts, {
       canSubmitOffer: (team, player, offer, context, mode) =>
         this.#canSubmitContractOffer(team, player, offer, mode, context).allowed,
@@ -448,7 +451,6 @@ export class AppState {
       .filter((entry) => forceVacancies || entry.poor || !entry.oldCoach)
       .forEach((entry) => {
         if (this.#coachOffers.some((offer) => offer.teamId === entry.team.id)) return;
-        if (entry.oldCoach) entry.oldCoach.releaseToMarket({ seasonLabel: this.#seasonState?.seasonLabel, teamId: entry.team.id, games: this.#standings.getTeamStats(entry.team.id)?.gp || 0 });
         const offer = this.#submitCoachOffer(entry.newCoach, entry.team, entry.offer?.years || 2, "ai");
         this.#pushCoachNotification("Оффер тренеру", `${entry.team.name}: проект для ${entry.newCoach.name}, интерес ${offer.interest}%.`);
       });
@@ -1205,11 +1207,18 @@ export class AppState {
     if (juniorIndex < 0) return false;
     const contract = this.#contracts.signJuniorToMainContract(player, team.id, seasonLabel);
     if (!contract) return false;
+    this.#assignJuniorStockPhotoIfNeeded(player);
     team.juniorPlayers.splice(juniorIndex, 1);
     if (!team.getRoster().some((entry) => entry?.id === player.id)) team.reservePlayers.push(player);
     player.expectedLineIndex = null;
     this.#refreshExpectedRoles(team);
     return true;
+  }
+
+  #assignJuniorStockPhotoIfNeeded(player) {
+    if (!player?.identity || !isPlaceholderPhoto(player.identity.photoUrl)) return;
+    const photoUrl = this.#juniorPhotoPool.selectAvailablePhoto(player, this.getUsedPlayerPhotoUrls(), "ai-signing");
+    if (photoUrl) player.identity.photoUrl = photoUrl;
   }
 
   getJuniorPhotoRequest(playerId) {
@@ -2632,16 +2641,17 @@ export class AppState {
       },
     });
     if (!released.length && !promoted.length) return;
+    const marketReleased = this.#selectReleasedJuniorMarketPlayers(released);
     if (released.length) {
       this.#contracts.releasePlayers(released.map(({ player }) => player.id));
-      this.#freeAgents = dedupeFreeAgents([...this.#freeAgents, ...released.map(({ player }) => player)]);
+      this.#freeAgents = dedupeFreeAgents([...this.#freeAgents, ...marketReleased.map(({ player }) => player)]);
       released.forEach(({ player, team }) => {
         this.#recordPlayerMovement({ player, fromTeamId: team.id, toTeamId: null, method: "juniorRelease" });
       });
     }
     this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
     if (!notify || !released.length) return;
-    released
+    marketReleased
       .filter(({ team }) => team.id === this.#activeTeamId)
       .forEach(({ player }) => {
         this.#pushNotification({
@@ -2655,6 +2665,15 @@ export class AppState {
           read: false,
         });
       });
+  }
+
+  #selectReleasedJuniorMarketPlayers(released) {
+    const keepCount = Math.ceil((released || []).length / 2);
+    return [...(released || [])].sort((left, right) =>
+      (Number(right.player?.potential?.potential) || 0) - (Number(left.player?.potential?.potential) || 0)
+      || (Number(right.player?.ovr) || 0) - (Number(left.player?.ovr) || 0)
+      || String(left.player?.name || "").localeCompare(String(right.player?.name || ""), "ru"),
+    ).slice(0, keepCount);
   }
 
   #refreshExpectedRoles(team) {

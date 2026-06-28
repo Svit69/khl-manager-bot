@@ -5,6 +5,7 @@ import { WEIGHTED_KAZAKH_FIRST_NAMES } from "../data/kazakhFirstNames.js";
 import { calculateAge } from "../contracts/SeasonUtils.js";
 import { PlayerPosition } from "../models/PlayerPosition.js";
 import { getJuniorHiddenTraits } from "../models/HiddenPlayerTraits.js";
+import { JuniorPhotoPool } from "../utils/JuniorPhotoPool.js";
 import { getJuniorSeasonAge, getJuniorSeasonStartDate } from "./JuniorEligibility.js";
 import { getJuniorPracticeProfile } from "./JuniorScouting.js";
 
@@ -424,19 +425,24 @@ const getSeasonKey = (seasonLabel) => String(seasonLabel || "season-1").replace(
 const createJuniorPlayerId = (teamId, seasonLabel, index) => `junior-${teamId}-${getSeasonKey(seasonLabel)}-${index}`;
 
 export class JuniorTeamService {
-  ensureJuniorDepth({ teams, contracts, seasonLabel, generationSeed = null }) {
+  #photoPool = new JuniorPhotoPool();
+
+  ensureJuniorDepth({ teams, contracts, seasonLabel, generationSeed = null, ageSpread = false }) {
     const created = [];
+    const usedPhotoUrls = this.#collectUsedPhotoUrls(teams);
     (teams || []).forEach((team) => {
       if (!team.juniorTeam) return;
+      const isInitialFill = ageSpread && team.juniorPlayers.length === 0;
       while (team.juniorPlayers.length < TARGET_JUNIOR_SIZE) {
         const usedIds = new Set(team.getRoster().map((player) => player.id));
         team.juniorPlayers.forEach((player) => usedIds.add(player.id));
         let index = 0;
         while (usedIds.has(createJuniorPlayerId(team.id, seasonLabel, index))) index += 1;
-        const player = this.#createRegen(team, seasonLabel, index, null, generationSeed);
+        const player = this.#createRegen(team, seasonLabel, index, null, generationSeed, { isInitialFill, usedPhotoUrls });
         const contract = contracts.createJuniorContract(player, team.id, seasonLabel);
         player.affiliation.contractId = contract?.id || null;
         team.juniorPlayers.push(player);
+        if (player.identity?.photoUrl) usedPhotoUrls.add(player.identity.photoUrl);
         created.push(player);
       }
     });
@@ -447,6 +453,7 @@ export class JuniorTeamService {
     const allPlayersById = new Map(
       (teams || []).flatMap((team) => [...team.getRoster(), ...(team.juniorPlayers || [])]).map((player) => [player.id, player]),
     );
+    const usedPhotoUrls = this.#collectUsedPhotoUrls(teams);
     const created = [];
     (rosters || []).forEach((item) => {
       const team = (teams || []).find((entry) => entry.id === item.teamId);
@@ -456,10 +463,11 @@ export class JuniorTeamService {
         if (allPlayersById.has(playerId) || !String(playerId || "").startsWith(prefix)) return;
         const index = Number(String(playerId).slice(prefix.length));
         if (!Number.isFinite(index)) return;
-        const player = this.#createRegen(team, seasonLabel, index, playerId, generationSeed);
+        const player = this.#createRegen(team, seasonLabel, index, playerId, generationSeed, { isInitialFill: false, usedPhotoUrls });
         const contract = contracts.createJuniorContract(player, team.id, seasonLabel);
         player.affiliation.contractId = contract?.id || null;
         team.juniorPlayers.push(player);
+        if (player.identity?.photoUrl) usedPhotoUrls.add(player.identity.photoUrl);
         allPlayersById.set(player.id, player);
         created.push(player);
       });
@@ -519,10 +527,10 @@ export class JuniorTeamService {
     return { released, promoted };
   }
 
-  #createRegen(team, seasonLabel, index, forcedId = null, generationSeed = null) {
+  #createRegen(team, seasonLabel, index, forcedId = null, generationSeed = null, options = {}) {
     const seedPrefix = generationSeed ? `${generationSeed}:` : "";
     const seed = hash(`${seedPrefix}${team.id}:${seasonLabel}:${index}`);
-    const age = 16 + (seed % 2);
+    const age = options.isInitialFill ? 16 + (index % 5) : 16;
     const birthYear = getJuniorSeasonStartDate(seasonLabel).getUTCFullYear() - age;
     const position = getPositionNeed(team.juniorPlayers);
     const secondaryPositions = getForwardSecondaryPositions(position, seed);
@@ -533,6 +541,11 @@ export class JuniorTeamService {
     const talentRoll = seed % 100;
     const potentialGap = talentRoll >= 95 ? 20 + (seed % 5) : talentRoll >= 70 ? 13 + (seed % 7) : 6 + (seed % 8);
     const playerId = forcedId || createJuniorPlayerId(team.id, seasonLabel, index);
+    const photoUrl = this.#photoPool.selectAvailablePhoto(
+      { id: playerId, nationality },
+      [...(options.usedPhotoUrls || [])],
+      `${seasonLabel}:${team.id}:${index}`,
+    ) || "./player-photo/default.png";
     const profile = {
       id: playerId,
       lineIndex: null,
@@ -544,7 +557,7 @@ export class JuniorTeamService {
         birthDate: `${birthYear}-${String((seed % 12) + 1).padStart(2, "0")}-${String((seed % 27) + 1).padStart(2, "0")}`,
         nationality,
         isGoalie: position === PlayerPosition.G,
-        photoUrl: "./player-photo/default.png",
+        photoUrl,
         primaryPosition: position,
         secondaryPositions,
       },
@@ -563,5 +576,11 @@ export class JuniorTeamService {
     const player = createSkater(team, firstName, lastName, position, seasonLabel || "season-1", profile);
     player.expectedLineIndex = null;
     return player;
+  }
+
+  #collectUsedPhotoUrls(teams) {
+    return new Set((teams || []).flatMap((team) => [...team.getRoster(), ...(team.juniorPlayers || [])])
+      .map((player) => player?.identity?.photoUrl)
+      .filter(Boolean));
   }
 }

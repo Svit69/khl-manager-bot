@@ -7,8 +7,8 @@ const getAssetLabel = (entry) => {
   const player = entry?.player;
   if (!player) return "";
   const position = player.identity?.primaryPosition || "—";
-  const rights = entry.assetType === "rights" ? " · права" : "";
-  return `<li><strong>${player.name}</strong><span>${position} · OVR ${player.ovr}${rights}</span></li>`;
+  const rights = entry.assetType === "rights" ? " - права" : "";
+  return `<li><strong>${player.name}</strong><span>${position} - OVR ${player.ovr}${rights}</span></li>`;
 };
 
 const renderAssets = (items) => `<ul class="offer-sheet-player-list">${(items || []).map(getAssetLabel).join("")}</ul>`;

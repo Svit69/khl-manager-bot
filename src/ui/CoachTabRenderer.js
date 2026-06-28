@@ -34,7 +34,7 @@ export class CoachTabRenderer {
     return `<section class="coach-screen">
       <header class="coach-hero">
         <img class="coach-photo" src="${coach.photoUrl}" alt="${coach.name}" ${PHOTO_FALLBACK_ATTR}>
-        <div class="coach-title"><span>Главный тренер · ${team?.name || ""}</span><h2>${coach.name}</h2><p>${coach.style} · ${coach.nationality}</p></div>
+        <div class="coach-title"><span>Главный тренер - ${team?.name || ""}</span><h2>${coach.name}</h2><p>${coach.style} - ${coach.nationality}</p></div>
         <div class="coach-overall"><span>РЕЙТ</span><strong>${coach.overall}</strong></div>
       </header>
       ${renderCoachSummary(coach)}
