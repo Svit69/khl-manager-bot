@@ -19,15 +19,18 @@ export const renderCoachActions = (coach, message = "", offer = null) => `<secti
   ${message ? `<div class="coach-management-message">${message}</div>` : ""}
 </section>`;
 
-const renderCoachMarketRow = ({ coach, offer, pendingOffer }) => `<div class="coach-market-row coach-market-row--action">
-  <span title="${coach.name}">${coach.name}${getPendingText(pendingOffer)}</span>
-  <strong>${coach.style} - ${coach.overall}</strong>
-  <em>${getOfferText(offer)} ${getConflictBadge(offer)}</em>
-  <button class="coach-market-sign" data-action="coach-sign" data-coach-id="${coach.id}">Отправить оффер</button>
-</div>`;
+const renderCoachMarketRow = ({ coach, offer, pendingOffer }) => `<article class="coach-market-card">
+  <div class="coach-market-card-head">
+    <img src="${coach.photoUrl}" alt="${coach.name}">
+    <div><strong>${coach.name}</strong><span>Рейтинг</span><b>${coach.overall}</b></div>
+  </div>
+  <div class="coach-market-card-meta"><span>Стиль</span><strong>${coach.style}</strong></div>
+  <div class="coach-market-card-note">${getOfferText(offer)} ${getConflictBadge(offer)}${getPendingText(pendingOffer)}</div>
+  <button class="coach-market-sign" data-action="coach-sign" data-coach-id="${coach.id}">${pendingOffer ? "Предложение" : "Нанять"}</button>
+</article>`;
 
 export const renderCoachMarket = (freeCoaches = []) => `<section class="coach-panel coach-market-panel">
   <h3>Рынок тренеров</h3>
   <div class="coach-market-subtitle">Свободны сейчас</div>
-  ${freeCoaches.map((entry) => renderCoachMarketRow(entry.coach ? entry : { coach: entry, offer: null })).join("") || `<div class="coach-empty">Свободных тренеров нет</div>`}
+  <div class="coach-market-grid">${freeCoaches.map((entry) => renderCoachMarketRow(entry.coach ? entry : { coach: entry, offer: null })).join("") || `<div class="coach-empty">Свободных тренеров нет</div>`}</div>
 </section>`;
