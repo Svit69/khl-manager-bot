@@ -121,6 +121,22 @@
 .calendar-panel-list.scorers{
   height:auto;
 }
+.calendar-panel-list.scorers{
+  position:relative;
+}
+.calendar-panel-list.scorers::before{
+  content:"";
+  position:absolute;
+  top:8px;
+  right:48px;
+  bottom:8px;
+  width:42px;
+  border-radius:12px;
+  background:rgba(82,33,242,.07);
+  box-shadow:inset 0 0 0 1px rgba(82,33,242,.5);
+  mix-blend-mode:exclusion;
+  pointer-events:none;
+}
 .calendar-table-header,.calendar-table-row{
   display:grid;
   grid-template-columns:26px minmax(82px,1fr) 28px 28px 28px 34px 28px;
@@ -190,6 +206,8 @@
 }
 .calendar-scorer-header span,
 .calendar-scorer-row>span{
+  position:relative;
+  z-index:1;
   justify-self:center;
   text-align:center;
   color:#f6f7fc;
