@@ -30,7 +30,9 @@ const renderCoachMarketRow = ({ coach, offer, pendingOffer }) => `<article class
 </article>`;
 
 export const renderCoachMarket = (freeCoaches = []) => `<section class="coach-panel coach-market-panel">
-  <h3>Рынок тренеров</h3>
-  <div class="coach-market-subtitle">Свободны сейчас</div>
+  <div class="coach-market-head">
+    <div><h3>Рынок тренеров</h3><span>Свободны сейчас</span></div>
+    <div class="coach-market-tools"><strong>Доступно: ${freeCoaches.length} тренеров</strong><button type="button">Все стили</button></div>
+  </div>
   <div class="coach-market-grid">${freeCoaches.map((entry) => renderCoachMarketRow(entry.coach ? entry : { coach: entry, offer: null })).join("") || `<div class="coach-empty">Свободных тренеров нет</div>`}</div>
 </section>`;

@@ -175,10 +175,13 @@
     grid-template-columns:repeat(2,minmax(0,1fr));
   }
   .coach-hero,.coach-board,.coach-summary,.coach-profile-card{grid-template-columns:1fr}
-  .coach-profile-photo-panel{min-height:320px;border-radius:18px 18px 0 0}
+  .coach-tab-switcher button{min-width:160px}
+  .coach-profile-photo-panel{min-height:320px;border-radius:14px 14px 0 0}
   .coach-profile-info-row{grid-template-columns:1fr}
   .coach-profile-bonuses>div{grid-template-columns:repeat(2,minmax(0,1fr))}
   .coach-profile-actions .coach-action{width:100%}
+  .coach-market-head{align-items:start;flex-direction:column}
+  .coach-market-tools{width:100%;justify-content:space-between}
   .coach-hero{align-items:start}
   .coach-photo{width:78px;height:78px}
   .coach-title h2{font-size:25px}

@@ -27,7 +27,14 @@ const renderCoachInfo = (coach, fit) => [
 ].map(([label, value]) => `<div class="coach-profile-info-row"><span>${label}</span><strong>${value}</strong></div>`).join("");
 const renderCoachFitMeter = (fit) => {
   const score = percent(fit?.teamFit);
-  return `<div class="coach-profile-fit"><span>Соответствие составу</span><div><em style="width:${score}%"></em></div><strong>${score}%</strong></div>`;
+  return `<div class="coach-profile-fit">
+    <span>Соответствие составу</span>
+    <div class="coach-profile-gauge" style="--fit:${score}">
+      <strong>${score}%</strong>
+      <small class="coach-profile-gauge-min">0%</small>
+      <small class="coach-profile-gauge-max">100%</small>
+    </div>
+  </div>`;
 };
 const renderCoachBonuses = (fit) => `<div class="coach-profile-bonuses"><span>Бонусы тренера</span><div>${getEffectBoosts(fit?.effect).map(([label, value]) => `<small><b>${label}</b><strong>${formatBoost(value)}</strong></small>`).join("")}</div></div>`;
 const renderCoachProfile = (coach, fit) => `<section class="coach-profile-card">
@@ -50,6 +57,7 @@ const renderCoachProfileActions = (message = "") => `<div class="coach-profile-a
   <button class="coach-action danger" data-action="coach-terminate">РАСТОРГНУТЬ КОНТРАКТ</button>
   ${message ? `<div class="coach-management-message">${message}</div>` : ""}
 </div>`;
+const renderCoachProfileShell = (coach, fit, message) => `<section class="coach-profile-shell">${renderCoachProfile(coach, fit)}${renderCoachProfileActions(message)}</section>`;
 
 export class CoachTabRenderer {
   render(view) {
@@ -58,8 +66,7 @@ export class CoachTabRenderer {
     if (!coach) return `<section class="coach-screen">${renderCoachToolbar()}<div class="coach-empty">Главный тренер не назначен.</div>${message ? `<div class="coach-management-message">${message}</div>` : ""}${renderCoachMarket(freeCoaches)}</section>`;
     return `<section class="coach-screen">
       ${renderCoachToolbar()}
-      ${renderCoachProfile(coach, fit)}
-      ${renderCoachProfileActions(message)}
+      ${renderCoachProfileShell(coach, fit, message)}
       ${renderCoachMarket(freeCoaches)}
     </section>`;
   }
