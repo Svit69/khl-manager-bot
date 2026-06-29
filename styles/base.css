@@ -12,7 +12,7 @@ body{font-family:Tahoma,Arial,sans-serif;background:#05080e;color:var(--text)}
 .panel{min-width:0;min-height:0;background:transparent;border:0;border-radius:0;padding:0}
 .panel h2{font-size:14px;color:var(--accent);margin-bottom:6px}
 #teamPanel{min-width:0;min-height:0}
-#calendarPanel{position:sticky;top:1px;min-width:0;height:calc(100vh - 2px);overflow:hidden}
+#calendarPanel{position:sticky;top:1px;z-index:1;min-width:0;height:calc(100vh - 2px);overflow:hidden}
 #matchPanel{display:none}
 .btn{background:var(--accent);border:none;padding:8px 10px;border-radius:8px;font-weight:700;cursor:pointer}
 .btn.secondary{background:#1c3e63;color:var(--text)}
