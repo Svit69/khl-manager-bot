@@ -232,7 +232,11 @@ export class Renderer{
       ? `<div class="team-club-shell"><div class="team-roster-stage"><div class="line-view-panel">${renderRosterUnitButtons(activeRosterUnit)}${renderRosterUnitCards(team,activeRosterUnit,selectedRosterSlot)}</div></div><div class="team-reserve-wrap">${renderReserveStrip(team.reservePlayers||[])}</div></div>`
       : "";
     const sidebar=this.#teamSidebarRenderer.render(team,activeTab,settings);
-    this.#teamEl.innerHTML=`<div class="team-screen">${sidebar}<div class="team-screen-main"><div class="team-screen-header"><div><div class="team-screen-title">${team.name}</div><div class="team-screen-subtitle">${team.city}, ${team.shortName}</div></div><div class="team-screen-status">${renderNotificationCenter(notifications)}<span class="team-screen-status-pill">Club Hub</span><span class="team-screen-status-pill team-screen-status-pill-muted">${activeTab==="roster"?"Основной состав":"Управление клубом"}</span></div></div>${rosterView}<div id="teamTabContent"></div></div></div>`;
+    this.#teamEl.innerHTML=`<div class="team-screen">${sidebar}<div class="team-screen-main"><header class="team-screen-header"><div class="team-screen-club"><img class="team-screen-logo" src="${team.logoUrl}" alt="${team.name}"/><div><div class="team-screen-title">${team.name}</div><div class="team-screen-subtitle">${this.#formatTeamLocation(team)}</div></div></div><div class="team-screen-status">${renderNotificationCenter(notifications)}<span class="team-screen-status-pill">Club Hub</span><span class="team-screen-status-pill team-screen-status-pill-muted">${activeTab==="roster"?"Основной состав":"Управление клубом"}</span></div></header><section class="team-screen-content">${rosterView}<div id="teamTabContent"></div></section></div></div>`;
+  }
+  #formatTeamLocation(team){
+    const countryByCode={RU:"Россия",BY:"Беларусь",KZ:"Казахстан",CN:"Китай"};
+    return [team.city,countryByCode[String(team.country||"").toUpperCase()]||team.country].filter(Boolean).join(", ");
   }
   renderTeamSelection(teams,activeTeamId,selectedTeamId=null,settings={}){
     const popularShortNames=new Set(["AVT","AKB","CSK","AVG"]);
