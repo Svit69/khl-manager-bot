@@ -143,12 +143,17 @@
   pointer-events:none;
 }
 .calendar-table-header,.calendar-table-row{
+  --calendar-table-columns:26px minmax(82px,1fr) 28px 28px 28px 34px 28px;
   display:grid;
-  grid-template-columns:26px minmax(82px,1fr) 28px 28px 28px 34px 28px;
+  grid-template-columns:var(--calendar-table-columns);
+  justify-items:center;
   gap:6px;
   align-items:center;
   padding:8px 8px;
   font-size:12px;
+}
+.calendar-table-header{
+  padding-right:18px;
 }
 .calendar-table-row{
   min-height:41px;
@@ -160,7 +165,10 @@
 }
 .calendar-table-header span,
 .calendar-table-row>span{
-  justify-self:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
   text-align:center;
   color:#f6f7fc;
 }
