@@ -114,7 +114,7 @@
   height:auto;
 }
 .calendar-panel-scroll.scorers{
-  max-height:420px;
+  max-height:300px;
   height:auto;
   overflow-y:auto;
   padding-bottom:12px;
