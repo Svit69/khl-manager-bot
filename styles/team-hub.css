@@ -14,10 +14,12 @@
   box-shadow:none;
 }
 .team-sidebar{
+  position:sticky;
+  top:1px;
   display:flex;
   flex-direction:column;
   align-items:stretch;
-  min-height:100%;
+  height:calc(100vh - 2px);
   padding:20px 10px 14px;
   border-radius:27px;
   background:#090c10;
