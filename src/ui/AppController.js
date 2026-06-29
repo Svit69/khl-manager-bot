@@ -69,7 +69,7 @@ export class AppController{
           tab:this.#calendarPanelTab,
           activeTeamId:this.#state.activeTeamId,
           standings:this.#state.getStandingsTable(),
-          scorers:this.#state.getTopScorers(10),
+          scorers:this.#state.getTopScorers(20),
           schedule:this.#state.getCalendarScheduleRows(),
           playoffs:this.#state.getPlayoffBracketData(),
           seasonState
@@ -81,7 +81,7 @@ export class AppController{
         tab:this.#calendarPanelTab,
         activeTeamId:this.#state.activeTeamId,
         standings:this.#state.getStandingsTable(),
-        scorers:this.#state.getTopScorers(10),
+        scorers:this.#state.getTopScorers(20),
         schedule:this.#state.getCalendarScheduleRows(),
         playoffs:this.#state.getPlayoffBracketData(),
         seasonState
@@ -145,7 +145,7 @@ export class AppController{
         tab:this.#calendarPanelTab,
         activeTeamId:this.#state.activeTeamId,
         standings:this.#state.getStandingsTable(),
-        scorers:this.#state.getTopScorers(10),
+        scorers:this.#state.getTopScorers(20),
         schedule:this.#state.getCalendarScheduleRows(),
         playoffs:this.#state.getPlayoffBracketData(),
         seasonState
@@ -160,7 +160,7 @@ export class AppController{
         tab:this.#calendarPanelTab,
         activeTeamId:this.#state.activeTeamId,
         standings:this.#state.getStandingsTable(),
-        scorers:this.#state.getTopScorers(10),
+        scorers:this.#state.getTopScorers(20),
         schedule:this.#state.getCalendarScheduleRows(),
         playoffs:this.#state.getPlayoffBracketData(),
         seasonState
@@ -173,7 +173,7 @@ export class AppController{
       tab:this.#calendarPanelTab,
       activeTeamId:this.#state.activeTeamId,
       standings:this.#state.getStandingsTable(),
-      scorers:this.#state.getTopScorers(10),
+      scorers:this.#state.getTopScorers(20),
       schedule:this.#state.getCalendarScheduleRows(),
       playoffs:this.#state.getPlayoffBracketData(),
       seasonState

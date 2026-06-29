@@ -474,6 +474,11 @@ export class AppState {
       return {
         ...row,
         team: team?.shortName || team?.name || "—",
+        teamLogoUrl: team?.logoUrl || "",
+        displayName: player?.name || row.name || "",
+        photoUrl: player?.identity?.photoUrl || "",
+        games: player?.seasonStats?.games || 0,
+        plusMinus: player?.seasonStats?.plusMinus || 0,
       };
     }).slice(0, limit);
   }

@@ -495,7 +495,12 @@ export class Renderer{
           : `${info?.phase==="playoffs"&&info?.stageLabel?`${info.stageLabel} \u2022 `:""}\u0418\u0433\u0440\u043e\u0432\u043e\u0439 \u0434\u0435\u043d\u044c: ${info.matches.length} ${this.#pluralizeMatches(info.matches.length)}`)));
     const playoffLimit=this.#getPlayoffParticipantLimit(panelData?.standings?.length||0);
     const standings=(panelData?.standings||[]).map((row,index)=>`<div class="calendar-table-row${index<playoffLimit?" playoff-zone":""}"><span>${index+1}</span><span class="calendar-table-team">${row.logoUrl?`<img src="${row.logoUrl}" alt="${row.name||row.shortName}"/>`:""}<strong>${row.shortName||row.name}</strong></span><span>${row.gp||0}</span><span>${row.w||0}</span><span>${row.l||0}</span><span>${row.otl||0}</span><span>${row.pts||0}</span></div>`).join("")||`<div class="muted">\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445</div>`;
-    const scorers=(panelData?.scorers||[]).map((row,index)=>`<div class="calendar-scorer-row"><span>${index+1}</span><span>${row.name}</span><span>${row.team||"?"}</span><span>${row.points||((row.goals||0)+(row.assists||0))}</span><span>${row.goals||0}</span><span>${row.assists||0}</span></div>`).join("")||`<div class="muted">\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445</div>`;
+    const scorers=(panelData?.scorers||[]).slice(0,20).map((row,index)=>{
+      const nameParts=this.#splitPlayerName(row.displayName||row.name);
+      const plusMinus=Number(row.plusMinus)||0;
+      const plusMinusLabel=plusMinus>0?`+${plusMinus}`:`${plusMinus}`;
+      return `<div class="calendar-scorer-row"><span>${index+1}</span><span class="calendar-scorer-player"><img src="${row.photoUrl||"./player-photo/default.png"}" alt="${row.displayName||row.name}" ${PHOTO_FALLBACK_ATTR}/><span><em>${nameParts.first}</em><strong>${nameParts.last}</strong></span></span><span class="calendar-scorer-team-logo">${row.teamLogoUrl?`<img src="${row.teamLogoUrl}" alt="${row.team||""}"/>`:""}</span><span>${row.games||0}</span><span>${row.goals||0}</span><span>${row.assists||0}</span><span class="calendar-scorer-points">${row.points||((row.goals||0)+(row.assists||0))}</span><span class="${this.#getPlusMinusClass(plusMinus)}">${plusMinusLabel}</span></div>`;
+    }).join("")||`<div class="muted">\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445</div>`;
     const scheduleRows=this.#monthCalendar.render(panelData?.schedule||[],activeTeamId);
     const playoffRows=playoffs.active
       ? `<div class="calendar-playoff-bracket">${(playoffs.rounds||[]).map(round=>`<section class="calendar-playoff-round${round.isCurrent?" current":""}"><div class="calendar-playoff-round-title">${round.name}</div><div class="calendar-playoff-series-list">${(round.series||[]).map(series=>`<article class="calendar-playoff-series${series.winnerTeamId?" resolved":""}"><div class="calendar-playoff-team${series.winnerTeamId===series.higherSeed?.team?.id?" winner":""}"><span class="seed">#${series.higherSeed?.seed||"?"}</span><span class="name">${series.higherSeed?.team?.shortName||series.higherSeed?.team?.name||"?"}</span><span class="wins">${series.higherSeed?.wins||0}</span></div><div class="calendar-playoff-team${series.winnerTeamId===series.lowerSeed?.team?.id?" winner":""}"><span class="seed">#${series.lowerSeed?.seed||"?"}</span><span class="name">${series.lowerSeed?.team?.shortName||series.lowerSeed?.team?.name||"?"}</span><span class="wins">${series.lowerSeed?.wins||0}</span></div></article>`).join("")}</div></section>`).join("")}${playoffs.champion?`<div class="calendar-playoff-champion">\u041a\u0443\u0431\u043e\u043a \u0431\u0435\u0440\u0435\u0442 ${playoffs.champion.name}</div>`:""}</div>`
@@ -504,12 +509,12 @@ export class Renderer{
     const tableHeader=activeTab==="standings"
       ? `<div class="calendar-table-header"><span>#</span><span>\u041a\u041e\u041c\u0410\u041d\u0414\u0410</span><span>\u0418</span><span>\u0412</span><span>\u041f</span><span>\u041f\u041e</span><span>\u041e</span></div>`
       : activeTab==="scorers"
-        ? `<div class="calendar-scorer-header"><span>#</span><span>\u0418\u0433\u0440\u043e\u043a</span><span>\u041a\u043e\u043c\u0430\u043d\u0434\u0430</span><span>\u041e</span><span>\u0413</span><span>\u041f</span></div>`
+        ? `<div class="calendar-scorer-header"><span>#</span><span>\u0418\u0413\u0420\u041e\u041a</span><span></span><span>\u0418\u0413\u0420\u042b</span><span>\u0413\u041e\u041b\u042b</span><span>\u041f\u0415\u0420\u0415\u0414\u0410\u0427\u0418</span><span class="calendar-scorer-points">\u041e\u0427\u041a\u0418</span><span>+/-</span></div>`
         : activeTab==="schedule"
           ? ""
           : "";
     const tableBody=activeTab==="standings"?standings:(activeTab==="scorers"?scorers:(activeTab==="schedule"?scheduleRows:playoffRows));
-    const panelClass=activeTab==="playoffs"?" playoffs":(activeTab==="schedule"?" schedule":(activeTab==="standings"?" standings":""));
+    const panelClass=activeTab==="playoffs"?" playoffs":(activeTab==="schedule"?" schedule":(activeTab==="standings"?" standings":(activeTab==="scorers"?" scorers":"")));
     this.#calEl.innerHTML=`<div class="calendar-shell"><section class="calendar-top-block"><div class="calendar-date-row"><div><div class="calendar-date-label">${String(currentDateLabel).toUpperCase()}</div><div class="calendar-state-label">${String(text).toUpperCase()}</div></div><button id="playBtn" class="btn calendar-next-btn" ${isLocked?"disabled":""}>ДАЛЬШЕ</button></div>${tabButtons}</section><section class="calendar-content-block"><div class="calendar-panel-list${panelClass}">${tableHeader}<div class="calendar-panel-scroll${panelClass}">${tableBody}</div></div></section><section class="calendar-split-block"><div></div><div></div></section><section class="calendar-split-block"><div></div><div></div></section></div>`;
   }
   #pluralizeMatches(count){
@@ -523,6 +528,16 @@ export class Renderer{
     if(teamCount>=16)return 16;
     if(teamCount>=8)return 8;
     return 0;
+  }
+  #splitPlayerName(name){
+    const parts=String(name||"").trim().split(/\s+/).filter(Boolean);
+    if(parts.length<=1)return {first:"",last:parts[0]||""};
+    return {first:parts.slice(0,-1).join(" "),last:parts[parts.length-1]};
+  }
+  #getPlusMinusClass(value){
+    if(value>0)return "calendar-plus-minus-positive";
+    if(value<0)return "calendar-plus-minus-negative";
+    return "calendar-plus-minus-neutral";
   }
   renderResetButton(){this.#calEl.insertAdjacentHTML("beforeend","<div class=\"row reset-row\"><button id=\"resetBtn\" class=\"btn secondary\">Новая игра</button></div>")}
   renderMatchSimulationPopup(playback){
