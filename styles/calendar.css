@@ -82,6 +82,7 @@
 .calendar-content-block{
   min-height:0;
   padding:12px;
+  overflow:hidden;
 }
 .calendar-split-block{
   display:grid;
@@ -113,7 +114,7 @@
   height:auto;
 }
 .calendar-panel-scroll.scorers{
-  max-height:444px;
+  max-height:420px;
   height:auto;
 }
 .calendar-panel-list.standings,
