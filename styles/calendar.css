@@ -38,6 +38,7 @@
   font-size:12px;
   font-weight:800;
   line-height:1.25;
+  text-transform:uppercase;
 }
 .calendar-next-btn{
   min-height:38px;
@@ -50,18 +51,19 @@
 }
 .calendar-tabs{
   display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:8px;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:6px;
 }
 .calendar-tab-btn{
   min-height:34px;
   border:1px solid transparent;
   background:transparent;
   color:#7e838c;
-  padding:6px 8px;
+  padding:6px 5px;
   border-radius:12px;
-  font-size:11px;
+  font-size:clamp(8px,.58vw,11px);
   font-weight:950;
+  line-height:1.08;
   cursor:pointer;
 }
 .calendar-tab-btn.active{

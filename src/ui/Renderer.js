@@ -487,7 +487,7 @@ export class Renderer{
       : isSeasonComplete
         ? `\u0421\u0435\u0437\u043e\u043d ${seasonState?.seasonLabel||""} \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d${seasonState?.latestArchive?.champion?.name?` \u2022 \u0427\u0435\u043c\u043f\u0438\u043e\u043d: ${seasonState.latestArchive.champion.name}`:""}`
       : (seasonState?.phase==="preseason"
-        ? `\u041f\u0440\u0435\u0434\u0441\u0435\u0437\u043e\u043d\u043d\u043e\u0435 \u043e\u043a\u043d\u043e \u2022 ${currentDateLabel}`
+        ? "\u041f\u0440\u0435\u0434\u0441\u0435\u0437\u043e\u043d\u043d\u043e\u0435 \u043e\u043a\u043d\u043e"
         : (!info?.matches?.length
         ? "\u0414\u0435\u043d\u044c \u043e\u0442\u0434\u044b\u0445\u0430"
         : (activeTeamId&&currentMatch
@@ -509,7 +509,7 @@ export class Renderer{
           : "";
     const tableBody=activeTab==="standings"?standings:(activeTab==="scorers"?scorers:(activeTab==="schedule"?scheduleRows:playoffRows));
     const panelClass=activeTab==="playoffs"?" playoffs":(activeTab==="schedule"?" schedule":"");
-    this.#calEl.innerHTML=`<div class="calendar-shell"><section class="calendar-top-block"><div class="calendar-date-row"><div><div class="calendar-date-label">${String(currentDateLabel).toUpperCase()}</div><div class="calendar-state-label">${text}</div></div><button id="playBtn" class="btn calendar-next-btn" ${isLocked?"disabled":""}>ДАЛЬШЕ</button></div>${tabButtons}</section><section class="calendar-content-block"><div class="calendar-panel-list${panelClass}">${tableHeader}<div class="calendar-panel-scroll${panelClass}">${tableBody}</div></div></section><section class="calendar-split-block"><div></div><div></div></section><section class="calendar-split-block"><div></div><div></div></section></div>`;
+    this.#calEl.innerHTML=`<div class="calendar-shell"><section class="calendar-top-block"><div class="calendar-date-row"><div><div class="calendar-date-label">${String(currentDateLabel).toUpperCase()}</div><div class="calendar-state-label">${String(text).toUpperCase()}</div></div><button id="playBtn" class="btn calendar-next-btn" ${isLocked?"disabled":""}>ДАЛЬШЕ</button></div>${tabButtons}</section><section class="calendar-content-block"><div class="calendar-panel-list${panelClass}">${tableHeader}<div class="calendar-panel-scroll${panelClass}">${tableBody}</div></div></section><section class="calendar-split-block"><div></div><div></div></section><section class="calendar-split-block"><div></div><div></div></section></div>`;
   }
   #pluralizeMatches(count){
     const mod10=count%10;
