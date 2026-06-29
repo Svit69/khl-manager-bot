@@ -6,20 +6,20 @@ export class TeamSidebarRenderer {
 
   constructor() {
     this.#navigationItems = [
-      new TeamNavigationItem("roster", "Состав"),
-      new OptionalCoachNavigationItem("coach", "Тренер"),
-      new TeamNavigationItem("junior", "Молодежка"),
-      new TeamNavigationItem("contracts", "Контракты"),
-      new TeamNavigationItem("teamStats", "Статистика команды"),
-      new TeamNavigationItem("transfers", "Движение"),
-      new TeamNavigationItem("freeAgents", "Свободные агенты"),
-      new TeamNavigationItem("trades", "Обмены"),
-      new TeamNavigationItem("legacy", "История"),
+      new TeamNavigationItem("roster", "Состав", "roster"),
+      new OptionalCoachNavigationItem("coach", "Тренер", "coach"),
+      new TeamNavigationItem("junior", "Молодежка", "junior"),
+      new TeamNavigationItem("contracts", "Контракты", "contracts"),
+      new TeamNavigationItem("teamStats", "Статистика", "statistics"),
+      new TeamNavigationItem("transfers", "Движение", "transfers"),
+      new TeamNavigationItem("freeAgents", "Свободные агенты", "free-agents"),
+      new TeamNavigationItem("trades", "Обмены", "trades"),
+      new TeamNavigationItem("legacy", "История", "legacy"),
     ];
   }
 
-  render(team, activeTab, settings = {}) {
-    return `<aside class="team-sidebar"><img class="team-sidebar-logo" src="${team.logoUrl}" alt="${team.name}"/><div class="team-sidebar-nav">${this.#renderNavigation(activeTab, settings)}</div></aside>`;
+  render(_team, activeTab, settings = {}) {
+    return `<aside class="team-sidebar"><div class="team-sidebar-brand"><span>ХОККЕЙНЫЙ</span><strong>МЕНЕДЖЕР</strong></div><div class="team-sidebar-nav">${this.#renderNavigation(activeTab, settings)}</div></aside>`;
   }
 
   #renderNavigation(activeTab, settings) {
