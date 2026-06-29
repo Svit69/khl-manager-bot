@@ -116,6 +116,9 @@
 .calendar-panel-scroll.scorers{
   max-height:420px;
   height:auto;
+  overflow-y:auto;
+  padding-bottom:12px;
+  scrollbar-gutter:stable;
 }
 .calendar-panel-list.standings,
 .calendar-panel-list.scorers{
@@ -124,6 +127,7 @@
 .calendar-panel-list.scorers{
   position:relative;
   border:0;
+  overflow:visible;
 }
 .calendar-panel-list.scorers::before{
   content:"";
