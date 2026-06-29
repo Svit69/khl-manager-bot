@@ -11,6 +11,11 @@ const getBestPlayoffResult = (experience = {}) => {
 };
 const percent = (value) => Math.max(0, Math.min(100, Number(value) || 0));
 const formatBoost = (value) => `${value >= 0 ? "+" : ""}${value}`;
+const getSupplementalCoachPhotoUrl = (photoUrl = "") => {
+  const source = String(photoUrl || "");
+  const match = source.match(/^(.*?)(\.[a-z0-9]+)$/i);
+  return source.includes("/coach-photo/") && match ? `${match[1]}_dop${match[2]}` : "";
+};
 const getEffectBoosts = (effect = {}) => [
   ["Атака", Math.round(((Number(effect.attackMultiplier) || 1) - 1) * 100)],
   ["Защита", Math.round(((Number(effect.defenseMultiplier) || 1) - 1) * 100)],
@@ -37,11 +42,16 @@ const renderCoachFitMeter = (fit) => {
   </div>`;
 };
 const renderCoachBonuses = (fit) => `<div class="coach-profile-bonuses"><span>Бонусы тренера</span><div>${getEffectBoosts(fit?.effect).map(([label, value]) => `<small><b>${label}</b><strong>${formatBoost(value)}</strong></small>`).join("")}</div></div>`;
+const renderCoachProfileShade = (coach) => {
+  const supplementalPhotoUrl = getSupplementalCoachPhotoUrl(coach.photoUrl);
+  const photo = supplementalPhotoUrl ? `<img class="coach-profile-shade-photo" src="${supplementalPhotoUrl}" alt="" aria-hidden="true" onerror="this.remove()">` : "";
+  return `<div class="coach-profile-shade">${photo}</div>`;
+};
 const renderCoachProfile = (coach, fit) => `<section class="coach-profile-card">
   <div class="coach-profile-photo-panel">
     <img class="coach-profile-bg" src="./coach-background/coach-red.png" alt="" aria-hidden="true">
     <img class="coach-profile-photo" src="${coach.photoUrl}" alt="${coach.name}" ${PHOTO_FALLBACK_ATTR}>
-    <div class="coach-profile-shade"></div>
+    ${renderCoachProfileShade(coach)}
     <div class="coach-profile-rating"><span>Рейтинг</span><strong>${coach.overall}</strong><small>★★★</small></div>
     <div class="coach-profile-caption">
       <h3>${String(coach.name || "").toUpperCase()}</h3>
