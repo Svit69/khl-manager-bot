@@ -1,4 +1,3 @@
-import { PHOTO_FALLBACK_ATTR } from "../utils/PlayerPhoto.js";
 import { renderCoachMarket } from "./CoachManagementRenderer.js";
 
 const formatDate = (value) => value ? new Date(value).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "2-digit", timeZone: "UTC" }) : "Свободный агент";
@@ -14,7 +13,7 @@ const formatBoost = (value) => `${value >= 0 ? "+" : ""}${value}`;
 const getSupplementalCoachPhotoUrl = (photoUrl = "") => {
   const source = String(photoUrl || "");
   const match = source.match(/^(.*?)(\.[a-z0-9]+)$/i);
-  return source.includes("/coach-photo/") && match ? `${match[1]}_dop${match[2]}` : "";
+  return source.includes("/coach-photo/") && match ? `${match[1]}_dop${match[2]}` : source;
 };
 const getEffectBoosts = (effect = {}) => [
   ["Атака", Math.round(((Number(effect.attackMultiplier) || 1) - 1) * 100)],
@@ -42,16 +41,11 @@ const renderCoachFitMeter = (fit) => {
   </div>`;
 };
 const renderCoachBonuses = (fit) => `<div class="coach-profile-bonuses"><span>Бонусы тренера</span><div>${getEffectBoosts(fit?.effect).map(([label, value]) => `<small><b>${label}</b><strong>${formatBoost(value)}</strong></small>`).join("")}</div></div>`;
-const renderCoachProfileShade = (coach) => {
-  const supplementalPhotoUrl = getSupplementalCoachPhotoUrl(coach.photoUrl);
-  const photo = supplementalPhotoUrl ? `<img class="coach-profile-shade-photo" src="${supplementalPhotoUrl}" alt="" aria-hidden="true" onerror="this.remove()">` : "";
-  return `<div class="coach-profile-shade">${photo}</div>`;
-};
 const renderCoachProfile = (coach, fit) => `<section class="coach-profile-card">
   <div class="coach-profile-photo-panel">
     <img class="coach-profile-bg" src="./coach-background/coach-red.png" alt="" aria-hidden="true">
-    <img class="coach-profile-photo" src="${coach.photoUrl}" alt="${coach.name}" ${PHOTO_FALLBACK_ATTR}>
-    ${renderCoachProfileShade(coach)}
+    <img class="coach-profile-photo" src="${getSupplementalCoachPhotoUrl(coach.photoUrl)}" alt="${coach.name}" onerror="this.onerror=null;this.src='${coach.photoUrl || "./player-photo/default.png"}'">
+    <div class="coach-profile-shade"></div>
     <div class="coach-profile-rating"><span>Рейтинг</span><strong>${coach.overall}</strong><small>★★★</small></div>
     <div class="coach-profile-caption">
       <h3>${String(coach.name || "").toUpperCase()}</h3>
