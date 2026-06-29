@@ -493,7 +493,8 @@ export class Renderer{
         : (activeTeamId&&currentMatch
           ? `${info?.phase==="playoffs"&&info?.stageLabel?`${info.stageLabel} \u2022 `:""}${currentMatch.home.name} \u2014 ${currentMatch.away.name}`
           : `${info?.phase==="playoffs"&&info?.stageLabel?`${info.stageLabel} \u2022 `:""}\u0418\u0433\u0440\u043e\u0432\u043e\u0439 \u0434\u0435\u043d\u044c: ${info.matches.length} ${this.#pluralizeMatches(info.matches.length)}`)));
-    const standings=(panelData?.standings||[]).map((row,index)=>`<div class="calendar-table-row"><span>${index+1}</span><span class="calendar-table-team">${row.logoUrl?`<img src="${row.logoUrl}" alt="${row.name||row.shortName}"/>`:""}<strong>${row.shortName||row.name}</strong></span><span>${row.gp||0}</span><span>${row.w||0}</span><span>${row.l||0}</span><span>${row.otl||0}</span><span>${row.pts||0}</span></div>`).join("")||`<div class="muted">\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445</div>`;
+    const playoffLimit=this.#getPlayoffParticipantLimit(panelData?.standings?.length||0);
+    const standings=(panelData?.standings||[]).map((row,index)=>`<div class="calendar-table-row${index<playoffLimit?" playoff-zone":""}"><span>${index+1}</span><span class="calendar-table-team">${row.logoUrl?`<img src="${row.logoUrl}" alt="${row.name||row.shortName}"/>`:""}<strong>${row.shortName||row.name}</strong></span><span>${row.gp||0}</span><span>${row.w||0}</span><span>${row.l||0}</span><span>${row.otl||0}</span><span>${row.pts||0}</span></div>`).join("")||`<div class="muted">\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445</div>`;
     const scorers=(panelData?.scorers||[]).map((row,index)=>`<div class="calendar-scorer-row"><span>${index+1}</span><span>${row.name}</span><span>${row.team||"?"}</span><span>${row.points||((row.goals||0)+(row.assists||0))}</span><span>${row.goals||0}</span><span>${row.assists||0}</span></div>`).join("")||`<div class="muted">\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445</div>`;
     const scheduleRows=this.#monthCalendar.render(panelData?.schedule||[],activeTeamId);
     const playoffRows=playoffs.active
@@ -517,6 +518,11 @@ export class Renderer{
     if(mod10===1 && mod100!==11)return "матч";
     if(mod10>=2 && mod10<=4 && (mod100<12 || mod100>14))return "матча";
     return "матчей";
+  }
+  #getPlayoffParticipantLimit(teamCount){
+    if(teamCount>=16)return 16;
+    if(teamCount>=8)return 8;
+    return 0;
   }
   renderResetButton(){this.#calEl.insertAdjacentHTML("beforeend","<div class=\"row reset-row\"><button id=\"resetBtn\" class=\"btn secondary\">Новая игра</button></div>")}
   renderMatchSimulationPopup(playback){
