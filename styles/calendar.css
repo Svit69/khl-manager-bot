@@ -3,6 +3,7 @@
 .calendar-shell{
   display:grid;
   grid-template-rows:auto auto auto auto;
+  align-content:start;
   gap:6px;
   height:100%;
   min-height:0;
