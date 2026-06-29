@@ -496,10 +496,11 @@ export class Renderer{
     const playoffLimit=this.#getPlayoffParticipantLimit(panelData?.standings?.length||0);
     const standings=(panelData?.standings||[]).map((row,index)=>`<div class="calendar-table-row${index<playoffLimit?" playoff-zone":""}"><span>${index+1}</span><span class="calendar-table-team">${row.logoUrl?`<img src="${row.logoUrl}" alt="${row.name||row.shortName}"/>`:""}<strong>${row.shortName||row.name}</strong></span><span>${row.gp||0}</span><span>${row.w||0}</span><span>${row.l||0}</span><span>${row.otl||0}</span><span>${row.pts||0}</span></div>`).join("")||`<div class="muted">\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445</div>`;
     const scorers=(panelData?.scorers||[]).slice(0,20).map((row,index)=>{
+      const fullName=this.#escapeHtmlAttribute(row.displayName||row.name);
       const nameParts=this.#splitPlayerName(row.displayName||row.name);
       const plusMinus=Number(row.plusMinus)||0;
       const plusMinusLabel=plusMinus>0?`+${plusMinus}`:`${plusMinus}`;
-      return `<div class="calendar-scorer-row"><span>${index+1}</span><span class="calendar-scorer-player"><img src="${row.photoUrl||"./player-photo/default.png"}" alt="${row.displayName||row.name}" ${PHOTO_FALLBACK_ATTR}/><span><em>${nameParts.first}</em><strong>${nameParts.last}</strong></span></span><span class="calendar-scorer-team-logo">${row.teamLogoUrl?`<img src="${row.teamLogoUrl}" alt="${row.team||""}"/>`:""}</span><span>${row.games||0}</span><span>${row.goals||0}</span><span>${row.assists||0}</span><span class="calendar-scorer-points">${row.points||((row.goals||0)+(row.assists||0))}</span><span class="${this.#getPlusMinusClass(plusMinus)}">${plusMinusLabel}</span></div>`;
+      return `<div class="calendar-scorer-row"><span>${index+1}</span><span class="calendar-scorer-player" title="${fullName}"><img src="${row.photoUrl||"./player-photo/default.png"}" alt="${fullName}" ${PHOTO_FALLBACK_ATTR}/><span title="${fullName}"><em>${nameParts.first}</em><strong>${nameParts.last}</strong></span></span><span class="calendar-scorer-team-logo">${row.teamLogoUrl?`<img src="${row.teamLogoUrl}" alt="${row.team||""}"/>`:""}</span><span>${row.games||0}</span><span>${row.goals||0}</span><span>${row.assists||0}</span><span class="calendar-scorer-points">${row.points||((row.goals||0)+(row.assists||0))}</span><span class="${this.#getPlusMinusClass(plusMinus)}">${plusMinusLabel}</span></div>`;
     }).join("")||`<div class="muted">\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445</div>`;
     const scheduleRows=this.#monthCalendar.render(panelData?.schedule||[],activeTeamId);
     const playoffRows=playoffs.active
@@ -533,6 +534,15 @@ export class Renderer{
     const parts=String(name||"").trim().split(/\s+/).filter(Boolean);
     if(parts.length<=1)return {first:"",last:parts[0]||""};
     return {first:parts.slice(0,-1).join(" "),last:parts[parts.length-1]};
+  }
+  #escapeHtmlAttribute(value){
+    return String(value||"").replace(/[&<>"']/g,(char)=>({
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      "\"":"&quot;",
+      "'":"&#39;",
+    }[char]));
   }
   #getPlusMinusClass(value){
     if(value>0)return "calendar-plus-minus-positive";
