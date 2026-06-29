@@ -35,7 +35,7 @@
   .draft-intro-tag-row{display:grid;grid-template-columns:1fr;justify-items:stretch}
   .draft-intro-tag{width:100%}
   .draft-intro-rail{font-size:10px;padding:10px 12px;gap:10px;overflow:hidden}
-  .main{grid-template-columns:1fr;min-height:100vh;padding:10px}
+  .main{grid-template-columns:1fr;min-height:100vh;padding:1px}
   .team-screen{grid-template-columns:1fr;min-height:auto;padding:0}
   .team-sidebar{
     flex-direction:column;

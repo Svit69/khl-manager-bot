@@ -1,7 +1,7 @@
 /* Team management shell */
 
 .team-screen{
-  min-height:calc(100vh - 28px);
+  min-height:calc(100vh - 2px);
   height:100%;
   border-radius:0;
   padding:0;

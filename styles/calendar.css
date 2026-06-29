@@ -1,34 +1,102 @@
 /* Calendar and standings */
 
+.calendar-shell{
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr) auto auto;
+  gap:12px;
+  height:100%;
+  min-height:0;
+}
+.calendar-top-block,
+.calendar-content-block,
+.calendar-split-block>div{
+  border-radius:18px;
+  background:#0d1117;
+  box-shadow:inset 0 0 0 1px rgba(246,247,252,.08),inset 0 1px 0 rgba(246,247,252,.1);
+}
+.calendar-top-block{
+  display:grid;
+  gap:14px;
+  padding:14px;
+}
+.calendar-date-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:12px;
+}
+.calendar-date-label{
+  color:#9bd841;
+  font-size:18px;
+  font-weight:950;
+  line-height:1.05;
+  text-transform:uppercase;
+}
+.calendar-state-label{
+  margin-top:5px;
+  color:#7e838c;
+  font-size:12px;
+  font-weight:800;
+  line-height:1.25;
+}
+.calendar-next-btn{
+  min-height:38px;
+  padding:0 16px;
+  border-radius:12px;
+  background:#5221f2;
+  color:#f6f7fc;
+  font-size:12px;
+  font-weight:950;
+}
 .calendar-tabs{
-  display:flex;
-  gap:6px;
-  margin-top:10px;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
 }
 .calendar-tab-btn{
-  border:1px solid rgba(255,255,255,.10);
-  background:#10233d;
-  color:#cfe0f8;
-  padding:6px 10px;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:700;
+  min-height:34px;
+  border:1px solid transparent;
+  background:transparent;
+  color:#7e838c;
+  padding:6px 8px;
+  border-radius:12px;
+  font-size:11px;
+  font-weight:950;
   cursor:pointer;
 }
 .calendar-tab-btn.active{
-  background:linear-gradient(180deg,#8de7ff,#57c6ff);
-  color:#041122;
-  border-color:#8de7ff;
+  background:linear-gradient(180deg,#161329 0%,#1e1c36 100%);
+  color:#a285c8;
+  border-bottom-color:#5221f2;
+  box-shadow:inset 0 0 0 1px rgba(246,247,252,.06);
+}
+.calendar-content-block{
+  min-height:0;
+  padding:12px;
+}
+.calendar-split-block{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  min-height:88px;
+}
+.calendar-split-block>div{
+  min-height:88px;
 }
 .calendar-panel-list{
-  margin-top:8px;
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:10px;
-  background:rgba(10,21,38,.55);
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr);
+  height:100%;
+  min-height:0;
+  border:1px solid rgba(246,247,252,.08);
+  border-radius:14px;
+  background:rgba(5,8,14,.52);
   overflow:hidden;
 }
 .calendar-panel-scroll{
-  max-height:240px;
+  min-height:0;
+  max-height:none;
+  height:100%;
   overflow:auto;
 }
 .calendar-table-header,.calendar-table-row{
