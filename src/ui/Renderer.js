@@ -226,7 +226,7 @@ export class Renderer{
     this.#matchEl=document.getElementById("matchPanel");
     this.#userEl=document.getElementById("userBadge");
   }
-  renderUser(user){this.#userEl.textContent=`ID: ${user.id}`}
+  renderUser(user){if(this.#userEl)this.#userEl.textContent=`ID: ${user.id}`}
   renderTeam(team,activeTab,activeRosterUnit="1",selectedRosterSlot=null,notifications=null,settings={}){
     const rosterView=activeTab==="roster"
       ? `<div class="team-club-shell"><div class="team-roster-stage"><div class="line-view-panel">${renderRosterUnitButtons(activeRosterUnit)}${renderRosterUnitCards(team,activeRosterUnit,selectedRosterSlot)}</div></div><div class="team-reserve-wrap">${renderReserveStrip(team.reservePlayers||[])}</div></div>`

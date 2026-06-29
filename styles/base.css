@@ -1,16 +1,18 @@
 /* Base app shell and shared components */
 
-:root{--bg:#0b1930;--card:#102a45;--accent:#f3c33b;--text:#e8f1ff;--muted:#9ab3d1}
+:root{--bg:#05080e;--card:#090c10;--accent:#5221f2;--text:#f6f7fc;--muted:#7e838c}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Tahoma,Arial,sans-serif;background:radial-gradient(120% 90% at 10% 10%,#143356,#0b1930);color:var(--text)}
-.app{min-height:100vh;display:flex;flex-direction:column;padding:12px;gap:10px}
-.header{display:flex;justify-content:space-between;align-items:center}
+html,body{min-height:100%}
+body{font-family:Tahoma,Arial,sans-serif;background:#05080e;color:var(--text)}
+.app{min-height:100vh;display:flex;flex-direction:column;background:#05080e}
+.header{display:none}
 .header h1{font-size:18px;letter-spacing:.5px}
 .badge{font-size:12px;color:var(--muted)}
-.main{display:grid;gap:10px;grid-template-columns:1fr}
-.panel{background:rgba(16,42,69,.88);border:1px solid #1c3e63;border-radius:10px;padding:10px;min-height:120px}
+.main{display:grid;grid-template-columns:minmax(0,66%) minmax(280px,1fr);gap:14px;width:100%;min-height:100vh;padding:14px;background:transparent}
+.panel{min-width:0;min-height:0;background:transparent;border:0;border-radius:0;padding:0}
 .panel h2{font-size:14px;color:var(--accent);margin-bottom:6px}
 #teamPanel{min-width:0}
+#calendarPanel{min-width:0;padding:18px;border-radius:27px;background:#090c10;box-shadow:inset 0 0 0 1px rgba(246,247,252,.12),inset 0 1px 0 rgba(246,247,252,.14),0 18px 42px rgba(0,0,0,.28);overflow:hidden}
 #matchPanel{display:none}
 .btn{background:var(--accent);border:none;padding:8px 10px;border-radius:8px;font-weight:700;cursor:pointer}
 .btn.secondary{background:#1c3e63;color:var(--text)}
