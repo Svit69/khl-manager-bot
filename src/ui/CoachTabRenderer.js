@@ -15,6 +15,29 @@ const getSupplementalCoachPhotoUrl = (photoUrl = "") => {
   const match = source.match(/^(.*?)(\.[a-z0-9]+)$/i);
   return source.includes("/coach-photo/") && match ? `${match[1]}_dop${match[2]}` : source;
 };
+const coachBackgroundByTeam = new Map([
+  ["Трактор", "coach-black"],
+  ["Авангард", "coach-red"],
+  ["ЦСКА", "coach-red"],
+  ["Спартак", "coach-red"],
+  ["Локомотив", "coach-red"],
+  ["Автомобилист", "coach-red"],
+  ["Салават Юлаев", "coach-green"],
+  ["Ак Барс", "coach-green"],
+  ["Северсталь", "coach-yellow"],
+  ["Динамо Москва", "coach-blue"],
+  ["Динамо Минск", "coach-blue"],
+  ["СКА", "coach-blue"],
+  ["Барыс", "coach-blue"],
+  ["Металлург", "coach-blue"],
+  ["Сибирь", "coach-blue"],
+  ["Торпедо", "coach-blue"],
+  ["Нефтехимик", "coach-blue"],
+]);
+const getCoachBackgroundUrl = (team) => {
+  const backgroundName = coachBackgroundByTeam.get(team?.name) || "coach-red";
+  return `./coach-background/${backgroundName}.png`;
+};
 const getEffectBoosts = (effect = {}) => [
   ["Атака", Math.round(((Number(effect.attackMultiplier) || 1) - 1) * 100)],
   ["Защита", Math.round(((Number(effect.defenseMultiplier) || 1) - 1) * 100)],
@@ -41,9 +64,9 @@ const renderCoachFitMeter = (fit) => {
   </div>`;
 };
 const renderCoachBonuses = (fit) => `<div class="coach-profile-bonuses"><span>Бонусы тренера</span><div>${getEffectBoosts(fit?.effect).map(([label, value]) => `<small><b>${label}</b><strong>${formatBoost(value)}</strong></small>`).join("")}</div></div>`;
-const renderCoachProfile = (coach, fit) => `<section class="coach-profile-card">
+const renderCoachProfile = (coach, fit, team) => `<section class="coach-profile-card">
   <div class="coach-profile-photo-panel">
-    <img class="coach-profile-bg" src="./coach-background/coach-red.png" alt="" aria-hidden="true">
+    <img class="coach-profile-bg" src="${getCoachBackgroundUrl(team)}" alt="" aria-hidden="true">
     <img class="coach-profile-photo" src="${getSupplementalCoachPhotoUrl(coach.photoUrl)}" alt="${coach.name}" onerror="this.onerror=null;this.src='${coach.photoUrl || "./player-photo/default.png"}'">
     <div class="coach-profile-shade"></div>
     <div class="coach-profile-rating"><span>Рейтинг</span><strong>${coach.overall}</strong><small>★★★</small></div>
@@ -61,16 +84,16 @@ const renderCoachProfileActions = (message = "") => `<div class="coach-profile-a
   <button class="coach-action danger" data-action="coach-terminate">РАСТОРГНУТЬ КОНТРАКТ</button>
   ${message ? `<div class="coach-management-message">${message}</div>` : ""}
 </div>`;
-const renderCoachProfileShell = (coach, fit, message) => `<section class="coach-profile-shell">${renderCoachProfile(coach, fit)}${renderCoachProfileActions(message)}</section>`;
+const renderCoachProfileShell = (coach, fit, message, team) => `<section class="coach-profile-shell">${renderCoachProfile(coach, fit, team)}${renderCoachProfileActions(message)}</section>`;
 
 export class CoachTabRenderer {
   render(view) {
     if (!view) return `<section class="coach-screen"><div class="coach-empty">Режим тренеров выключен.</div></section>`;
-    const { coach, freeCoaches = [], fit = null, message = "" } = view;
+    const { coach, freeCoaches = [], fit = null, message = "", team = null } = view;
     if (!coach) return `<section class="coach-screen">${renderCoachToolbar()}<div class="coach-empty">Главный тренер не назначен.</div>${message ? `<div class="coach-management-message">${message}</div>` : ""}${renderCoachMarket(freeCoaches)}</section>`;
     return `<section class="coach-screen">
       ${renderCoachToolbar()}
-      ${renderCoachProfileShell(coach, fit, message)}
+      ${renderCoachProfileShell(coach, fit, message, team)}
       ${renderCoachMarket(freeCoaches)}
     </section>`;
   }
