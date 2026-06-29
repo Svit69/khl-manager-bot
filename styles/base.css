@@ -8,11 +8,11 @@ body{font-family:Tahoma,Arial,sans-serif;background:#05080e;color:var(--text)}
 .header{display:none}
 .header h1{font-size:18px;letter-spacing:.5px}
 .badge{font-size:12px;color:var(--muted)}
-.main{display:grid;grid-template-columns:minmax(0,1fr) 32%;gap:14px;width:100%;height:100vh;padding:1px;background:transparent;overflow:hidden}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 32%;align-items:start;gap:14px;width:100%;min-height:100vh;padding:1px;background:transparent}
 .panel{min-width:0;min-height:0;background:transparent;border:0;border-radius:0;padding:0}
 .panel h2{font-size:14px;color:var(--accent);margin-bottom:6px}
-#teamPanel{min-width:0;min-height:0;overflow:hidden}
-#calendarPanel{min-width:0;height:100%;overflow:hidden}
+#teamPanel{min-width:0;min-height:0}
+#calendarPanel{position:sticky;top:1px;min-width:0;height:calc(100vh - 2px);overflow:hidden}
 #matchPanel{display:none}
 .btn{background:var(--accent);border:none;padding:8px 10px;border-radius:8px;font-weight:700;cursor:pointer}
 .btn.secondary{background:#1c3e63;color:var(--text)}
