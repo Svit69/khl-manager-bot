@@ -145,7 +145,7 @@
   display:flex;
   align-items:center;
   justify-content:space-between;
-  min-height:96px;
+  min-height:116px;
   gap:16px;
   padding:16px;
   border-radius:18px;
@@ -154,14 +154,14 @@
 }
 .team-screen-club{
   display:grid;
-  grid-template-columns:64px minmax(0,1fr);
+  grid-template-columns:84px minmax(0,1fr);
   align-items:center;
-  gap:14px;
+  gap:18px;
   min-width:0;
 }
 .team-screen-logo{
-  width:64px;
-  height:64px;
+  width:84px;
+  height:84px;
   object-fit:contain;
   filter:drop-shadow(0 10px 18px rgba(0,0,0,.35));
 }
@@ -175,7 +175,7 @@
   margin-top:6px;
   color:#7e838c;
   font-size:13px;
-  font-weight:800;
+  font-weight:500;
   text-transform:uppercase;
 }
 .team-screen-content{
