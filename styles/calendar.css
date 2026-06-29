@@ -201,7 +201,7 @@
 .calendar-scorer-player{
   display:grid;
   grid-template-columns:42px minmax(0,1fr);
-  align-items:end;
+  align-items:center;
   gap:8px;
   height:100%;
   min-width:0;
@@ -211,7 +211,7 @@
   align-self:end;
   width:42px;
   height:52px;
-  margin-bottom:-4px;
+  margin-bottom:-12px;
   object-fit:cover;
 }
 .calendar-scorer-player span{
@@ -231,15 +231,17 @@
   color:#7e838c;
   font-size:10px;
   font-weight:700;
+  text-transform:uppercase;
 }
 .calendar-scorer-player strong{
   color:#f6f7fc;
   font-size:12px;
   font-weight:900;
+  text-transform:uppercase;
 }
 .calendar-scorer-team-logo img{
-  width:24px;
-  height:24px;
+  width:30px;
+  height:30px;
   object-fit:contain;
 }
 .calendar-scorer-points{
