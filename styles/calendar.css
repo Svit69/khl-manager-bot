@@ -221,13 +221,19 @@
 .calendar-scorer-header span:nth-child(2),
 .calendar-scorer-row>.calendar-scorer-player{
   justify-self:stretch;
-  text-align:right;
+  text-align:left;
 }
 .calendar-scorer-header span:nth-child(2){
-  justify-content:flex-end;
+  justify-content:flex-start;
 }
 .calendar-scorer-row>.calendar-scorer-player{
   justify-content:stretch;
+}
+.calendar-scorer-header span:nth-child(4),
+.calendar-scorer-row>span:nth-child(4){
+  justify-self:center;
+  justify-content:center;
+  text-align:center;
 }
 .calendar-scorer-player{
   display:grid;
