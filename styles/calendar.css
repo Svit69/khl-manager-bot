@@ -119,6 +119,16 @@
 .calendar-table-row{
   min-height:35px;
 }
+.calendar-table-header span,
+.calendar-table-row>span{
+  justify-self:center;
+  text-align:center;
+}
+.calendar-table-header span:nth-child(2),
+.calendar-table-row>.calendar-table-team{
+  justify-self:stretch;
+  text-align:left;
+}
 .calendar-scorer-header,.calendar-scorer-row{
   display:grid;
   grid-template-columns:28px minmax(120px,1.6fr) minmax(80px,1fr) 28px 28px 28px;
