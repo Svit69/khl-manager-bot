@@ -113,7 +113,7 @@
   height:auto;
 }
 .calendar-panel-scroll.scorers{
-  max-height:520px;
+  max-height:444px;
   height:auto;
 }
 .calendar-panel-list.standings,
@@ -149,15 +149,17 @@
 }
 .calendar-scorer-header,.calendar-scorer-row{
   display:grid;
-  grid-template-columns:26px minmax(116px,1fr) 30px 34px 34px 52px 42px 34px;
+  grid-template-columns:26px minmax(128px,1fr) 30px 34px 34px 52px 42px 34px;
   gap:6px;
   align-items:center;
   padding:8px 8px;
   font-size:11px;
 }
 .calendar-scorer-row{
-  min-height:46px;
+  min-height:56px;
+  max-height:56px;
   color:#f6f7fc;
+  overflow:hidden;
 }
 .calendar-schedule-header,.calendar-schedule-row{
   display:grid;
@@ -198,17 +200,19 @@
 }
 .calendar-scorer-player{
   display:grid;
-  grid-template-columns:32px minmax(0,1fr);
-  align-items:center;
+  grid-template-columns:42px minmax(0,1fr);
+  align-items:end;
   gap:8px;
+  height:100%;
   min-width:0;
+  overflow:hidden;
 }
 .calendar-scorer-player img{
-  width:32px;
-  height:32px;
-  border-radius:9px;
+  align-self:end;
+  width:42px;
+  height:52px;
+  margin-bottom:-4px;
   object-fit:cover;
-  background:#111923;
 }
 .calendar-scorer-player span{
   display:grid;
