@@ -22,7 +22,7 @@ export class StandingsTracker{
     return idx===-1?null:(idx+1);
   }
   getTable(teams){
-    const rows=(teams||[]).map(t=>({teamId:t.id,shortName:t.shortName,name:t.name,...this.#ensure(t.id)}));
+    const rows=(teams||[]).map(t=>({teamId:t.id,shortName:t.shortName,name:t.name,logoUrl:t.logoUrl,...this.#ensure(t.id)}));
     rows.sort((a,b)=>{
       const gdA=a.gf-a.ga,gdB=b.gf-b.ga;
       return (b.pts-a.pts)||(gdB-gdA)||(b.gf-a.gf)||String(a.name).localeCompare(String(b.name),"ru");
