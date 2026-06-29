@@ -16,8 +16,11 @@
 }
 .calendar-top-block{
   display:grid;
+  grid-template-rows:44px 34px;
   gap:14px;
+  height:120px;
   padding:14px;
+  overflow:hidden;
 }
 .calendar-date-row{
   display:grid;
@@ -39,6 +42,9 @@
   font-weight:800;
   line-height:1.25;
   text-transform:uppercase;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 .calendar-next-btn{
   min-height:38px;
