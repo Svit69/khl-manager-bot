@@ -88,11 +88,11 @@
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:12px;
-  min-height:176px;
+  min-height:154px;
 }
 .calendar-split-block>div{
   position:relative;
-  min-height:176px;
+  min-height:154px;
   overflow:hidden;
 }
 .calendar-panel-list{
@@ -338,7 +338,7 @@
 .calendar-best-player{
   position:absolute;
   inset:0;
-  padding:18px 16px;
+  padding:13px 12px;
   overflow:hidden;
 }
 .calendar-best-player h3{
@@ -346,18 +346,18 @@
   z-index:3;
   margin:0;
   color:#f6f7fc;
-  font-size:14px;
+  font-size:11px;
   font-weight:950;
   line-height:1.05;
   text-transform:uppercase;
 }
 .calendar-best-player img{
   position:absolute;
-  left:4px;
-  bottom:-4px;
+  left:2px;
+  bottom:-5px;
   z-index:1;
-  width:48%;
-  height:78%;
+  width:45%;
+  height:73%;
   object-fit:contain;
   object-position:left bottom;
 }
@@ -373,18 +373,18 @@
 }
 .calendar-best-player-info{
   position:absolute;
-  left:46%;
-  right:14px;
-  top:48px;
+  left:43%;
+  right:10px;
+  top:42px;
   z-index:3;
   display:grid;
-  gap:5px;
+  gap:4px;
   min-width:0;
 }
 .calendar-best-player-info strong{
   min-width:0;
   color:#f6f7fc;
-  font-size:18px;
+  font-size:14px;
   font-weight:950;
   line-height:1.05;
   overflow:hidden;
@@ -393,7 +393,7 @@
 }
 .calendar-best-player-info>span{
   color:#7e838c;
-  font-size:12px;
+  font-size:10px;
   font-weight:800;
   line-height:1.05;
   text-transform:uppercase;
@@ -402,27 +402,27 @@
   display:flex;
   align-items:center;
   gap:8px;
-  min-height:46px;
-  margin-top:8px;
-  padding:0 14px;
-  border-radius:12px;
+  min-height:34px;
+  margin-top:5px;
+  padding:0 10px;
+  border-radius:10px;
   background:rgba(82,33,242,.12);
   color:#a285c8;
   box-shadow:inset 0 0 0 1px rgba(82,33,242,.34);
-  font-size:14px;
+  font-size:11px;
   font-weight:950;
   text-transform:uppercase;
 }
 .calendar-best-player-points b{
   color:#9b66ff;
-  font-size:28px;
+  font-size:22px;
   line-height:1;
 }
 .calendar-best-player-stats{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:10px;
-  margin-top:8px;
+  gap:8px;
+  margin-top:5px;
 }
 .calendar-best-player-stats div{
   display:grid;
@@ -431,12 +431,12 @@
 }
 .calendar-best-player-stats b{
   color:#f6f7fc;
-  font-size:17px;
+  font-size:13px;
   line-height:1;
 }
 .calendar-best-player-stats span{
   color:#7e838c;
-  font-size:11px;
+  font-size:9px;
   font-weight:950;
   line-height:1.05;
   text-transform:uppercase;
