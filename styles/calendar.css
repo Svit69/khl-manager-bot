@@ -534,87 +534,132 @@
 }
 
 .calendar-panel-list.playoffs{
-  background:linear-gradient(180deg,rgba(11,20,36,.88),rgba(8,15,29,.92));
+  border:0;
+  background:#090c10;
 }
 .calendar-panel-scroll.playoffs{
-  max-height:320px;
+  max-height:none;
+  height:100%;
+  overflow:auto;
 }
 .calendar-playoff-bracket{
   display:grid;
-  gap:12px;
+  gap:8px;
   padding:10px;
+}
+.calendar-playoff-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  min-width:0;
+}
+.calendar-playoff-head h3{
+  margin:0;
+  color:#f6f7fc;
+  font-size:13px;
+  font-weight:950;
+  line-height:1;
+}
+.calendar-playoff-head span{
+  color:#7e838c;
+  font-size:11px;
+  font-weight:850;
 }
 .calendar-playoff-round{
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:12px;
-  background:rgba(255,255,255,.02);
-  padding:10px;
-}
-.calendar-playoff-round.current{
-  border-color:rgba(111,212,255,.45);
-  box-shadow:0 0 0 1px rgba(111,212,255,.16) inset;
+  display:grid;
+  gap:6px;
+  padding:7px;
+  border-radius:10px;
+  background:#090c10;
+  box-shadow:inset 0 0 0 1px rgba(246,247,252,.08);
 }
 .calendar-playoff-round-title{
-  font-size:12px;
-  font-weight:800;
-  letter-spacing:.06em;
+  width:100%;
+  border:0;
+  padding:0;
+  background:transparent;
+  color:#7e838c;
+  font:inherit;
+  font-size:10px;
+  font-weight:900;
+  line-height:1;
+  text-align:left;
   text-transform:uppercase;
-  color:#d8e8ff;
-  margin-bottom:8px;
 }
 .calendar-playoff-series-list{
   display:grid;
-  gap:8px;
+  gap:4px;
 }
-.calendar-playoff-series{
-  border:1px solid rgba(255,255,255,.06);
-  border-radius:10px;
-  overflow:hidden;
-  background:rgba(7,14,27,.86);
-}
-.calendar-playoff-series.resolved{
-  border-color:rgba(111,212,255,.22);
-}
-.calendar-playoff-team{
+.calendar-playoff-series-card{
   display:grid;
-  grid-template-columns:34px minmax(0,1fr) 28px;
+  grid-template-columns:minmax(0,1fr) 58px minmax(0,1fr);
   gap:8px;
   align-items:center;
-  padding:8px 10px;
-  font-size:12px;
+  min-height:34px;
+  padding:5px 8px;
+  border-radius:8px;
+  background:rgba(246,247,252,.025);
+  box-shadow:inset 0 0 0 1px rgba(246,247,252,.06);
 }
-.calendar-playoff-team + .calendar-playoff-team{
-  border-top:1px solid rgba(255,255,255,.05);
+.calendar-playoff-series-card.user-team{
+  background:rgba(82,33,242,.08);
+  box-shadow:inset 0 0 0 1px rgba(82,33,242,.72),0 0 18px rgba(82,33,242,.14);
 }
-.calendar-playoff-team .seed{
-  color:#8ea6c9;
-  font-weight:700;
+.calendar-playoff-team-side{
+  display:grid;
+  grid-template-columns:16px 25px minmax(0,1fr);
+  gap:5px;
+  align-items:center;
+  min-width:0;
 }
-.calendar-playoff-team .name{
-  white-space:nowrap;
+.calendar-playoff-team-side.away{
+  grid-template-columns:25px minmax(0,1fr) 16px;
+}
+.calendar-playoff-team-side.away .calendar-playoff-seed{
+  order:3;
+}
+.calendar-playoff-team-side img{
+  width:25px;
+  height:25px;
+  object-fit:contain;
+}
+.calendar-playoff-team-side strong{
+  min-width:0;
+  color:#f6f7fc;
+  font-size:11px;
+  font-weight:850;
+  line-height:1;
   overflow:hidden;
   text-overflow:ellipsis;
+  white-space:nowrap;
 }
-.calendar-playoff-team .wins{
-  text-align:right;
+.calendar-playoff-seed{
+  color:#7e838c;
+  font-size:10px;
+  font-weight:850;
+  text-align:center;
+}
+.calendar-playoff-series-score{
+  color:#f6f7fc;
   font-size:14px;
-  font-weight:800;
-  color:#d8e8ff;
-}
-.calendar-playoff-team.winner{
-  background:rgba(111,212,255,.08);
-}
-.calendar-playoff-team.winner .name,
-.calendar-playoff-team.winner .wins{
-  color:#8de7ff;
+  font-weight:950;
+  line-height:1;
+  text-align:center;
+  white-space:nowrap;
 }
 .calendar-playoff-champion{
-  border:1px solid rgba(141,231,255,.28);
-  border-radius:12px;
-  background:linear-gradient(135deg,rgba(141,231,255,.12),rgba(87,198,255,.08));
-  padding:12px;
+  border:1px solid rgba(155,216,65,.28);
+  border-radius:10px;
+  background:rgba(155,216,65,.08);
+  padding:9px;
   text-align:center;
-  font-size:13px;
-  font-weight:800;
-  color:#dff5ff;
+  font-size:12px;
+  font-weight:900;
+  color:#9bd841;
+}
+.calendar-playoff-empty{
+  padding:14px;
+  color:#7e838c;
+  font-weight:850;
 }
