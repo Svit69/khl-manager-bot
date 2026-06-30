@@ -335,9 +335,9 @@
   .calendar-scorer-header,.calendar-scorer-row{grid-template-columns:24px minmax(90px,1.4fr) minmax(60px,1fr) 24px 24px 24px;font-size:11px}
 .calendar-schedule-header,.calendar-schedule-row{grid-template-columns:46px minmax(90px,1fr) 58px;font-size:11px}
   .calendar-panel-scroll.playoffs{max-height:280px}
-  .calendar-playoff-series-card{grid-template-columns:minmax(0,1fr) 46px minmax(0,1fr);gap:5px}
-  .calendar-playoff-team-side{grid-template-columns:14px 22px minmax(0,1fr)}
-  .calendar-playoff-team-side.away{grid-template-columns:22px minmax(0,1fr) 14px}
+  .calendar-playoff-series-card{grid-template-columns:minmax(0,1fr) 50px minmax(0,1fr);gap:6px}
+  .calendar-playoff-team-side{grid-template-columns:14px 24px minmax(0,1fr)}
+  .calendar-playoff-team-side.away{grid-template-columns:minmax(0,1fr) 24px 14px}
   .calendar-playoff-round{padding:8px}
   .coach-hero,.coach-summary,.coach-board{grid-template-columns:1fr}
   .coach-overall{height:64px}
