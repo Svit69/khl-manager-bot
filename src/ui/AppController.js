@@ -70,6 +70,7 @@ export class AppController{
           activeTeamId:this.#state.activeTeamId,
           standings:this.#state.getStandingsTable(),
           scorers:this.#state.getTopScorers(20),
+          bestTeamScorer:this.#state.getTeamStatisticsRows(this.#state.activeTeamId,"points")[0]||null,
           schedule:this.#state.getCalendarScheduleRows(),
           playoffs:this.#state.getPlayoffBracketData(),
           seasonState
@@ -82,6 +83,7 @@ export class AppController{
         activeTeamId:this.#state.activeTeamId,
         standings:this.#state.getStandingsTable(),
         scorers:this.#state.getTopScorers(20),
+        bestTeamScorer:this.#state.getTeamStatisticsRows(this.#state.activeTeamId,"points")[0]||null,
         schedule:this.#state.getCalendarScheduleRows(),
         playoffs:this.#state.getPlayoffBracketData(),
         seasonState

@@ -1,5 +1,6 @@
 ﻿import { calculateAge } from "./SeasonUtils.js";
 import { getLatestContract, getMoodLabel, getMoodTone } from "./ContractServiceShared.js";
+import { getPlayerPhotoUrl } from "../utils/PlayerPhoto.js";
 
 const compareTeamStatsRows = (left, right, sortBy) => {
   if (sortBy === "goals") {
@@ -86,6 +87,7 @@ export const buildTeamStatisticsRows = ({ team, sortBy = "points" }) => {
   const rows = team.getRoster().map((player) => ({
     playerId: player.id,
     displayName: player.name,
+    photoUrl: getPlayerPhotoUrl(player),
     position: player.identity?.primaryPosition || "",
     ovr: player.currentOvr ?? player.ovr,
     games: player.seasonStats?.games || 0,

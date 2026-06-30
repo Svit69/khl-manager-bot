@@ -10,6 +10,7 @@ import { OfferSheetPopupRenderer } from "./OfferSheetPopupRenderer.js";
 import { IncomingTradePopupRenderer } from "./IncomingTradePopupRenderer.js";
 import { SalaryCapComplianceRenderer } from "./SalaryCapComplianceRenderer.js";
 import { CalendarMonthRenderer } from "./CalendarMonthRenderer.js";
+import { CalendarBestPlayerRenderer } from "./CalendarBestPlayerRenderer.js";
 import { LegacyTabRenderer } from "./LegacyTabRenderer.js";
 import { TeamSidebarRenderer } from "./TeamSidebarRenderer.js";
 import { renderFantasyDraftView } from "./draft/FantasyDraftViewRenderer.js";
@@ -219,7 +220,7 @@ const renderNotificationCenter=notifications=>{
   </div>`;
 };
 export class Renderer{
-  #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();#teamStatsTab=new TeamStatsTabRenderer();#freeAgentTab=new FreeAgentTabRenderer();#tradeTab=new TradeTabRenderer();#juniorTab=new JuniorTeamTabRenderer();#transferTab=new TransferTabRenderer();#coachTab=new CoachTabRenderer();#legacyTab=new LegacyTabRenderer();#teamSidebarRenderer=new TeamSidebarRenderer();#seasonContractDecision=new SeasonContractDecisionRenderer();#offerSheetPopup=new OfferSheetPopupRenderer();#incomingTradePopup=new IncomingTradePopupRenderer();#capCompliance=new SalaryCapComplianceRenderer();#monthCalendar=new CalendarMonthRenderer();
+  #teamEl;#calEl;#matchEl;#userEl;#contractTab=new ContractTabRenderer();#teamStatsTab=new TeamStatsTabRenderer();#freeAgentTab=new FreeAgentTabRenderer();#tradeTab=new TradeTabRenderer();#juniorTab=new JuniorTeamTabRenderer();#transferTab=new TransferTabRenderer();#coachTab=new CoachTabRenderer();#legacyTab=new LegacyTabRenderer();#teamSidebarRenderer=new TeamSidebarRenderer();#seasonContractDecision=new SeasonContractDecisionRenderer();#offerSheetPopup=new OfferSheetPopupRenderer();#incomingTradePopup=new IncomingTradePopupRenderer();#capCompliance=new SalaryCapComplianceRenderer();#monthCalendar=new CalendarMonthRenderer();#bestPlayerCard=new CalendarBestPlayerRenderer();
   constructor(){
     this.#teamEl=document.getElementById("teamPanel");
     this.#calEl=document.getElementById("calendarPanel");
@@ -516,7 +517,8 @@ export class Renderer{
           : "";
     const tableBody=activeTab==="standings"?standings:(activeTab==="scorers"?scorers:(activeTab==="schedule"?scheduleRows:playoffRows));
     const panelClass=activeTab==="playoffs"?" playoffs":(activeTab==="schedule"?" schedule":(activeTab==="standings"?" standings":(activeTab==="scorers"?" scorers":"")));
-    this.#calEl.innerHTML=`<div class="calendar-shell"><section class="calendar-top-block"><div class="calendar-date-row"><div><div class="calendar-date-label">${String(currentDateLabel).toUpperCase()}</div><div class="calendar-state-label">${String(text).toUpperCase()}</div></div><button id="playBtn" class="btn calendar-next-btn" ${isLocked?"disabled":""}>ДАЛЬШЕ</button></div>${tabButtons}</section><section class="calendar-content-block"><div class="calendar-panel-list${panelClass}">${tableHeader}<div class="calendar-panel-scroll${panelClass}">${tableBody}</div></div></section><section class="calendar-split-block"><div></div><div></div></section><section class="calendar-split-block"><div></div><div></div></section></div>`;
+    const bestTeamPlayer=this.#bestPlayerCard.render(panelData?.bestTeamScorer);
+    this.#calEl.innerHTML=`<div class="calendar-shell"><section class="calendar-top-block"><div class="calendar-date-row"><div><div class="calendar-date-label">${String(currentDateLabel).toUpperCase()}</div><div class="calendar-state-label">${String(text).toUpperCase()}</div></div><button id="playBtn" class="btn calendar-next-btn" ${isLocked?"disabled":""}>ДАЛЬШЕ</button></div>${tabButtons}</section><section class="calendar-content-block"><div class="calendar-panel-list${panelClass}">${tableHeader}<div class="calendar-panel-scroll${panelClass}">${tableBody}</div></div></section><section class="calendar-split-block"><div></div><div>${bestTeamPlayer}</div></section><section class="calendar-split-block"><div></div><div></div></section></div>`;
   }
   #pluralizeMatches(count){
     const mod10=count%10;
