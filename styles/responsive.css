@@ -255,6 +255,10 @@
   .draft-list-row{grid-template-columns:36px 38px minmax(0,1fr) auto}
   .draft-list-row-stat:last-child{display:none}
   .draft-cap-summary,.salary-cap-summary,.negotiation-cap-hint{grid-template-columns:1fr}
+  .contract-finance-panel{grid-template-columns:1fr}
+  .contract-future-cap{padding-left:0;border-left:0;border-top:1px solid rgba(246,247,252,.1);padding-top:12px}
+  .contract-future-cap>div{grid-template-columns:1fr}
+  .contracts-tab-switcher button{min-width:170px}
   .draft-preview-head{grid-template-columns:84px 1fr}
   .draft-preview-photo{width:84px;height:84px}
   .draft-needs-grid{grid-template-columns:1fr}

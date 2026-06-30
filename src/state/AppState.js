@@ -238,11 +238,12 @@ export class AppState {
   getSalaryCapSummary(teamId = this.#activeTeamId, seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel) {
     if (!this.#gameSettings.salaryCapEnabled || !teamId) return null;
     const contracts = this.#exportContractRows();
-    const payrollRub = contracts
-      .filter((contract) => contract.teamId === teamId && contract.season === seasonLabel)
-      .reduce((sum, contract) => sum + (Number(contract.salaryRub) || 0), 0);
-    const capRub = this.#getSalaryCapRub(seasonLabel);
-    return { enabled: true, seasonLabel, capRub, payrollRub, remainingRub: Math.max(0, capRub - payrollRub) };
+    const summary = this.#buildSalaryCapSeasonSummary(teamId, seasonLabel, contracts);
+    const futureSeasons = [1, 2, 3].map((offset) => {
+      const season = Array.from({ length: offset }).reduce((value) => formatNextSeason(value), seasonLabel);
+      return this.#buildSalaryCapSeasonSummary(teamId, season, contracts);
+    });
+    return { enabled: true, ...summary, floorRub: Math.round(summary.capRub * 0.65), futureSeasons };
   }
 
   getSeasonContractSalaryCapSummary() {
@@ -416,6 +417,13 @@ export class AppState {
 
   #getSalaryCapRub(seasonLabel) {
     return this.#salaryCap.getCapRub(seasonLabel, this.#getSalaryCapConfig());
+  }
+
+  #buildSalaryCapSeasonSummary(teamId, seasonLabel, contracts = this.#exportContractRows()) {
+    const seasonContracts = (contracts || []).filter((contract) => contract.teamId === teamId && contract.season === seasonLabel);
+    const payrollRub = seasonContracts.reduce((sum, contract) => sum + (Number(contract.salaryRub) || 0), 0);
+    const capRub = this.#getSalaryCapRub(seasonLabel);
+    return { seasonLabel, capRub, payrollRub, remainingRub: Math.max(0, capRub - payrollRub), contractCount: seasonContracts.length };
   }
 
   #renewSuccessfulAiCoaches(transition, seasonEnd) {

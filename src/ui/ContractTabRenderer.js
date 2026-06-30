@@ -1,4 +1,5 @@
 import { renderExternalRightsPanel } from "./ExternalRightsCardRenderer.js";
+import { renderContractFinanceHeader } from "./ContractFinanceRenderer.js";
 
 const getNameFitClass = (name = "") => name.length > 28 ? "name-fit-xs" : name.length > 22 ? "name-fit-sm" : "";
 
@@ -6,7 +7,7 @@ export class ContractTabRenderer {
   render(rows, negotiation, restrictedRights = [], externalPlayers = [], salaryCap = null) {
     const restrictedMarkup = this.#renderRestrictedRights(restrictedRights);
     const externalMarkup = this.#renderExternalPlayers(externalPlayers);
-    const capMarkup = this.#renderSalaryCapSummary(salaryCap);
+    const capMarkup = renderContractFinanceHeader(salaryCap);
     const content = rows
       .map((row) => {
         const contractInfo = row.contractEndDate ? `До ${row.contractEndDate}` : "Контракт не найден";
@@ -25,12 +26,7 @@ export class ContractTabRenderer {
       })
       .join("");
 
-    return `<h2>Контракты</h2>${capMarkup}${restrictedMarkup}${externalMarkup}<div class="contract-grid">${content || '<div class="muted">Игроки не найдены</div>'}</div>`;
-  }
-
-  #renderSalaryCapSummary(cap) {
-    if (!cap?.enabled) return "";
-    return `<section class="salary-cap-summary"><div><span>Потолок ${cap.seasonLabel}</span><strong>${this.#formatMillions(cap.payrollRub)} / ${this.#formatMillions(cap.capRub)} млн</strong></div><div><span>Доступно</span><strong>${this.#formatMillions(cap.remainingRub)} млн</strong></div></section>`;
+    return `<section class="contracts-screen">${capMarkup}${restrictedMarkup}${externalMarkup}<div class="contract-grid">${content || '<div class="muted">Игроки не найдены</div>'}</div></section>`;
   }
 
   #renderExternalPlayers(rows) {

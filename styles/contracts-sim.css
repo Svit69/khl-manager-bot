@@ -1,5 +1,27 @@
 /* Contracts, negotiations, and match simulation */
 
+.contracts-screen{display:grid;gap:12px;min-width:0}
+.contracts-tab-switcher{display:flex;gap:0;min-height:46px;padding:6px 8px;align-items:center;overflow-x:auto;background:linear-gradient(90deg,rgba(14,24,38,.96),rgba(12,18,30,.88));box-shadow:inset 0 1px 0 rgba(246,247,252,.06),inset 0 -1px 0 rgba(82,33,242,.18)}
+.contracts-tab-switcher button{min-width:190px;min-height:34px;border:0;border-radius:10px;padding:0 14px;background:transparent;color:#7e838c;font:inherit;font-size:11px;font-weight:950;text-transform:uppercase;cursor:pointer}
+.contracts-tab-switcher button.active{color:#f6f7fc;background:linear-gradient(180deg,#161329 0%,#1e1c36 100%);border-bottom:2px solid #5221f2;box-shadow:inset 0 0 0 1px rgba(246,247,252,.06)}
+.contract-finance-panel{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,.96fr);gap:18px;padding:14px;border-radius:14px;background:#090c10;box-shadow:inset 0 0 0 1px rgba(246,247,252,.08)}
+.contract-current-cap{display:grid;gap:11px;min-width:0}
+.contract-current-cap h3,.contract-future-cap h3{margin:0;color:#f6f7fc;font-size:13px;font-weight:950;line-height:1;text-transform:uppercase}
+.contract-current-cap h3 span{color:#7e838c}
+.contract-cap-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.contract-cap-metrics div{display:grid;gap:4px;min-width:0}
+.contract-cap-metrics span,.contract-cap-progress-label span,.contract-current-cap small,.contract-future-cap span,.contract-future-cap small{color:#7e838c;font-size:10px;font-weight:850;text-transform:uppercase}
+.contract-cap-metrics strong{color:#9bd841;font-size:14px;font-weight:950;white-space:nowrap}
+.contract-cap-progress-label{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.contract-cap-progress-label b{color:#f6f7fc;font-size:11px}
+.contract-cap-progress{height:11px;border-radius:999px;background:rgba(246,247,252,.1);overflow:hidden}
+.contract-cap-progress span{display:block;height:100%;border-radius:inherit;background:#9bd841}
+.contract-future-cap{display:grid;gap:10px;min-width:0;padding-left:18px;border-left:1px solid rgba(246,247,252,.1)}
+.contract-future-cap>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.contract-future-cap-tile{display:grid;gap:5px;min-width:0;padding:10px;border-radius:10px;background:rgba(82,33,242,.06);box-shadow:inset 0 0 0 1px rgba(82,33,242,.55)}
+.contract-future-cap-tile strong{color:#f6f7fc;font-size:12px;font-weight:950;text-align:center}
+.contract-future-cap-tile b{color:#f6f7fc;font-size:12px}
+.contract-future-cap-tile em{color:#9bd841;font-size:12px;font-style:normal;font-weight:950}
 .contract-grid{display:flex;flex-direction:column;gap:10px}
 .contract-card{background:linear-gradient(180deg,rgba(10,30,54,.92),rgba(8,23,44,.82));border:1px solid rgba(112,157,211,.32);border-radius:10px}
 .contract-row{width:100%;background:none;border:none;color:var(--text);padding:10px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;cursor:pointer}
