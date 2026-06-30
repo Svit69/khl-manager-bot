@@ -3,7 +3,7 @@ const getTeamName = (team = {}) => team.shortName || team.name || "?";
 const getScore = (series = {}) => {
   const left = series.higherSeed?.wins ?? 0;
   const right = series.lowerSeed?.wins ?? 0;
-  return `${left || "-"} — ${right || "-"}`;
+  return `${left} — ${right}`;
 };
 
 const renderTeam = (entry = {}, side) => {
