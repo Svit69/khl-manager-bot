@@ -442,6 +442,91 @@
   line-height:1.05;
   text-transform:uppercase;
 }
+.calendar-next-match-card{
+  position:absolute;
+  inset:0;
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr);
+  gap:8px;
+  padding:13px 12px;
+  overflow:hidden;
+}
+.calendar-next-match-card h3{
+  margin:0;
+  color:#f6f7fc;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.08em;
+  line-height:1.05;
+  text-transform:uppercase;
+}
+.calendar-next-match-layout{
+  display:grid;
+  grid-template-columns:minmax(0,.9fr) minmax(74px,1fr) minmax(0,.9fr);
+  gap:8px;
+  align-items:center;
+  min-height:0;
+}
+.calendar-next-match-team{
+  display:grid;
+  justify-items:center;
+  gap:4px;
+  min-width:0;
+}
+.calendar-next-match-team img{
+  width:62px;
+  height:50px;
+  object-fit:contain;
+}
+.calendar-next-match-team strong{
+  max-width:100%;
+  color:#f6f7fc;
+  font-size:11px;
+  font-weight:950;
+  line-height:1.05;
+  text-align:center;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.calendar-next-match-team span{
+  color:#7e838c;
+  font-size:11px;
+  font-weight:850;
+  line-height:1;
+}
+.calendar-next-match-center{
+  display:grid;
+  justify-items:center;
+  gap:5px;
+  min-width:0;
+  text-align:center;
+}
+.calendar-next-match-center span{
+  color:#7e838c;
+  font-size:10px;
+  font-weight:950;
+  line-height:1;
+  text-transform:uppercase;
+}
+.calendar-next-match-center strong{
+  color:#9bd841;
+  font-size:27px;
+  font-weight:950;
+  line-height:.9;
+}
+.calendar-next-match-center em,
+.calendar-next-match-center small{
+  max-width:100%;
+  color:#7e838c;
+  font-size:10px;
+  font-style:normal;
+  font-weight:850;
+  line-height:1.05;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
 
 .calendar-panel-list.playoffs{
   background:linear-gradient(180deg,rgba(11,20,36,.88),rgba(8,15,29,.92));
