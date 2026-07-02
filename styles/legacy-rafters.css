@@ -1,3 +1,15 @@
+.legacy-tab-switcher{display:flex;gap:0;min-height:46px;padding:6px 8px;align-items:center;overflow-x:auto;background:linear-gradient(90deg,rgba(14,24,38,.96),rgba(12,18,30,.88));box-shadow:inset 0 1px 0 rgba(246,247,252,.06),inset 0 -1px 0 rgba(82,33,242,.18)}
+.legacy-tab-switcher button{min-width:180px;min-height:34px;border:0;border-radius:10px;padding:0 14px;background:transparent;color:#7e838c;font:inherit;font-size:11px;font-weight:950;text-transform:uppercase;cursor:pointer}
+.legacy-tab-switcher button.active{color:#f6f7fc;background:linear-gradient(180deg,#161329 0%,#1e1c36 100%);border-bottom:2px solid #5221f2;box-shadow:inset 0 0 0 1px rgba(246,247,252,.06)}
+.legacy-history-panel{display:grid;gap:16px;min-width:0}
+.legacy-history-panel h2{margin:0;color:#f6f7fc;font-size:22px;font-style:italic;font-weight:900;letter-spacing:.04em;text-transform:uppercase}
+.legacy-history-box{display:grid;grid-template-columns:.95fr 1.05fr 1.65fr;min-height:176px;border-radius:14px;background:#090c10;box-shadow:inset 0 0 0 1px rgba(246,247,252,.08);overflow:hidden}
+.legacy-history-fact,.legacy-history-identity{display:grid;align-content:center;gap:12px;min-width:0;padding:24px 28px}
+.legacy-history-fact+.legacy-history-fact,.legacy-history-identity{border-left:1px solid rgba(246,247,252,.08)}
+.legacy-history-fact span,.legacy-history-identity span{color:#7e838c;font-size:13px;font-weight:900;letter-spacing:.04em;text-transform:uppercase}
+.legacy-history-fact strong{color:#f6f7fc;font-size:clamp(28px,3.3vw,42px);font-weight:950;line-height:1;text-transform:uppercase}
+.legacy-history-fact small{color:#f6f7fc;font-size:14px;font-weight:850;line-height:1.2}
+.legacy-history-identity p{margin:0;color:#f6f7fc;font-size:13px;font-weight:650;line-height:1.55}
 .legacy-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .legacy-rafters-card{grid-column:1/-1;width:100%}
 .legacy-rafter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -30,6 +42,9 @@
 .legacy-rafter-facts div{border:1px solid rgba(255,255,255,.06)}
 
 @media (max-width:720px){
+  .legacy-history-box{grid-template-columns:1fr}
+  .legacy-history-fact+.legacy-history-fact,.legacy-history-identity{border-left:0;border-top:1px solid rgba(246,247,252,.08)}
+  .legacy-tab-switcher button{min-width:160px}
   .legacy-grid,.legacy-rafter-grid{grid-template-columns:1fr}
   .legacy-rafter-card{grid-template-columns:1fr}
   .legacy-rafter-title{display:grid}
