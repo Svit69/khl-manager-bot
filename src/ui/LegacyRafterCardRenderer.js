@@ -10,7 +10,7 @@ export const renderRafterCard = (row) => `<article class="legacy-rafter-card" ti
     <div class="legacy-rafter-caption">
       <span>${formatUppercaseText(row.name)}</span>
       <small>${formatOptionalText(getPrimaryHonor(row))}</small>
-      <b>${formatOptionalText(row.clubYears)}</b>
     </div>
+    <b class="legacy-rafter-years">${formatOptionalText(row.clubYears)}</b>
   </div>
 </article>`;
