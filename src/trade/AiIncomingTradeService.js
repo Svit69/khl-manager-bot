@@ -7,7 +7,7 @@ export class AiIncomingTradeService {
       if (!receivePlayerIds.length) continue;
       const givePlayerIds = [toTradePlayerId(entry.userPlayer)];
       const evaluation = evaluateTrade(entry.aiTeam.id, givePlayerIds, receivePlayerIds);
-      if (!evaluation?.decision?.accepted || evaluation.userDelta < -5 || evaluation.userDelta > 16) continue;
+      if (!evaluation?.decision?.accepted || evaluation.userDelta < 2 || evaluation.userDelta > 22) continue;
       if (isCapAllowed && !isCapAllowed(entry.aiTeam.id, givePlayerIds, receivePlayerIds)) continue;
       return this.#createOffer(entry.aiTeam, entry.userPlayer, receivePlayerIds, evaluation, seasonLabel, day);
     }
@@ -38,8 +38,8 @@ export class AiIncomingTradeService {
     const singles = ranked.map((player) => [toTradePlayerId(player)]);
     const pairs = ranked.flatMap((left, index) => ranked.slice(index + 1, index + 5).map((right) => [toTradePlayerId(left), toTradePlayerId(right)]));
     return [...singles, ...pairs].map((ids) => ({ ids, evaluation: evaluateTrade(aiTeam.id, [toTradePlayerId(userPlayer)], ids) }))
-      .filter((item) => item.evaluation?.decision?.accepted && item.evaluation.userDelta >= -5 && item.evaluation.userDelta <= 16)
-      .sort((left, right) => Math.abs(left.evaluation.userDelta - 1) - Math.abs(right.evaluation.userDelta - 1))[0]?.ids || [];
+      .filter((item) => item.evaluation?.decision?.accepted && item.evaluation.userDelta >= 2 && item.evaluation.userDelta <= 22)
+      .sort((left, right) => Math.abs(left.evaluation.userDelta - 7) - Math.abs(right.evaluation.userDelta - 7))[0]?.ids || [];
   }
   #createOffer(aiTeam, userPlayer, receivePlayerIds, evaluation, seasonLabel, day) {
     return { id: `ai-trade-${seasonLabel}-${day}-${aiTeam.id}-${userPlayer.id}`, status: "pending", teamId: aiTeam.id, givePlayerIds: [toTradePlayerId(userPlayer)], receivePlayerIds, day, expiresDay: day + 10, userDelta: evaluation.userDelta };

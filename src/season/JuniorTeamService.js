@@ -475,19 +475,19 @@ export class JuniorTeamService {
       (team.juniorPlayers || []).forEach((player) => {
         if (player.identity?.isGoalie) return;
         const age = calculateAge(player.identity?.birthDate, seasonDate);
-        const growth = age <= 17 ? 1.25 : age === 18 ? 1.05 : age <= 20 ? 0.7 : 0.25;
+        const growth = age <= 17 ? 1.45 : age === 18 ? 1.2 : age <= 20 ? 0.85 : 0.25;
         const potentialGap = Math.max(0, (player.potential?.potential || player.ovr) - player.ovr);
         const practice = getJuniorPracticeProfile(player);
-        const practiceBoost = Math.min(0.24, practice.khlGames * 0.014);
-        const leagueBoost = Math.min(0.22, Number(player.juniorLeagueDevelopmentBonus) || 0);
+        const practiceBoost = Math.min(0.28, practice.khlGames * 0.016);
+        const leagueBoost = Math.min(0.32, Number(player.juniorLeagueDevelopmentBonus) || 0);
         const noPracticePenalty = age >= 19 && practice.khlGames === 0 ? 0.05 : 0;
-        const chance = Math.min(0.95, 0.24 + potentialGap * 0.045 + growth * 0.18 + practiceBoost + leagueBoost - noPracticePenalty);
+        const chance = Math.min(0.97, 0.32 + potentialGap * 0.055 + growth * 0.2 + practiceBoost + leagueBoost - noPracticePenalty);
         const roll = (hash(`${player.id}:${seasonLabel || "season"}:junior-dev`) % 1000) / 1000;
         if (roll > chance) return;
         const attrs = Object.keys(player.attributes.attributesJson || {});
         const key = attrs[hash(`${player.id}:attr`) % attrs.length];
         player.attributes.applyAttributeDelta(key, 1);
-        if ((potentialGap >= 12 && age <= 18) || (practice.khlGames >= 18 && potentialGap >= 6)) {
+        if ((potentialGap >= 10 && age <= 18) || (practice.khlGames >= 18 && potentialGap >= 6) || (age <= 17 && potentialGap >= 7)) {
           const bonusKey = attrs[hash(`${player.id}:${seasonLabel || "season"}:practice-attr`) % attrs.length];
           player.attributes.applyAttributeDelta(bonusKey, 1);
         }
@@ -498,6 +498,7 @@ export class JuniorTeamService {
   releaseOveragePlayers({ teams, seasonLabel, hasMainContract = () => false }) {
     const released = [];
     const promoted = [];
+    const removed = [];
     (teams || []).forEach((team) => {
       if (!team?.juniorTeam || !Array.isArray(team.juniorPlayers)) return;
       const keep = [];
@@ -515,11 +516,11 @@ export class JuniorTeamService {
         player.affiliation.teamId = null;
         player.affiliation.contractId = null;
         player.affiliation.acquiredDay = null;
-        released.push({ player, team });
+        removed.push({ player, team });
       });
       team.juniorPlayers.splice(0, team.juniorPlayers.length, ...keep);
     });
-    return { released, promoted };
+    return { released, promoted, removed };
   }
 
   #createRegen(team, seasonLabel, index, forcedId = null, generationSeed = null, options = {}) {
@@ -534,7 +535,7 @@ export class JuniorTeamService {
     const { firstName, lastName } = getNames(nationality, seed, existingNames, team);
     const ovr = getBaseOvr(age, seed);
     const talentRoll = seed % 100;
-    const potentialGap = talentRoll >= 95 ? 20 + (seed % 5) : talentRoll >= 70 ? 13 + (seed % 7) : 6 + (seed % 8);
+    const potentialGap = talentRoll >= 96 ? 24 + (seed % 6) : talentRoll >= 82 ? 18 + (seed % 7) : talentRoll >= 47 ? 10 + (seed % 8) : 4 + (seed % 8);
     const playerId = forcedId || createJuniorPlayerId(team.id, seasonLabel, index);
     const profile = {
       id: playerId,
@@ -554,7 +555,7 @@ export class JuniorTeamService {
       hiddenTraits: getJuniorHiddenTraits({ position, seed, talentRoll }),
       attributes: getAttributeProfile(position, ovr, seed),
       potential: {
-        potential: clamp(ovr + potentialGap, 55, 92),
+        potential: clamp(ovr + potentialGap, 55, 94),
         growthRate: 0.6 + ((seed % 40) / 100),
         peakAge: 26 + (seed % 4),
         declineRate: 0.3 + ((seed % 40) / 100),

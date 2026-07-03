@@ -248,7 +248,8 @@ export class AppState {
 
   getSeasonContractSalaryCapSummary() {
     const currentSeason = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
-    return this.getSalaryCapSummary(this.#activeTeamId, formatNextSeason(currentSeason));
+    const targetSeason = this.#seasonState?.phase === "preseason" ? currentSeason : formatNextSeason(currentSeason);
+    return this.getSalaryCapSummary(this.#activeTeamId, targetSeason);
   }
 
   getSalaryCapComplianceView(selectedPlayerIds = []) {
@@ -1106,11 +1107,6 @@ export class AppState {
     const offerWindow = this.#externalRightsInterest.buildOfferWindow(player, season);
     if (!offerWindow.canOffer) return { decision: "locked", reason: offerWindow.label };
     const preview = this.#contracts.getFreeAgentPreview(this.activeTeam, player, offer, this.#buildNegotiationContext(this.activeTeam));
-    const capAssessment = this.#canSubmitContractOffer(this.activeTeam, player, preview.offer, "freeAgent", {
-      ...this.#buildNegotiationContext(this.activeTeam),
-      seasonLabel: season,
-    });
-    if (!capAssessment.allowed) return this.#buildSalaryCapRejection(capAssessment, this.activeTeam);
     const nextDecisionIndex = Math.min((this.#seasonState?.preseasonDates || []).length - 1, (Number(this.#seasonState?.preseasonIndex) || 0) + 1);
     const nextDecisionDate = getPreseasonNextDate(this.#seasonState?.preseasonDates || [], this.#seasonState?.preseasonIndex || 0);
     player.externalCareer = { ...(player.externalCareer || {}), lastKhlOfferSeason: season };
@@ -1293,6 +1289,7 @@ export class AppState {
 
   canStartSeason() {
     if (!(this.#seasonState?.phase === "preseason" && this.#seasonState?.preseasonOpen)) return false;
+    if (this.needsSalaryCapCompliance()) return false;
     if (this.#gameSettings.restrictedFreeAgencyEnabled && (this.#seasonState?.restrictedRightsOffers || []).some((entry) => entry?.status === "pending" && entry.rightsTeamId === this.#activeTeamId)) return false;
     const dates = this.#seasonState?.preseasonDates || [];
     return (Number(this.#seasonState?.preseasonIndex) || 0) >= Math.max(0, dates.length - 1);
@@ -1300,6 +1297,7 @@ export class AppState {
 
   canAdvancePreseasonDay() {
     if (!(this.#seasonState?.phase === "preseason" && this.#seasonState?.preseasonOpen)) return false;
+    if (this.needsSalaryCapCompliance()) return false;
     const dates = this.#seasonState?.preseasonDates || [];
     return (Number(this.#seasonState?.preseasonIndex) || 0) < Math.max(0, dates.length - 1);
   }
@@ -1315,6 +1313,7 @@ export class AppState {
       decisionIndex: Number(this.#seasonState?.preseasonIndex) || 0,
       decisionDate: preseasonDate,
     });
+    if (this.needsSalaryCapCompliance()) return false;
     const depthMovements = this.#seasonTransition.ensureMinimumRosterDepth({
       teams: this.#teams,
       activeTeamId: this.#activeTeamId,
@@ -2356,16 +2355,14 @@ export class AppState {
     const preview = this.#contracts.getFreeAgentPreview(team, player, entry.offer, { ...this.#buildNegotiationContext(team), currentDate: decisionDate });
     const decision = this.#externalRightsOffers.buildDecision({ player, offer: entry.offer, preview, teamId: team.id, decisionDate, seasonLabel: entry.season });
     if (decision.accepted) {
-      const capAssessment = this.#canSubmitContractOffer(team, player, entry.offer, "freeAgent", { currentDate: decisionDate, seasonLabel: entry.season });
-      if (!capAssessment.allowed) {
-        this.#pushNotification({ id: `notification-external-offer-cap-${player.id}-${Date.now()}`, type: "free-agent-market", title: "Потолок зарплат", message: `${player.name} готов вернуться, но контракт не помещается под потолок ${team.name}.`, day: this.#calendar.currentDay, createdAt: new Date().toISOString(), playerId: player.id, read: false });
-        return;
-      }
       this.#contracts.finalizeFreeAgentSigning(team, player, entry.offer, { currentDate: decisionDate, seasonLabel: entry.season });
       player.affiliation.acquiredDay = this.#calendar.currentDay;
       this.#activateExternalPlayer(player, team, entry.season);
       this.#recordPlayerMovement({ player, fromTeamId: null, toTeamId: team.id, method: "externalReturn" });
       this.#pushNotification({ id: `notification-external-offer-accept-${player.id}-${Date.now()}`, type: "user-signing", title: "Ответ из НХЛ / АХЛ", message: `${player.name} принял предложение и возвращается в КХЛ`, day: this.#calendar.currentDay, createdAt: new Date().toISOString(), playerId: player.id, read: false });
+      if (team.id === this.#activeTeamId && this.needsSalaryCapCompliance()) {
+        this.#pushNotification({ id: `notification-external-offer-cap-${player.id}-${Date.now()}`, type: "free-agent-market", title: "Потолок зарплат", message: `${player.name} подписан. До перехода к следующему дню разгрузите потолок зарплат.`, day: this.#calendar.currentDay, createdAt: new Date().toISOString(), playerId: player.id, read: false });
+      }
       return;
     }
     player.externalCareer = { ...(player.externalCareer || {}), returnInterest: Math.max(0, (Number(player.externalCareer?.returnInterest) || 0) - 8) };
@@ -2466,12 +2463,15 @@ export class AppState {
 
   #finalizeCompetitiveFreeAgentSigning(player, winningOffer, decisionDate, competingOffers) {
     const team = this.#teams.find((entry) => entry.id === winningOffer.teamId);
-    if (!team) return;
+    if (!team) return false;
     const capAssessment = this.#canSubmitContractOffer(team, player, winningOffer.offer, "freeAgent", {
       currentDate: decisionDate,
       seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
     });
-    if (!capAssessment.allowed) return;
+    if (!capAssessment.allowed) {
+      this.#freeAgents = dedupeFreeAgents([...this.#freeAgents, player]);
+      return false;
+    }
 
     const newContracts = this.#contracts.finalizeFreeAgentSigning(team, player, winningOffer.offer, {
       currentDate: decisionDate,
@@ -2519,6 +2519,7 @@ export class AppState {
           read: false,
         });
       });
+    return true;
   }
 
   #syncSeasonReferenceDate() {
@@ -2655,7 +2656,7 @@ export class AppState {
 
   #releaseIneligibleJuniorPlayers({ notify = false } = {}) {
     const seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
-    const { released, promoted } = this.#juniors.releaseOveragePlayers({
+    const { released, promoted, removed } = this.#juniors.releaseOveragePlayers({
       teams: this.#teams,
       seasonLabel,
       hasMainContract: (player, team) => {
@@ -2663,13 +2664,19 @@ export class AppState {
         return contract?.teamId === team.id && contract.type !== ContractType.THREE_WAY;
       },
     });
-    if (!released.length && !promoted.length) return;
+    if (!released.length && !promoted.length && !removed?.length) return;
     const marketReleased = this.#selectReleasedJuniorMarketPlayers(released);
     if (released.length) {
       this.#contracts.releasePlayers(released.map(({ player }) => player.id));
       this.#freeAgents = dedupeFreeAgents([...this.#freeAgents, ...marketReleased.map(({ player }) => player)]);
       released.forEach(({ player, team }) => {
         this.#recordPlayerMovement({ player, fromTeamId: team.id, toTeamId: null, method: "juniorRelease" });
+      });
+    }
+    if (removed?.length) {
+      this.#contracts.releasePlayers(removed.map(({ player }) => player.id));
+      removed.forEach(({ player, team }) => {
+        this.#recordPlayerMovement({ player, fromTeamId: team.id, toTeamId: null, method: "juniorGraduationRemoved" });
       });
     }
     this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());

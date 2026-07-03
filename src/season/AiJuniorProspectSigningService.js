@@ -6,12 +6,19 @@ import { getScoutedPotential } from "./JuniorScouting.js";
 const getJuniorIdPrefix = (teamId, seasonLabel) => `junior-${teamId}-${String(seasonLabel || "season-1").replace(/[^0-9A-Za-z]+/g, "-")}-`;
 const getCoachTargetCount = (coach) => {
   const rating = Number(coach?.ratings?.playerDevelopment) || 70;
-  if (rating >= 86) return 4;
-  if (rating >= 78) return 3;
-  if (rating >= 68) return 2;
+  if (rating >= 86) return 3;
+  if (rating >= 78) return 2;
   return 1;
 };
 const getPotentialScore = (player, seasonLabel) => Number(player?.potential?.potential) || Number(getScoutedPotential(player, seasonLabel)?.high) || Number(player?.ovr) || 0;
+const isPromotionWorthyProspect = (player, seasonLabel) => {
+  const potential = getPotentialScore(player, seasonLabel);
+  const ovr = Number(player?.ovr) || 0;
+  const age = getJuniorSeasonAge(player, seasonLabel);
+  if (potential >= 84 && ovr >= 60) return true;
+  if (potential >= 80 && ovr >= 64 && age >= 18) return true;
+  return potential >= 78 && ovr >= 67 && age >= 19;
+};
 const buildOffer = (player, seasonLabel) => {
   const potential = getPotentialScore(player, seasonLabel) || 60;
   const salaryRub = Math.max(getFallbackMarketSalaryRub(player), 750000 + Math.max(0, (Number(player?.ovr) || 55) - 55) * 75000);
@@ -42,7 +49,7 @@ export class AiJuniorProspectSigningService {
     return [...(team.juniorPlayers || [])].filter((player) => getJuniorSeasonAge(player, seasonLabel) <= 20)
       .filter((player) => {
         const contract = getContractForSeason(player.id, nextSeason);
-        return (!contract || contract.type === ContractType.THREE_WAY) && getPotentialScore(player, seasonLabel) >= 66;
+        return (!contract || contract.type === ContractType.THREE_WAY) && isPromotionWorthyProspect(player, seasonLabel);
       }).sort((left, right) => getPotentialScore(right, seasonLabel) - getPotentialScore(left, seasonLabel)
         || (Number(right.ovr) || 0) - (Number(left.ovr) || 0)
         || getJuniorSeasonAge(left, seasonLabel) - getJuniorSeasonAge(right, seasonLabel));

@@ -101,9 +101,17 @@ export const buildOffseasonFreeAgentCandidates = ({ contracts, team, freeAgents,
   sortCandidates(
     (freeAgents || [])
       .filter((player) => !player?.affiliation?.teamId)
+      .filter((player) => !isWeakGeneratedJuniorFreeAgent(player))
       .map((player) => buildOffseasonFreeAgentCandidate({ contracts, team, player, context, plan }))
       .filter(Boolean),
   );
+
+const isWeakGeneratedJuniorFreeAgent = (player) => {
+  if (!String(player?.id || "").startsWith("junior-")) return false;
+  const ovr = Number(player?.ovr) || 0;
+  const potential = Number(player?.potential?.potential) || ovr;
+  return ovr < 68 && potential < 80;
+};
 
 export const getOffseasonSigningSlots = (team, plan) => {
   const roster = team?.getRoster?.() || [];

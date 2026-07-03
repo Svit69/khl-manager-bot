@@ -28,6 +28,12 @@ const collectUniqueFreeAgents = (players) => {
 };
 
 const getJuniorPlayerIds = (team) => new Set((team?.juniorPlayers || []).map((player) => player.id));
+const isWeakGeneratedJuniorFreeAgent = (player) => {
+  if (!String(player?.id || "").startsWith("junior-")) return false;
+  const ovr = Number(player?.ovr) || 0;
+  const potential = Number(player?.potential?.potential) || ovr;
+  return ovr < 68 && potential < 80;
+};
 
 export class SeasonTransitionService {
   #contracts;
@@ -314,12 +320,14 @@ export class SeasonTransitionService {
 
           const candidatePool = getAvailableFreeAgents()
             .filter((player) => !attemptedPlayerIds.has(player.id))
+            .filter((player) => !isWeakGeneratedJuniorFreeAgent(player))
             .filter((player) => !preferredGroup || getGroup(player) === preferredGroup)
             .sort((left, right) => (right.ovr - left.ovr) || left.name.localeCompare(right.name, "ru"));
           const fallbackPool = candidatePool.length
             ? candidatePool
             : getAvailableFreeAgents()
               .filter((player) => !attemptedPlayerIds.has(player.id))
+              .filter((player) => !isWeakGeneratedJuniorFreeAgent(player))
               .sort((left, right) => (right.ovr - left.ovr) || left.name.localeCompare(right.name, "ru"));
 
           let signedPlayer = null;
