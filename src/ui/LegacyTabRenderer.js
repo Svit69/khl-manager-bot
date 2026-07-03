@@ -10,7 +10,12 @@ const renderAllTimeScorerRow = (row, index) => `<div class="legacy-row compact">
   <strong>${index + 1}</strong><span>${row.name}</span><b>${row.points}</b><small>${row.goals}+${row.assists}</small>
 </div>`;
 
-const renderRetiredNumberRafters = (items = []) => `<section class="legacy-card legacy-rafters-card"><div class="legacy-head"><h3>Выведенные номера</h3><span>Имена и номера под сводами арены</span></div><div class="legacy-rafter-grid">${items.map(renderRafterCard).join("") || `<div class="legacy-empty">Стяги клуба еще не добавлены.</div>`}</div></section>`;
+const renderRafterThumb = (row) => `<span class="legacy-rafter-thumb"><b>${row.number}</b></span>`;
+const renderRetiredNumberRafters = (items = []) => `<section class="legacy-rafters-card">
+  <div class="legacy-rafters-head"><h3>Джерси под сводами арены</h3><span>Показано ${Math.min(items.length, 4)} из ${items.length} легенд</span></div>
+  <div class="legacy-rafter-track">${items.map(renderRafterCard).join("") || `<div class="legacy-empty">Стяги клуба еще не добавлены.</div>`}</div>
+  ${items.length ? `<div class="legacy-rafter-thumbs">${items.map(renderRafterThumb).join("")}</div>` : ""}
+</section>`;
 
 export class LegacyTabRenderer {
   render(view) {

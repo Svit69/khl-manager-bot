@@ -1,13 +1,16 @@
 const formatOptionalText = (value, fallback = "—") => value || fallback;
+const formatUppercaseText = (value) => String(formatOptionalText(value)).toUpperCase();
+const getPrimaryHonor = (row) => row.achievements || row.reason || "Легенда клуба";
 
-export const renderRafterCard = (row) => `<article class="legacy-rafter-card">
-  <div class="legacy-rafter-number"><strong>${row.number}</strong><span>${formatOptionalText(row.raisedDate)}</span></div>
-  <div class="legacy-rafter-body">
-    <div class="legacy-rafter-title"><h4>${row.name}</h4><span>${formatOptionalText(row.clubYears)}</span></div>
-    <p>${formatOptionalText(row.reason, "Причина будет добавлена позже.")}</p>
-    <div class="legacy-rafter-facts">
-      <div><small>Достижения</small><strong>${formatOptionalText(row.achievements)}</strong></div>
-      <div><small>Статистика клуба</small><strong>${formatOptionalText(row.stats)}</strong></div>
+export const renderRafterCard = (row) => `<article class="legacy-rafter-card" title="${formatOptionalText(row.name)} #${row.number}">
+  <img class="legacy-rafter-banner" src="./legacy-photo/banner.png" alt="" aria-hidden="true">
+  <div class="legacy-rafter-content">
+    <strong class="legacy-rafter-surname">${formatUppercaseText(row.lastName)}</strong>
+    <strong class="legacy-rafter-number">${row.number}</strong>
+    <div class="legacy-rafter-caption">
+      <span>${formatUppercaseText(row.name)}</span>
+      <small>${formatOptionalText(getPrimaryHonor(row))}</small>
+      <b>${formatOptionalText(row.clubYears)}</b>
     </div>
   </div>
 </article>`;
