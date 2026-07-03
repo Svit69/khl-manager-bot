@@ -1,5 +1,6 @@
 import { avtomobilistPlayerContracts } from "./avtomobilistPlayers.js";
 import { admiralPlayerContracts } from "./admiral/index.js";
+import { amurPlayerContracts } from "./amur/index.js";
 import { lokomotivPlayerContracts } from "./lokomotivPlayers.js";
 import { sibirPlayerContracts } from "./sibirPlayers.js";
 import { barysPlayerContracts } from "./barysPlayers.js";
@@ -2905,6 +2906,7 @@ export const playerContracts=[
     type:"three-way"
   },
   ...admiralPlayerContracts,
+  ...amurPlayerContracts,
   ...avtomobilistPlayerContracts,
   ...lokomotivPlayerContracts,
   ...sibirPlayerContracts,

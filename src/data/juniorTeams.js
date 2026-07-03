@@ -1,6 +1,7 @@
 const JUNIOR_TEAM_BY_PARENT_SHORT_NAME = Object.freeze({
   AVG: { name: "Омские Ястребы", shortName: "OMY" },
   ADM: { name: "Тайфун", shortName: "TYF" },
+  AMR: { name: "Амурские тигры", shortName: "AMT" },
   CSK: { name: "Красная Армия", shortName: "KRA" },
   SYU: { name: "Толпар", shortName: "TLP" },
   AVT: { name: "Авто", shortName: "AVT-M" },
