@@ -23,7 +23,7 @@ export const renderClubHistoryPanel = (team, info) => `<section class="legacy-hi
     <div class="legacy-history-fact"><span>ОСНОВАНИЕ КЛУБА</span><strong>${value(info?.founded)}</strong></div>
     <div class="legacy-history-fact">
       <span>ДОМАШНЯЯ АРЕНА</span>
-      <strong>${String(value(info?.arena)).toUpperCase()}</strong>
+      <strong class="legacy-history-arena">${String(value(info?.arena)).toUpperCase()}</strong>
       <small>${String(`${team?.city || ""}, ${countryLabel(team?.country)}`).toUpperCase()}</small>
     </div>
     ${renderIdentity(info)}
