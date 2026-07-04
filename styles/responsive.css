@@ -353,10 +353,8 @@
 }
 
 @media (max-width: 760px){
-  .external-player-grid{grid-template-columns:1fr}
-  .external-player-card{grid-template-columns:1fr}
-  .external-player-identity{grid-template-columns:46px minmax(0,1fr) 44px}
-  .external-player-photo{width:46px;height:46px}
-  .external-player-meta{grid-template-columns:1fr}
-  .external-player-name{align-items:flex-start;flex-direction:column}
+  .external-player-grid{grid-auto-columns:minmax(152px,76vw)}
+  .external-player-card{min-height:172px}
+  .external-player-card-top{grid-template-columns:46px minmax(0,1fr)}
+  .external-player-photo{width:46px;height:56px}
 }
