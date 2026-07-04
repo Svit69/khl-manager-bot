@@ -384,7 +384,7 @@ export class SeasonTransitionService {
           }
 
           if (!signedPlayer) {
-            const emergencyPlayer = this.#createEmergencyDepthPlayer(team, preferredGroup || "FWD", negotiationDate);
+            const emergencyPlayer = this.#createEmergencyDepthPlayer(team, preferredGroup || "FWD", negotiationDate, allPlayers.length + safety);
             const emergencyOffer = { years: 1, salaryRub: 500000 };
             if (canSubmitOffer && !canSubmitOffer(team, emergencyPlayer, emergencyOffer, context)) break;
             allPlayers.push(emergencyPlayer);
@@ -547,13 +547,15 @@ export class SeasonTransitionService {
     return ((hash % 21) - 10) / 10;
   }
 
-  #createEmergencyDepthPlayer(team, preferredGroup, negotiationDate) {
+  #createEmergencyDepthPlayer(team, preferredGroup, negotiationDate, sequence = 0) {
     const isDefense = preferredGroup === "DEF";
     const position = isDefense ? PlayerPosition.DEF : PlayerPosition.CTR;
     const year = new Date(negotiationDate).getUTCFullYear();
-    const seed = Math.abs(String(team?.id || "").split("").reduce((sum, char) => sum + char.charCodeAt(0), 0));
+    const seed = Math.abs(`${team?.id || ""}:${preferredGroup}:${sequence}`.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0));
     const firstName = EMERGENCY_FIRST_NAMES[seed % EMERGENCY_FIRST_NAMES.length];
-    const lastName = EMERGENCY_LAST_NAMES[(seed + (isDefense ? 3 : 0)) % EMERGENCY_LAST_NAMES.length];
+    const lastName = EMERGENCY_LAST_NAMES[(Math.floor(seed / 3) + sequence + (isDefense ? 3 : 0)) % EMERGENCY_LAST_NAMES.length];
+    const age = 22 + (seed % 10);
+    const attrShift = (offset) => ((seed + offset) % 5) - 2;
     const profile = {
       id: `system-fa-${generateUuid()}`,
       position,
@@ -561,7 +563,7 @@ export class SeasonTransitionService {
         firstName,
         lastName,
         displayName: `${firstName} ${lastName}`,
-        birthDate: `${Math.max(1998, year - 25)}-01-01`,
+        birthDate: `${year - age}-${String((seed % 12) + 1).padStart(2, "0")}-${String((seed % 27) + 1).padStart(2, "0")}`,
         nationality: team?.country === "BY" ? "BY" : team?.country === "KZ" ? "KZ" : "RU",
         isGoalie: false,
         photoUrl: "./player-photo/default.png",
@@ -569,9 +571,9 @@ export class SeasonTransitionService {
         secondaryPositions: [],
       },
       attributes: isDefense
-        ? { shot: 62, speed: 66, physical: 69, defense: 70, skill: 63 }
-        : { shot: 68, speed: 69, physical: 66, defense: 60, skill: 66 },
-      potential: { potential: isDefense ? 68 : 69, growthRate: 0.2, peakAge: 27, declineRate: 0.4 },
+        ? { shot: 62 + attrShift(1), speed: 66 + attrShift(2), physical: 69 + attrShift(3), defense: 70 + attrShift(4), skill: 63 + attrShift(5) }
+        : { shot: 68 + attrShift(1), speed: 69 + attrShift(2), physical: 66 + attrShift(3), defense: 60 + attrShift(4), skill: 66 + attrShift(5) },
+      potential: { potential: isDefense ? 68 + Math.max(0, attrShift(6)) : 69 + Math.max(0, attrShift(6)), growthRate: 0.2, peakAge: 27, declineRate: 0.4 },
       condition: { fatigueScore: 0, form: 1.0, injuryUntilDay: null },
       career: { khlGamesPlayed: 0, seasonsPlayed: 0, reputation: 35 },
       affiliation: { teamId: null, contractId: null, acquiredDay: null },

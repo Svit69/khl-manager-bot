@@ -392,6 +392,11 @@ const getBaseOvr = (age, seed) => {
   return min + (seed % (max - min + 1));
 };
 
+const getInitialJuniorAge = (index, seed) => {
+  const agePool = [16, 17, 17, 18, 18, 18, 19, 19, 20, 20, 18];
+  return agePool[(index + seed) % agePool.length];
+};
+
 const getNationality = (team, seed) => {
   const roll = seed % 100;
   const country = String(team?.country || "RU").toUpperCase();
@@ -523,10 +528,40 @@ export class JuniorTeamService {
     return { released, promoted, removed };
   }
 
+  applyInSeasonDevelopment(teams, seasonLabel = null, currentDay = 0, juniorScorers = []) {
+    if (!currentDay || currentDay % 14 !== 0) return [];
+    const scorerBonusById = new Map((juniorScorers || []).map((row) => [row.playerId, Number(row.developmentBonus) || 0]));
+    const events = [];
+    (teams || []).forEach((team) => {
+      (team.juniorPlayers || []).forEach((player) => {
+        if (player.identity?.isGoalie) return;
+        const age = getJuniorSeasonAge(player, seasonLabel);
+        const potentialGap = Math.max(0, (player.potential?.potential || player.ovr) - player.ovr);
+        if (potentialGap <= 0) return;
+        const leagueBonus = scorerBonusById.get(player.id) || 0;
+        const chance = Math.min(0.5, 0.08 + potentialGap * 0.012 + leagueBonus * 1.4 + (age <= 18 ? 0.06 : 0));
+        const roll = (hash(`${player.id}:${seasonLabel || "season"}:${currentDay}:junior-season-dev`) % 1000) / 1000;
+        if (roll > chance) return;
+        const attrs = Object.keys(player.attributes.attributesJson || {});
+        const key = attrs[hash(`${player.id}:${currentDay}:junior-season-attr`) % attrs.length];
+        const oldOvr = player.ovr;
+        player.attributes.applyAttributeDelta(key, 1);
+        if (potentialGap >= 10 || leagueBonus >= 0.12) {
+          const bonusKey = attrs[hash(`${player.id}:${currentDay}:junior-season-bonus-attr`) % attrs.length];
+          player.attributes.applyAttributeDelta(bonusKey, 1);
+        }
+        if (player.ovr > oldOvr) {
+          events.push({ type: "upgrade", playerId: player.id, playerName: player.name, oldOvr, newOvr: player.ovr, teamId: team.id });
+        }
+      });
+    });
+    return events;
+  }
+
   #createRegen(team, seasonLabel, index, forcedId = null, generationSeed = null, options = {}) {
     const seedPrefix = generationSeed ? `${generationSeed}:` : "";
     const seed = hash(`${seedPrefix}${team.id}:${seasonLabel}:${index}`);
-    const age = options.isInitialFill ? 16 + (index % 5) : 16;
+    const age = options.isInitialFill ? getInitialJuniorAge(index, seed) : 16;
     const birthYear = getJuniorSeasonStartDate(seasonLabel).getUTCFullYear() - age;
     const position = getPositionNeed(team.juniorPlayers);
     const secondaryPositions = getForwardSecondaryPositions(position, seed);

@@ -1565,6 +1565,7 @@ export class AppState {
       this.#syncSeasonReferenceDate();
       this.#runMonthlyAiRenewals(previousDate, this.#calendar.currentDate);
       this.#runNorthAmericaInterestWarnings(this.#calendar.currentDate);
+      this.#processJuniorInSeasonDevelopment();
       this.#processAiJuniorProspectSignings(day?.phase || this.#seasonState?.phase || "regular");
       this.#processAiIncomingTradeOffers(day?.phase || this.#seasonState?.phase || "regular");
       this.#syncSeasonPhase();
@@ -1620,6 +1621,7 @@ export class AppState {
     this.#syncSeasonReferenceDate();
     this.#runMonthlyAiRenewals(previousDate, this.#calendar.currentDate);
     this.#runNorthAmericaInterestWarnings(this.#calendar.currentDate);
+    this.#processJuniorInSeasonDevelopment();
     this.#processAiJuniorProspectSignings(day?.phase || this.#seasonState?.phase || "regular");
     this.#processAiCoachChanges();
     this.#processCoachOfferDecisions();
@@ -1877,6 +1879,17 @@ export class AppState {
     this.#teams.flatMap((team) => team.juniorPlayers || []).forEach((player) => {
       player.juniorLeagueDevelopmentBonus = bonusByPlayerId.get(player.id) || 0;
     });
+  }
+
+  #processJuniorInSeasonDevelopment() {
+    const seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
+    if (this.#seasonState?.phase !== "regular") return;
+    this.#applyJuniorLeagueDevelopmentBonuses(seasonLabel);
+    const scorerRows = this.#juniorLeague.buildSeasonView(this.#teams, seasonLabel).scorers;
+    const events = this.#juniors.applyInSeasonDevelopment(this.#teams, seasonLabel, this.#calendar.currentDay, scorerRows);
+    events
+      .filter((event) => event.teamId === this.#activeTeamId)
+      .forEach((event) => this.#pushDevelopmentNotifications(this.activeTeam, [event], this.#calendar.currentDay));
   }
 
   #processJuniorNorthAmericaDepartures(seasonLabel) {
