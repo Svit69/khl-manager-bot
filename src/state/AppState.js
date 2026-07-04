@@ -333,6 +333,8 @@ export class AppState {
     const currentRows = this.getTeamStatisticsRows(this.#activeTeamId, "points").map((row) => ({
       playerId: row.playerId,
       name: row.displayName || row.name,
+      photoUrl: row.photoUrl,
+      position: row.position,
       goals: row.goals,
       assists: row.assists,
       points: row.points,
