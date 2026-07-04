@@ -56,6 +56,26 @@
   margin-top:34px;
   width:100%;
 }
+.team-sidebar-bottom{
+  display:grid;
+  margin-top:auto;
+  padding:14px 4px 0;
+}
+.team-sidebar-new-game{
+  min-height:40px;
+  border:1px solid rgba(246,247,252,.1);
+  border-radius:14px;
+  background:linear-gradient(90deg,#5221f2 0%,#120f27 100%);
+  color:#f6f7fc;
+  font:inherit;
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  cursor:pointer;
+  box-shadow:inset 0 0 0 1px rgba(246,247,252,.12),0 14px 26px rgba(82,33,242,.22);
+}
+.team-sidebar-new-game:hover{filter:brightness(1.08)}
 .team-nav-link{
   display:grid;
   grid-template-columns:20px minmax(0,1fr);

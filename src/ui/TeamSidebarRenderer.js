@@ -19,7 +19,7 @@ export class TeamSidebarRenderer {
   }
 
   render(_team, activeTab, settings = {}) {
-    return `<aside class="team-sidebar"><div class="team-sidebar-brand"><span>ХОККЕЙНЫЙ</span><strong>МЕНЕДЖЕР</strong></div><div class="team-sidebar-nav">${this.#renderNavigation(activeTab, settings)}</div></aside>`;
+    return `<aside class="team-sidebar"><div class="team-sidebar-brand"><span>ХОККЕЙНЫЙ</span><strong>МЕНЕДЖЕР</strong></div><div class="team-sidebar-nav">${this.#renderNavigation(activeTab, settings)}</div><div class="team-sidebar-bottom"><button id="resetBtn" class="team-sidebar-new-game" type="button">Новая игра</button></div></aside>`;
   }
 
   #renderNavigation(activeTab, settings) {
