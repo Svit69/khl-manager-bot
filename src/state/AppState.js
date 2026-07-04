@@ -2412,8 +2412,11 @@ export class AppState {
     if (!groupedOffers.size) return;
 
     groupedOffers.forEach((offerEntries, playerId) => {
-      const player = this.getAvailableFreeAgents().find((entry) => entry.id === playerId);
-      if (!player) return;
+      const player = this.getAvailableFreeAgents().find((entry) => entry.id === playerId) || this.getAllKnownPlayers().find((entry) => entry.id === playerId);
+      if (!player || player.affiliation?.teamId) {
+        this.#notifyUserPreseasonFreeAgentUnavailable(player, offerEntries, decisionIndex);
+        return;
+      }
 
       const previewByTeamId = new Map();
       offerEntries.forEach((entry) => {
@@ -2464,15 +2467,55 @@ export class AppState {
     };
   }
 
+  #notifyUserPreseasonFreeAgentUnavailable(player, offerEntries, decisionIndex) {
+    const userOffers = (offerEntries || []).filter((entry) => entry.teamId === this.#activeTeamId);
+    if (!userOffers.length) return;
+    const teamName = this.#getTeamName(player?.affiliation?.teamId);
+    userOffers.forEach(() => {
+      this.#pushNotification({
+        id: `notification-fa-unavailable-${player?.id || "player"}-${decisionIndex}-${Math.random().toString(36).slice(2, 8)}`,
+        type: "free-agent-market",
+        title: "Свободные агенты",
+        message: player?.name
+          ? `${player.name} уже недоступен${teamName ? `: контракт подписал ${teamName}` : ""}.`
+          : "Игрок уже недоступен на рынке свободных агентов.",
+        day: this.#calendar.currentDay,
+        createdAt: new Date().toISOString(),
+        playerId: player?.id || null,
+        read: false,
+      });
+    });
+  }
+
   #finalizeCompetitiveFreeAgentSigning(player, winningOffer, decisionDate, competingOffers) {
     const team = this.#teams.find((entry) => entry.id === winningOffer.teamId);
-    if (!team) return false;
+    if (!team) {
+      this.#notifyUserPreseasonFreeAgentUnavailable(player, competingOffers, Number(winningOffer?.decisionIndex) || 0);
+      return false;
+    }
     const capAssessment = this.#canSubmitContractOffer(team, player, winningOffer.offer, "freeAgent", {
       currentDate: decisionDate,
       seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
     });
     if (!capAssessment.allowed) {
       this.#freeAgents = dedupeFreeAgents([...this.#freeAgents, player]);
+      (competingOffers || [])
+        .filter((entry) => entry.teamId === this.#activeTeamId)
+        .forEach(() => {
+          const message = winningOffer.teamId === this.#activeTeamId
+            ? `${player.name} готов подписать контракт, но предложение больше не помещается под потолок зарплат.`
+            : `${player.name} не был подписан: победившее предложение не прошло проверку потолка.`;
+          this.#pushNotification({
+            id: `notification-fa-cap-failed-${player.id}-${Math.random().toString(36).slice(2, 8)}`,
+            type: "free-agent-market",
+            title: "Свободные агенты",
+            message,
+            day: this.#calendar.currentDay,
+            createdAt: new Date().toISOString(),
+            playerId: player.id,
+            read: false,
+          });
+        });
       return false;
     }
 
