@@ -72,8 +72,8 @@ export class MatchSimulator{
 
     this.#applyIceTimeStats(homeContext,homePlayerStats,durationSeconds,homePenalties,awayPenalties,releasedHomePenaltyIds,releasedAwayPenaltyIds,overtimeResult?.format||null);
     this.#applyIceTimeStats(awayContext,awayPlayerStats,durationSeconds,awayPenalties,homePenalties,releasedAwayPenaltyIds,releasedHomePenaltyIds,overtimeResult?.format||null);
-    this.#applyGoalEventStats(homeGoals,homePlayerStats);
-    this.#applyGoalEventStats(awayGoals,awayPlayerStats);
+    this.#applyGoalEventStats([...homeGoals,...awayGoals],homePlayerStats);
+    this.#applyGoalEventStats([...homeGoals,...awayGoals],awayPlayerStats);
     this.#applyPenaltyEventStats(homePenalties,homePlayerStats);
     this.#applyPenaltyEventStats(awayPenalties,awayPlayerStats);
     this.#applyShotStats(homeContext,homePlayerStats,homeShots,homeGoals);
@@ -381,6 +381,9 @@ export class MatchSimulator{
         assist:play.assists[0]?.name||null,
         momentType:play.momentType,
         strength:isOvertime?"OT":(isPowerPlay?"PP":(isShortHanded?"SH":"EV")),
+        plusMinusEligible:!isPowerPlay,
+        plusPlayerIds:state.profiles.map(profile=>profile.player?.id).filter(Boolean),
+        minusPlayerIds:defendingState.profiles.map(profile=>profile.player?.id).filter(Boolean),
         isOvertime,
         overtimeFormat,
         description:play.assists.length?`Гол: ${play.scorer.name} (${play.assists.map(player=>player.name).join(", ")})`:`Гол: ${play.scorer.name}`
@@ -756,7 +759,7 @@ export class MatchSimulator{
     const stats=new Map();
     const activePlayers=[...new Set([...(teamContext.activePlayers||[]),teamContext.goalie].filter(Boolean))];
     activePlayers.forEach(player=>{
-      stats.set(player.id,{playerId:player.id,playerName:player.name,games:1,goals:0,assists:0,shots:0,totalIceTime:0,penaltyMinutes:0});
+      stats.set(player.id,{playerId:player.id,playerName:player.name,games:1,goals:0,assists:0,shots:0,totalIceTime:0,penaltyMinutes:0,plusMinus:0});
     });
     return stats;
   }
@@ -805,6 +808,14 @@ export class MatchSimulator{
       (event?.assistPlayers||[]).forEach(player=>{
         if(player?.id && statsMap.has(player.id))statsMap.get(player.id).assists++;
       });
+      if(event?.plusMinusEligible){
+        (event.plusPlayerIds||[]).forEach(playerId=>{
+          if(statsMap.has(playerId))statsMap.get(playerId).plusMinus++;
+        });
+        (event.minusPlayerIds||[]).forEach(playerId=>{
+          if(statsMap.has(playerId))statsMap.get(playerId).plusMinus--;
+        });
+      }
     });
   }
 

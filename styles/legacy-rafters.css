@@ -46,6 +46,7 @@
 .legacy-season-leader-body{display:grid;gap:3px;min-width:0;padding-left:8px}
 .legacy-season-leader-body small{color:#7e838c;font-size:8px;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
 .legacy-season-leader-body strong{color:#f6f7fc;font-size:11px;font-weight:950;line-height:1.1;text-transform:uppercase}
+.legacy-season-leader-body em{color:#7e838c;font-size:9px;font-style:normal;font-weight:850;line-height:1}
 .legacy-season-leader-body div{display:flex;align-items:baseline;gap:8px;min-width:0}
 .legacy-season-leader-body b{color:#f6f7fc;font-size:28px;font-weight:850;line-height:1}
 .legacy-season-leader-body span{color:#f6f7fc;font-size:12px;font-weight:800;line-height:1.1}

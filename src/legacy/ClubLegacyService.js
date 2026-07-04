@@ -7,7 +7,7 @@ const legacyNumber = (value) => 2 + [...String(value || "")].reduce((sum, char) 
 
 export class ClubLegacyService {
   buildView({ team, seasonHistory = [], currentRows = [] }) {
-    const rows = [...currentRows, ...this.#archiveRows(team, seasonHistory)];
+    const rows = this.#hydrateMissingPhotos([...currentRows, ...this.#archiveRows(team, seasonHistory)]);
     const leaders = this.#mergeLeaders(rows);
     const bestSeason = rows.sort((a, b) => points(b) - points(a))[0] || null;
     return {
@@ -19,9 +19,21 @@ export class ClubLegacyService {
   }
 
   #archiveRows(team, seasonHistory) {
-    return (seasonHistory || []).flatMap((archive) => (archive?.scorers || [])
-      .filter((row) => row.teamId === team?.id)
-      .map((row) => ({ ...row, seasonLabel: archive.seasonLabel, archived: true })));
+    return (seasonHistory || []).flatMap((archive) => {
+      const rows = Array.isArray(archive?.playerStats) ? archive.playerStats : archive?.scorers || [];
+      return rows
+        .filter((row) => row.teamId === team?.id)
+        .map((row) => ({ ...row, seasonLabel: row.seasonLabel || archive.seasonLabel, archived: true }));
+    });
+  }
+
+  #hydrateMissingPhotos(rows) {
+    const photoByPlayerId = new Map((rows || [])
+      .filter((row) => row.playerId && row.photoUrl)
+      .map((row) => [row.playerId, row.photoUrl]));
+    return (rows || []).map((row) => row.photoUrl || !row.playerId
+      ? row
+      : { ...row, photoUrl: photoByPlayerId.get(row.playerId) || "" });
   }
 
   #mergeLeaders(rows) {
@@ -29,10 +41,12 @@ export class ClubLegacyService {
     rows.forEach((row) => {
       const key = scorerKey(row);
       if (!key) return;
-      const current = byKey.get(key) || { playerId: row.playerId, name: row.name, goals: 0, assists: 0, points: 0, seasons: new Set() };
+      const current = byKey.get(key) || { playerId: row.playerId, name: row.name, photoUrl: row.photoUrl || "", goals: 0, assists: 0, points: 0, plusMinus: 0, seasons: new Set() };
       current.goals += Number(row.goals) || 0;
       current.assists += Number(row.assists) || 0;
       current.points += points(row);
+      current.plusMinus += Number(row.plusMinus) || 0;
+      if (!current.photoUrl && row.photoUrl) current.photoUrl = row.photoUrl;
       if (row.seasonLabel) current.seasons.add(row.seasonLabel);
       byKey.set(key, current);
     });

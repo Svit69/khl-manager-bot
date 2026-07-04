@@ -23,6 +23,12 @@ const compareTeamStatsRows = (left, right, sortBy) => {
       (right.points - left.points);
   }
 
+  if (sortBy === "plusMinus") {
+    return (right.plusMinus - left.plusMinus) ||
+      (right.points - left.points) ||
+      (right.goals - left.goals);
+  }
+
   return (right.points - left.points) ||
     (right.goals - left.goals) ||
     (right.assists - left.assists);
@@ -94,6 +100,7 @@ export const buildTeamStatisticsRows = ({ team, sortBy = "points" }) => {
     points: player.seasonStats?.points || 0,
     goals: player.seasonStats?.goals || 0,
     assists: player.seasonStats?.assists || 0,
+    plusMinus: player.seasonStats?.plusMinus || 0,
     penaltyMinutes: player.seasonStats?.penaltyMinutes || 0,
     totalIceTime: player.seasonStats?.totalIceTime || 0,
     mood: {

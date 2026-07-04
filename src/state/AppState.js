@@ -338,6 +338,7 @@ export class AppState {
       goals: row.goals,
       assists: row.assists,
       points: row.points,
+      plusMinus: row.plusMinus,
       seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
     }));
     return {

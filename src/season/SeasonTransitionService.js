@@ -6,6 +6,7 @@ import { calculateAge } from "../contracts/SeasonUtils.js";
 import { createSkater } from "../data/playerFactory.js";
 import { PlayerPosition } from "../models/PlayerPosition.js";
 import { generateUuid } from "../utils/uuid.js";
+import { getPlayerPhotoUrl } from "../utils/PlayerPhoto.js";
 import { PlayerRetirementService } from "./PlayerRetirementService.js";
 import { createPreseasonDates, getPreseasonDateAt } from "./PreseasonSchedule.js";
 import { TEAM_ROSTER_POSITION_TARGETS, TEAM_ROSTER_TARGET_SIZE } from "./RosterTargets.js";
@@ -235,13 +236,31 @@ export class SeasonTransitionService {
     const playoffs = calendar.getPlayoffBracketData();
     const champion = playoffs?.champion || null;
     const activeStanding = (standingsTable || []).find((row) => row.teamId === activeTeamId) || null;
-    const teamByPlayerId = new Map((teams || []).flatMap((team) => team.getRoster().map((player) => [player.id, team.id])));
+    const playerEntries = (teams || []).flatMap((team) => team.getRoster().map((player) => ({ player, team })));
+    const teamByPlayerId = new Map(playerEntries.map(({ player, team }) => [player.id, team.id]));
+    const playerById = new Map(playerEntries.map(({ player }) => [player.id, player]));
+    const playerStats = playerEntries.map(({ player, team }) => ({
+      playerId: player.id,
+      teamId: team.id,
+      name: player.name,
+      photoUrl: getPlayerPhotoUrl(player),
+      position: player.identity?.primaryPosition || "",
+      games: player.seasonStats?.games || 0,
+      goals: player.seasonStats?.goals || 0,
+      assists: player.seasonStats?.assists || 0,
+      points: player.seasonStats?.points || 0,
+      plusMinus: player.seasonStats?.plusMinus || 0,
+    }));
     return {
       seasonLabel: currentSeasonLabel,
       completedAt: new Date().toISOString(),
       champion: champion ? { teamId: champion.id, name: champion.name, shortName: champion.shortName } : null,
       standings: (standingsTable || []).map((row, index) => ({ rank: index + 1, ...row })),
-      scorers: (scorerTable || []).slice(0, 15).map((row, index) => ({ rank: index + 1, teamId: teamByPlayerId.get(row.playerId) || null, ...row })),
+      scorers: (scorerTable || []).slice(0, 15).map((row, index) => {
+        const player = row.playerId ? playerById.get(row.playerId) : null;
+        return { ...row, rank: index + 1, teamId: teamByPlayerId.get(row.playerId) || null, photoUrl: player ? getPlayerPhotoUrl(player) : row.photoUrl || "", position: player?.identity?.primaryPosition || row.position || "", plusMinus: player?.seasonStats?.plusMinus || row.plusMinus || 0 };
+      }),
+      playerStats,
       playoffs,
       activeTeamId,
       activeTeamStanding: activeStanding,

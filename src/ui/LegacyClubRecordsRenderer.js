@@ -9,6 +9,7 @@ const RECORD_CARDS = Object.freeze([
 const metricValue = (row, metric) => Number(row?.[metric]) || 0;
 const playerName = (row) => String(row?.name || "Нет данных").toUpperCase();
 const playerPhoto = (row) => row?.photoUrl || "./player-photo/default.png";
+const seasonLabel = (row) => row?.seasonLabel || "Сезон не указан";
 
 const renderRecordCard = (records, card) => {
   const row = records?.[card.key] || null;
@@ -18,6 +19,7 @@ const renderRecordCard = (records, card) => {
     <div class="legacy-season-leader-body">
       <small>${card.title}</small>
       <strong>${playerName(row)}</strong>
+      <em>${seasonLabel(row)}</em>
       <div><b>${metricValue(row, card.metric)}</b><span>${card.unit}</span></div>
     </div>
   </article>`;
