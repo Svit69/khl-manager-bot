@@ -353,8 +353,8 @@
 }
 
 @media (max-width: 760px){
-  .external-player-grid{grid-auto-columns:minmax(152px,76vw)}
-  .external-player-card{min-height:172px}
-  .external-player-card-top{grid-template-columns:46px minmax(0,1fr)}
-  .external-player-photo{width:46px;height:56px}
+  .external-player-grid{grid-auto-columns:minmax(168px,76vw)}
+  .external-player-card{min-height:208px}
+  .external-player-card-top{grid-template-columns:62px minmax(0,1fr)}
+  .external-player-photo{width:62px;height:84px}
 }

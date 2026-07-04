@@ -4,24 +4,24 @@ import { formatInterestPercent, formatInterestReasons, getNameFitClass, splitPla
 const renderExternalRightsCard = (row) => {
   const { firstName, lastName } = splitPlayerDisplayName(row.displayName);
   const rightsClass = row.isActiveTeamRights ? "is-owned" : "";
-  const contractLabel = row.contractUntil ? `До ${row.contractUntil}` : "Без контракта";
+  const contractLabel = row.contractUntil || "Свободный агент";
   const interestPercent = formatInterestPercent(row.returnInterestScore);
   const interestClass = row.returnInterestScore >= 67 ? "high" : row.returnInterestScore >= 42 ? "medium" : "low";
   const reasons = formatInterestReasons(row.returnInterestReasons);
   return `<div class="external-player-card ${rightsClass}">
     <div class="external-player-card-top">
       <img class="external-player-photo" src="${row.photoUrl}" alt="${row.displayName}" ${PHOTO_FALLBACK_ATTR}>
-      <div class="external-player-name" title="${row.displayName}">
-        <span>${firstName}</span>
-        <strong class="${getNameFitClass(row.displayName)}">${lastName}</strong>
+      <div class="external-player-summary">
+        <div class="external-player-name" title="${row.displayName}">
+          <span>${firstName}</span>
+          <strong class="${getNameFitClass(row.displayName)}">${lastName}</strong>
+        </div>
+        <div class="external-player-bio"><span>${row.age} лет</span><i></i><strong>${row.position || "Игрок"}</strong></div>
+        <div class="external-player-ovr">${row.ovr}</div>
       </div>
     </div>
-    <div class="external-player-main">
-      <div class="external-player-bio"><span>${row.age} лет</span><strong>${row.position || "Игрок"}</strong></div>
-      <div class="external-player-ovr"><span>Рейтинг</span><strong>${row.ovr}</strong></div>
-    </div>
     <div class="external-player-details">
-      <div><span>Лига</span><strong>${row.league}</strong></div>
+      <div class="external-player-league"><b></b><strong>${row.league}</strong></div>
       <div><span>Контракт до</span><strong>${contractLabel}</strong></div>
     </div>
     <div class="external-player-interest">
