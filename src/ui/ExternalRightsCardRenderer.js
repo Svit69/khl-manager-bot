@@ -21,7 +21,7 @@ const renderExternalRightsCard = (row) => {
       </div>
     </div>
     <div class="external-player-details">
-      <div class="external-player-league"><b></b><strong>${row.league}</strong></div>
+      <div class="external-player-league"><strong>${row.league}</strong></div>
       <div><span>Контракт до</span><strong>${contractLabel}</strong></div>
     </div>
     <div class="external-player-interest">
@@ -30,7 +30,6 @@ const renderExternalRightsCard = (row) => {
       <strong>${interestPercent}</strong>
       ${reasons ? `<button class="external-reason-tip" title="${reasons}" aria-label="Причины интереса">i</button>` : ""}
     </div>
-    ${row.isActiveTeamRights ? '<b class="external-rights-owned">Ваши права</b>' : ""}
   </div>`;
 };
 
