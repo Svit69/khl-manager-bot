@@ -7,6 +7,7 @@ import { barysPlayerContracts } from "./barysPlayers.js";
 import { severstalPlayerContracts } from "./severstalPlayers.js";
 import { skaPlayerContracts } from "./skaPlayers.js";
 import { spartakPlayerContracts } from "./spartakPlayers.js";
+import { sochiPlayerContracts } from "./sochi/index.js";
 import { neftekhimikPlayerContracts } from "./neftekhimik/index.js";
 export const playerContracts=[
   {
@@ -2914,5 +2915,6 @@ export const playerContracts=[
   ...severstalPlayerContracts,
   ...skaPlayerContracts,
   ...spartakPlayerContracts,
+  ...sochiPlayerContracts,
   ...neftekhimikPlayerContracts,
 ];

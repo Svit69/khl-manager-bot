@@ -16,6 +16,7 @@ const JUNIOR_TEAM_BY_PARENT_SHORT_NAME = Object.freeze({
   BAR: { name: "Снежные Барсы", shortName: "SNB" },
   SKA: { name: "СКА-1946", shortName: "SKA46" },
   SPM: { name: "МХК Спартак", shortName: "MHKSP" },
+  SCH: { name: "Красная Машина Юниор", shortName: "KMJ" },
   SEV: { name: "Алмаз", shortName: "ALM" },
   NFK: { name: "Реактор", shortName: "RKT" },
 });
