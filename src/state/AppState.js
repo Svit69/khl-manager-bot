@@ -82,6 +82,24 @@ const dedupeFreeAgents = (players = []) => {
   return [...uniqueById.values()];
 };
 
+const restoreSavedFreeAgentPool = (savedPlayers = [], activePlayers = []) => {
+  const savedFreeAgentIds = new Set(
+    (savedPlayers || [])
+      .filter((snapshot) => snapshot?.id && !snapshot.teamId)
+      .map((snapshot) => snapshot.id),
+  );
+  return dedupeFreeAgents(
+    (activePlayers || []).filter((player) => savedFreeAgentIds.has(player.id) || !player.affiliation?.teamId),
+  );
+};
+const collectSavedFreeAgentPlayers = (savedPlayers = [], playerPool = []) => {
+  const playerById = new Map((playerPool || []).map((player) => [player.id, player]));
+  return (savedPlayers || [])
+    .filter((snapshot) => snapshot?.id && !snapshot.teamId)
+    .map((snapshot) => playerById.get(snapshot.id))
+    .filter(Boolean);
+};
+
 const AI_ROTATION_MAX_ROSTER_SIZE = TEAM_ROSTER_TARGET_SIZE + 2;
 const AI_RESTED_RESERVE_THRESHOLD = 35;
 const AI_ROTATION_FATIGUE_THRESHOLD = 55;
@@ -1481,6 +1499,7 @@ export class AppState {
       this.#freeAgents = dedupeFreeAgents([...this.#freeAgents, ...missingSavedPlayers]);
       basePlayers = [...basePlayers, ...missingSavedPlayers];
     }
+    const savedFreeAgentPlayers = collectSavedFreeAgentPlayers(saved.players, basePlayers);
     const activeSavedPlayerIds = new Set((saved.players || []).map((player) => player?.id).filter(Boolean));
     this.#externalPlayers = this.#externalPlayers.filter(
       (player) => shouldRestoreExternalRightsPlayer(player, activeSavedPlayerIds, savedExternalPlayerIds, this.#retiredPlayerIds),
@@ -1495,9 +1514,11 @@ export class AppState {
       basePlayers = [...new Map([
         ...this.#teams.flatMap((team) => [...team.getRoster(), ...(team.juniorPlayers || [])]),
         ...this.#freeAgents,
+        ...savedFreeAgentPlayers,
       ].map((player) => [player.id, player])).values()];
     }
     restorePlayerSnapshots(basePlayers, saved.players);
+    this.#freeAgents = restoreSavedFreeAgentPool(saved.players, basePlayers);
     this.#ensureRosterContracts(saved.seasonState?.seasonLabel || this.#calendar.seasonLabel);
     this.#releaseIneligibleJuniorPlayers({ notify: false });
     basePlayers = [...new Map([
@@ -1506,8 +1527,8 @@ export class AppState {
     ].map((player) => [player.id, player])).values()];
 
     const activePlayers = excludeExternalRightsPlayersFromActivePool(basePlayers, this.#externalPlayers, this.#retiredPlayerIds);
-    this.#freeAgents = dedupeFreeAgents(activePlayers);
     this.#seasonTransition.rebuildRosters(this.#teams, activePlayers);
+    this.#freeAgents = restoreSavedFreeAgentPool(saved.players, activePlayers);
     this.#clearActiveRosterExternalCareers();
     if (saved.standings) this.#standings.importSnapshot(saved.standings);
     this.#calendar.ensurePlayoffs(this.getStandingsTable());
@@ -2757,12 +2778,31 @@ export class AppState {
   }
 
   #selectReleasedJuniorMarketPlayers(released) {
-    const keepCount = Math.ceil((released || []).length / 2);
-    return [...(released || [])].sort((left, right) =>
+    const byTeam = new Map();
+    (released || []).forEach((entry) => {
+      if (!entry?.team?.id || !entry?.player?.id) return;
+      const group = byTeam.get(entry.team.id) || [];
+      group.push(entry);
+      byTeam.set(entry.team.id, group);
+    });
+    return [...byTeam.values()].flatMap((entries) => {
+      const isUserTeam = entries.some((entry) => entry.team.id === this.#activeTeamId);
+      const limit = isUserTeam ? 3 : 1;
+      return entries.filter(({ player }) => this.#isJuniorReleaseMarketWorthy(player, isUserTeam)).sort((left, right) =>
       (Number(right.player?.potential?.potential) || 0) - (Number(left.player?.potential?.potential) || 0)
       || (Number(right.player?.ovr) || 0) - (Number(left.player?.ovr) || 0)
       || String(left.player?.name || "").localeCompare(String(right.player?.name || ""), "ru"),
-    ).slice(0, keepCount);
+      ).slice(0, limit);
+    });
+  }
+
+  #isJuniorReleaseMarketWorthy(player, isUserTeam = false) {
+    const ovr = Number(player?.ovr) || 0;
+    const potential = Number(player?.potential?.potential) || 0;
+    if (ovr >= 70) return true;
+    if (potential >= 80 && ovr >= 64) return true;
+    if (potential >= 77 && ovr >= 67) return true;
+    return Boolean(isUserTeam && potential >= 75 && ovr >= 65);
   }
 
   #refreshExpectedRoles(team) {
