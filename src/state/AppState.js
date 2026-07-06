@@ -42,6 +42,7 @@ import { JuniorLeagueService } from "../season/JuniorLeagueService.js";
 import { JuniorDepartureRiskService } from "../season/JuniorDepartureRiskService.js";
 import { ClubLegacyService } from "../legacy/ClubLegacyService.js";
 import { LeagueHistoryService } from "../legacy/LeagueHistoryService.js";
+import { buildClubSeasonStatRows, snapshotPlayerSeasonStats } from "../legacy/ClubSeasonStats.js";
 import { getJuniorIneligibilityReason, getJuniorSeasonAge } from "../season/JuniorEligibility.js";
 import { getJuniorPracticeProfile, getScoutedPotential } from "../season/JuniorScouting.js";
 import { getUfaStatus } from "../contracts/RenewalScoring.js";
@@ -348,9 +349,13 @@ export class AppState {
 
   getActiveTeamLegacyView() {
     if (!this.activeTeam) return null;
-    const currentRows = this.getTeamStatisticsRows(this.#activeTeamId, "points").map((row) => ({
+    const currentRows = buildClubSeasonStatRows({
+      teams: this.#teams,
+      transferLedger: this.#transferLedger,
+      seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
+    }).filter((row) => row.teamId === this.#activeTeamId).map((row) => ({
       playerId: row.playerId,
-      name: row.displayName || row.name,
+      name: row.name,
       photoUrl: row.photoUrl,
       position: row.position,
       goals: row.goals,
@@ -1339,6 +1344,7 @@ export class AppState {
       teams: this.#teams,
       activeTeamId: this.#activeTeamId,
       allPlayers: this.getAllPlayers(),
+      transferLedger: this.#transferLedger,
       buildContext: (team) => this.#buildNegotiationContext(team),
       canSubmitOffer: (team, player, offer, context) =>
         this.#canSubmitContractOffer(team, player, offer, "freeAgent", context).allowed,
@@ -1839,6 +1845,8 @@ export class AppState {
       toTeamName: this.#getTeamName(toTeamId),
       method,
       note,
+      photoUrl: getPlayerPhotoUrl(player),
+      seasonStatsSnapshot: snapshotPlayerSeasonStats(player),
     };
     const entries = [];
     if (fromTeamId) {

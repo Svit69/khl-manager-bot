@@ -12,6 +12,7 @@ import { createPreseasonDates, getPreseasonDateAt } from "./PreseasonSchedule.js
 import { TEAM_ROSTER_POSITION_TARGETS, TEAM_ROSTER_TARGET_SIZE } from "./RosterTargets.js";
 import { KhlProspectDepartureService } from "./KhlProspectDepartureService.js";
 import { OfferSheetCompensationService } from "./OfferSheetCompensationService.js";
+import { buildClubSeasonStatRows } from "../legacy/ClubSeasonStats.js";
 
 const createUtcDate = (year, monthIndex, day) => new Date(Date.UTC(year, monthIndex, day));
 const formatSeasonLabel = (startYear) => `${startYear}/${startYear + 1}`;
@@ -49,14 +50,14 @@ export class SeasonTransitionService {
     this.#development = developmentService;
   }
 
-  advanceToNextSeason({ teams, calendar, activeTeamId, standingsTable, scorerTable, allPlayers, buildContext, canSubmitOffer = null, pushNotification, releaseRightsPlayerIds = [], restrictedFreeAgencyEnabled = true }) {
+  advanceToNextSeason({ teams, calendar, activeTeamId, standingsTable, scorerTable, allPlayers, transferLedger = [], buildContext, canSubmitOffer = null, pushNotification, releaseRightsPlayerIds = [], restrictedFreeAgencyEnabled = true }) {
     const currentSeasonLabel = calendar.seasonLabel;
     const nextSeasonStartYear = calendar.seasonStartYear + 1;
     const nextSeasonLabel = formatSeasonLabel(nextSeasonStartYear);
     const offseasonDate = createUtcDate(nextSeasonStartYear, 4, 31);
     const preseasonDates = createPreseasonDates(nextSeasonStartYear);
     const preseasonDateIso = getPreseasonDateAt(preseasonDates, 0) || offseasonDate.toISOString().slice(0, 10);
-    const archive = this.#buildArchive({ calendar, standingsTable, scorerTable, teams, activeTeamId, currentSeasonLabel });
+    const archive = this.#buildArchive({ calendar, standingsTable, scorerTable, teams, activeTeamId, currentSeasonLabel, transferLedger });
 
     (allPlayers || []).forEach((player) => {
       player.career?.addGames?.(player.seasonStats?.games || 0);
@@ -232,25 +233,16 @@ export class SeasonTransitionService {
     return this.#buildRestrictedRightsOfferSheet(args);
   }
 
-  #buildArchive({ calendar, standingsTable, scorerTable, teams, activeTeamId, currentSeasonLabel }) {
+  #buildArchive({ calendar, standingsTable, scorerTable, teams, activeTeamId, currentSeasonLabel, transferLedger = [] }) {
     const playoffs = calendar.getPlayoffBracketData();
     const champion = playoffs?.champion || null;
     const activeStanding = (standingsTable || []).find((row) => row.teamId === activeTeamId) || null;
     const playerEntries = (teams || []).flatMap((team) => team.getRoster().map((player) => ({ player, team })));
     const teamByPlayerId = new Map(playerEntries.map(({ player, team }) => [player.id, team.id]));
     const playerById = new Map(playerEntries.map(({ player }) => [player.id, player]));
-    const playerStats = playerEntries.map(({ player, team }) => ({
-      playerId: player.id,
-      teamId: team.id,
-      name: player.name,
-      photoUrl: getPlayerPhotoUrl(player),
-      position: player.identity?.primaryPosition || "",
-      games: player.seasonStats?.games || 0,
-      goals: player.seasonStats?.goals || 0,
-      assists: player.seasonStats?.assists || 0,
-      points: player.seasonStats?.points || 0,
-      plusMinus: player.seasonStats?.plusMinus || 0,
-    }));
+    const teamById = new Map((teams || []).map((team) => [team.id, team]));
+    const playerStats = buildClubSeasonStatRows({ teams, transferLedger, seasonLabel: currentSeasonLabel })
+      .map((row) => ({ ...row, teamName: teamById.get(row.teamId)?.name || "" }));
     return {
       seasonLabel: currentSeasonLabel,
       completedAt: new Date().toISOString(),
