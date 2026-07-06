@@ -504,7 +504,7 @@ export class SeasonTransitionService {
         years: best.preview.offer.years,
         salaryRub: best.preview.offer.salaryRub,
       },
-      compensation: this.#offerSheetCompensation.calculate(best.preview.offer),
+      compensation: this.#offerSheetCompensation.calculate(best.preview.offer, player),
       status: "pending",
       createdAt: new Date().toISOString(),
     };

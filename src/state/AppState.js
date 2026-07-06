@@ -1051,14 +1051,36 @@ export class AppState {
   }
 
   releaseRestrictedRightsOffer(offerId) {
+    return this.releaseRestrictedRightsOfferWithCompensation(offerId, []);
+  }
+
+  getOfferSheetCompensationView(offerId, selectedPlayerIds = []) {
+    const entry = this.#getPendingUserRestrictedRightsOffer(offerId);
+    if (!entry) return null;
+    const team = this.#teams.find((candidate) => candidate.id === entry.offerTeamId) || null;
+    const selected = new Set(selectedPlayerIds || []);
+    const candidates = (team?.juniorPlayers || []).map((player) => ({
+      playerId: player.id,
+      name: player.name,
+      position: player.identity?.primaryPosition || "",
+      age: getJuniorSeasonAge(player, entry.season || this.#seasonState?.seasonLabel),
+      ovr: player.ovr,
+      potential: player.potential?.potential || player.ovr,
+      selected: selected.has(player.id),
+    })).sort((left, right) => (right.potential - left.potential) || (right.ovr - left.ovr) || left.name.localeCompare(right.name, "ru"));
+    const requiredCount = Math.min(Number(entry.compensation?.juniorPlayerCount) || 0, candidates.length);
+    return { row: this.getActiveTeamRestrictedRightsRows().find((row) => row.id === offerId) || null, offerTeam: team, requiredCount, selectedCount: [...selected].filter((id) => candidates.some((candidate) => candidate.playerId === id)).length, candidates };
+  }
+
+  releaseRestrictedRightsOfferWithCompensation(offerId, compensationPlayerIds = []) {
     if (!this.#gameSettings.restrictedFreeAgencyEnabled) return { accepted: false, message: "Права ОСА отключены в настройках игры." };
-    const entry = (this.#seasonState?.restrictedRightsOffers || []).find(
-      (candidate) => candidate.id === offerId && candidate.rightsTeamId === this.#activeTeamId && candidate.status === "pending",
-    );
+    const entry = this.#getPendingUserRestrictedRightsOffer(offerId);
     if (!entry) return { accepted: false, message: "Предложение ОСА не найдено." };
     const player = this.getAllKnownPlayers().find((candidate) => candidate.id === entry.playerId);
     const newTeam = this.#teams.find((candidate) => candidate.id === entry.offerTeamId);
     if (!player || !newTeam) return { accepted: false, message: "Не удалось завершить переход ОСА." };
+    const compensation = this.#selectOfferSheetCompensationPlayers(newTeam, compensationPlayerIds, entry);
+    if (!compensation.allowed) return { accepted: false, message: compensation.message };
     const capAssessment = this.#canSubmitContractOffer(newTeam, player, entry.offer, "freeAgent", {
       ...this.#buildNegotiationContext(newTeam),
       seasonLabel: entry.season || this.#seasonState?.seasonLabel,
@@ -1074,7 +1096,8 @@ export class AppState {
     player.affiliation.acquiredDay = this.#calendar.currentDay;
     this.#activateExternalPlayer(player, newTeam);
     this.#resolveRestrictedRightsOffer(entry.id, "released");
-    this.#recordOfferSheetCompensation(entry, player, newTeam);
+    this.#applyOfferSheetJuniorCompensation(newTeam, compensation.players, entry);
+    this.#recordOfferSheetCompensation(entry, player, newTeam, compensation.players);
     this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
     this.#refreshExpectedRoles(newTeam);
     if (this.activeTeam) this.#refreshExpectedRoles(this.activeTeam);
@@ -2843,7 +2866,36 @@ export class AppState {
     };
   }
 
-  #recordOfferSheetCompensation(entry, player, newTeam) {
+  #getPendingUserRestrictedRightsOffer(offerId) {
+    return (this.#seasonState?.restrictedRightsOffers || []).find(
+      (candidate) => candidate.id === offerId && candidate.rightsTeamId === this.#activeTeamId && candidate.status === "pending",
+    ) || null;
+  }
+
+  #selectOfferSheetCompensationPlayers(fromTeam, playerIds, entry) {
+    const requiredCount = Math.min(Number(entry?.compensation?.juniorPlayerCount) || 0, fromTeam?.juniorPlayers?.length || 0);
+    const uniqueIds = [...new Set(playerIds || [])];
+    if (uniqueIds.length !== requiredCount) return { allowed: false, message: `Выберите игроков компенсации: ${requiredCount}` };
+    const byId = new Map((fromTeam?.juniorPlayers || []).map((player) => [player.id, player]));
+    const players = uniqueIds.map((id) => byId.get(id)).filter(Boolean);
+    if (players.length !== requiredCount) return { allowed: false, message: "В компенсации есть недоступный юниор." };
+    return { allowed: true, players };
+  }
+
+  #applyOfferSheetJuniorCompensation(fromTeam, players, entry) {
+    if (!this.activeTeam || !players?.length) return;
+    const playerIds = new Set(players.map((player) => player.id));
+    fromTeam.juniorPlayers.splice(0, fromTeam.juniorPlayers.length, ...fromTeam.juniorPlayers.filter((player) => !playerIds.has(player.id)));
+    players.forEach((player) => {
+      player.affiliation.teamId = this.#activeTeamId;
+      player.affiliation.acquiredDay = this.#calendar.currentDay;
+      this.#contracts.reassignPlayerContracts(player.id, this.#activeTeamId);
+      if (!this.activeTeam.juniorPlayers.some((entry) => entry.id === player.id)) this.activeTeam.juniorPlayers.push(player);
+      this.#recordPlayerMovement({ player, fromTeamId: fromTeam.id, toTeamId: this.#activeTeamId, method: "offerSheetCompensation", note: entry?.playerId || "" });
+    });
+  }
+
+  #recordOfferSheetCompensation(entry, player, newTeam, compensationPlayers = []) {
     this.#seasonState = {
       ...this.#seasonState,
       offerSheetCompensations: [...(this.#seasonState?.offerSheetCompensations || []), {
@@ -2855,6 +2907,7 @@ export class AppState {
         toTeamId: newTeam.id,
         toTeamName: newTeam.name,
         compensation: entry.compensation || { label: "Без компенсации", picks: [], cashRub: 0 },
+        compensationPlayers: compensationPlayers.map((junior) => ({ playerId: junior.id, name: junior.name, ovr: junior.ovr, potential: junior.potential?.potential || junior.ovr })),
         createdAt: new Date().toISOString(),
       }],
     };

@@ -1,21 +1,29 @@
-const TIERS = Object.freeze([
-  { limit: 3000000, picks: [], cash: 0, label: "Без компенсации" },
-  { limit: 8000000, picks: ["3-й раунд"], cash: 0, label: "Пик 3-го раунда юниоров" },
-  { limit: 15000000, picks: ["2-й раунд"], cash: 0, label: "Пик 2-го раунда юниоров" },
-  { limit: 25000000, picks: ["1-й раунд"], cash: 0, label: "Пик 1-го раунда юниоров" },
-  { limit: 40000000, picks: ["1-й раунд", "2-й раунд"], cash: 5000000, label: "Пики 1-го и 2-го раунда + 5 млн" },
-  { limit: Infinity, picks: ["1-й раунд", "1-й раунд", "2-й раунд"], cash: 10000000, label: "Два 1-х раунда, 2-й раунд + 10 млн" },
-]);
+const getCompensationCount = (player, annualSalaryRub) => {
+  const ovr = Number(player?.ovr) || 0;
+  const potential = Number(player?.potential?.potential) || ovr;
+  const salaryMln = (Number(annualSalaryRub) || 0) / 1000000;
+  if (ovr < 70 && salaryMln < 8) return 0;
+  if (ovr >= 82 || potential >= 86 || salaryMln >= 35) return 3;
+  if (ovr >= 78 || potential >= 82 || salaryMln >= 20) return 2;
+  return 1;
+};
+
+const formatJuniorLabel = (count) => {
+  if (count <= 0) return "Без компенсации";
+  if (count === 1) return "1 молодой игрок из системы";
+  return `${count} молодых игрока из системы`;
+};
 
 export class OfferSheetCompensationService {
-  calculate(offer = {}) {
+  calculate(offer = {}, player = null) {
     const annualSalaryRub = Number(offer.salaryRub) || 0;
-    const tier = TIERS.find((entry) => annualSalaryRub <= entry.limit) || TIERS[0];
+    const juniorPlayerCount = getCompensationCount(player, annualSalaryRub);
     return {
       annualSalaryRub,
-      picks: [...tier.picks],
-      cashRub: tier.cash,
-      label: tier.label,
+      juniorPlayerCount,
+      picks: [],
+      cashRub: 0,
+      label: formatJuniorLabel(juniorPlayerCount),
     };
   }
 }

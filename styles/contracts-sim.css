@@ -943,4 +943,16 @@
 .offer-sheet-player-list strong{min-width:0;overflow-wrap:anywhere}
 .offer-sheet-player-list span{flex:0 0 auto;color:#8fa0b8;font-size:12px;font-weight:800}
 .offer-sheet-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.offer-sheet-compensation{display:grid;gap:10px;padding:12px;border:1px solid rgba(155,216,65,.22);border-radius:14px;background:rgba(9,12,16,.72)}
+.offer-sheet-compensation-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.offer-sheet-compensation-head h3{margin:0;color:#f6f7fc;font-size:15px;text-transform:uppercase}
+.offer-sheet-compensation-head span{display:grid;place-items:center;min-width:42px;height:28px;border-radius:9px;background:rgba(82,33,242,.22);color:#9bd841;font-weight:900}
+.offer-sheet-compensation p{margin:0;color:#7e838c;font-size:12px;font-weight:800}
+.offer-sheet-junior-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:320px;overflow:auto;padding-right:2px}
+.offer-sheet-junior-card{display:grid;gap:4px;text-align:left;padding:10px;border:1px solid rgba(246,247,252,.08);border-radius:12px;background:rgba(246,247,252,.045);color:#f6f7fc;cursor:pointer}
+.offer-sheet-junior-card.selected{border-color:rgba(155,216,65,.72);background:rgba(155,216,65,.12)}
+.offer-sheet-junior-card strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-transform:uppercase}
+.offer-sheet-junior-card span,.offer-sheet-junior-card em{color:#7e838c;font-style:normal;font-size:11px;font-weight:800}
+.offer-sheet-junior-card b{color:#9bd841;font-size:14px}
+.offer-sheet-empty{grid-column:1/-1;color:#7e838c;font-weight:800;padding:10px}
 .reset-row{justify-content:flex-end;margin-top:8px}

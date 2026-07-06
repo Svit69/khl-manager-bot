@@ -278,6 +278,7 @@
   .season-contract-footer-main{justify-content:flex-start}
   .offer-sheet-grid{grid-template-columns:1fr}
   .offer-sheet-trade-packages{grid-template-columns:1fr}
+  .offer-sheet-junior-grid{grid-template-columns:1fr}
   .offer-sheet-player-list li{display:grid}
   .offer-sheet-player-list span{flex:auto}
   .offer-sheet-actions{justify-content:flex-start}

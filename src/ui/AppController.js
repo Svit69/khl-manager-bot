@@ -29,6 +29,8 @@ export class AppController{
   #seasonExternalOfferPlayerIds=new Set();
   #seasonContractOutcomes=new Map();
   #dismissedOfferSheetPopupIds=new Set();
+  #offerSheetCompensationOfferId=null;
+  #offerSheetCompensationPlayerIds=new Set();
   #dismissedIncomingTradeOfferIds=new Set();
   #juniorPhotoStatusById=new Map();
   #juniorPhotoErrorById=new Map();
@@ -349,7 +351,10 @@ export class AppController{
   }
   #buildOfferSheetPopupView(){
     const row=this.#state.getActiveTeamRestrictedRightsRows().find(candidate=>!this.#dismissedOfferSheetPopupIds.has(candidate.id))||null;
-    return {row};
+    const compensation=this.#offerSheetCompensationOfferId
+      ? this.#state.getOfferSheetCompensationView(this.#offerSheetCompensationOfferId,[...this.#offerSheetCompensationPlayerIds])
+      : null;
+    return {row:compensation?.row||row,compensation};
   }
   #buildIncomingTradePopupView(){
     const row=this.#state.getIncomingTradeOfferRows().find(candidate=>!this.#dismissedIncomingTradeOfferIds.has(candidate.id))||null;
@@ -818,10 +823,43 @@ export class AppController{
     }
     if(action==="release-osa-rights"){
       const offerId=clickable.dataset.offerId;
-      const result=this.#state.releaseRestrictedRightsOffer(offerId);
+      const compensation=this.#state.getOfferSheetCompensationView(offerId,[]);
+      if(compensation?.requiredCount===0){
+        const result=this.#state.releaseRestrictedRightsOfferWithCompensation(offerId,[]);
+        if(result?.accepted){
+          this.#offerByPlayerId.delete(offerId);
+          this.#dismissedOfferSheetPopupIds.delete(offerId);
+          this.#userStore.saveState(this.#state.exportState());
+        }
+        this.#renderScreen();
+        return;
+      }
+      this.#offerSheetCompensationOfferId=offerId;
+      this.#offerSheetCompensationPlayerIds.clear();
+      this.#renderScreen();
+      return;
+    }
+    if(action==="toggle-osa-compensation-player"){
+      const playerId=clickable.dataset.playerId;
+      if(this.#offerSheetCompensationPlayerIds.has(playerId))this.#offerSheetCompensationPlayerIds.delete(playerId);
+      else this.#offerSheetCompensationPlayerIds.add(playerId);
+      this.#renderScreen();
+      return;
+    }
+    if(action==="cancel-osa-compensation"){
+      this.#offerSheetCompensationOfferId=null;
+      this.#offerSheetCompensationPlayerIds.clear();
+      this.#renderScreen();
+      return;
+    }
+    if(action==="confirm-osa-compensation"){
+      const offerId=clickable.dataset.offerId||this.#offerSheetCompensationOfferId;
+      const result=this.#state.releaseRestrictedRightsOfferWithCompensation(offerId,[...this.#offerSheetCompensationPlayerIds]);
       if(result?.accepted){
         this.#offerByPlayerId.delete(offerId);
         this.#dismissedOfferSheetPopupIds.delete(offerId);
+        this.#offerSheetCompensationOfferId=null;
+        this.#offerSheetCompensationPlayerIds.clear();
         this.#userStore.saveState(this.#state.exportState());
       }
       this.#renderScreen();

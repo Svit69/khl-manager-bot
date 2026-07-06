@@ -1,3 +1,5 @@
+import { renderOfferSheetCompensation } from "./OfferSheetCompensationRenderer.js";
+
 const formatMillions = (value) => {
   const millions = (Number(value) || 0) / 1000000;
   return Number.isInteger(millions) ? String(millions) : millions.toFixed(1);
@@ -8,6 +10,12 @@ export class OfferSheetPopupRenderer {
     const row = view?.row;
     if (!row) return "";
     const offer = row.offer || {};
+    const compensationMarkup = renderOfferSheetCompensation(view?.compensation);
+    const actionMarkup = compensationMarkup ? "" : `<div class="offer-sheet-actions">
+          <button class="btn" data-action="match-osa-offer" data-offer-id="${row.id}">Повторить оффершит</button>
+          <button class="btn secondary danger" data-action="release-osa-rights" data-offer-id="${row.id}">Забрать компенсацию</button>
+          <button class="btn secondary" data-action="offer-sheet-popup-dismiss" data-offer-id="${row.id}">Решить позже</button>
+        </div>`;
     return `<div class="modal offer-sheet-modal">
       <div class="offer-sheet-card">
         <div class="offer-sheet-head">
@@ -23,12 +31,9 @@ export class OfferSheetPopupRenderer {
           <div><span>Игрок</span><strong>${row.position} • OVR ${row.ovr}</strong></div>
           <div><span>Компенсация</span><strong>${row.compensationLabel}</strong></div>
         </div>
-        <div class="offer-sheet-note">Повторите оффершит, чтобы сохранить игрока, или отпустите его и заберите компенсацию.</div>
-        <div class="offer-sheet-actions">
-          <button class="btn" data-action="match-osa-offer" data-offer-id="${row.id}">Повторить оффершит</button>
-          <button class="btn secondary danger" data-action="release-osa-rights" data-offer-id="${row.id}">Забрать компенсацию</button>
-          <button class="btn secondary" data-action="offer-sheet-popup-dismiss" data-offer-id="${row.id}">Решить позже</button>
-        </div>
+        <div class="offer-sheet-note">Повторите оффершит, чтобы сохранить игрока, или отпустите его и заберите молодых игроков из системы клуба-оферента.</div>
+        ${compensationMarkup}
+        ${actionMarkup}
       </div>
     </div>`;
   }
