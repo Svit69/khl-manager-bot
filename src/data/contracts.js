@@ -2,6 +2,7 @@ import { avtomobilistPlayerContracts } from "./avtomobilistPlayers.js";
 import { admiralPlayerContracts } from "./admiral/index.js";
 import { amurPlayerContracts } from "./amur/index.js";
 import { lokomotivPlayerContracts } from "./lokomotivPlayers.js";
+import { ladaPlayerContracts } from "./lada/index.js";
 import { sibirPlayerContracts } from "./sibirPlayers.js";
 import { barysPlayerContracts } from "./barysPlayers.js";
 import { severstalPlayerContracts } from "./severstalPlayers.js";
@@ -2910,6 +2911,7 @@ export const playerContracts=[
   ...amurPlayerContracts,
   ...avtomobilistPlayerContracts,
   ...lokomotivPlayerContracts,
+  ...ladaPlayerContracts,
   ...sibirPlayerContracts,
   ...barysPlayerContracts,
   ...severstalPlayerContracts,
