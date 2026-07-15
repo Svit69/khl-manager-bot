@@ -1,5 +1,6 @@
 import { FantasyDraftService } from "../draft/FantasyDraftService.js";
 import { JuniorPhotoPool } from "../utils/JuniorPhotoPool.js";
+import { updateTeamFavicon } from "./TeamFaviconService.js";
 export class AppController{
   #state;#calendar;#teams;#renderer;#userStore;#pendingTeamId=null;#activeTab="roster";
   #selectedNegotiationPlayerId=null;#offerByPlayerId=new Map();#outcomeByPlayerId=new Map();
@@ -51,6 +52,7 @@ export class AppController{
     document.addEventListener("dragend",event=>{this.#dragRosterSlot=null;event.target?.classList?.remove?.("is-dragging");});
   }
   #renderScreen(){
+    this.#updateFavicon();
     const dayInfo=this.#state.activeTeam?this.#state.getVisibleCalendarDay():this.#calendar.getCurrent();
     const seasonState=this.#state.getSeasonState();
     const calendarDateLabel=seasonState?.phase==="preseason"&&seasonState?.preseasonOpen
@@ -355,6 +357,10 @@ export class AppController{
       ? this.#state.getOfferSheetCompensationView(this.#offerSheetCompensationOfferId,[...this.#offerSheetCompensationPlayerIds])
       : null;
     return {row:compensation?.row||row,compensation};
+  }
+  #updateFavicon(){
+    const teamId=this.#state.activeTeamId||this.#draftState?.selectedTeamId||this.#draftIntroTeamId||this.#pendingTeamId;
+    updateTeamFavicon(this.#teams.find(team=>team.id===teamId)||null);
   }
   #buildIncomingTradePopupView(){
     const row=this.#state.getIncomingTradeOfferRows().find(candidate=>!this.#dismissedIncomingTradeOfferIds.has(candidate.id))||null;
