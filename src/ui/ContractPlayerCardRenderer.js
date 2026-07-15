@@ -15,13 +15,12 @@ const splitName = (name = "") => {
   return { first: parts.slice(0, -1).join(" "), last: parts.at(-1) || "" };
 };
 const renderAction = (row) => row.isRenewalLocked
-  ? `<div class="contract-player-renewed"><span>✓</span><strong>ПРОДЛЕНО</strong><small>Контракт действует</small></div>`
+  ? `<div class="contract-player-renewed"><span>✓</span><strong>ПРОДЛЕНО</strong><small>Продлен в этом сезоне</small></div>`
   : `<button class="contract-player-action" data-action="open-negotiation" data-player-id="${row.playerId}">ПРОДЛИТЬ КОНТРАКТ</button>`;
 
 export const renderContractPlayerCard = (row, formatStatus) => {
   const status = statusLabel(row, formatStatus);
   const name = splitName(row.displayName);
-  const lockNotice = row.isRenewalLocked ? `<div class="contract-lock-note">${row.renewalLockReason}</div>` : "";
   return `<article class="contract-player-card ${statusClass(status)}">
     <div class="contract-player-photo-wrap">
       <img class="contract-player-photo" src="${row.photoUrl || "./player-photo/default.png"}" alt="${row.displayName}" ${PHOTO_FALLBACK_ATTR}>
@@ -36,6 +35,5 @@ export const renderContractPlayerCard = (row, formatStatus) => {
     <div class="contract-player-term"><span>Контракт до</span><strong>${contractLabel(row)}</strong><em>${termLabel(row)}</em></div>
     <span class="contract-player-status ${statusClass(status)}">${status}</span>
     ${renderAction(row)}
-    ${lockNotice}
   </article>`;
 };

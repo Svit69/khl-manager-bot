@@ -33,7 +33,6 @@
 .contract-chip.ok{background:rgba(44,189,137,.18);border-color:rgba(74,225,170,.5);color:#8df7cb}
 .contract-chip.warning{background:rgba(244,177,63,.18);border-color:rgba(255,203,108,.5);color:#ffd28a}
 .contract-meta-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;width:100%;font-size:14px}
-.contract-lock-note{padding:6px 8px;border:1px solid rgba(242,169,84,.4);background:rgba(80,49,13,.35);border-radius:7px;font-size:13px}
 .contract-card{overflow:hidden;border-radius:12px;border:1px solid rgba(82,33,242,.48);background:linear-gradient(105deg,rgba(12,16,28,.98),rgba(20,17,42,.94) 58%,rgba(10,12,18,.98));box-shadow:0 0 0 1px rgba(82,33,242,.18),0 14px 34px rgba(0,0,0,.34),inset 0 1px 0 rgba(246,247,252,.07)}
 .contract-player-card{position:relative;display:grid;grid-template-columns:82px minmax(0,1.15fr) 74px minmax(118px,.55fr) minmax(128px,.46fr);gap:14px;align-items:center;min-height:110px;padding:10px 14px 10px 10px;background:radial-gradient(70% 130% at 18% 10%,rgba(82,33,242,.2),transparent 62%),linear-gradient(90deg,rgba(8,12,18,.8),rgba(9,12,16,.22))}
 .contract-player-card.osa{border-left:2px solid #0c8ff2;box-shadow:inset 0 0 22px rgba(12,143,242,.12)}
