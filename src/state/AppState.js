@@ -16,6 +16,7 @@ import { HeadCoach } from "../models/HeadCoach.js";
 import { JuniorPhotoPool } from "../utils/JuniorPhotoPool.js";
 import { isPlaceholderPhoto } from "../utils/PlayerPhoto.js";
 import { StandingsTracker } from "../stats/StandingsTracker.js";
+import { buildConferenceStandings } from "../stats/ConferenceStandings.js";
 import { calculateAge, formatContractEndDate, formatNextSeason, parseSeasonEnd, parseSeasonStart, setSeasonReferenceDate } from "../contracts/SeasonUtils.js";
 import { PlayerDevelopmentService } from "../progression/PlayerDevelopmentService.js";
 import { AiIncomingTradeService } from "../trade/AiIncomingTradeService.js";
@@ -116,6 +117,7 @@ const normalizeGameSettings = (settings = {}) => ({
   salaryCapBaseRub: Math.max(500000000, Number(settings.salaryCapBaseRub) || 900000000),
   salaryCapGrowthRub: [0, 50000000, 100000000].includes(Number(settings.salaryCapGrowthRub)) ? Number(settings.salaryCapGrowthRub) : 50000000,
   coachesEnabled: settings.coachesEnabled !== false,
+  conferencesEnabled: settings.conferencesEnabled !== false,
 });
 const toDate = (value) => {
   const date = new Date(value);
@@ -175,6 +177,7 @@ export class AppState {
   constructor(teams, calendar, contracts, freeAgents = [], externalPlayers = [], coaches = []) {
     this.#teams = teams;
     this.#calendar = calendar;
+    this.#syncCalendarFormat();
     this.#freeAgents = dedupeFreeAgents(freeAgents);
     this.#externalPlayers = [...externalPlayers];
     this.#coaches = [...coaches];
@@ -496,6 +499,9 @@ export class AppState {
   }
 
   getStandingsTable() { return this.#standings.getTable(this.#teams); }
+  getConferenceStandingsTable() {
+    return buildConferenceStandings(this.getStandingsTable(), this.#teams);
+  }
   getPlayoffBracketData() { return this.#calendar.getPlayoffBracketData(); }
   getTopScorers(limit = 10) {
     const playersById = new Map(this.getAllPlayers().map((player) => [player.id, player]));
@@ -543,6 +549,11 @@ export class AppState {
   updateGameSettings(settings) {
     if (this.#activeTeamId) return;
     this.#gameSettings = normalizeGameSettings({ ...this.#gameSettings, ...(settings || {}) });
+    this.#syncCalendarFormat();
+  }
+
+  #syncCalendarFormat() {
+    this.#calendar?.setConferencesEnabled?.(this.#gameSettings.conferencesEnabled);
   }
 
   getVisibleCalendarDay() {
@@ -1493,6 +1504,7 @@ export class AppState {
     this.#juniorGenerationSeed = "juniorGenerationSeed" in saved ? saved.juniorGenerationSeed : null;
     this.#retiredPlayerIds = new Set(Array.isArray(saved.retiredPlayerIds) ? saved.retiredPlayerIds : []);
     this.#gameSettings = normalizeGameSettings(saved.gameSettings);
+    this.#syncCalendarFormat();
     if (Array.isArray(saved.coaches)) this.#coaches = saved.coaches.map((coach) => HeadCoach.fromSnapshot(coach));
     this.#coachOffers = Array.isArray(saved.coachOffers) ? saved.coachOffers : [];
     this.#transferLedger = normalizeTransferLedger(saved.transferLedger);

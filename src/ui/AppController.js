@@ -18,7 +18,7 @@ export class AppController{
   #matchPlaybackTimer=null;
   #calendarPanelTab="standings";
   #notificationVisibleCount=6;
-  #newGameSettings={restrictedFreeAgencyEnabled:true,salaryCapEnabled:true,salaryCapBaseRub:900000000,salaryCapGrowthRub:50000000,coachesEnabled:true};
+  #newGameSettings={restrictedFreeAgencyEnabled:true,salaryCapEnabled:true,salaryCapBaseRub:900000000,salaryCapGrowthRub:50000000,coachesEnabled:true,conferencesEnabled:true};
   #capComplianceOpen=false;
   #capReleasePlayerIds=new Set();
   #seasonContractDecisionOpen=false;
@@ -73,6 +73,8 @@ export class AppController{
           tab:this.#calendarPanelTab,
           activeTeamId:this.#state.activeTeamId,
           standings:this.#state.getStandingsTable(),
+          conferenceStandings:this.#state.getConferenceStandingsTable(),
+          gameSettings:this.#state.gameSettings,
           scorers:this.#state.getTopScorers(20),
           bestTeamScorer:this.#state.getTeamStatisticsRows(this.#state.activeTeamId,"points")[0]||null,
           schedule:this.#state.getCalendarScheduleRows(),
@@ -86,6 +88,8 @@ export class AppController{
         tab:this.#calendarPanelTab,
         activeTeamId:this.#state.activeTeamId,
         standings:this.#state.getStandingsTable(),
+        conferenceStandings:this.#state.getConferenceStandingsTable(),
+        gameSettings:this.#state.gameSettings,
         scorers:this.#state.getTopScorers(20),
         bestTeamScorer:this.#state.getTeamStatisticsRows(this.#state.activeTeamId,"points")[0]||null,
         schedule:this.#state.getCalendarScheduleRows(),
@@ -151,6 +155,8 @@ export class AppController{
         tab:this.#calendarPanelTab,
         activeTeamId:this.#state.activeTeamId,
         standings:this.#state.getStandingsTable(),
+        conferenceStandings:this.#state.getConferenceStandingsTable(),
+        gameSettings:this.#state.gameSettings,
         scorers:this.#state.getTopScorers(20),
         schedule:this.#state.getCalendarScheduleRows(),
         playoffs:this.#state.getPlayoffBracketData(),
@@ -166,6 +172,8 @@ export class AppController{
         tab:this.#calendarPanelTab,
         activeTeamId:this.#state.activeTeamId,
         standings:this.#state.getStandingsTable(),
+        conferenceStandings:this.#state.getConferenceStandingsTable(),
+        gameSettings:this.#state.gameSettings,
         scorers:this.#state.getTopScorers(20),
         schedule:this.#state.getCalendarScheduleRows(),
         playoffs:this.#state.getPlayoffBracketData(),
@@ -179,6 +187,8 @@ export class AppController{
       tab:this.#calendarPanelTab,
       activeTeamId:this.#state.activeTeamId,
       standings:this.#state.getStandingsTable(),
+      conferenceStandings:this.#state.getConferenceStandingsTable(),
+      gameSettings:this.#state.gameSettings,
       scorers:this.#state.getTopScorers(20),
       schedule:this.#state.getCalendarScheduleRows(),
       playoffs:this.#state.getPlayoffBracketData(),
@@ -411,6 +421,12 @@ export class AppController{
     }
     if(action==="new-game-coaches-toggle"){
       this.#newGameSettings={...this.#newGameSettings,coachesEnabled:clickable.checked};
+      this.#state.updateGameSettings(this.#newGameSettings);
+      this.#renderScreen();
+      return;
+    }
+    if(action==="new-game-conferences-toggle"){
+      this.#newGameSettings={...this.#newGameSettings,conferencesEnabled:clickable.checked};
       this.#state.updateGameSettings(this.#newGameSettings);
       this.#renderScreen();
       return;

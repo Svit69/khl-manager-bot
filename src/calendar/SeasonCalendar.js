@@ -1,4 +1,5 @@
 import { formatCalendarDate } from "../contracts/SeasonUtils.js";
+import { getTeamConference } from "../data/teamConferences.js";
 
 const REGULAR_MATCH_ID = (roundIndex, matchIndex) => `regular-round-${roundIndex + 1}-match-${matchIndex + 1}`;
 const PLAYOFF_SERIES_ID = (roundIndex, seriesIndex) => `playoff-round-${roundIndex + 1}-series-${seriesIndex + 1}`;
@@ -91,6 +92,7 @@ export class SeasonCalendar {
   #regularSeasonStartDate;
   #playoffStartDate;
   #nextPlayoffDate;
+  #conferencesEnabled = true;
 
   constructor(teams, seasonStartYear = 2025) {
     this.#teamsById = new Map((teams || []).map((team) => [team.id, team]));
@@ -134,6 +136,10 @@ export class SeasonCalendar {
 
   get playoffStartDate() {
     return toIsoDate(this.#playoffStartDate);
+  }
+
+  setConferencesEnabled(enabled) {
+    this.#conferencesEnabled = enabled !== false;
   }
 
   getCurrent() {
@@ -350,23 +356,46 @@ export class SeasonCalendar {
   #startPlayoffs(standingsTable) {
     const orderedTeams = (standingsTable || []).map((row, index) => ({
       seed: index + 1,
+      regularSeasonRank: index + 1,
+      regularSeasonPoints: Number(row.pts) || 0,
       team: this.#teamsById.get(row.teamId),
     })).filter((entry) => entry.team);
-    const participantCount = Math.min(getPlayoffTeamCount(orderedTeams.length), orderedTeams.length);
+    const seededTeams = this.#conferencesEnabled
+      ? this.#selectConferencePlayoffTeams(orderedTeams)
+      : orderedTeams.slice(0, Math.min(getPlayoffTeamCount(orderedTeams.length), orderedTeams.length));
+    const participantCount = seededTeams.length;
     if (participantCount < 2) return false;
 
-    const seededTeams = orderedTeams.slice(0, participantCount);
     this.#playoffs = {
       active: true,
       status: "active",
       participantCount,
       currentRoundIndex: 0,
-      rounds: [this.#createPlayoffRound(0, seededTeams, participantCount)],
+      rounds: [this.#createFirstPlayoffRound(seededTeams, participantCount)],
       championTeamId: null,
     };
     this.#nextPlayoffDate = this.#playoffStartDate;
     this.#ensurePlayoffSchedule();
     return true;
+  }
+
+  #selectConferencePlayoffTeams(orderedTeams) {
+    const groups = { east: [], west: [] };
+    orderedTeams.forEach((entry) => {
+      const conference = getTeamConference(entry.team);
+      const group = groups[conference] || groups.west;
+      group.push({ ...entry, conference, seed: group.length + 1 });
+    });
+    const participants = [...groups.east.slice(0, 8), ...groups.west.slice(0, 8)];
+    return participants.length >= 2 ? participants : orderedTeams.slice(0, Math.min(getPlayoffTeamCount(orderedTeams.length), orderedTeams.length));
+  }
+
+  #createFirstPlayoffRound(seededTeams, participantCount) {
+    if (!this.#conferencesEnabled) return this.#createPlayoffRound(0, seededTeams, participantCount);
+    const groups = ["east", "west"].map((conference) => seededTeams.filter((entry) => entry.conference === conference));
+    const round = this.#createPlayoffRound(0, [], participantCount);
+    round.series = groups.flatMap((group) => this.#createPlayoffSeries(0, group));
+    return round;
   }
 
   #createPlayoffRound(roundIndex, seededTeams, participantCount) {
@@ -376,6 +405,16 @@ export class SeasonCalendar {
     };
     const totalRounds = Math.log2(participantCount);
     const names = roundNamesByTotal[participantCount] || Array.from({ length: totalRounds }, (_, index) => `Раунд ${index + 1}`);
+    const series = [];
+    series.push(...this.#createPlayoffSeries(roundIndex, seededTeams));
+    return {
+      roundIndex,
+      name: names[Math.min(roundIndex, names.length - 1)],
+      series,
+    };
+  }
+
+  #createPlayoffSeries(roundIndex, seededTeams) {
     const series = [];
     for (let seriesIndex = 0; seriesIndex < seededTeams.length / 2; seriesIndex++) {
       const higherSeed = seededTeams[seriesIndex];
@@ -388,11 +427,7 @@ export class SeasonCalendar {
         games: [],
       });
     }
-    return {
-      roundIndex,
-      name: names[Math.min(roundIndex, names.length - 1)],
-      series,
-    };
+    return series;
   }
 
   #ensurePlayoffSchedule() {
@@ -411,10 +446,13 @@ export class SeasonCalendar {
       const winners = round.series
         .map((series) => ({
           seed: series.winnerTeamId === series.higherSeed.team.id ? series.higherSeed.seed : series.lowerSeed.seed,
+          regularSeasonRank: series.winnerTeamId === series.higherSeed.team.id ? series.higherSeed.regularSeasonRank : series.lowerSeed.regularSeasonRank,
+          regularSeasonPoints: series.winnerTeamId === series.higherSeed.team.id ? series.higherSeed.regularSeasonPoints : series.lowerSeed.regularSeasonPoints,
+          conference: series.winnerTeamId === series.higherSeed.team.id ? series.higherSeed.conference : series.lowerSeed.conference,
           team: this.#teamsById.get(series.winnerTeamId),
         }))
         .filter((entry) => entry.team)
-        .sort((left, right) => left.seed - right.seed);
+        .sort((left, right) => this.#comparePlayoffSeeds(left, right));
 
       if (winners.length <= 1) {
         this.#playoffs.status = "complete";
@@ -423,8 +461,16 @@ export class SeasonCalendar {
       }
 
       this.#playoffs.currentRoundIndex += 1;
-      this.#playoffs.rounds.push(this.#createPlayoffRound(this.#playoffs.currentRoundIndex, winners, this.#playoffs.participantCount));
+      this.#playoffs.rounds.push(this.#createPlayoffRound(this.#playoffs.currentRoundIndex, winners.map((entry) => ({
+        ...entry,
+        seed: this.#conferencesEnabled ? (entry.regularSeasonRank || entry.seed) : entry.seed,
+      })), this.#playoffs.participantCount));
     }
+  }
+
+  #comparePlayoffSeeds(left, right) {
+    if (!this.#conferencesEnabled) return left.seed - right.seed;
+    return (left.regularSeasonRank || left.seed) - (right.regularSeasonRank || right.seed);
   }
 
   #schedulePlayoffDay(round, unfinishedSeries) {
@@ -490,11 +536,17 @@ export class SeasonCalendar {
           higherSeed: {
             teamId: series.higherSeed.team.id,
             seed: series.higherSeed.seed,
+            regularSeasonRank: series.higherSeed.regularSeasonRank || series.higherSeed.seed,
+            regularSeasonPoints: series.higherSeed.regularSeasonPoints || 0,
+            conference: series.higherSeed.conference || getTeamConference(series.higherSeed.team),
             wins: series.higherSeed.wins,
           },
           lowerSeed: {
             teamId: series.lowerSeed.team.id,
             seed: series.lowerSeed.seed,
+            regularSeasonRank: series.lowerSeed.regularSeasonRank || series.lowerSeed.seed,
+            regularSeasonPoints: series.lowerSeed.regularSeasonPoints || 0,
+            conference: series.lowerSeed.conference || getTeamConference(series.lowerSeed.team),
             wins: series.lowerSeed.wins,
           },
           winnerTeamId: series.winnerTeamId,
@@ -538,11 +590,17 @@ export class SeasonCalendar {
         higherSeed: {
           team: this.#teamsById.get(series.higherSeed.teamId),
           seed: Number(series.higherSeed.seed) || 1,
+          regularSeasonRank: Number(series.higherSeed.regularSeasonRank) || Number(series.higherSeed.seed) || 1,
+          regularSeasonPoints: Number(series.higherSeed.regularSeasonPoints) || 0,
+          conference: series.higherSeed.conference || getTeamConference(this.#teamsById.get(series.higherSeed.teamId)),
           wins: Number(series.higherSeed.wins) || 0,
         },
         lowerSeed: {
           team: this.#teamsById.get(series.lowerSeed.teamId),
           seed: Number(series.lowerSeed.seed) || 1,
+          regularSeasonRank: Number(series.lowerSeed.regularSeasonRank) || Number(series.lowerSeed.seed) || 1,
+          regularSeasonPoints: Number(series.lowerSeed.regularSeasonPoints) || 0,
+          conference: series.lowerSeed.conference || getTeamConference(this.#teamsById.get(series.lowerSeed.teamId)),
           wins: Number(series.lowerSeed.wins) || 0,
         },
         winnerTeamId: series.winnerTeamId || null,
