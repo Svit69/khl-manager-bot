@@ -1,7 +1,6 @@
 import { renderExternalRightsPanel } from "./ExternalRightsCardRenderer.js";
 import { renderContractFinanceHeader } from "./ContractFinanceRenderer.js";
-
-const getNameFitClass = (name = "") => name.length > 28 ? "name-fit-xs" : name.length > 22 ? "name-fit-sm" : "";
+import { renderContractPlayerCard } from "./ContractPlayerCardRenderer.js";
 
 export class ContractTabRenderer {
   render(rows, negotiation, restrictedRights = [], externalPlayers = [], salaryCap = null) {
@@ -10,19 +9,10 @@ export class ContractTabRenderer {
     const capMarkup = renderContractFinanceHeader(salaryCap);
     const content = rows
       .map((row) => {
-        const contractInfo = row.contractEndDate ? `До ${row.contractEndDate}` : "Контракт не найден";
         const status = row.freeAgentStatus || this.#formatStatus(row.age, row.khlGamesPlayed);
-        const isLocked = Boolean(row.isRenewalLocked);
-        const buttonLabel = isLocked ? "Продлено" : "Продлить";
-        const disabledAttr = isLocked ? "disabled" : "";
-        const controls = `<div class="row"><button class="btn secondary" ${disabledAttr} data-action="open-negotiation" data-player-id="${row.playerId}">${buttonLabel}</button></div>`;
-        const lockNotice = row.isRenewalLocked
-          ? `<div class="contract-lock-note">${row.renewalLockReason}</div>`
-          : "";
         const negotiationPanel =
           negotiation && negotiation.playerId === row.playerId ? this.#renderNegotiationPanel(negotiation) : "";
-
-        return `<div class="contract-card"><div class="contract-row"><div class="contract-row-top"><span class="contract-player-name ${getNameFitClass(row.displayName)}" title="${row.displayName}">${row.displayName}</span><span class="contract-chip ${status === "НСА" ? "warning" : "ok"}">${status}</span></div><div class="contract-meta-grid"><span>Позиция: <strong>${row.position}</strong></span><span>OVR: <strong>${row.ovr}</strong></span><span>Возраст: <strong>${row.age}</strong></span><span>${contractInfo}</span></div>${lockNotice}${controls}</div>${negotiationPanel}</div>`;
+        return `<div class="contract-card">${renderContractPlayerCard(row, () => status)}${negotiationPanel}</div>`;
       })
       .join("");
 

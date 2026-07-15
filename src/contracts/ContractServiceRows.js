@@ -51,6 +51,7 @@ export const buildTeamContractRows = ({
         return {
           playerId: null,
           displayName: player.name,
+          photoUrl: getPlayerPhotoUrl(player),
           age: calculateAge(player.identity.birthDate, currentDate),
           ovr: player.currentOvr ?? player.ovr,
           position: player.identity?.primaryPosition || "",
@@ -72,6 +73,7 @@ export const buildTeamContractRows = ({
       return {
         playerId,
         displayName: player.name,
+        photoUrl: getPlayerPhotoUrl(player),
         age: calculateAge(player.identity.birthDate, currentDate),
         ovr: player.currentOvr ?? player.ovr,
         position: player.identity?.primaryPosition || "",
@@ -123,6 +125,7 @@ export const buildFreeAgentRows = (players, currentDate = null) =>
     .map((player) => ({
       playerId: player.id,
       displayName: player.name,
+      photoUrl: getPlayerPhotoUrl(player),
       age: calculateAge(player.identity.birthDate, currentDate),
       ovr: player.ovr,
       position: player.identity?.primaryPosition || "",

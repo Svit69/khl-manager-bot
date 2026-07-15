@@ -260,6 +260,9 @@
   .contract-future-cap{padding-left:0;border-left:0;border-top:1px solid rgba(246,247,252,.1);padding-top:12px}
   .contract-future-cap>div{grid-template-columns:1fr}
   .contracts-tab-switcher button{min-width:170px}
+  .contract-player-card{grid-template-columns:74px minmax(0,1fr) 68px;grid-template-areas:"photo main ovr" "photo term action";gap:10px;padding:10px}
+  .contract-player-photo-wrap{grid-area:photo}.contract-player-main{grid-area:main}.contract-player-ovr{grid-area:ovr}.contract-player-term{grid-area:term}.contract-player-action,.contract-player-renewed{grid-area:action}
+  .contract-player-details{grid-template-columns:1fr}.contract-player-main h3{font-size:16px}.contract-player-status{right:8px;top:8px}
   .draft-preview-head{grid-template-columns:84px 1fr}
   .draft-preview-photo{width:84px;height:84px}
   .draft-needs-grid{grid-template-columns:1fr}
