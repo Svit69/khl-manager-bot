@@ -36,6 +36,14 @@ const isWeakGeneratedJuniorFreeAgent = (player) => {
   const potential = Number(player?.potential?.potential) || ovr;
   return ovr < 68 && potential < 80;
 };
+const buildRestrictedRetentionOffer = (contracts, player) => {
+  const playerContracts = contracts.getContractsForPlayer(player.id);
+  const lastContract = playerContracts[playerContracts.length - 1] || null;
+  return {
+    years: 1,
+    salaryRub: roundSalaryRub(Math.max(getFallbackMarketSalaryRub(player), Number(lastContract?.salaryRub || 0) * 0.9)),
+  };
+};
 
 export class SeasonTransitionService {
   #contracts;
@@ -110,6 +118,18 @@ export class SeasonTransitionService {
         player.career?.khlGamesPlayed || 0,
       );
       if (restrictedFreeAgencyEnabled && currentTeamId && ufaStatus === "OSA" && !(currentTeamId === activeTeamId && releasedRightsPlayerIds.has(player.id))) {
+        const currentTeam = teams.find((team) => team.id === currentTeamId);
+        const retentionOffer = buildRestrictedRetentionOffer(this.#contracts, player);
+        const retentionContext = { ...(currentTeam ? buildContext(currentTeam) : {}), currentDate: offseasonDate, seasonLabel: nextSeasonLabel, allPlayers: activePlayers };
+        const canRetain = currentTeamId === activeTeamId || !canSubmitOffer || canSubmitOffer(currentTeam, player, retentionOffer, retentionContext, "renewal");
+        if (!canRetain) {
+          if (currentTeamId) departures.push({ player, fromTeamId: currentTeamId, reason: "contractExpired" });
+          player.affiliation.teamId = null;
+          player.affiliation.contractId = null;
+          player.affiliation.acquiredDay = null;
+          releasedPlayerIds.push(player.id);
+          return;
+        }
         const retainedContract = this.#contracts.retainRestrictedFreeAgent(player, currentTeamId, nextSeasonLabel);
         player.affiliation.teamId = currentTeamId;
         player.affiliation.contractId = retainedContract?.id || player.affiliation.contractId || null;

@@ -1369,12 +1369,14 @@ export class AppState {
       allPlayers: this.getAllPlayers(),
       transferLedger: this.#transferLedger,
       buildContext: (team) => this.#buildNegotiationContext(team),
-      canSubmitOffer: (team, player, offer, context) =>
-        this.#canSubmitContractOffer(team, player, offer, "freeAgent", context).allowed,
+      canSubmitOffer: (team, player, offer, context, mode = "freeAgent") =>
+        this.#canSubmitContractOffer(team, player, offer, mode, context).allowed,
       negotiationDate: preseasonDate,
       seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
     });
     this.#recordRosterDepthMovements(depthMovements);
+    this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
+    this.#processAiSalaryCapCompliance();
     this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
     this.#seasonState = {
       ...this.#seasonState,
@@ -1456,6 +1458,8 @@ export class AppState {
     this.#releaseIneligibleJuniorPlayers({ notify: true });
     this.#juniors.applyOffseasonDevelopment(this.#teams, this.#getEffectiveNegotiationDate(), this.#seasonState.seasonLabel);
     this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#seasonState.seasonLabel, generationSeed: this.#juniorGenerationSeed });
+    this.#processAiSalaryCapCompliance();
+    this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
     this.#syncSeasonReferenceDate();
     this.#syncSeasonPhase();
     return transition;
@@ -2064,6 +2068,20 @@ export class AppState {
         }
       }
 
+      const retentionOffer = this.#buildRestrictedRetentionOffer(player);
+      const capAssessment = this.#canSubmitContractOffer(rightsTeam, player, retentionOffer, "renewal", {
+        currentDate: seasonDate.toISOString().slice(0, 10),
+        seasonLabel: nextSeasonLabel,
+      });
+      if (rightsTeam.id !== this.#activeTeamId && !capAssessment.allowed) {
+        player.affiliation.teamId = null;
+        player.affiliation.contractId = null;
+        player.affiliation.acquiredDay = null;
+        this.#removeExternalPlayer(player, "khl_market", nextSeasonLabel);
+        transition.freeAgents = dedupeFreeAgents([...(transition.freeAgents || []), player]);
+        return;
+      }
+
       const contract = this.#contracts.retainRestrictedFreeAgent(player, rightsTeam.id, nextSeasonLabel);
       player.affiliation.contractId = contract?.id || null;
       player.affiliation.acquiredDay = this.#calendar.currentDay;
@@ -2252,11 +2270,20 @@ export class AppState {
 
   #processAiSalaryCapCompliance() {
     const seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
-    const capRub = this.#getSalaryCapRub(seasonLabel);
+    const futureSeasons = [seasonLabel, formatNextSeason(seasonLabel), formatNextSeason(formatNextSeason(seasonLabel))];
     this.#teams.filter((team) => team.id !== this.#activeTeamId).forEach((team) => {
-      this.#salaryCapCompliance.pickCuts(team, this.#exportContractRows(), seasonLabel, capRub)
+      this.#salaryCapCompliance.pickMultiSeasonCuts(team, this.#exportContractRows(), futureSeasons, (season) => this.#getSalaryCapRub(season))
         .forEach((playerId) => this.#releasePlayerToFreeAgency(playerId, team.id, "aiSalaryCapRelease"));
     });
+  }
+
+  #buildRestrictedRetentionOffer(player) {
+    const contracts = this.#contracts.getContractsForPlayer(player.id);
+    const lastContract = contracts[contracts.length - 1] || null;
+    return {
+      years: 1,
+      salaryRub: this.#roundSalaryRub(Math.max(getFallbackMarketSalaryRub(player), Number(lastContract?.salaryRub || 0) * 0.9)),
+    };
   }
 
   #fillRostersToTargetSize() {

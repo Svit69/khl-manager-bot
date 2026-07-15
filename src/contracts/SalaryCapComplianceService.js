@@ -1,3 +1,5 @@
+import { pickMultiSeasonSalaryCapCuts } from "./SalaryCapComplianceMath.js";
+
 const salaryFor = (contracts, playerId, seasonLabel) =>
   (contracts || []).find((item) => item.playerId === playerId && item.season === seasonLabel)?.salaryRub || 0;
 
@@ -32,5 +34,12 @@ export class SalaryCapComplianceService {
       projectedRub -= row.salaryRub;
     });
     return cuts;
+  }
+
+  pickMultiSeasonCuts(team, contracts, seasonLabels, getCapRub) {
+    return pickMultiSeasonSalaryCapCuts({
+      team, contracts, seasonLabels, getCapRub,
+      buildView: (targetTeam, rows, season, capRub, selectedIds) => this.buildView(targetTeam, rows, season, capRub, selectedIds),
+    });
   }
 }
