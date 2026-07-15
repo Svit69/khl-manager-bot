@@ -3,6 +3,12 @@ import { PHOTO_FALLBACK_ATTR } from "../utils/PlayerPhoto.js";
 const statusClass = (status) => status === "НСА" ? "nsa" : "osa";
 const statusLabel = (row, formatStatus) => row.freeAgentStatus || formatStatus(row.age, row.khlGamesPlayed);
 const contractLabel = (row) => row.contractEndDate || "Контракт не найден";
+const formatCurrentContractSalaryLabel = (row) => {
+  const currentContract = (row.contracts || [])[0];
+  const millions = (Number(currentContract?.salaryRub) || 0) / 1000000;
+  if (!millions) return "нет данных";
+  return `${Number.isInteger(millions) ? millions : millions.toFixed(1)} млн ₽`;
+};
 const termLabel = (row) => {
   const seasons = (row.contracts || []).length;
   if (!seasons) return "нет данных";
@@ -29,7 +35,7 @@ export const renderContractPlayerCard = (row, formatStatus) => {
     <div class="contract-player-main">
       <h3 title="${row.displayName}">${name.first ? `${name.first} ` : ""}${name.last}</h3>
       <div class="contract-player-bio"><b>${row.position}</b><span>${row.age} лет</span></div>
-      <div class="contract-player-details"><div><span>Позиция</span><strong>${row.position}</strong></div><div><span>Лига</span><strong>КХЛ</strong></div></div>
+      <div class="contract-player-details"><div><span>Текущий контракт</span><strong>${formatCurrentContractSalaryLabel(row)}</strong></div></div>
     </div>
     <div class="contract-player-ovr"><span>OVR</span><strong>${row.ovr}</strong></div>
     <div class="contract-player-term"><span>Контракт до</span><strong>${contractLabel(row)}</strong><em>${termLabel(row)}</em></div>
