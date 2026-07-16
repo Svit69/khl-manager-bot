@@ -2182,7 +2182,7 @@ export class AppState {
   }
 
   #clearActiveRosterExternalCareers() {
-    this.#teams.flatMap((team) => team.getRoster?.() || []).forEach((player) => {
+    this.#teams.flatMap((team) => [...(team.getRoster?.() || []), ...(team.juniorPlayers || [])]).forEach((player) => {
       if (player?.affiliation?.teamId && player.externalCareer) player.externalCareer = null;
     });
   }

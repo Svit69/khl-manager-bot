@@ -16,7 +16,7 @@ export const collectSavedExternalPlayerSnapshots = (saved = {}) => {
     if (hasStableExternalRightsId(player)) snapshotsById.set(player.id, player);
   });
   (saved.players || [])
-    .filter((player) => isExternalRightsSnapshot(player))
+    .filter((player) => !player?.teamId && isExternalRightsSnapshot(player))
     .forEach((player) => snapshotsById.set(player.id, player));
   return [...snapshotsById.values()];
 };
@@ -27,7 +27,7 @@ export const mergeExternalRightsPlayers = (externalPlayers = [], activePlayers =
     if (isExternalRightsSnapshot(player)) playersById.set(player.id, player);
   });
   (activePlayers || []).forEach((player) => {
-    if (isExternalRightsSnapshot(player)) playersById.set(player.id, player);
+    if (!player?.affiliation?.teamId && isExternalRightsSnapshot(player)) playersById.set(player.id, player);
   });
   return [...playersById.values()];
 };
@@ -39,5 +39,9 @@ export const shouldRestoreExternalRightsPlayer = (player, activePlayerIds, saved
 
 export const excludeExternalRightsPlayersFromActivePool = (players = [], externalPlayers = [], retiredPlayerIds = new Set()) => {
   const externalPlayerIds = new Set((externalPlayers || []).map((player) => player?.id).filter(Boolean));
-  return (players || []).filter((player) => player?.id && !retiredPlayerIds.has(player.id) && !externalPlayerIds.has(player.id));
+  return (players || []).filter((player) =>
+    player?.id &&
+    !retiredPlayerIds.has(player.id) &&
+    (player.affiliation?.teamId || !externalPlayerIds.has(player.id)),
+  );
 };
