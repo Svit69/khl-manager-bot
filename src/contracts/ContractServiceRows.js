@@ -1,5 +1,5 @@
 ﻿import { calculateAge } from "./SeasonUtils.js";
-import { getLatestContract, getMoodLabel, getMoodTone } from "./ContractServiceShared.js";
+import { getLatestContract, getMoodLabel, getMoodTone, getSeasonLabelFromDate } from "./ContractServiceShared.js";
 import { getPlayerPhotoUrl } from "../utils/PlayerPhoto.js";
 
 const compareTeamStatsRows = (left, right, sortBy) => {
@@ -46,6 +46,7 @@ export const buildTeamContractRows = ({
   team
     .getRoster()
     .map((player) => {
+      const currentSeasonLabel = getSeasonLabelFromDate(currentDate);
       const playerId = player.id || null;
       if (!playerId) {
         return {
@@ -63,6 +64,7 @@ export const buildTeamContractRows = ({
           },
           contractEndDate: null,
           contracts: [],
+          currentSeasonLabel,
         };
       }
 
@@ -85,6 +87,7 @@ export const buildTeamContractRows = ({
         },
         contractEndDate: formatContractEndDate(lastContract?.season),
         contracts,
+        currentSeasonLabel,
         isRenewalLocked: renewalLocked,
         renewalLockReason: renewalLocked ? getRenewalLockReason(playerId, currentDate) : null,
       };

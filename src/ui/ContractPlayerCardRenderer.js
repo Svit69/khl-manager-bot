@@ -9,12 +9,17 @@ const formatCurrentContractSalaryLabel = (row) => {
   if (!millions) return "нет данных";
   return `${Number.isInteger(millions) ? millions : millions.toFixed(1)} млн ₽`;
 };
+const parseSeasonStartYear = (season) => Number(String(season || "0/0").split("/")[0]) || 0;
 const termLabel = (row) => {
-  const seasons = (row.contracts || []).length;
-  if (!seasons) return "нет данных";
-  if (seasons === 1) return "остался 1 год";
-  if (seasons >= 2 && seasons <= 4) return `осталось ${seasons} года`;
-  return `осталось ${seasons} лет`;
+  const contractSeasons = (row.contracts || []).map((contract) => parseSeasonStartYear(contract.season)).filter(Boolean);
+  if (!contractSeasons.length) return "нет данных";
+  const currentSeasonStart = parseSeasonStartYear(row.currentSeasonLabel) || Math.min(...contractSeasons);
+  const lastSeasonStart = Math.max(...contractSeasons);
+  const seasonsLeft = Math.max(0, lastSeasonStart - currentSeasonStart + 1);
+  if (!seasonsLeft) return "контракт истек";
+  if (seasonsLeft === 1) return "остался 1 сезон";
+  if (seasonsLeft >= 2 && seasonsLeft <= 4) return `осталось ${seasonsLeft} сезона`;
+  return `осталось ${seasonsLeft} сезонов`;
 };
 const splitName = (name = "") => {
   const parts = String(name).trim().split(/\s+/).filter(Boolean);
