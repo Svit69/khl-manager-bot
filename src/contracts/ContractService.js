@@ -38,6 +38,7 @@ export class ContractService {
   #releasedPlayerIds;
   #badOfferCounts;
   #lastOffers;
+  #renewalLockSeasonByPlayerId;
 
   constructor(contracts) {
     this.#baseContracts = (contracts || []).map(normalizeContract).filter(Boolean);
@@ -46,6 +47,7 @@ export class ContractService {
     this.#releasedPlayerIds = new Set();
     this.#badOfferCounts = new Map();
     this.#lastOffers = new Map();
+    this.#renewalLockSeasonByPlayerId = new Map();
   }
 
   importContracts(payload) {
@@ -54,6 +56,9 @@ export class ContractService {
     const releasedPlayerIds = Array.isArray(payload?.releasedPlayerIds) ? payload.releasedPlayerIds : [];
     const badOfferCounts = payload?.badOfferCounts && typeof payload.badOfferCounts === "object" ? payload.badOfferCounts : {};
     const lastOffers = payload?.lastOffers && typeof payload.lastOffers === "object" ? payload.lastOffers : {};
+    const renewalLocks = payload?.renewalLockSeasonByPlayerId && typeof payload.renewalLockSeasonByPlayerId === "object"
+      ? payload.renewalLockSeasonByPlayerId
+      : {};
     const saved = (fullContracts || savedContracts || []).map(normalizeContract).filter(Boolean);
 
     this.#releasedPlayerIds = new Set(releasedPlayerIds);
@@ -71,6 +76,11 @@ export class ContractService {
             : null,
         ])
         .filter(([, offer]) => Boolean(offer)),
+    );
+    this.#renewalLockSeasonByPlayerId = new Map(
+      Object.entries(renewalLocks)
+        .map(([playerId, season]) => [playerId, String(season || "")])
+        .filter(([, season]) => Boolean(season)),
     );
 
     if (fullContracts) {
@@ -118,6 +128,7 @@ export class ContractService {
       releasedPlayerIds: [...this.#releasedPlayerIds],
       badOfferCounts: Object.fromEntries(this.#badOfferCounts),
       lastOffers: Object.fromEntries(this.#lastOffers),
+      renewalLockSeasonByPlayerId: Object.fromEntries(this.#renewalLockSeasonByPlayerId),
     };
   }
 
@@ -125,6 +136,7 @@ export class ContractService {
     (playerIds || []).forEach((playerId) => {
       if (!playerId) return;
       this.#releasedPlayerIds.add(playerId);
+      this.#renewalLockSeasonByPlayerId.delete(playerId);
       this.#contracts = this.#contracts.filter(
         (contract) => !(contract.playerId === playerId && !this.#baseContractIds.has(contract.id)),
       );
@@ -138,6 +150,7 @@ export class ContractService {
       this.#contracts = this.#contracts.filter((contract) => contract.playerId !== playerId);
       this.#clearBadOfferCount(playerId);
       this.#clearLastOffer(playerId);
+      this.#renewalLockSeasonByPlayerId.delete(playerId);
     });
   }
 
@@ -207,6 +220,7 @@ export class ContractService {
     this.#releasedPlayerIds.delete(player.id);
     this.#clearBadOfferCount(player.id);
     this.#clearLastOffer(player.id);
+    this.#renewalLockSeasonByPlayerId.delete(player.id);
     return contract || null;
   }
 
@@ -226,6 +240,7 @@ export class ContractService {
     this.#releasedPlayerIds.delete(player.id);
     this.#clearBadOfferCount(player.id);
     this.#clearLastOffer(player.id);
+    this.#renewalLockSeasonByPlayerId.delete(player.id);
     return contract || null;
   }
 
@@ -244,6 +259,7 @@ export class ContractService {
     this.#releasedPlayerIds.delete(player.id);
     this.#clearBadOfferCount(player.id);
     this.#clearLastOffer(player.id);
+    this.#renewalLockSeasonByPlayerId.delete(player.id);
     return contract || null;
   }
 
@@ -283,6 +299,9 @@ export class ContractService {
 
   isRenewalLocked(playerId, currentDate = null) {
     const currentSeason = getSeasonLabelFromDate(currentDate);
+    if (currentSeason && this.#renewalLockSeasonByPlayerId.get(playerId) === currentSeason) return true;
+    const currentContract = this.getContractForSeason(playerId, currentSeason);
+    if (currentContract && !this.#baseContractIds.has(currentContract.id)) return false;
     return this.#contracts.some(
       (contract) =>
         contract.playerId === playerId &&
@@ -375,6 +394,7 @@ export class ContractService {
 
       this.#clearBadOfferCount(player.id);
       this.#clearLastOffer(player.id);
+      this.#lockRenewalForSeason(player.id, context?.currentDate, lastContract.season);
       return { decision: "accept", preview, newContracts };
     }
 
@@ -428,6 +448,7 @@ export class ContractService {
     player.potential?.resetFreeAgentInactivity?.();
     this.#clearBadOfferCount(player.id);
     this.#clearLastOffer(player.id);
+    this.#renewalLockSeasonByPlayerId.delete(player.id);
     return newContracts;
   }
 
@@ -450,6 +471,7 @@ export class ContractService {
 
     this.#contracts.push(nextContract);
     player.affiliation.contractId = nextContract.id;
+    this.#lockRenewalForSeason(playerId, null, lastContract.season);
     return nextContract;
   }
 
@@ -568,6 +590,11 @@ export class ContractService {
 
   #clearLastOffer(playerId) {
     this.#lastOffers.delete(playerId);
+  }
+
+  #lockRenewalForSeason(playerId, currentDate = null, fallbackSeason = null) {
+    const season = getSeasonLabelFromDate(currentDate) || fallbackSeason;
+    if (playerId && season) this.#renewalLockSeasonByPlayerId.set(playerId, season);
   }
 
   #rememberLastOffer(playerId, offer) {
