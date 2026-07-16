@@ -394,7 +394,12 @@ export class SeasonCalendar {
     if (!this.#conferencesEnabled) return this.#createPlayoffRound(0, seededTeams, participantCount);
     const groups = ["east", "west"].map((conference) => seededTeams.filter((entry) => entry.conference === conference));
     const round = this.#createPlayoffRound(0, [], participantCount);
-    round.series = groups.flatMap((group) => this.#createPlayoffSeries(0, group));
+    let seriesOffset = 0;
+    round.series = groups.flatMap((group) => {
+      const series = this.#createPlayoffSeries(0, group, seriesOffset);
+      seriesOffset += series.length;
+      return series;
+    });
     return round;
   }
 
@@ -414,13 +419,15 @@ export class SeasonCalendar {
     };
   }
 
-  #createPlayoffSeries(roundIndex, seededTeams) {
+  #createPlayoffSeries(roundIndex, seededTeams, seriesOffset = 0) {
     const series = [];
     for (let seriesIndex = 0; seriesIndex < seededTeams.length / 2; seriesIndex++) {
+      const seriesSlot = seriesOffset + seriesIndex;
       const higherSeed = seededTeams[seriesIndex];
       const lowerSeed = seededTeams[seededTeams.length - 1 - seriesIndex];
       series.push({
-        id: PLAYOFF_SERIES_ID(roundIndex, seriesIndex),
+        id: PLAYOFF_SERIES_ID(roundIndex, seriesSlot),
+        seriesSlot,
         higherSeed: { ...higherSeed, wins: 0 },
         lowerSeed: { ...lowerSeed, wins: 0 },
         winnerTeamId: null,
@@ -470,7 +477,8 @@ export class SeasonCalendar {
 
   #comparePlayoffSeeds(left, right) {
     if (!this.#conferencesEnabled) return left.seed - right.seed;
-    return (left.regularSeasonRank || left.seed) - (right.regularSeasonRank || right.seed);
+    return (right.regularSeasonPoints || 0) - (left.regularSeasonPoints || 0) ||
+      (left.regularSeasonRank || left.seed) - (right.regularSeasonRank || right.seed);
   }
 
   #schedulePlayoffDay(round, unfinishedSeries) {
@@ -478,11 +486,12 @@ export class SeasonCalendar {
     const scheduledDate = this.#nextPlayoffDate;
     const matches = unfinishedSeries.map((series, seriesIndex) => {
       const gameNumber = series.games.length + 1;
+      const seriesSlot = Number.isFinite(series.seriesSlot) ? series.seriesSlot : seriesIndex;
       const homeRole = PLAYOFF_HOME_PATTERN[gameNumber - 1] || "higher";
       const homeTeam = homeRole === "higher" ? series.higherSeed.team : series.lowerSeed.team;
       const awayTeam = homeRole === "higher" ? series.lowerSeed.team : series.higherSeed.team;
       const match = {
-        id: PLAYOFF_MATCH_ID(round.roundIndex, seriesIndex, gameNumber),
+        id: PLAYOFF_MATCH_ID(round.roundIndex, seriesSlot, gameNumber),
         home: homeTeam,
         away: awayTeam,
         result: null,
@@ -533,6 +542,7 @@ export class SeasonCalendar {
         name: round.name,
         series: round.series.map((series) => ({
           id: series.id,
+          seriesSlot: series.seriesSlot,
           higherSeed: {
             teamId: series.higherSeed.team.id,
             seed: series.higherSeed.seed,
@@ -585,39 +595,47 @@ export class SeasonCalendar {
     const rounds = (payload?.rounds || []).map((round) => ({
       roundIndex: Number(round.roundIndex) || 0,
       name: round.name || `Раунд ${(Number(round.roundIndex) || 0) + 1}`,
-      series: (round.series || []).map((series) => ({
-        id: series.id,
-        higherSeed: {
-          team: this.#teamsById.get(series.higherSeed.teamId),
-          seed: Number(series.higherSeed.seed) || 1,
-          regularSeasonRank: Number(series.higherSeed.regularSeasonRank) || Number(series.higherSeed.seed) || 1,
-          regularSeasonPoints: Number(series.higherSeed.regularSeasonPoints) || 0,
-          conference: series.higherSeed.conference || getTeamConference(this.#teamsById.get(series.higherSeed.teamId)),
-          wins: Number(series.higherSeed.wins) || 0,
-        },
-        lowerSeed: {
-          team: this.#teamsById.get(series.lowerSeed.teamId),
-          seed: Number(series.lowerSeed.seed) || 1,
-          regularSeasonRank: Number(series.lowerSeed.regularSeasonRank) || Number(series.lowerSeed.seed) || 1,
-          regularSeasonPoints: Number(series.lowerSeed.regularSeasonPoints) || 0,
-          conference: series.lowerSeed.conference || getTeamConference(this.#teamsById.get(series.lowerSeed.teamId)),
-          wins: Number(series.lowerSeed.wins) || 0,
-        },
-        winnerTeamId: series.winnerTeamId || null,
-        games: (series.games || []).map((game) => ({
-          id: game.id,
-          home: this.#teamsById.get(game.homeTeamId),
-          away: this.#teamsById.get(game.awayTeamId),
-          result: game.result ? { ...game.result } : null,
-          phase: "playoffs",
-          roundIndex: Number(game.roundIndex) || 0,
-          roundName: game.roundName || round.name,
-          seriesId: game.seriesId || series.id,
-          gameNumber: Number(game.gameNumber) || 1,
-          day: Number(game.day) || this.#days.length + 1,
-          dateIso: game.dateIso || this.#playoffStartDate,
-        })).filter((game) => game.home && game.away),
-      })).filter((series) => series.higherSeed.team && series.lowerSeed.team),
+      series: (round.series || []).map((series, seriesIndex) => {
+        const normalizedSeriesId = PLAYOFF_SERIES_ID(Number(round.roundIndex) || 0, seriesIndex);
+        const seriesSlot = seriesIndex;
+        return {
+          id: normalizedSeriesId,
+          seriesSlot,
+          higherSeed: {
+            team: this.#teamsById.get(series.higherSeed.teamId),
+            seed: Number(series.higherSeed.seed) || 1,
+            regularSeasonRank: Number(series.higherSeed.regularSeasonRank) || Number(series.higherSeed.seed) || 1,
+            regularSeasonPoints: Number(series.higherSeed.regularSeasonPoints) || 0,
+            conference: series.higherSeed.conference || getTeamConference(this.#teamsById.get(series.higherSeed.teamId)),
+            wins: Number(series.higherSeed.wins) || 0,
+          },
+          lowerSeed: {
+            team: this.#teamsById.get(series.lowerSeed.teamId),
+            seed: Number(series.lowerSeed.seed) || 1,
+            regularSeasonRank: Number(series.lowerSeed.regularSeasonRank) || Number(series.lowerSeed.seed) || 1,
+            regularSeasonPoints: Number(series.lowerSeed.regularSeasonPoints) || 0,
+            conference: series.lowerSeed.conference || getTeamConference(this.#teamsById.get(series.lowerSeed.teamId)),
+            wins: Number(series.lowerSeed.wins) || 0,
+          },
+          winnerTeamId: series.winnerTeamId || null,
+          games: (series.games || []).map((game) => {
+            const gameNumber = Number(game.gameNumber) || 1;
+            return {
+              id: PLAYOFF_MATCH_ID(Number(round.roundIndex) || 0, seriesSlot, gameNumber),
+              home: this.#teamsById.get(game.homeTeamId),
+              away: this.#teamsById.get(game.awayTeamId),
+              result: game.result ? { ...game.result } : null,
+              phase: "playoffs",
+              roundIndex: Number(game.roundIndex) || 0,
+              roundName: game.roundName || round.name,
+              seriesId: normalizedSeriesId,
+              gameNumber,
+              day: Number(game.day) || this.#days.length + 1,
+              dateIso: game.dateIso || this.#playoffStartDate,
+            };
+          }).filter((game) => game.home && game.away),
+        };
+      }).filter((series) => series.higherSeed.team && series.lowerSeed.team),
     }));
 
     this.#playoffs = {
