@@ -10,9 +10,11 @@ const DRAFT_POSITION_TARGETS = Object.freeze({ CTR: 5, LW: 5, RW: 5, DEF: 6, G: 
 const TEAM_DRAFT_ARCHETYPES = Object.freeze(["balanced", "win-now", "youth"]);
 const DINAMO_MINSK_TEAM_ID = "6b9a4d2c-5f18-41d4-9b65-3d71d8a4f2c0";
 const BARYS_TEAM_ID = "0f7b8a2d-4d25-4c2e-9b5a-0f3d9e5a6b71";
+const DRAGONS_TEAM_ID = "b44f32e2-3e66-4c78-9f2b-8f61c09a4d21";
 const NATIONALITY_DRAFT_PLANS = Object.freeze({
   [DINAMO_MINSK_TEAM_ID]: { targetNationality: "BY", fallbackNationality: "RU", targetRatio: 0.7 },
   [BARYS_TEAM_ID]: { targetNationality: "KZ", fallbackNationality: "RU", targetRatio: 0.7 },
+  [DRAGONS_TEAM_ID]: { targetNationality: "IMPORT", fallbackNationality: "ANY", targetRatio: 0.62, topRoundsOpen: 5 },
 });
 
 const FLOW_STAGE = Object.freeze({
@@ -389,6 +391,7 @@ export class FantasyDraftService {
   #scoreNationalityPlan(player, context) {
     const plan = NATIONALITY_DRAFT_PLANS[context.teamId];
     if (!plan) return 0;
+    if (plan.targetNationality === "IMPORT") return this.#scoreImportDraftPlan(player, context, plan);
     const { targetNationality, fallbackNationality, targetRatio } = plan;
     const nationality = String(player.identity?.nationality || "").trim().toUpperCase();
     const currentRoster = this.#pickedByTeamId.get(context.teamId) || [];
@@ -424,6 +427,19 @@ export class FantasyDraftService {
       return missesTargetWithoutTargetNationality ? -40 : -8 - remainingTargetNationalityNeed * 2;
     }
     return missesTargetWithoutTargetNationality ? -55 : -18;
+  }
+
+  #scoreImportDraftPlan(player, context, plan) {
+    if (context.round <= (plan.topRoundsOpen || 5)) return 0;
+    const nationality = String(player.identity?.nationality || "").trim().toUpperCase();
+    const currentRoster = this.#pickedByTeamId.get(context.teamId) || [];
+    const importCount = currentRoster.filter((item) => String(item.identity?.nationality || "").trim().toUpperCase() !== "RU").length;
+    const projectedPicks = currentRoster.length + 1;
+    const projectedImportCount = importCount + (nationality !== "RU" ? 1 : 0);
+    const projectedImportRatio = projectedImportCount / projectedPicks;
+    if (context.phase === "late") return nationality !== "RU" ? 8 : 2;
+    if (nationality !== "RU") return 34 + Math.max(0, (plan.targetRatio - projectedImportRatio) * 55);
+    return projectedImportRatio >= plan.targetRatio ? 4 : -18;
   }
 
   #scoreAgePotentialByArchetype({ age, potential, ovr, archetype, phase }) {

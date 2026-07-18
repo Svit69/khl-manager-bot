@@ -11,6 +11,7 @@ import { skaPlayerProfiles } from "./skaPlayers.js";
 import { spartakPlayerProfiles } from "./spartakPlayers.js";
 import { sochiPlayerProfiles } from "./sochi/index.js";
 import { neftekhimikPlayerProfiles } from "./neftekhimik/index.js";
+import { dragonsPlayerProfiles } from "./dragons/index.js";
 import { applyConfiguredHiddenTraits } from "./playerHiddenTraits.js";
 export const playerProfiles=[
   {
@@ -843,8 +844,8 @@ export const playerProfiles=[
   },
   {
     id:"a7b8c9d0-e1f2-4a3b-8c4d-5e6f7a8b9c0f",
-    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
-    lineIndex:4,
+    teamId:"b44f32e2-3e66-4c78-9f2b-8f61c09a4d21",
+    lineIndex:null,
     position:PlayerPosition.LW,
     identity:{
       firstName:"Михаил",
@@ -2921,8 +2922,8 @@ export const playerProfiles=[
   },
   {
     id:"35000000-0000-4000-8000-000000000022",
-    teamId:"9f3f9b9a-6c57-49c6-a64d-2fa6e376a7b1",
-    lineIndex:1,
+    teamId:"b44f32e2-3e66-4c78-9f2b-8f61c09a4d21",
+    lineIndex:null,
     position:PlayerPosition.RW,
     identity:{
       firstName:"Дмитрий",
@@ -4040,8 +4041,8 @@ export const playerProfiles=[
   },
   {
     id:"39000000-0000-4000-8000-000000000023",
-    teamId:"8a8b6a2c-9d03-4f74-a3f1-c84410f84d27",
-    lineIndex:5,
+    teamId:"b44f32e2-3e66-4c78-9f2b-8f61c09a4d21",
+    lineIndex:null,
     position:PlayerPosition.RW,
     identity:{
       firstName:"Артём",
@@ -4845,8 +4846,8 @@ export const playerProfiles=[
   },
   {
     id:"5b000000-0000-4000-8000-000000000004",
-    teamId:"2fd1e77d-8a6f-47fd-8d2b-5f2035f21f90",
-    lineIndex:4,
+    teamId:"b44f32e2-3e66-4c78-9f2b-8f61c09a4d21",
+    lineIndex:null,
     position:PlayerPosition.DEF,
     roleIndex:1,
     identity:{
@@ -5091,8 +5092,8 @@ export const playerProfiles=[
   },
   {
     id:"5b000000-0000-4000-8000-000000000015",
-    teamId:"2fd1e77d-8a6f-47fd-8d2b-5f2035f21f90",
-    lineIndex:3,
+    teamId:"b44f32e2-3e66-4c78-9f2b-8f61c09a4d21",
+    lineIndex:null,
     position:PlayerPosition.DEF,
     roleIndex:1,
     identity:{
@@ -5379,7 +5380,7 @@ export const playerProfiles=[
     affiliation:{contractId:"5c000000-0000-4000-8000-000000000039"}
   }
 ];
-const allPlayerProfiles=[...playerProfiles,...admiralPlayerProfiles,...amurPlayerProfiles,...avtomobilistPlayerProfiles,...lokomotivPlayerProfiles,...ladaPlayerProfiles,...sibirPlayerProfiles,...barysPlayerProfiles,...severstalPlayerProfiles,...skaPlayerProfiles,...spartakPlayerProfiles,...sochiPlayerProfiles,...neftekhimikPlayerProfiles].filter(Boolean).map(applyConfiguredHiddenTraits);
+const allPlayerProfiles=[...playerProfiles,...admiralPlayerProfiles,...amurPlayerProfiles,...avtomobilistPlayerProfiles,...lokomotivPlayerProfiles,...ladaPlayerProfiles,...sibirPlayerProfiles,...barysPlayerProfiles,...severstalPlayerProfiles,...skaPlayerProfiles,...spartakPlayerProfiles,...sochiPlayerProfiles,...neftekhimikPlayerProfiles,...dragonsPlayerProfiles].filter(Boolean).map(applyConfiguredHiddenTraits);
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>allPlayerProfiles
   .find(p=>p.teamId===teamId&&p.lineIndex===lineIndex&&p.position===position&&(roleIndex===null||p.roleIndex===roleIndex));
 export const getTeamProfiles=teamId=>allPlayerProfiles.filter(p=>p.teamId===teamId);

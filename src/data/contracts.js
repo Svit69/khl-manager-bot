@@ -10,6 +10,7 @@ import { skaPlayerContracts } from "./skaPlayers.js";
 import { spartakPlayerContracts } from "./spartakPlayers.js";
 import { sochiPlayerContracts } from "./sochi/index.js";
 import { neftekhimikPlayerContracts } from "./neftekhimik/index.js";
+import { dragonsPlayerContracts } from "./dragons/index.js";
 export const playerContracts=[
   {
     id:"c1f92a68-2f3a-4a54-bf2c-0f0f23c1e8a9",
@@ -542,7 +543,7 @@ export const playerContracts=[
   {
     id:"b8c9d0e1-f2a3-4b5c-8d6e-7f8a9b0c1d2f",
     playerId:"a7b8c9d0-e1f2-4a3b-8c4d-5e6f7a8b9c0f",
-    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    teamId:"b44f32e2-3e66-4c78-9f2b-8f61c09a4d21",
     season:"2025/2026",
     salaryRub:15000000,
     type:"one-way"
@@ -1598,7 +1599,7 @@ export const playerContracts=[
   {
     id:"36000000-0000-4000-8000-000000000036",
     playerId:"35000000-0000-4000-8000-000000000022",
-    teamId:"9f3f9b9a-6c57-49c6-a64d-2fa6e376a7b1",
+    teamId:"b44f32e2-3e66-4c78-9f2b-8f61c09a4d21",
     season:"2025/2026",
     salaryRub:95000000,
     type:"one-way"
@@ -2166,7 +2167,7 @@ export const playerContracts=[
   {
     id:"3a000000-0000-4000-8000-000000000027",
     playerId:"39000000-0000-4000-8000-000000000023",
-    teamId:"8a8b6a2c-9d03-4f74-a3f1-c84410f84d27",
+    teamId:"b44f32e2-3e66-4c78-9f2b-8f61c09a4d21",
     season:"2025/2026",
     salaryRub:2000000,
     type:"two-way"
@@ -2606,7 +2607,7 @@ export const playerContracts=[
   {
     id:"5c000000-0000-4000-8000-000000000004",
     playerId:"5b000000-0000-4000-8000-000000000004",
-    teamId:"2fd1e77d-8a6f-47fd-8d2b-5f2035f21f90",
+    teamId:"b44f32e2-3e66-4c78-9f2b-8f61c09a4d21",
     season:"2025/2026",
     salaryRub:15000000,
     type:"one-way"
@@ -2742,7 +2743,7 @@ export const playerContracts=[
   {
     id:"5c000000-0000-4000-8000-000000000021",
     playerId:"5b000000-0000-4000-8000-000000000015",
-    teamId:"2fd1e77d-8a6f-47fd-8d2b-5f2035f21f90",
+    teamId:"b44f32e2-3e66-4c78-9f2b-8f61c09a4d21",
     season:"2025/2026",
     salaryRub:37000000,
     type:"one-way"
@@ -2919,4 +2920,5 @@ export const playerContracts=[
   ...spartakPlayerContracts,
   ...sochiPlayerContracts,
   ...neftekhimikPlayerContracts,
+  ...dragonsPlayerContracts,
 ];

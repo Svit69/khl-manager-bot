@@ -1,4 +1,4 @@
-const CACHE_NAME="khl-manager-v176";
+const CACHE_NAME="khl-manager-v177";
 const ASSETS=[
   "./",
   "./index.html",
@@ -106,6 +106,13 @@ const ASSETS=[
   "./src/data/neftekhimik/NeftekhimikRosterBuilder.js",
   "./src/data/neftekhimik/roster.js",
   "./src/data/neftekhimik/index.js",
+  "./src/data/dragons/constants.js",
+  "./src/data/dragons/DragonsRosterBuilder.js",
+  "./src/data/dragons/rosterRecord.js",
+  "./src/data/dragons/rosterForwards.js",
+  "./src/data/dragons/rosterDefense.js",
+  "./src/data/dragons/roster.js",
+  "./src/data/dragons/index.js",
   "./src/data/surnameRoots.js",
   "./src/data/surnameRootsExtra.js",
   "./src/data/teams.js",
@@ -123,6 +130,7 @@ const ASSETS=[
   "./khl-logo/spartak.png",
   "./khl-logo/dynamo-moscow.png",
   "./khl-logo/dinamo-minsk.png",
+  "./khl-logo/dragons.png",
   "./khl-logo/neftekhimik.png",
   "./player-photo/rus_1.png",
   "./player-photo/rus_2.png",
