@@ -3,13 +3,20 @@ import { PHOTO_FALLBACK_ATTR } from "../utils/PlayerPhoto.js";
 const statusClass = (status) => status === "НСА" ? "nsa" : "osa";
 const statusLabel = (row, formatStatus) => row.freeAgentStatus || formatStatus(row.age, row.khlGamesPlayed);
 const contractLabel = (row) => row.contractEndDate || "Контракт не найден";
+const parseSeasonStartYear = (season) => Number(String(season || "0/0").split("/")[0]) || 0;
+const getCurrentSeasonContract = (row) => {
+  const contracts = row.contracts || [];
+  const currentSeason = row.currentSeasonLabel;
+  const exactContract = contracts.find((contract) => contract.season === currentSeason);
+  if (exactContract) return exactContract;
+  return [...contracts].sort((left, right) => parseSeasonStartYear(right.season) - parseSeasonStartYear(left.season))[0] || null;
+};
 const formatCurrentContractSalaryLabel = (row) => {
-  const currentContract = (row.contracts || [])[0];
+  const currentContract = getCurrentSeasonContract(row);
   const millions = (Number(currentContract?.salaryRub) || 0) / 1000000;
   if (!millions) return "нет данных";
   return `${Number.isInteger(millions) ? millions : millions.toFixed(1)} млн ₽`;
 };
-const parseSeasonStartYear = (season) => Number(String(season || "0/0").split("/")[0]) || 0;
 const termLabel = (row) => {
   const contractSeasons = (row.contracts || []).map((contract) => parseSeasonStartYear(contract.season)).filter(Boolean);
   if (!contractSeasons.length) return "нет данных";
