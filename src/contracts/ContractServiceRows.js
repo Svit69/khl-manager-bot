@@ -140,5 +140,7 @@ export const buildFreeAgentRows = (players, currentDate = null) =>
       },
       contractEndDate: null,
       contracts: [],
+      freeAgentStatus: player.restrictedRightsTeamId ? "ОСА" : null,
+      restrictedRightsTeamId: player.restrictedRightsTeamId || null,
     }))
     .sort((left, right) => right.ovr - left.ovr || left.displayName.localeCompare(right.displayName, "ru"));

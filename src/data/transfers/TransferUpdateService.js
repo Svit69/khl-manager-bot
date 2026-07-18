@@ -23,7 +23,7 @@ export class TransferUpdateService {
     this.#playerAdjuster.applyAdjustments(found.player, context.record);
     const targetTeamId = resolveTransferTeamId(context.teamIdByShortName, context.record.to);
     if (context.record.status === TransferStatus.ACTIVE) this.#moveToActiveTeam(context, found.player, targetTeamId);
-    else if (context.record.status === TransferStatus.FREE_AGENT) this.#moveToFreeAgency(context, found.player);
+    else if (context.record.status === TransferStatus.FREE_AGENT || context.record.status === TransferStatus.RESTRICTED_FREE_AGENT) this.#moveToFreeAgency(context, found.player, targetTeamId);
     else if (context.record.status === TransferStatus.EXTERNAL) this.#moveToExternalRights(context, found.player, targetTeamId);
     else this.#removeFromGame(context, found.player);
   }
@@ -31,9 +31,10 @@ export class TransferUpdateService {
     this.#rosterMover.movePlayerToTeam(context.teams, player, targetTeamId);
     this.#contractUpdater.updateContracts(context.contracts, context.record, targetTeamId);
   }
-  #moveToFreeAgency(context, player) {
+  #moveToFreeAgency(context, player, rightsTeamId = null) {
     this.#rosterMover.removePlayerFromTeams(context.teams, player.id);
     player.affiliation.teamId = null;player.affiliation.contractId = null;
+    player.restrictedRightsTeamId = context.record.status === TransferStatus.RESTRICTED_FREE_AGENT ? rightsTeamId : null;
     context.freeAgents.push(player);this.#contractUpdater.updateContracts(context.contracts, context.record, null);
   }
   #moveToExternalRights(context, player, rightsTeamId) {
