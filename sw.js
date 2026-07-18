@@ -1,4 +1,4 @@
-const CACHE_NAME="khl-manager-v177";
+const CACHE_NAME="khl-manager-v178";
 const ASSETS=[
   "./",
   "./index.html",
@@ -115,6 +115,19 @@ const ASSETS=[
   "./src/data/dragons/index.js",
   "./src/data/surnameRoots.js",
   "./src/data/surnameRootsExtra.js",
+  "./src/data/transfers/ExternalTransferFactory.js",
+  "./src/data/transfers/TransferContractUpdater.js",
+  "./src/data/transfers/TransferPlayerAdjuster.js",
+  "./src/data/transfers/TransferRosterMover.js",
+  "./src/data/transfers/TransferStatus.js",
+  "./src/data/transfers/TransferTeamIds.js",
+  "./src/data/transfers/TransferUpdateRecords.js",
+  "./src/data/transfers/TransferUpdateRecordsA.js",
+  "./src/data/transfers/TransferUpdateRecordsB.js",
+  "./src/data/transfers/TransferUpdateRecordsC.js",
+  "./src/data/transfers/TransferUpdateRecordsD.js",
+  "./src/data/transfers/TransferUpdateRecordsE.js",
+  "./src/data/transfers/TransferUpdateService.js",
   "./src/data/teams.js",
   "./manifest.json",
   "./khl-logo/avangard.png",
@@ -624,7 +637,6 @@ const ASSETS=[
   "./player-photo/dergachev.png",
   "./player-photo/bardakov.png",
   "./player-photo/demidov.png",
-  "./player-photo/groshev.png",
   "./player-photo/gushchin.png",
   "./player-photo/khusnutdinov.png",
   "./player-photo/mintyukov.png",

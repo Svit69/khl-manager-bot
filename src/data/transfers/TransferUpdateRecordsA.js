@@ -1,0 +1,26 @@
+import { TransferStatus as S } from "./TransferStatus.js";
+
+export const transferUpdateRecordsA = [
+  { playerId: "sochi-player-utkin", status: S.FREE_AGENT },
+  { playerId: "35000000-0000-4000-8000-000000000002", status: S.ACTIVE, to: "AVT" },
+  { playerId: "amur-player-grachyov", status: S.REMOVED },
+  { playerId: "admiral-player-nikita-tertyshny", status: S.ACTIVE, to: "DYN" },
+  { playerId: "c1d2e3f4-a5b6-4c7d-8e9f-1a2b3c4d5e6f", status: S.ACTIVE, to: "DYN", ovrDelta: -1, potentialDelta: -1 },
+  { playerId: "39000000-0000-4000-8000-000000000006", status: S.ACTIVE, to: "LDA" },
+  { playerId: "neftekhimik-player-kroshchinsky", status: S.ACTIVE, to: "ADM" },
+  { playerId: "f2a3b4c5-d6e7-8f9a-0b1c-2d3e4f5a6b7c", status: S.ACTIVE, to: "AKB" },
+  { playerId: "sib-player-priskie", status: S.ACTIVE, to: "BAR" },
+  { playerId: "37000000-0000-4000-8000-000000000004", status: S.ACTIVE, to: "DMN" },
+  { playerId: "severstal-player-aimurzin", status: S.ACTIVE, to: "SKA" },
+  { playerId: "sochi-player-igor-shvyryov", status: S.ACTIVE, to: "LDA" },
+  { playerId: "ska-player-vydrenkov", status: S.ACTIVE, to: "TRK" },
+  { playerId: "f6a7b8c9-d0e1-4f2a-8b3c-4d5e6f7a8bf0", status: S.ACTIVE, to: "SKA" },
+  { playerId: "f6a7b8c9-d0e1-4f2a-8b3c-4d5e6f7a8b9e", status: S.ACTIVE, to: "LOK" },
+  { playerId: "c5d6e7f8-a9b0-1c2d-3e4f-5a6b7c8d9e0f", status: S.ACTIVE, to: "SEV" },
+  { playerId: "barys-player-mukhametov", status: S.ACTIVE, to: "ADM" },
+  { playerId: "35000000-0000-4000-8000-000000000007", status: S.ACTIVE, to: "AVT" },
+  { playerId: "lok-player-nikulin", status: S.ACTIVE, to: "SIB" },
+  { playerId: "lok-player-kraskovsky", status: S.ACTIVE, to: "TOR" },
+  { playerId: "amur-player-baldayev", status: S.ACTIVE, to: "SCH" },
+  { playerId: "33000000-0000-4000-8000-000000000015", status: S.ACTIVE, to: "NFK" },
+];

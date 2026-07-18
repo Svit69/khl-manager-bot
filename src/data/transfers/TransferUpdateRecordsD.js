@@ -1,0 +1,26 @@
+import { TransferStatus as S } from "./TransferStatus.js";
+
+export const transferUpdateRecordsD = [
+  { playerId: "35000000-0000-4000-8000-000000000015", status: S.EXTERNAL, to: "AKB", league: "NHL", contractUntil: "2026/2027" },
+  { playerId: "amur-player-yevgeni-svechnikov", status: S.ACTIVE, to: "SPM" },
+  { playerId: "5b000000-0000-4000-8000-000000000024", status: S.FREE_AGENT },
+  { playerId: "c3d4e5f6-a7b8-4c9d-8e0f-1a2b3c4d5ea0", status: S.ACTIVE, to: "AVT" },
+  { playerId: "b5c6d7e8-f9a0-4b1c-8d2e-3f4a5b6c7d50", status: S.ACTIVE, to: "BAR" },
+  { playerId: "amur-player-slepets", status: S.ACTIVE, to: "SCH" },
+  { playerId: "sochi-player-machulin", status: S.ACTIVE, to: "AMR" },
+  { playerId: "neftekhimik-player-dergachev", status: S.ACTIVE, to: "AMR" },
+  { playerId: "amur-player-ivan-mischenko", status: S.ACTIVE, to: "SIB" },
+  { playerId: "d6e7f8a9-b0c1-2d3e-4f5a-6b7c8d9e0f1a", status: S.ACTIVE, to: "SIB" },
+  { playerId: "37000000-0000-4000-8000-000000000002", status: S.EXTERNAL, to: "CSK", league: "AHL", contractUntil: "2028/2029" },
+  { playerId: "sib-player-akhiyarov", status: S.ACTIVE, to: "SCH" },
+  { playerId: "5b000000-0000-4000-8000-000000000019", status: S.EXTERNAL, to: "TOR", league: "NHL", contractUntil: "2028/2029" },
+  { playerId: "33000000-0000-4000-8000-000000000001", status: S.ACTIVE, to: "CSK" },
+  { playerId: "ska-player-mikhail-vorobyov", status: S.ACTIVE, to: "TOR" },
+  { playerId: "4b000000-0000-4000-8000-000000000008", status: S.ACTIVE, to: "SIB" },
+  { playerId: "37000000-0000-4000-8000-000000000008", status: S.FREE_AGENT },
+  { playerId: "37000000-0000-4000-8000-000000000022", status: S.FREE_AGENT },
+  { playerId: "4b000000-0000-4000-8000-000000000004", status: S.ACTIVE, to: "SCH" },
+  { playerId: "31000000-0000-4000-8000-000000000015", status: S.ACTIVE, to: "ADM" },
+  { playerId: "amur-player-gizdatullin", status: S.ACTIVE, to: "SCH" },
+  { playerId: "lada-player-zemchyonok", status: S.FREE_AGENT },
+];

@@ -1,0 +1,27 @@
+import { TransferStatus as S } from "./TransferStatus.js";
+
+export const transferUpdateRecordsC = [
+  { playerId: "37000000-0000-4000-8000-000000000026", status: S.ACTIVE, to: "MMG" },
+  { playerId: "sib-player-ivan-klimovich", status: S.ACTIVE, to: "AMR" },
+  { playerId: "amur-player-ivan-vorobyov", status: S.ACTIVE, to: "SIB" },
+  { playerId: "33000000-0000-4000-8000-000000000009", status: S.ACTIVE, to: "SKA", targetOvr: 76 },
+  { playerId: "ska-player-zelenov", status: S.ACTIVE, to: "MMG" },
+  { playerId: "5b000000-0000-4000-8000-000000000012", status: S.ACTIVE, to: "DYN" },
+  { playerId: "sochi-player-fyodor-avramov", status: S.ACTIVE, to: "SPM" },
+  { playerId: "f3a4b5c6-d7e8-4f9a-8b0c-1d2e3f4a5b10", status: S.ACTIVE, to: "AVT" },
+  { playerId: "sochi-player-seroukh", status: S.ACTIVE, to: "TOR" },
+  { playerId: "admiral-player-starkov", status: S.ACTIVE, to: "MMG" },
+  { playerId: "admiral-player-ruchkin", status: S.ACTIVE, to: "NFK" },
+  { playerId: "lada-player-tyanulin", status: S.ACTIVE, to: "NFK" },
+  { playerId: "amur-player-galchenyuk", status: S.ACTIVE, to: "SPM" },
+  { playerId: "lada-player-cotton", status: S.ACTIVE, to: "CSK" },
+  { playerId: "31000000-0000-4000-8000-000000000023", status: S.ACTIVE, to: "SEV" },
+  { playerId: "39000000-0000-4000-8000-000000000011", status: S.ACTIVE, to: "LDA" },
+  { playerId: "ska-player-khairullin", status: S.ACTIVE, to: "CSK" },
+  { playerId: "4b000000-0000-4000-8000-000000000023", status: S.ACTIVE, to: "CSK" },
+  { playerId: "39000000-0000-4000-8000-000000000021", status: S.ACTIVE, to: "AVT" },
+  { playerId: "sochi-player-sergei-popov", status: S.ACTIVE, to: "SIB" },
+  { playerId: "35000000-0000-4000-8000-000000000010", status: S.ACTIVE, to: "ADM" },
+  { playerId: "barys-player-vecchione", status: S.ACTIVE, to: "TOR" },
+  { playerId: "lada-player-vladislav-syomin", status: S.ACTIVE, to: "SKA" },
+];

@@ -1,0 +1,26 @@
+import { TransferStatus as S } from "./TransferStatus.js";
+
+export const transferUpdateRecordsB = [
+  { playerId: "e1f2a3b4-c5d6-4e7f-8a8b-0c1d2e3f4a90", status: S.ACTIVE, to: "DYN" },
+  { playerId: "d4e5f6a7-b8c9-4d0e-8f1a-2b3c4d5e6fc0", status: S.ACTIVE, to: "SIB" },
+  { playerId: "39000000-0000-4000-8000-000000000010", status: S.ACTIVE, to: "SPM" },
+  { playerId: "severstal-player-chebykin", status: S.ACTIVE, to: "SKA" },
+  { playerId: "admiral-player-shestakov", status: S.ACTIVE, to: "BAR" },
+  { playerId: "35000000-0000-4000-8000-000000000018", status: S.ACTIVE, to: "MMG" },
+  { playerId: "admiral-player-kara", status: S.FREE_AGENT },
+  { playerId: "37000000-0000-4000-8000-000000000001", status: S.ACTIVE, to: "AMR" },
+  { playerId: "39000000-0000-4000-8000-000000000007", status: S.ACTIVE, to: "AVG" },
+  { playerId: "neftekhimik-player-muissu", status: S.ACTIVE, to: "SPM" },
+  { playerId: "sib-player-yegor-klimovich", status: S.FREE_AGENT },
+  { playerId: "4b000000-0000-4000-8000-000000000022", status: S.ACTIVE, to: "DYN" },
+  { playerId: "a1b2c3d4-e5f6-4a7b-8c8d-9e0f1a2b3c60", status: S.ACTIVE, to: "AVG" },
+  { playerId: "31000000-0000-4000-8000-000000000020", status: S.ACTIVE, to: "SCH", targetOvr: 75 },
+  { playerId: "4b000000-0000-4000-8000-000000000024", status: S.ACTIVE, to: "SYU" },
+  { playerId: "39000000-0000-4000-8000-000000000002", status: S.ACTIVE, to: "NFK" },
+  { playerId: "neftekhimik-player-shafigullin", status: S.ACTIVE, to: "DYN" },
+  { playerId: "31000000-0000-4000-8000-000000000004", status: S.ACTIVE, to: "AMR", targetOvr: 75 },
+  { playerId: "severstal-player-kamalov", status: S.ACTIVE, to: "TOR" },
+  { playerId: "4b000000-0000-4000-8000-000000000026", status: S.EXTERNAL, to: "DMN", league: "AHL", contractUntil: "2027/2028" },
+  { playerId: "39000000-0000-4000-8000-000000000027", status: S.FREE_AGENT },
+  { playerId: "39000000-0000-4000-8000-000000000003", status: S.FREE_AGENT },
+];

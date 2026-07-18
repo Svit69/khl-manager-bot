@@ -2,6 +2,8 @@ import { createTeams } from "./data/seed.js";
 import { createFreeAgents } from "./data/freeAgents.js";
 import { createExternalPlayers } from "./data/externalPlayers.js";
 import { createCoaches } from "./data/coaches/createCoaches.js";
+import { transferUpdateRecords } from "./data/transfers/TransferUpdateRecords.js";
+import { TransferUpdateService } from "./data/transfers/TransferUpdateService.js";
 import { teamsData } from "./data/teams.js";
 import { playerContracts } from "./data/contracts.js";
 import { SeasonCalendar } from "./calendar/SeasonCalendar.js";
@@ -15,6 +17,7 @@ const userStore=new UserStore();
 const teams=createTeams(teamsData);
 const freeAgents=createFreeAgents();
 const externalPlayers=createExternalPlayers();
+new TransferUpdateService(transferUpdateRecords).applyTransferUpdates({teams,freeAgents,externalPlayers,contracts:playerContracts});
 const coaches=createCoaches(teams);
 const seasonStartYear=playerContracts.reduce((minYear,contract)=>{
   const year=parseSeasonStart(contract.season);
@@ -29,7 +32,7 @@ const controller=new AppController(state,calendar,teams,renderer,userStore);
 controller.initialize();
 
 if("serviceWorker" in navigator){
-  const refreshKey="khl-sw-refresh-v176";
+  const refreshKey="khl-sw-refresh-v178";
   navigator.serviceWorker.addEventListener("controllerchange",()=>{
     if(sessionStorage.getItem(refreshKey)==="1")return;
     sessionStorage.setItem(refreshKey,"1");
