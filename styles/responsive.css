@@ -256,6 +256,10 @@
   .draft-list-row{grid-template-columns:36px 38px minmax(0,1fr) auto}
   .draft-list-row-stat:last-child{display:none}
   .draft-cap-summary,.salary-cap-summary,.negotiation-cap-hint{grid-template-columns:1fr}
+  .contract-offer-controls-grid{grid-template-columns:1fr}
+  .contract-offer-years,.contract-offer-salary,.contract-offer-probability{padding-right:0;padding-bottom:12px;border-right:0;border-bottom:1px solid rgba(126,131,140,.18)}
+  .contract-offer-probability{border-bottom:0}
+  .contract-offer-actions{grid-template-columns:1fr}
   .contract-finance-panel{grid-template-columns:1fr}
   .contract-future-cap{padding-left:0;border-left:0;border-top:1px solid rgba(246,247,252,.1);padding-top:12px}
   .contract-future-cap>div{grid-template-columns:1fr}
