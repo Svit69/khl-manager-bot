@@ -57,7 +57,6 @@ const ASSETS=[
   "./src/ui/CoachManagementRenderer.js",
   "./src/ui/ExternalRightsCardRenderer.js",
   "./src/ui/TradeSalaryCapRenderer.js",
-  "./src/ui/JuniorLeaguePanelRenderer.js",
   "./src/ui/JuniorTeamTabRenderer.js",
   "./src/ui/TransferTabRenderer.js",
   "./src/ui/SeasonContractDecisionRenderer.js",

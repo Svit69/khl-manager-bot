@@ -158,8 +158,7 @@
     grid-template-columns:repeat(2,minmax(0,1fr));
   }
   .junior-manager-prospects,
-  .junior-manager-board,
-  .junior-league-grid{
+  .junior-manager-board{
     grid-template-columns:1fr;
   }
   .junior-manager-prospect{

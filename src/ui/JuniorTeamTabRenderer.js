@@ -1,5 +1,4 @@
 import { getPlayerPhotoUrl, isPlaceholderPhoto, PHOTO_FALLBACK_ATTR } from "../utils/PlayerPhoto.js";
-import { renderJuniorLeaguePanel } from "./JuniorLeaguePanelRenderer.js";
 
 const POSITION_FILTERS = Object.freeze([
   ["all", "Все"],
@@ -166,8 +165,6 @@ export class JuniorTeamTabRenderer {
           ${renderSummary("Выпуск", graduationClass.length)}
         </div>
       </header>
-
-      ${renderJuniorLeaguePanel(view)}
 
       <section class="junior-manager-section">
         <div class="junior-manager-section-head">

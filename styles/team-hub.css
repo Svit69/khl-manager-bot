@@ -1555,19 +1555,6 @@
   grid-column:1 / -1;
   width:100%;
 }
-.junior-league-panel{background:linear-gradient(135deg,rgba(17,24,39,.96),rgba(30,64,175,.82));border-color:rgba(147,197,253,.34)}
-.junior-league-badge{color:#f8fafc;background:rgba(14,165,233,.2);border:1px solid rgba(125,211,252,.35);border-radius:8px;padding:8px 12px;white-space:nowrap;font-weight:800}
-.junior-league-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.junior-league-card{border:1px solid rgba(148,163,184,.22);background:rgba(15,23,42,.62);border-radius:8px;padding:12px;min-width:0}
-.junior-league-card h4{margin:0 0 10px;color:#f8fafc;font-size:13px;text-transform:uppercase;letter-spacing:.08em}
-.junior-league-row{display:grid;grid-template-columns:34px minmax(0,1fr) 44px 62px;align-items:center;gap:8px;min-height:34px;color:#dbeafe;border-top:1px solid rgba(148,163,184,.16)}
-.junior-league-row span,.junior-risk-card span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.junior-league-row b{color:#facc15;text-align:right}
-.junior-league-row small{color:#93c5fd;text-align:right}
-.junior-risk-card{display:flex;justify-content:space-between;gap:10px;padding:10px;border-radius:8px;background:rgba(248,250,252,.08);border:1px solid rgba(248,250,252,.12);margin-top:8px;min-width:0}
-.junior-risk-card div{display:grid;min-width:0}
-.junior-risk-card strong{color:#f8fafc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.junior-risk-card b{color:#f97316;white-space:nowrap}
 .coach-screen{display:grid;gap:10px;min-width:0}
 .coach-tab-switcher{
   display:flex;
