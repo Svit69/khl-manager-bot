@@ -7,6 +7,7 @@ const STATUS_LABELS = Object.freeze({
   ahl_leader: "Лидер АХЛ",
   ahl_bubble: "На границе НХЛ / АХЛ",
   released: "Освобожден клубом",
+  rights_only: "Права без контракта",
 });
 
 const stableUnit = (source) => {
@@ -102,6 +103,10 @@ export class ExternalPlayerService {
     const evaluatedPlayers = (players || []).map((player) => {
       const previous = player.externalCareer || {};
       if (previous.lastEvaluatedSeason === seasonLabel) return player;
+      if (previous.status === "rights_only") {
+        player.externalCareer = { ...previous, availableToKhl: true, lastEvaluatedSeason: seasonLabel };
+        return player;
+      }
 
       const age = calculateAge(player.identity?.birthDate, seasonDate);
       const seasonsOutsideKhl = (Number(previous.seasonsOutsideKhl) || 0) + 1;

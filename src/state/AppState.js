@@ -1142,7 +1142,6 @@ export class AppState {
   submitFreeAgentSigning(playerId, offer) {
     const player = this.getAvailableFreeAgents().find((entry) => entry.id === playerId);
     if (!this.activeTeam || !player) return null;
-    if (player.restrictedRightsTeamId && player.restrictedRightsTeamId !== this.#activeTeamId) return { decision: "locked", reason: "Права ОСА принадлежат другому клубу." };
     if (this.#seasonState?.phase === "preseason" && this.#seasonState?.preseasonOpen) {
       return this.#queuePreseasonFreeAgentOffer(player, offer);
     }

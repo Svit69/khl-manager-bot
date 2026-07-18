@@ -6,6 +6,7 @@ const STATUS_REASON = Object.freeze({
   ahl_leader: ["Сильная роль в АХЛ", 6],
   ahl_bubble: ["Нет стабильного места", 18],
   released: ["Свободен за океаном", 24],
+  rights_only: ["Права без контракта", 4],
 });
 const addReason = (reasons, text, value) => {
   if (value) reasons.push({ text, value: Math.round(value) });
