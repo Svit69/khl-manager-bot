@@ -1,18 +1,15 @@
 import { ContractOfferFormattingService } from "./ContractOfferFormattingService.js";
 import { ContractOfferControlFactory } from "./ContractOfferControlFactory.js";
+import { ContractOfferNegotiationContextRenderer } from "./ContractOfferNegotiationContextRenderer.js";
 import { ContractOfferPanelSectionsRenderer } from "./ContractOfferPanelSectionsRenderer.js";
 import { ContractOfferSalaryControlRenderer } from "./ContractOfferSalaryControlRenderer.js";
 
 export class BaseContractOfferControlPanel {
-  #formatter;
-  #controlFactory;
-  #sectionsRenderer;
-  #salaryRenderer;
+  #formatter;#controlFactory;#contextRenderer;#sectionsRenderer;#salaryRenderer;
 
   constructor(formatter = new ContractOfferFormattingService(), controlFactory = new ContractOfferControlFactory()) {
-    this.#formatter = formatter;
-    this.#controlFactory = controlFactory;
-    this.#sectionsRenderer = new ContractOfferPanelSectionsRenderer();
+    this.#formatter = formatter;this.#controlFactory = controlFactory;
+    this.#contextRenderer = new ContractOfferNegotiationContextRenderer(formatter);this.#sectionsRenderer = new ContractOfferPanelSectionsRenderer();
     this.#salaryRenderer = new ContractOfferSalaryControlRenderer(formatter, controlFactory);
   }
 
@@ -23,6 +20,7 @@ export class BaseContractOfferControlPanel {
     const submitDisabled = this.isSubmitDisabled(preview) ? "disabled" : "";
     const playerId = preview.playerId;
     return `<div class="contract-offer-control-panel">
+      ${this.#contextRenderer.render(preview, offer)}
       <div class="contract-offer-control-panel__main">
         ${this.#sectionsRenderer.renderTermSection({ panel: this, playerId, years: offer.years })}
         ${this.#sectionsRenderer.renderSalarySection({ salaryRenderer: this.#salaryRenderer, playerId, salaryRub: offer.salaryRub })}
