@@ -1,4 +1,9 @@
 import { calculateAge, clamp } from "../contracts/SeasonUtils.js";
+import { applyGoalieAttributeStep } from "./GoalieDevelopmentAttributes.js";
+import {
+  getGoaliePerformanceDevelopmentComponent,
+  getGoalieUsageDevelopmentComponent,
+} from "./GoalieDevelopmentMath.js";
 import { applyAttributeStep } from "./PlayerDevelopmentAttributes.js";
 import {
   getAgeDevelopmentComponent,
@@ -38,7 +43,7 @@ export class PlayerDevelopmentService {
 
     const statsById = new Map((teamSummary?.playerStats || []).map((stat) => [stat.playerId, stat]));
     return roster.flatMap((player) => {
-      if (player.identity?.isGoalie) return [];
+      if (this.#isGoalie(player)) return this.#applyGoalieDevelopment(player, statsById.get(player.id) || null, context);
       return this.#applyPlayerDevelopment(player, statsById.get(player.id) || null, context);
     });
   }
@@ -51,6 +56,54 @@ export class PlayerDevelopmentService {
     if (!["regular", "playoffs"].includes(String(context?.phase || ""))) return [];
     const opportunityCount = Math.max(1, Number(context?.opportunityCount) || 1);
     return (players || []).flatMap((player) => this.#applyFreeAgentInactivityToPlayer(player, opportunityCount));
+  }
+
+  #applyGoalieDevelopment(player, matchStat, context) {
+    const seasonStats = player.seasonStats;
+    const games = Number(seasonStats?.games) || 0;
+    if (!games) return [];
+
+    const age = calculateAge(player.identity?.birthDate);
+    const potentialGap = (player.potential?.potential || player.ovr) - player.ovr;
+    const teamGamesPlayed = Math.max(games, Number(context?.teamGamesPlayed) || 0);
+    const developmentDelta = this.#applyCoachDevelopmentMultiplier(this.#scaleDevelopmentDelta(player, age, clamp(
+      getAgeDevelopmentComponent(player, age) * 0.82 +
+        getGoalieUsageDevelopmentComponent({ age, games, teamGamesPlayed }) +
+        getGoaliePerformanceDevelopmentComponent({ player, seasonStats, games }) +
+        getPotentialGapComponent(potentialGap) * 0.8 +
+        this.#getYoungGoalieStartBonus(player, age, matchStat, teamGamesPlayed),
+      -0.16,
+      0.2,
+    ), potentialGap, 16), context);
+
+    player.potential.addDevelopmentProgress(developmentDelta);
+    const events = this.#applyGoalieAttributeThreshold(player, age, {});
+    const potentialDelta = this.#scalePotentialDelta(age, this.#getGoaliePotentialDelta(player, age, games, teamGamesPlayed));
+    this.#applyPotentialThreshold(player, potentialDelta);
+    return events;
+  }
+
+  #applyOffseasonGoalieDevelopment(player, context) {
+    const seasonStats = player.seasonStats;
+    const games = Number(seasonStats?.games) || 0;
+    if (!games) return [];
+
+    const age = calculateAge(player.identity?.birthDate, context?.seasonDate || null);
+    const potentialGap = (player.potential?.potential || player.ovr) - player.ovr;
+    const offseasonDelta = this.#applyCoachDevelopmentMultiplier(this.#scaleDevelopmentDelta(player, age, clamp(
+      getAgeDevelopmentComponent(player, age) * 0.52 +
+        getGoalieUsageDevelopmentComponent({ age, games, teamGamesPlayed: games }) * 0.55 +
+        getGoaliePerformanceDevelopmentComponent({ player, seasonStats, games }) * 0.55 +
+        getPotentialGapComponent(potentialGap) * 0.45,
+      -0.15,
+      0.19,
+    ), potentialGap, 16), context);
+
+    player.potential.addDevelopmentProgress(offseasonDelta);
+    const events = this.#applyGoalieAttributeThreshold(player, age, { teamId: player.affiliation?.teamId || null });
+    const potentialDelta = this.#scalePotentialDelta(age, this.#getGoaliePotentialDelta(player, age, games, games) * 0.65);
+    this.#applyPotentialThreshold(player, potentialDelta);
+    return events;
   }
 
   #applyPlayerDevelopment(player, matchStat, context) {
@@ -118,7 +171,8 @@ export class PlayerDevelopmentService {
   }
 
   #applyOffseasonPlayerDevelopment(player, context) {
-    if (!player || player.identity?.isGoalie) return [];
+    if (!player) return [];
+    if (this.#isGoalie(player)) return this.#applyOffseasonGoalieDevelopment(player, context);
     const seasonStats = player.seasonStats;
     const games = Number(seasonStats?.games) || 0;
     if (!games) return [];
@@ -174,7 +228,7 @@ export class PlayerDevelopmentService {
   }
 
   #applyFreeAgentInactivityToPlayer(player, opportunityCount) {
-    if (!player || player.identity?.isGoalie || player.affiliation?.teamId) {
+    if (!player || player.affiliation?.teamId) {
       player?.potential?.resetFreeAgentInactivity?.();
       return [];
     }
@@ -198,7 +252,9 @@ export class PlayerDevelopmentService {
     if (ageDrivenRegression !== 0) {
       player.potential.addDevelopmentProgress(ageDrivenRegression);
     }
-    const events = this.#applyAttributeThreshold(player, 0, 0, age, {});
+    const events = this.#isGoalie(player)
+      ? this.#applyGoalieAttributeThreshold(player, age, {})
+      : this.#applyAttributeThreshold(player, 0, 0, age, {});
     this.#applyPotentialThreshold(player, potentialDecay);
     return events;
   }
@@ -232,6 +288,28 @@ export class PlayerDevelopmentService {
     ];
   }
 
+  #applyGoalieAttributeThreshold(player, age, extraEventFields) {
+    const currentProgress = Number(player.potential?.developmentProgress) || 0;
+    const threshold = getAttributeStepThreshold(player, currentProgress < 0 ? -1 : 1);
+    const attributeDirection = player.potential.consumeDevelopmentStep(threshold);
+    if (attributeDirection === 0) return [];
+
+    const beforeOvr = player.ovr;
+    const attributeKey = applyGoalieAttributeStep(player, attributeDirection, { age });
+    const afterOvr = player.ovr;
+    if (!attributeKey || afterOvr === beforeOvr) return [];
+
+    return [{
+      type: afterOvr > beforeOvr ? "upgrade" : "downgrade",
+      playerId: player.id,
+      playerName: player.name,
+      attributeKey,
+      oldOvr: beforeOvr,
+      newOvr: afterOvr,
+      ...extraEventFields,
+    }];
+  }
+
   #applyPotentialThreshold(player, potentialDelta) {
     if (!potentialDelta) return;
     player.potential.addPotentialProgress(potentialDelta);
@@ -263,6 +341,33 @@ export class PlayerDevelopmentService {
     else if (lineIndex === 2) delta += 0.003;
 
     return clamp(delta, 0, 0.04);
+  }
+
+  #getYoungGoalieStartBonus(player, age, matchStat, teamGamesPlayed) {
+    if (!matchStat || age > 23) return 0;
+    const games = Number(player.seasonStats?.games) || 0;
+    const startShare = games / Math.max(1, teamGamesPlayed);
+    const savePercentage = Number(player.seasonStats?.savePercentage) || 0;
+    let delta = startShare >= 0.35 ? 0.018 : 0.006;
+    if (savePercentage >= 0.908) delta += 0.012;
+    if (age <= 20) delta *= 1.25;
+    return clamp(delta, 0, 0.04);
+  }
+
+  #getGoaliePotentialDelta(player, age, games, teamGamesPlayed) {
+    const potentialGap = (Number(player.potential?.potential) || player.ovr) - player.ovr;
+    const startShare = games / Math.max(1, teamGamesPlayed);
+    const savePercentage = Number(player.seasonStats?.savePercentage) || 0;
+    let delta = 0;
+    if (age <= 23 && potentialGap > 0 && games >= 8 && startShare >= 0.28) delta += 0.026;
+    if (age <= 21 && savePercentage >= 0.912 && games >= 10) delta += 0.018;
+    if (age <= 24 && games >= 12 && startShare < 0.18) delta -= 0.022;
+    if (age >= 31 && savePercentage <= 0.888 && games >= 12) delta -= 0.018;
+    return clamp(delta, -0.045, 0.05);
+  }
+
+  #isGoalie(player) {
+    return player?.identity?.primaryPosition === "ВРТ";
   }
 
   #getDevelopmentPaceMultiplier(age) {
