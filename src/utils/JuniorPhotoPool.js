@@ -1,4 +1,4 @@
-const RUSSIAN_JUNIOR_PHOTOS = Object.freeze(Array.from({ length: 60 }, (_, index) =>
+const RUSSIAN_JUNIOR_PHOTOS = Object.freeze(Array.from({ length: 75 }, (_, index) =>
   `./player-photo/rus_${index + 1}.png`
 ));
 const KAZAKH_JUNIOR_PHOTOS = Object.freeze(Array.from({ length: 10 }, (_, index) =>
