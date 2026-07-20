@@ -565,6 +565,10 @@ export class Renderer{
       const ss=String(safe%60).padStart(2,"0");
       return `${mm}:${ss}`;
     };
+    const formatSavePercentage=value=>{
+      const safe=Number(value)||0;
+      return safe?safe.toFixed(3).replace(/^0/,""):"-";
+    };
     const buildMatchStatsRows=(teamSummary,team)=>(teamSummary?.playerStats||[])
       .map(stat=>({
         ...stat,
@@ -586,6 +590,12 @@ export class Renderer{
           return ((right.shots||0)-(left.shots||0))||
             ((right.points||0)-(left.points||0))||
             ((right.goals||0)-(left.goals||0))||
+            compareName(left,right);
+        }
+        if(sortKey==="goalie"){
+          return ((right.isGoalie?1:0)-(left.isGoalie?1:0))||
+            ((right.saves||0)-(left.saves||0))||
+            ((right.savePercentage||0)-(left.savePercentage||0))||
             compareName(left,right);
         }
         return ((right.points||0)-(left.points||0))||
@@ -685,13 +695,23 @@ export class Renderer{
                   <span>${formatIceTime(row.totalIceTime)}</span>
                 </div>
               </div>
-              <div class="sim-player-stats">
-                <span class="sim-player-stat sim-player-stat-accent"><b>${row.points||0}</b><small>\u041e</small></span>
-                <span class="sim-player-stat"><b>${row.goals||0}</b><small>\u0413</small></span>
-                <span class="sim-player-stat"><b>${row.assists||0}</b><small>\u041f</small></span>
-                <span class="sim-player-stat"><b>${row.shots||0}</b><small>\u0411\u0440</small></span>
-                <span class="sim-player-stat"><b>${row.penaltyMinutes||0}</b><small>\u0428\u041c</small></span>
-              </div>
+              ${row.isGoalie?`
+                <div class="sim-player-stats">
+                  <span class="sim-player-stat sim-player-stat-accent"><b>${row.saves||0}</b><small>SV</small></span>
+                  <span class="sim-player-stat"><b>${formatSavePercentage(row.savePercentage)}</b><small>SV%</small></span>
+                  <span class="sim-player-stat"><b>${row.goalsAgainst||0}</b><small>GA</small></span>
+                  <span class="sim-player-stat"><b>${row.shotsAgainst||0}</b><small>SA</small></span>
+                  <span class="sim-player-stat"><b>${row.shutout||0}</b><small>SO</small></span>
+                </div>
+              `:`
+                <div class="sim-player-stats">
+                  <span class="sim-player-stat sim-player-stat-accent"><b>${row.points||0}</b><small>\u041e</small></span>
+                  <span class="sim-player-stat"><b>${row.goals||0}</b><small>\u0413</small></span>
+                  <span class="sim-player-stat"><b>${row.assists||0}</b><small>\u041f</small></span>
+                  <span class="sim-player-stat"><b>${row.shots||0}</b><small>\u0411\u0440</small></span>
+                  <span class="sim-player-stat"><b>${row.penaltyMinutes||0}</b><small>\u0428\u041c</small></span>
+                </div>
+              `}
             </button>
           `).join("")||`<div class="muted">\u041d\u0435\u0442 \u0441\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u0438</div>`}
         </div>
@@ -734,14 +754,25 @@ export class Renderer{
             <span>${selectedPlayer.team?.shortName||selectedPlayer.team?.name||"\u2014"}</span>
             <span>${formatIceTime(selectedPlayer.totalIceTime)}</span>
           </div>
-          <div class="sim-player-detail-grid">
-            <div class="sim-player-detail-stat sim-player-detail-stat--accent"><strong>${selectedPlayer.points||0}</strong><span>\u041e\u0447\u043a\u0438</span></div>
-            <div class="sim-player-detail-stat"><strong>${selectedPlayer.goals||0}</strong><span>\u0413\u043e\u043b\u044b</span></div>
-            <div class="sim-player-detail-stat"><strong>${selectedPlayer.assists||0}</strong><span>\u041f\u0435\u0440\u0435\u0434\u0430\u0447\u0438</span></div>
-            <div class="sim-player-detail-stat"><strong>${selectedPlayer.shots||0}</strong><span>\u0411\u0440\u043e\u0441\u043a\u0438</span></div>
-            <div class="sim-player-detail-stat"><strong>${selectedPlayer.penaltyMinutes||0}</strong><span>\u0428\u0442\u0440. \u043c\u0438\u043d</span></div>
-            <div class="sim-player-detail-stat"><strong>${formatIceTime(selectedPlayer.totalIceTime)}</strong><span>\u0410\u0439\u0441\u0442\u0430\u0439\u043c</span></div>
-          </div>
+          ${selectedPlayer.isGoalie?`
+            <div class="sim-player-detail-grid">
+              <div class="sim-player-detail-stat sim-player-detail-stat--accent"><strong>${selectedPlayer.saves||0}</strong><span>\u0421\u0435\u0439\u0432\u044b</span></div>
+              <div class="sim-player-detail-stat"><strong>${formatSavePercentage(selectedPlayer.savePercentage)}</strong><span>SV%</span></div>
+              <div class="sim-player-detail-stat"><strong>${selectedPlayer.goalsAgainst||0}</strong><span>\u041f\u0440\u043e\u043f\u0443\u0449\u0435\u043d\u043e</span></div>
+              <div class="sim-player-detail-stat"><strong>${selectedPlayer.shotsAgainst||0}</strong><span>\u0411\u0440\u043e\u0441\u043a\u0438 \u043f\u043e</span></div>
+              <div class="sim-player-detail-stat"><strong>${selectedPlayer.qualityStart||0}</strong><span>Quality Start</span></div>
+              <div class="sim-player-detail-stat"><strong>${formatIceTime(selectedPlayer.totalIceTime)}</strong><span>\u0410\u0439\u0441\u0442\u0430\u0439\u043c</span></div>
+            </div>
+          `:`
+            <div class="sim-player-detail-grid">
+              <div class="sim-player-detail-stat sim-player-detail-stat--accent"><strong>${selectedPlayer.points||0}</strong><span>\u041e\u0447\u043a\u0438</span></div>
+              <div class="sim-player-detail-stat"><strong>${selectedPlayer.goals||0}</strong><span>\u0413\u043e\u043b\u044b</span></div>
+              <div class="sim-player-detail-stat"><strong>${selectedPlayer.assists||0}</strong><span>\u041f\u0435\u0440\u0435\u0434\u0430\u0447\u0438</span></div>
+              <div class="sim-player-detail-stat"><strong>${selectedPlayer.shots||0}</strong><span>\u0411\u0440\u043e\u0441\u043a\u0438</span></div>
+              <div class="sim-player-detail-stat"><strong>${selectedPlayer.penaltyMinutes||0}</strong><span>\u0428\u0442\u0440. \u043c\u0438\u043d</span></div>
+              <div class="sim-player-detail-stat"><strong>${formatIceTime(selectedPlayer.totalIceTime)}</strong><span>\u0410\u0439\u0441\u0442\u0430\u0439\u043c</span></div>
+            </div>
+          `}
         </div>
       </aside>
     `:`<aside class="sim-player-detail"><div class="muted">\u041d\u0435\u0442 \u0441\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u0438</div></aside>`;
@@ -767,6 +798,7 @@ export class Renderer{
             ${renderSortButton("points","\u041e\u0447\u043a\u0438")}
             ${renderSortButton("iceTime","\u0412\u0440\u0435\u043c\u044f")}
             ${renderSortButton("shots","\u0411\u0440\u043e\u0441\u043a\u0438")}
+            ${renderSortButton("goalie","\u0412\u0440\u0430\u0442\u0430\u0440\u0438")}
           </div>
         </div>
         <div class="sim-stats-layout">

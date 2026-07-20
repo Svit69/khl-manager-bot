@@ -80,9 +80,12 @@ export const applyMatchFatigue = (team, teamSummary, referenceDate = null) => {
     }
 
     const minutes = Math.max(0, (Number(stat.totalIceTime) || 0) / 60);
-    const physical = Number(player.attributes?.attributesJson?.physical) || 65;
+    const attrs = player.attributes?.attributesJson || {};
     const age = calculateAge(player.identity?.birthDate, referenceDate);
     const isGoalie = player.identity?.primaryPosition === "\u0412\u0420\u0422";
+    const physical = isGoalie
+      ? ((Number(attrs.athleticism) || 65) * 0.65) + ((Number(attrs.mental) || 65) * 0.35)
+      : (Number(attrs.physical) || 65);
     const primeBonus = age >= 24 && age <= 30 ? 1.2 : age <= 20 ? -1.3 : age >= 34 ? -1.6 : age >= 31 ? -0.7 : 0;
     const enduranceBonus = ((physical - 68) * 0.11) + primeBonus;
     const baseLoad = isGoalie

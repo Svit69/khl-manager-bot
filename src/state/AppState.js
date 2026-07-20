@@ -1826,6 +1826,7 @@ export class AppState {
 
   #shouldAiRestPlayer(player) {
     const fatigue = Number(player?.fatigueScore) || 0;
+    if (player?.identity?.primaryPosition === "ВРТ" && fatigue >= 48) return true;
     if (fatigue >= AI_ROTATION_FATIGUE_THRESHOLD) return true;
     return (Number(player?.ovr) || 0) - (Number(player?.currentOvr) || 0) >= 4;
   }
@@ -1839,6 +1840,7 @@ export class AppState {
 
     (reserves || []).forEach((candidate, index) => {
       if (!candidate || (Number(candidate.fatigueScore) || 0) > 42) return;
+      if (!this.#isCompatibleAiReserveForSlot(candidate, slotPosition)) return;
       const score = lineupScoreForPosition(candidate, slotPosition);
       if (starter && score < starterScore - tolerance) return;
       if (score > bestScore) {
@@ -1857,6 +1859,7 @@ export class AppState {
 
     (reserves || []).forEach((candidate, index) => {
       if (!candidate || (Number(candidate.fatigueScore) || 0) > AI_RESTED_RESERVE_THRESHOLD) return;
+      if (!this.#isCompatibleAiReserveForSlot(candidate, slotPosition)) return;
       const score = lineupScoreForPosition(candidate, slotPosition);
       if (score < starterScore + 3) return;
       if (score > bestScore) {
@@ -1865,6 +1868,10 @@ export class AppState {
       }
     });
     return bestIndex;
+  }
+
+  #isCompatibleAiReserveForSlot(candidate, slotPosition) {
+    return (candidate?.identity?.primaryPosition === "ВРТ") === (slotPosition === "ВРТ");
   }
 
   #getPlayerRotationGroup(player) {

@@ -17,6 +17,16 @@ const FORWARD_SHIFT_BINS=[5,5,4,4];
 const DEFENSE_SHIFT_BINS=[6,5,5,4];
 const PP_UNIT_SHARE=0.68;
 const PK_UNIT_SHARE=0.62;
+const GOALIE_POSITION="ВРТ";
+const GOALIE_MOMENT_WEIGHTS=Object.freeze({
+  one_timer:{reaction:0.46,athleticism:0.28,positioning:0.16,puckControl:0.04,mental:0.06},
+  rebound:{reaction:0.34,puckControl:0.34,athleticism:0.16,positioning:0.08,mental:0.08},
+  point_shot:{positioning:0.45,puckControl:0.22,mental:0.18,reaction:0.12,athleticism:0.03},
+  rush:{athleticism:0.38,reaction:0.34,positioning:0.16,mental:0.08,puckControl:0.04},
+  slot:{positioning:0.34,reaction:0.32,athleticism:0.14,puckControl:0.1,mental:0.1},
+  cycle:{positioning:0.32,puckControl:0.24,reaction:0.2,mental:0.16,athleticism:0.08}
+});
+const GOALIE_SHOT_MIX=Object.freeze({slot:0.27,rush:0.2,cycle:0.18,point_shot:0.16,one_timer:0.11,rebound:0.08});
 
 const rand=(min,max)=>min+Math.random()*(max-min);
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
@@ -34,13 +44,13 @@ export class MatchSimulator{
 
     const homePenalties=this.#buildPenaltyEvents(homeContext,false);
     const awayPenalties=this.#buildPenaltyEvents(awayContext,false);
-    const baseHomeXg=this.#estimateExpectedGoals(homeContext,awayContext,true);
-    const baseAwayXg=this.#estimateExpectedGoals(awayContext,homeContext,false);
+    const baseHomeXg=this.#estimateExpectedGoals(homeContext,awayContext,true,isPlayoff);
+    const baseAwayXg=this.#estimateExpectedGoals(awayContext,homeContext,false,isPlayoff);
     const homeXgReg=baseHomeXg+awayPenalties.length*0.16;
     const awayXgReg=baseAwayXg+homePenalties.length*0.16;
 
-    const homeGoalResult=this.#buildGoalEvents(homeContext,awayContext,poissonSample(clamp(homeXgReg,0.55,6.1)),awayPenalties,homePenalties,false);
-    const awayGoalResult=this.#buildGoalEvents(awayContext,homeContext,poissonSample(clamp(awayXgReg,0.55,6.1)),homePenalties,awayPenalties,false);
+    const homeGoalResult=this.#buildGoalEvents(homeContext,awayContext,poissonSample(clamp(homeXgReg,0.55,6.1)),awayPenalties,homePenalties,false,null,isPlayoff);
+    const awayGoalResult=this.#buildGoalEvents(awayContext,homeContext,poissonSample(clamp(awayXgReg,0.55,6.1)),homePenalties,awayPenalties,false,null,isPlayoff);
     let homeGoals=homeGoalResult.events;
     let awayGoals=awayGoalResult.events;
     const releasedHomePenaltyIds=awayGoalResult.releasedPenaltyIds;
@@ -78,6 +88,8 @@ export class MatchSimulator{
     this.#applyPenaltyEventStats(awayPenalties,awayPlayerStats);
     this.#applyShotStats(homeContext,homePlayerStats,homeShots,homeGoals);
     this.#applyShotStats(awayContext,awayPlayerStats,awayShots,awayGoals);
+    this.#applyGoalieStats(awayContext,awayPlayerStats,homeShots,homeFinalGoals,homeGoals,isPlayoff);
+    this.#applyGoalieStats(homeContext,homePlayerStats,awayShots,awayFinalGoals,awayGoals,isPlayoff);
 
     return {
       home,
@@ -135,8 +147,9 @@ export class MatchSimulator{
       };
     }).filter(line=>line.skaters.length>0);
 
-    const goalie=team.lines?.[4]?.players?.[0]?.identity?.primaryPosition==="ВРТ"?team.lines[4].players[0]:null;
-    const goalieProfile=goalie?this.#buildMatchProfile(goalie,"ВРТ"):null;
+    const goalie=team.lines?.[4]?.players?.[0]?.identity?.primaryPosition===GOALIE_POSITION?team.lines[4].players[0]:null;
+    const goalieProfile=goalie?this.#buildMatchProfile(goalie,GOALIE_POSITION,{isPlayoff}):null;
+    const goalieGameState=this.#buildGoalieGameState(goalieProfile,{isPlayoff});
     const attackRating=this.#weightedLineRating(lines,"offenseRating")*(coachEffect?.attackMultiplier||1);
     const defenseRating=this.#weightedLineRating(lines,"defenseRating")*(coachEffect?.defenseMultiplier||1);
     const playerUsageFactors=this.#buildPlayerUsageFactors(lines);
@@ -147,6 +160,7 @@ export class MatchSimulator{
       lines,
       goalie,
       goalieProfile,
+      goalieGameState,
       attackRating,
       defenseRating,
       teamRating:(attackRating*0.55)+(defenseRating*0.45),
@@ -301,13 +315,23 @@ export class MatchSimulator{
     };
   }
 
-  #estimateExpectedGoals(offense,defense,isHome){
+  #estimateExpectedGoals(offense,defense,isHome,isPlayoff=false){
     const goalieRating=defense.goalieProfile?.effectiveOvr||defense.goalie?.ovr||72;
     const attackEdge=(offense.attackRating-defense.defenseRating)/18;
     const depthEdge=(offense.teamRating-defense.teamRating)/26;
     const goalieEdge=(offense.attackRating-goalieRating)/36;
+    const goalieSuppression=this.#calculateGoalieExpectedGoalSuppression(defense,{isPlayoff});
     const homeBoost=isHome?0.16:0;
-    return clamp(2.1+homeBoost+attackEdge+depthEdge+goalieEdge,0.65,5.6);
+    return clamp(2.1+homeBoost+attackEdge+depthEdge+goalieEdge-goalieSuppression,0.55,5.7);
+  }
+
+  #calculateGoalieExpectedGoalSuppression(defense,{isPlayoff=false}={}){
+    if(!defense.goalieProfile)return 0;
+    const momentTypes=Object.keys(GOALIE_SHOT_MIX);
+    const weightedRating=sum(momentTypes.map(momentType=>
+      this.#calculateGoalieMomentRating(defense,momentType,{isOvertime:false,isPlayoff})*(GOALIE_SHOT_MIX[momentType]||0)
+    ));
+    return clamp((weightedRating-74)/34,-0.28,0.36);
   }
 
   #buildPenaltyEvents(teamContext,isOvertime){
@@ -340,7 +364,7 @@ export class MatchSimulator{
     return events;
   }
 
-  #buildGoalEvents(teamContext,opponentContext,goalsTarget,opponentPenalties,ownPenalties,isOvertime,overtimeConfig=null){
+  #buildGoalEvents(teamContext,opponentContext,goalsTarget,opponentPenalties,ownPenalties,isOvertime,overtimeConfig=null,isPlayoff=false){
     const releasedPenaltyIds=new Set();
     const overtimeFormat=overtimeConfig?.format||null;
     const overtimeStartSecond=overtimeConfig?.startSecond??REGULATION_SECONDS;
@@ -362,6 +386,7 @@ export class MatchSimulator{
       const defendingState=this.#getOnIceState(opponentContext,gameSecond,opponentPenalties,ownPenalties,releasedPenaltyIds,new Set(),overtimeFormat,false);
       const play=this.#pickScoringPlay(state,defendingState,isOvertime,blockedPlayerIds,state.mode);
       if(!play.scorer || blockedPlayerIds.has(play.scorer.id))continue;
+      if(this.#doesGoalieEraseScoringChance(opponentContext,play.momentType,{isOvertime,isPlayoff}))continue;
 
       const isPowerPlay=ownSkaters>opponentSkaters;
       const isShortHanded=ownSkaters<opponentSkaters;
@@ -464,7 +489,7 @@ export class MatchSimulator{
 
   #buildSingleOvertimeGoalEvent(teamContext,opponentContext,overtimeConfig){
     for(let attempt=0;attempt<8;attempt++){
-      const result=this.#buildGoalEvents(teamContext,opponentContext,1,[],[],true,overtimeConfig);
+      const result=this.#buildGoalEvents(teamContext,opponentContext,1,[],[],true,overtimeConfig,overtimeConfig?.format==="playoffs");
       if(result.events?.[0])return result.events[0];
     }
     return null;
@@ -748,6 +773,62 @@ export class MatchSimulator{
     return {scorer,assists:[firstAssist,secondAssist].filter(Boolean),momentType};
   }
 
+  #buildGoalieGameState(goalieProfile,{isPlayoff=false}={}){
+    if(!goalieProfile)return null;
+    const attrs=this.#getMatchAttributes(goalieProfile.player);
+    const mental=attrs.mental||goalieProfile.effectiveOvr||72;
+    const varianceScale=mental>=78?4.8:6.4;
+    const pressureBonus=isPlayoff?clamp((mental-74)*0.08,-0.8,1.2):0;
+    const ratingDelta=clamp(rand(-1,1)*varianceScale+pressureBonus,-7,7);
+    return {
+      ratingDelta,
+      state:ratingDelta>=3.2?"hot":(ratingDelta<=-3.2?"bad":"normal")
+    };
+  }
+
+  #calculateGoalieMomentRating(goalieContext,momentType,{isOvertime=false,isPlayoff=false}={}){
+    const profile=goalieContext?.goalieProfile||goalieContext;
+    if(!profile)return 72;
+    const weights=GOALIE_MOMENT_WEIGHTS[momentType]||GOALIE_MOMENT_WEIGHTS.slot;
+    const attrs=this.#getMatchAttributes(profile.player);
+    const fallback=profile.effectiveOvr||profile.player?.ovr||72;
+    const attributeRating=sum(Object.entries(weights).map(([key,weight])=>(attrs[key]||fallback)*weight));
+    const mental=attrs.mental||fallback;
+    const pressureBonus=(isOvertime?0.045:0)*(mental-74)+(isPlayoff?0.05:0)*(mental-74);
+    const gameStateBonus=goalieContext?.goalieGameState?.ratingDelta||0;
+    return clamp(attributeRating*0.72+fallback*0.28+pressureBonus+gameStateBonus,55,95);
+  }
+
+  #doesGoalieEraseScoringChance(goalieContext,momentType,{isOvertime=false,isPlayoff=false}={}){
+    if(!goalieContext?.goalieProfile)return false;
+    const momentRating=this.#calculateGoalieMomentRating(goalieContext,momentType,{isOvertime,isPlayoff});
+    const saveChance=clamp(0.055+((momentRating-74)*0.007),0.012,0.18);
+    return Math.random()<saveChance;
+  }
+
+  #buildGoalieShotProfile(goalieContext,totalShots,goalEvents=[],isPlayoff=false){
+    const shotsByMoment=Object.fromEntries(Object.keys(GOALIE_SHOT_MIX).map(key=>[key,0]));
+    const goalsByMoment=Object.fromEntries(Object.keys(GOALIE_SHOT_MIX).map(key=>[key,0]));
+    (goalEvents||[]).forEach(event=>{
+      const key=GOALIE_SHOT_MIX[event?.momentType]?event.momentType:"slot";
+      shotsByMoment[key]++;
+      goalsByMoment[key]++;
+    });
+    let remainingShots=Math.max(0,(Number(totalShots)||0)-sum(Object.values(shotsByMoment)));
+    const momentTypes=Object.keys(GOALIE_SHOT_MIX);
+    const weights=momentTypes.map(momentType=>{
+      const rating=this.#calculateGoalieMomentRating(goalieContext,momentType,{isPlayoff});
+      const weaknessBoost=clamp((76-rating)/28,0,0.34);
+      return (GOALIE_SHOT_MIX[momentType]||0.1)*(1+weaknessBoost);
+    });
+    while(remainingShots>0){
+      const momentType=this.#pickWeighted(momentTypes,weights)||"slot";
+      shotsByMoment[momentType]++;
+      remainingShots--;
+    }
+    return {shotsByMoment,goalsByMoment};
+  }
+
   #estimateShots(goals,xg,durationSeconds){
     const overtimeSeconds=Math.max(0,(Number(durationSeconds)||REGULATION_SECONDS)-REGULATION_SECONDS);
     const otBonus=(overtimeSeconds/PERIOD_SECONDS)*rand(2.2,4.8);
@@ -758,7 +839,8 @@ export class MatchSimulator{
     const stats=new Map();
     const activePlayers=[...new Set([...(teamContext.activePlayers||[]),teamContext.goalie].filter(Boolean))];
     activePlayers.forEach(player=>{
-      stats.set(player.id,{playerId:player.id,playerName:player.name,games:1,goals:0,assists:0,shots:0,totalIceTime:0,penaltyMinutes:0,plusMinus:0});
+      const position=player.identity?.primaryPosition||"";
+      stats.set(player.id,{playerId:player.id,playerName:player.name,position,isGoalie:position===GOALIE_POSITION,games:1,goals:0,assists:0,shots:0,totalIceTime:0,penaltyMinutes:0,plusMinus:0});
     });
     return stats;
   }
@@ -864,6 +946,29 @@ export class MatchSimulator{
 
     allocated.forEach((shots,playerId)=>{
       if(statsMap.has(playerId))statsMap.get(playerId).shots=shots;
+    });
+  }
+
+  #applyGoalieStats(teamContext,statsMap,shotsAgainst,goalsAgainst,goalEvents=[],isPlayoff=false){
+    const goalie=teamContext.goalie;
+    if(!goalie || !statsMap.has(goalie.id))return;
+    const safeShotsAgainst=Math.max(Number(goalsAgainst)||0,Number(shotsAgainst)||0);
+    const safeGoalsAgainst=Math.max(0,Number(goalsAgainst)||0);
+    const saves=Math.max(0,safeShotsAgainst-safeGoalsAgainst);
+    const savePercentage=safeShotsAgainst?Math.round((saves/safeShotsAgainst)*1000)/1000:0;
+    const shotProfile=this.#buildGoalieShotProfile(teamContext,safeShotsAgainst,goalEvents,isPlayoff);
+    const qualityStart=safeShotsAgainst>=20 && (savePercentage>=0.915 || (safeGoalsAgainst<=2 && savePercentage>=0.885))?1:0;
+    Object.assign(statsMap.get(goalie.id),{
+      isGoalie:true,
+      shotsAgainst:safeShotsAgainst,
+      saves,
+      goalsAgainst:safeGoalsAgainst,
+      savePercentage,
+      shutout:safeShotsAgainst>0 && safeGoalsAgainst===0?1:0,
+      qualityStart,
+      shotsAgainstByMoment:shotProfile.shotsByMoment,
+      goalsAgainstByMoment:shotProfile.goalsByMoment,
+      goalieGameState:teamContext.goalieGameState?.state||"normal"
     });
   }
 

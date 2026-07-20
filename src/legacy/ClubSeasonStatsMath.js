@@ -1,4 +1,4 @@
-export const CLUB_STAT_METRICS = ["games", "goals", "assists", "points", "plusMinus", "penaltyMinutes", "totalIceTime"];
+export const CLUB_STAT_METRICS = ["games", "goals", "assists", "points", "plusMinus", "penaltyMinutes", "totalIceTime", "shotsAgainst", "saves", "goalsAgainst", "shutouts", "qualityStarts"];
 
 export const snapshotPlayerSeasonStats = (player) =>
   Object.fromEntries(CLUB_STAT_METRICS.map((key) => [key, Number(player?.seasonStats?.[key]) || 0]));
