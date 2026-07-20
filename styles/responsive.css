@@ -249,7 +249,8 @@
   .line-card-row-bottom{grid-template-columns:repeat(2,minmax(0,1fr))}
   .hockey-card--reserve{transform:scale(.72);margin-right:-52px}
   .empty-roster-slot{width:100%;max-width:188px}
-  .draft-header-shell{grid-template-columns:1fr}
+  .draft-header-shell{align-items:flex-start;flex-wrap:wrap}
+  .draft-header-team{min-width:0;width:100%}
   .draft-layout{grid-template-columns:1fr}
   .draft-list{max-height:38vh}
   .draft-list-row{grid-template-columns:36px 38px minmax(0,1fr) auto}
