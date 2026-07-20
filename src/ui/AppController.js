@@ -153,6 +153,7 @@ export class AppController{
       if(selectedTeam){
         const draftView=this.#draftState.service.getView(this.#draftState.sortBy,this.#draftState.filterPosition);
         draftView.selectedPlayerId=this.#draftState.selectedPlayerId;
+        draftView.searchQuery=this.#draftState.searchQuery||"";
         draftView.message=this.#draftMessage;
         this.#renderer.renderFantasyDraft(draftView,selectedTeam);
       }
@@ -245,6 +246,17 @@ export class AppController{
     }
     if(action==="junior-position-filter"){
       this.#juniorPositionFilter=changed.value||"all";
+      this.#renderScreen();
+    }
+    if(action==="draft-sort-select" && this.#draftState){
+      this.#draftState.sortBy=changed.value||"ovr";
+      this.#persistDraftState();
+      this.#renderScreen();
+    }
+    if(action==="draft-search" && this.#draftState){
+      this.#draftState.searchQuery=changed.value||"";
+      this.#draftState.selectedPlayerId=null;
+      this.#persistDraftState();
       this.#renderScreen();
     }
     if(action==="new-game-cap-base"){
@@ -1132,7 +1144,7 @@ export class AppController{
   #startFantasyDraft(selectedTeamId){
     const allPlayers=this.#state.getFantasyDraftPlayerPool();
     const service=new FantasyDraftService(this.#teams,allPlayers,selectedTeamId,undefined,this.#state.getFantasyDraftSalaryCapOptions());
-    this.#draftState={service,selectedTeamId,sortBy:"ovr",filterPosition:"ALL",selectedPlayerId:null};
+    this.#draftState={service,selectedTeamId,sortBy:"ovr",filterPosition:"ALL",searchQuery:"",selectedPlayerId:null};
     this.#draftIntroTeamId=null;
     this.#pendingTeamId=null;
     service.autoPickUntilUserTurn();
@@ -1174,6 +1186,7 @@ export class AppController{
       selectedTeamId:saved.selectedTeamId,
       sortBy:saved.sortBy||"ovr",
       filterPosition:saved.filterPosition||"ALL",
+      searchQuery:saved.searchQuery||"",
       selectedPlayerId:saved.selectedPlayerId||null
     };
     this.#completeDraftIfReady();
@@ -1194,6 +1207,7 @@ export class AppController{
       gameSettings:this.#newGameSettings,
       sortBy:this.#draftState.sortBy,
       filterPosition:this.#draftState.filterPosition,
+      searchQuery:this.#draftState.searchQuery||"",
       selectedPlayerId:this.#draftState.selectedPlayerId,
       service:this.#draftState.service.toSnapshot()
     });
