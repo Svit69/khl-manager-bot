@@ -251,7 +251,7 @@
   .empty-roster-slot{width:100%;max-width:188px}
   .draft-header-shell{align-items:flex-start;flex-wrap:wrap}
   .draft-header-team{min-width:0;width:100%}
-  .draft-layout{grid-template-columns:1fr}
+  .draft-layout,.draft-right{grid-template-columns:1fr}
   .draft-list{max-height:38vh}
   .draft-position-tabs{scrollbar-width:none}
   .draft-list-row{grid-template-columns:28px 42px minmax(0,1fr) 52px;grid-template-areas:"pos photo main ovr" "pos photo contract contract"}

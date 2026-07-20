@@ -153,6 +153,8 @@ export class FantasyDraftService {
       teams: this.#teams.map((team) => ({
         id: team.id,
         name: team.name,
+        shortName: team.shortName,
+        logoUrl: team.logoUrl,
         pickedCount: (this.#pickedByTeamId.get(team.id) || []).length,
         payrollRub: this.#salaryCap.enabled ? this.#getTeamPayroll(team.id) : null,
         capRub: this.#salaryCap.enabled ? this.#salaryCap.capRub : null,
