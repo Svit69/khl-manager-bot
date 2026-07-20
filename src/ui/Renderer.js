@@ -146,18 +146,14 @@ const renderRosterSlotCard=(player,slot,extraClass="",selected=false)=>{
 };
 const getRosterUnitPlayers=(team,unitKey)=>{
   if(String(unitKey)==="G"){
-    return [team.lines?.[4]?.players?.[0],...(team.reservePlayers||[])].filter(player=>player?.identity?.primaryPosition==="ВРТ");
+    return [team.lines?.[4]?.players?.[0]].filter(player=>player?.identity?.primaryPosition==="ВРТ");
   }
   const lineIndex=Math.max(1,Math.min(4,Number(unitKey)||1))-1;
   return [...(team.lines?.[lineIndex]?.players||[])];
 };
 const getRosterUnitSlotDescriptors=(team,unitKey)=>{
   if(String(unitKey)==="G"){
-    const starter={player:team.lines?.[4]?.players?.[0]||null,slot:{kind:"line",lineIndex:4,slotIndex:0,position:"ВРТ"}};
-    const reserves=(team.reservePlayers||[])
-      .map((player,index)=>({player,slot:{kind:"reserve",index}}))
-      .filter(item=>item.player.identity?.primaryPosition==="ВРТ");
-    return [starter,...reserves];
+    return [{player:team.lines?.[4]?.players?.[0]||null,slot:{kind:"line",lineIndex:4,slotIndex:0,position:"ВРТ"}}];
   }
   const lineIndex=Math.max(1,Math.min(4,Number(unitKey)||1))-1;
   const line=team.lines?.[lineIndex];
