@@ -9,10 +9,3 @@ export const formatMillions = (value) => {
 };
 
 export const getNationBadge = (nationality) => `<span class="nation-badge-inline"><span>${String(nationality || "N/A").trim().toUpperCase()}</span></span>`;
-
-export const renderDraftCapSummary = (cap) => cap ? `<div class="draft-cap-summary">
-  <div><span>Потолок ${cap.seasonLabel}</span><strong>${formatMillions(cap.userPayrollRub)} / ${formatMillions(cap.capRub)} млн</strong></div>
-  <div><span>Доступно</span><strong>${formatMillions(cap.remainingRub)} млн</strong></div>
-  <div><span>Среднее на пик</span><strong>${formatMillions(cap.averageRemainingRub)} млн</strong></div>
-  <div><span>Осталось пиков</span><strong>${cap.remainingPicks || 0}</strong></div>
-</div>` : "";
