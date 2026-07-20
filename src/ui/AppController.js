@@ -17,6 +17,8 @@ export class AppController{
   #matchPlayback=null;
   #matchPlaybackTimer=null;
   #calendarPanelTab="standings";
+  #calendarScheduleMonthOffset=0;
+  #calendarScheduleFilter="all";
   #notificationVisibleCount=6;
   #newGameSettings={restrictedFreeAgencyEnabled:true,salaryCapEnabled:true,salaryCapBaseRub:900000000,salaryCapGrowthRub:50000000,coachesEnabled:true,conferencesEnabled:true};
   #capComplianceOpen=false;
@@ -55,6 +57,7 @@ export class AppController{
     this.#updateFavicon();
     const dayInfo=this.#state.activeTeam?this.#state.getVisibleCalendarDay():this.#calendar.getCurrent();
     const seasonState=this.#state.getSeasonState();
+    const scheduleView={monthOffset:this.#calendarScheduleMonthOffset,filter:this.#calendarScheduleFilter};
     const calendarDateLabel=seasonState?.phase==="preseason"&&seasonState?.preseasonOpen
       ? this.#state.currentSeasonDateLabel
       : (dayInfo?.dateLabel||this.#state.currentSeasonDateLabel);
@@ -78,6 +81,7 @@ export class AppController{
           scorers:this.#state.getTopScorers(20),
           bestTeamScorer:this.#state.getTeamStatisticsRows(this.#state.activeTeamId,"points")[0]||null,
           schedule:this.#state.getCalendarScheduleRows(),
+          scheduleView,
           playoffs:this.#state.getPlayoffBracketData(),
           seasonState
         });
@@ -93,6 +97,7 @@ export class AppController{
         scorers:this.#state.getTopScorers(20),
         bestTeamScorer:this.#state.getTeamStatisticsRows(this.#state.activeTeamId,"points")[0]||null,
         schedule:this.#state.getCalendarScheduleRows(),
+        scheduleView,
         playoffs:this.#state.getPlayoffBracketData(),
         seasonState
       });
@@ -159,6 +164,7 @@ export class AppController{
         gameSettings:this.#state.gameSettings,
         scorers:this.#state.getTopScorers(20),
         schedule:this.#state.getCalendarScheduleRows(),
+        scheduleView,
         playoffs:this.#state.getPlayoffBracketData(),
         seasonState
       });
@@ -176,6 +182,7 @@ export class AppController{
         gameSettings:this.#state.gameSettings,
         scorers:this.#state.getTopScorers(20),
         schedule:this.#state.getCalendarScheduleRows(),
+        scheduleView,
         playoffs:this.#state.getPlayoffBracketData(),
         seasonState
       });
@@ -191,6 +198,7 @@ export class AppController{
       gameSettings:this.#state.gameSettings,
       scorers:this.#state.getTopScorers(20),
       schedule:this.#state.getCalendarScheduleRows(),
+      scheduleView,
       playoffs:this.#state.getPlayoffBracketData(),
       seasonState
     });
@@ -404,6 +412,17 @@ export class AppController{
     }
     if(action==="calendar-tab"){
       this.#calendarPanelTab=clickable.dataset.value||"standings";
+      if(this.#calendarPanelTab==="schedule")this.#calendarScheduleMonthOffset=0;
+      this.#renderScreen();
+      return;
+    }
+    if(action==="calendar-schedule-month"){
+      this.#calendarScheduleMonthOffset+=Number(clickable.dataset.direction)||0;
+      this.#renderScreen();
+      return;
+    }
+    if(action==="calendar-schedule-filter"){
+      this.#calendarScheduleFilter=clickable.dataset.filter||"all";
       this.#renderScreen();
       return;
     }

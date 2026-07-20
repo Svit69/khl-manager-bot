@@ -31,6 +31,14 @@ const toResultSnapshot = (matchResult) => ({
   wentToOvertime: Boolean(matchResult?.summary?.wentToOvertime),
 });
 
+const toTeamScheduleSnapshot = (team) => ({
+  id: team.id,
+  name: team.name,
+  shortName: team.shortName,
+  city: team.city,
+  logoUrl: team.logoUrl,
+});
+
 const buildRoundRobinPairings = (teams) => {
   const rotation = [...teams];
   const hasBye = rotation.length % 2 === 1;
@@ -166,8 +174,8 @@ export class SeasonCalendar {
       const playedMatches = day.matches.filter((match) => Boolean(match.result)).length;
       const previewMatches = day.matches.slice(0, 2).map((match) => ({
         id: match.id,
-        home: { id: match.home.id, name: match.home.name, shortName: match.home.shortName },
-        away: { id: match.away.id, name: match.away.name, shortName: match.away.shortName },
+        home: toTeamScheduleSnapshot(match.home),
+        away: toTeamScheduleSnapshot(match.away),
         result: match.result ? { ...match.result } : null,
       }));
       return {
@@ -186,8 +194,8 @@ export class SeasonCalendar {
         matches: previewMatches,
         myMatch: myMatch ? {
           id: myMatch.id,
-          home: { id: myMatch.home.id, name: myMatch.home.name, shortName: myMatch.home.shortName },
-          away: { id: myMatch.away.id, name: myMatch.away.name, shortName: myMatch.away.shortName },
+          home: toTeamScheduleSnapshot(myMatch.home),
+          away: toTeamScheduleSnapshot(myMatch.away),
           result: myMatch.result ? { ...myMatch.result } : null,
         } : null,
       };
