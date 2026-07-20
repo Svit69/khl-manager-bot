@@ -2,7 +2,7 @@ import { ContractType } from "../contracts/ContractType.js";
 import { getFallbackMarketSalaryRub } from "../contracts/FallbackMarketSalary.js";
 import { formatNextSeason } from "../contracts/SeasonUtils.js";
 import { getJuniorSeasonAge } from "./JuniorEligibility.js";
-import { getScoutedPotential } from "./JuniorScouting.js";
+import { getScoutedPotentialScore } from "./JuniorScouting.js";
 const getJuniorIdPrefix = (teamId, seasonLabel) => `junior-${teamId}-${String(seasonLabel || "season-1").replace(/[^0-9A-Za-z]+/g, "-")}-`;
 const getCoachTargetCount = (coach) => {
   const rating = Number(coach?.ratings?.playerDevelopment) || 70;
@@ -10,7 +10,7 @@ const getCoachTargetCount = (coach) => {
   if (rating >= 78) return 2;
   return 1;
 };
-const getPotentialScore = (player, seasonLabel) => Number(player?.potential?.potential) || Number(getScoutedPotential(player, seasonLabel)?.high) || Number(player?.ovr) || 0;
+const getPotentialScore = (player, seasonLabel) => Number(getScoutedPotentialScore(player, seasonLabel)) || Number(player?.ovr) || 0;
 const isPromotionWorthyProspect = (player, seasonLabel) => {
   const potential = getPotentialScore(player, seasonLabel);
   const ovr = Number(player?.ovr) || 0;

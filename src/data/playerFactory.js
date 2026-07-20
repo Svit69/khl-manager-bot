@@ -6,9 +6,19 @@ import { PlayerCareer } from "../models/PlayerCareer.js";
 import { PlayerAffiliation } from "../models/PlayerAffiliation.js";
 import { PlayerSeasonStats } from "../models/PlayerSeasonStats.js";
 import { SkaterAttributes } from "../models/SkaterAttributes.js";
+import { GoalieAttributes } from "../models/GoalieAttributes.js";
 import { Skater } from "../models/Skater.js";
 import { PlayerPosition } from "../models/PlayerPosition.js";
 import { normalizeHiddenTraits } from "../models/HiddenPlayerTraits.js";
+
+const isGoalieProfile = (profile, position) =>
+  profile.identity?.isGoalie || profile.identity?.primaryPosition === PlayerPosition.G || position === PlayerPosition.G;
+
+const createPlayerAttributesJson = (profile, position) => {
+  if (isGoalieProfile(profile, position)) return new GoalieAttributes(profile.attributes).toJson();
+  return new SkaterAttributes(profile.attributes).toJson();
+};
+
 export const createSkater=(teamInfo,firstName,lastName,position,seasonId,profile=null)=>{
   if(!profile)throw new Error(`Missing player profile for ${teamInfo?.name||"team"}`);
   const playerId=profile.id;
@@ -24,7 +34,7 @@ export const createSkater=(teamInfo,firstName,lastName,position,seasonId,profile
     primaryPosition:profile.identity.primaryPosition||position,
     secondaryPositions:profile.identity.secondaryPositions||[]
   });
-  const attributesJson=new SkaterAttributes(profile.attributes).toJson();
+  const attributesJson=createPlayerAttributesJson(profile,position);
   const attributes=new PlayerAttributes(playerId,attributesJson);
   const potential=new PlayerPotential({
     playerId,

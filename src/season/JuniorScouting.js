@@ -18,6 +18,11 @@ export const getJuniorPracticeProfile = (player) => {
   return { khlGames, careerGames, score, label: "Молодежка" };
 };
 
+const getScoutingBias = (player, seasonLabel, uncertainty) => {
+  const rawBias = (getHash(`${player?.id || player?.name}:${seasonLabel}:scout-bias`) % 2001) / 1000 - 1;
+  return Math.round(rawBias * Math.max(1, uncertainty * 0.55));
+};
+
 export const getScoutedPotential = (player, seasonLabel) => {
   const potential = Number(player?.potential?.potential) || Number(player?.ovr) || 0;
   const age = Number(player?.juniorSeasonAge) || 18;
@@ -27,8 +32,14 @@ export const getScoutedPotential = (player, seasonLabel) => {
   const reputationReduction = Number(player?.career?.reputation) >= 30 ? 1 : 0;
   const uncertainty = clamp(baseUncertainty - practiceReduction - reputationReduction, 2, 9);
   const offset = (getHash(`${player?.id || player?.name}:${seasonLabel}:scout`) % 5) - 2;
-  const low = clamp(potential - uncertainty + Math.min(0, offset), 45, 99);
-  const high = clamp(potential + uncertainty + Math.max(0, offset), low, 99);
+  const estimatedPotential = clamp(potential + getScoutingBias(player, seasonLabel, uncertainty), 45, 99);
+  const low = clamp(estimatedPotential - uncertainty + Math.min(0, offset), 45, 99);
+  const high = clamp(estimatedPotential + uncertainty + Math.max(0, offset), low, 99);
   const confidence = uncertainty <= 3 ? "Высокая" : uncertainty <= 5 ? "Средняя" : "Низкая";
-  return { low, high, label: `${low}-${high}`, confidence, uncertainty };
+  return { low, high, estimated: Math.round((low + high) / 2), label: `${low}-${high}`, confidence, uncertainty };
+};
+
+export const getScoutedPotentialScore = (player, seasonLabel) => {
+  const scouted = getScoutedPotential(player, seasonLabel);
+  return Math.round((scouted.low * 0.35) + (scouted.high * 0.65));
 };

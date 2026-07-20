@@ -375,7 +375,13 @@ const getAttributeProfile = (position, ovr, seed) => {
     return { shot: spread(1) - 2, speed: spread(2), physical: spread(3) + 2, defense: spread(4) + 4, skill: spread(5) };
   }
   if (position === PlayerPosition.G) {
-    return { shot: spread(1) - 8, speed: spread(2), physical: spread(3) + 2, defense: spread(4) + 4, skill: spread(5) - 1 };
+    return {
+      reaction: spread(1) + 2,
+      positioning: spread(2) + 1,
+      athleticism: spread(3) + (seed % 3) - 1,
+      puckControl: spread(4) - 2,
+      mental: spread(5) + (seed % 5 >= 3 ? 2 : 0),
+    };
   }
   return { shot: spread(1) + 2, speed: spread(2) + 1, physical: spread(3), defense: spread(4) - 2, skill: spread(5) + 2 };
 };
