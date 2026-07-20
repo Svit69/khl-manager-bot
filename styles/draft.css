@@ -363,10 +363,10 @@
 }
 .draft-left,.draft-right{min-width:0;display:grid;gap:12px;align-content:start}
 .draft-card{
-  background:rgba(12,20,36,.84);
-  border:1px solid rgba(109,160,255,.15);
-  border-radius:14px;
-  padding:10px;
+  background:rgba(9,12,16,.88);
+  border:1px solid rgba(246,247,252,.08);
+  border-radius:12px;
+  padding:12px;
   min-width:0;
 }
 .draft-card-head{
@@ -379,16 +379,14 @@
 .draft-card-head h2{
   margin:0;
   color:#fff;
-  font-size:14px;
-  letter-spacing:.2px;
+  font-size:13px;
+  font-weight:950;
+  text-transform:uppercase;
 }
-.draft-toolbar{display:grid;gap:8px;margin-bottom:8px}
-.draft-toolbar-group{
-  display:flex;
-  flex-wrap:wrap;
-  gap:6px;
-  margin-top:4px;
-}
+.draft-position-tabs{display:flex;gap:0;min-width:0;overflow:auto;border:1px solid rgba(246,247,252,.08);border-radius:10px;background:rgba(9,12,16,.82)}
+.draft-position-tab{min-height:38px;min-width:96px;padding:0 18px;border:0;border-left:1px solid rgba(246,247,252,.06);background:rgba(246,247,252,.025);color:#f6f7fc;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap}
+.draft-position-tab:first-child{border-left:0}
+.draft-position-tab.active{background:linear-gradient(180deg,#6b33ff,#5221f2);box-shadow:0 0 18px rgba(82,33,242,.42);color:#fff}
 .chip-btn{
   border:1px solid rgba(255,255,255,.10);
   background:#101a2b;
@@ -438,41 +436,45 @@
 }
 .draft-list-row{
   width:100%;
-  border:1px solid rgba(255,255,255,.08);
-  background:rgba(16,25,40,.92);
+  min-height:62px;
+  border:1px solid rgba(246,247,252,.06);
+  background:linear-gradient(180deg,rgba(246,247,252,.035),rgba(5,8,14,.44));
   color:var(--text);
-  border-radius:10px;
-  padding:7px 8px;
+  border-radius:8px;
+  padding:7px 10px;
   display:grid;
-  grid-template-columns:40px 42px minmax(0,1fr) auto auto auto;
-  gap:8px;
+  grid-template-columns:34px 50px minmax(0,1fr) 60px 128px;
+  gap:12px;
   align-items:center;
   text-align:left;
   cursor:pointer;
 }
-.draft-list-row:hover{border-color:rgba(127,226,255,.35);background:rgba(19,30,48,.96)}
+.draft-list-row:hover{border-color:rgba(82,33,242,.38);background:rgba(18,22,31,.96)}
 .draft-list-row.selected{
-  border-color:#7fe2ff;
-  box-shadow:0 0 0 1px rgba(127,226,255,.28) inset;
-  background:linear-gradient(90deg,rgba(36,72,110,.5),rgba(17,25,40,.95));
+  border-color:#5221f2;
+  box-shadow:0 0 0 1px rgba(82,33,242,.42) inset;
+  background:linear-gradient(90deg,rgba(82,33,242,.24),rgba(9,12,16,.86));
 }
 .draft-list-row-pos{
-  width:40px;height:40px;border-radius:10px;
+  width:24px;height:24px;border-radius:6px;
   display:flex;align-items:center;justify-content:center;
-  background:#16253a;border:1px solid rgba(255,255,255,.08);
-  font-size:11px;font-weight:800;color:#dbe8fb;
+  background:rgba(82,33,242,.16);border:1px solid rgba(82,33,242,.52);
+  font-size:10px;font-weight:950;color:#9bd841;
 }
+.draft-list-row-photo{align-self:end;width:50px;height:54px;margin-bottom:-7px;object-fit:cover;object-position:top center}
 .draft-list-row-main{min-width:0}
-.draft-list-row-name{font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.draft-list-row-meta{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.draft-list-row-name{font-size:15px;font-weight:950;color:#f6f7fc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.draft-list-row-meta{display:flex;align-items:center;gap:6px;font-size:11px;color:#7e838c;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .draft-list-row-stat{
-  min-width:58px;
+  min-width:0;
   display:grid;
-  justify-items:end;
+  justify-items:start;
   align-items:center;
+  gap:3px;
 }
-.draft-list-row-stat-label{font-size:10px;color:var(--muted);text-transform:uppercase}
-.draft-list-row-stat strong{font-size:14px;color:#fff}
+.draft-list-row-stat-label{font-size:10px;color:#7e838c;text-transform:none}
+.draft-list-row-stat strong{font-size:16px;color:#f6f7fc;font-weight:950}
+.draft-list-row-stat:nth-last-child(2) strong{color:#9bd841}
 .draft-preview-head{
   display:grid;
   grid-template-columns:104px minmax(0,1fr);

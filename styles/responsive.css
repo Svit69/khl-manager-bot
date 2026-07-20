@@ -253,8 +253,9 @@
   .draft-header-team{min-width:0;width:100%}
   .draft-layout{grid-template-columns:1fr}
   .draft-list{max-height:38vh}
-  .draft-list-row{grid-template-columns:36px 38px minmax(0,1fr) auto}
-  .draft-list-row-stat:last-child{display:none}
+  .draft-position-tabs{scrollbar-width:none}
+  .draft-list-row{grid-template-columns:28px 42px minmax(0,1fr) 52px;grid-template-areas:"pos photo main ovr" "pos photo contract contract"}
+  .draft-list-row-pos{grid-area:pos}.draft-list-row-photo{grid-area:photo;width:42px}.draft-list-row-main{grid-area:main}.draft-list-row-stat:nth-last-child(2){grid-area:ovr}.draft-list-row-stat:last-child{grid-area:contract}
   .draft-cap-summary,.salary-cap-summary,.negotiation-cap-hint{grid-template-columns:1fr}
   .draft-summary-cell{border-left:0;border-top:1px solid rgba(246,247,252,.07);padding:14px 18px}
   .draft-summary-cell:first-child{border-top:0}
