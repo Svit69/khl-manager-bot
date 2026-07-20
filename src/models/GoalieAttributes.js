@@ -1,7 +1,5 @@
-﻿export class GoalieAttributes{
-  #reflexes;#positioning;#glove;#blocker;#reboundControl;
-  constructor({reflexes,positioning,glove,blocker,reboundControl}){
-    this.#reflexes=reflexes;this.#positioning=positioning;this.#glove=glove;this.#blocker=blocker;this.#reboundControl=reboundControl;
-  }
-  toJson(){return {reflexes:this.#reflexes,positioning:this.#positioning,glove:this.#glove,blocker:this.#blocker,reboundControl:this.#reboundControl}}
+export class GoalieAttributes {
+  #reaction;#positioning;#athleticism;#puckControl;#mental;
+  constructor({ reaction, positioning, athleticism, puckControl, mental }) { this.#reaction = reaction;this.#positioning = positioning;this.#athleticism = athleticism;this.#puckControl = puckControl;this.#mental = mental; }
+  toJson() { return { reaction: this.#reaction, positioning: this.#positioning, athleticism: this.#athleticism, puckControl: this.#puckControl, mental: this.#mental }; }
 }

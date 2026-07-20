@@ -4,7 +4,7 @@ import { renderDraftNeedsGrid, renderDraftRosterPanel } from "./DraftRosterBlock
 import { calculateAge, formatMillions, getNationBadge, getPlayerPhotoUrl, PHOTO_FALLBACK_ATTR, renderDraftCapSummary } from "./DraftUiFormat.js";
 
 const positions = ["ALL", "ЦТР", "ЛНП", "ПНП", "ЗАЩ", "ВРТ"];
-const attrLabels = { shot: "Бросок", speed: "Скорость", physical: "Силовая", defense: "Оборона", skill: "Техника", reflexes: "Рефлексы", positioning: "Позиция", glove: "Ловушка", blocker: "Блин", reboundControl: "Подбор" };
+const attrLabels = { shot: "Бросок", speed: "Скорость", physical: "Силовая", defense: "Оборона", skill: "Техника", reaction: "Реакция", positioning: "Позиция", athleticism: "Атлетизм", puckControl: "Контроль шайбы", mental: "Психология" };
 
 const getRemainingUserPicks = (draft) => Math.max(0, (Number(draft.rounds) || 0) - Object.values(draft.userRosterByPosition || {}).flat().length);
 

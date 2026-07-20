@@ -1197,9 +1197,20 @@ export class AppState {
   }
 
   swapActiveTeamRosterSlots(source, target) {
+    if (!this.#isRosterSwapAllowed(this.activeTeam, source, target)) return false;
     const moved = this.activeTeam ? this.activeTeam.swapRosterSlots(source, target) : false;
     if (moved && this.activeTeam) this.#refreshExpectedRoles(this.activeTeam);
     return moved;
+  }
+
+  activeTeamHasStartingGoalie() {
+    return this.#teamHasStartingGoalie(this.activeTeam);
+  }
+
+  activeTeamNeedsGoalieForVisibleMatch() {
+    const day = this.getVisibleCalendarDay();
+    const hasMatch = (day?.matches || []).some((match) => match.home?.id === this.#activeTeamId || match.away?.id === this.#activeTeamId);
+    return Boolean(this.activeTeam && hasMatch && !this.activeTeamHasStartingGoalie());
   }
 
   sendPlayerToJunior(playerId) {
@@ -2885,6 +2896,30 @@ export class AppState {
     team.reservePlayers.forEach((player) => {
       if (player) player.expectedLineIndex = null;
     });
+  }
+
+  #teamHasStartingGoalie(team) {
+    return team?.lines?.[4]?.players?.[0]?.identity?.primaryPosition === "ВРТ";
+  }
+
+  #getRosterSlotPlayer(team, slot) {
+    if (!team || !slot) return null;
+    if (slot.kind === "reserve") return team.reservePlayers?.[Number(slot.index)] || null;
+    if (slot.kind !== "line") return null;
+    return team.lines?.[Number(slot.lineIndex)]?.players?.[Number(slot.slotIndex)] || null;
+  }
+
+  #getRosterSlotPosition(team, slot) {
+    if (!team || slot?.kind !== "line") return null;
+    return team.lines?.[Number(slot.lineIndex)]?.positions?.[Number(slot.slotIndex)] || null;
+  }
+
+  #isRosterSwapAllowed(team, source, target) {
+    const entries = [
+      { player: this.#getRosterSlotPlayer(team, source), position: this.#getRosterSlotPosition(team, target) },
+      { player: this.#getRosterSlotPlayer(team, target), position: this.#getRosterSlotPosition(team, source) },
+    ];
+    return entries.every(({ player, position }) => !player || !position || (player.identity?.primaryPosition === "ВРТ") === (position === "ВРТ"));
   }
 
   #ensureRosterContracts(seasonLabel) {

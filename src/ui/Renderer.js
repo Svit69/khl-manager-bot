@@ -19,7 +19,7 @@ import { renderFantasyDraftView } from "./draft/FantasyDraftViewRenderer.js";
 import { calculateAge } from "../contracts/SeasonUtils.js";
 import { adjustedOvrForPosition } from "../utils/positionFit.js";
 import { getPlayerPhotoUrl, PHOTO_FALLBACK_ATTR } from "../utils/PlayerPhoto.js";
-const FANTASY_DRAFT_ROUNDS=23;
+const FANTASY_DRAFT_ROUNDS=25;
 const NATION_FLAG_ASSET_BY_CODE=Object.freeze({
   RU:"./flags/icon-russia.png",RUS:"./flags/icon-russia.png",
   CA:"./flags/icon-canada.png",CAN:"./flags/icon-canada.png",
@@ -146,16 +146,18 @@ const renderRosterSlotCard=(player,slot,extraClass="",selected=false)=>{
 };
 const getRosterUnitPlayers=(team,unitKey)=>{
   if(String(unitKey)==="G"){
-    return team.getRoster().filter(player=>player.identity?.primaryPosition==="ВРТ");
+    return [team.lines?.[4]?.players?.[0],...(team.reservePlayers||[])].filter(player=>player?.identity?.primaryPosition==="ВРТ");
   }
   const lineIndex=Math.max(1,Math.min(4,Number(unitKey)||1))-1;
   return [...(team.lines?.[lineIndex]?.players||[])];
 };
 const getRosterUnitSlotDescriptors=(team,unitKey)=>{
   if(String(unitKey)==="G"){
-    return (team.reservePlayers||[])
+    const starter={player:team.lines?.[4]?.players?.[0]||null,slot:{kind:"line",lineIndex:4,slotIndex:0,position:"ВРТ"}};
+    const reserves=(team.reservePlayers||[])
       .map((player,index)=>({player,slot:{kind:"reserve",index}}))
       .filter(item=>item.player.identity?.primaryPosition==="ВРТ");
+    return [starter,...reserves];
   }
   const lineIndex=Math.max(1,Math.min(4,Number(unitKey)||1))-1;
   const line=team.lines?.[lineIndex];
@@ -173,7 +175,7 @@ const renderRosterUnitButtons=activeUnit=>{
   return `<div class="line-unit-buttons">${units.map(unit=>`<button class="line-unit-btn${String(activeUnit||"1")===unit?" active":""}" data-action="select-roster-unit" data-unit="${unit}">${labels[unit]}</button>`).join("")}</div>`;
 };
 const renderRosterActionBar=(selectedItem,unitKey)=>{
-  if(!selectedItem?.player || String(unitKey)==="G")return "";
+  if(!selectedItem?.player)return "";
   const slotPosition=selectedItem.slot.position||selectedItem.player.identity?.primaryPosition;
   const displayOvr=adjustedOvrForPosition(selectedItem.player,slotPosition);
   return `<div class="roster-action-bar"><div class="roster-action-bar-meta"><span class="roster-action-bar-label">Выбран игрок</span><strong>${selectedItem.player.name}</strong><span>${slotPosition} • OVR ${displayOvr}</span></div><div class="roster-action-bar-actions"><button class="btn secondary" data-action="move-to-reserve" data-line-index="${selectedItem.slot.lineIndex}" data-slot-index="${selectedItem.slot.slotIndex}">Убрать в запас</button></div></div>`;
@@ -471,7 +473,7 @@ export class Renderer{
     const recentPicks=(draft.pickLog||[]).slice(-5).reverse().map(item=>`<div class="draft-recent-row"><span>#${item.pickNumber}</span><span>${item.teamName}</span><span>${item.playerName}</span></div>`).join("")||`<div class="muted">Пиков пока нет</div>`;
     const attrs=previewPlayer?.attributes?.attributesJson||{};
     const attrRows=Object.entries(attrs).filter(([,value])=>typeof value==="number").slice(0,5).map(([key,value])=>{
-      const labels={shot:"Бросок",speed:"Скорость",physical:"Силовая",defense:"Оборона",skill:"Техника",reflexes:"Рефлексы",positioning:"Позиция",glove:"Ловушка",blocker:"Блин",reboundControl:"Подбор"};
+      const labels={shot:"Бросок",speed:"Скорость",physical:"Силовая",defense:"Оборона",skill:"Техника",reaction:"Реакция",positioning:"Позиция",athleticism:"Атлетизм",puckControl:"Контроль шайбы",mental:"Психология"};
       const pct=Math.max(0,Math.min(100,Number(value)||0));
       return `<div class="draft-attr-row"><span>${labels[key]||key}</span><div class="draft-attr-bar"><span style="width:${pct}%"></span></div><strong>${value}</strong></div>`;
     }).join("");

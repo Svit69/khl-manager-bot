@@ -1018,7 +1018,9 @@ export class AppController{
       if(!selectedPlayerId || !this.#draftState.service.hasAvailablePlayer(selectedPlayerId))return;
       const picked=this.#draftState.service.pickPlayer(selectedPlayerId);
       if(picked?.rejected){
-        this.#draftMessage="Игрок не помещается под потолок зарплат. Выберите более дешевый вариант.";
+        this.#draftMessage=picked.reason==="positionRequirement"
+          ?"Нужно закрыть обязательные позиции драфта. В составе должны быть 2 вратаря."
+          :"Игрок не помещается под потолок зарплат. Выберите более дешевый вариант.";
       }else if(picked){
         this.#draftState.selectedPlayerId=null;
         this.#draftMessage="";
@@ -1095,6 +1097,13 @@ export class AppController{
       return;
     }
     if(this.#matchPlayback)return;
+    if(this.#state.activeTeamNeedsGoalieForVisibleMatch()){
+      window.alert("Нельзя провести матч: назначьте основного вратаря во вкладке G.");
+      this.#activeTab="roster";
+      this.#activeRosterUnit="G";
+      this.#renderScreen();
+      return;
+    }
     const day=this.#state.activeTeam?this.#state.getVisibleCalendarDay():this.#calendar.getCurrent();
     this.#state.activeTeam?this.#state.playDayForActiveTeam():this.#state.playDay();
     this.#userStore.saveState(this.#state.exportState());

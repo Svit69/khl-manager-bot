@@ -5,7 +5,7 @@ import { generateUuid } from "../utils/uuid.js";
 
 const POSITION_ALL = "ALL";
 const DEFAULT_SORT = "ovr";
-export const DRAFT_ROUNDS = 23;
+export const DRAFT_ROUNDS = 25;
 const DRAFT_POSITION_TARGETS = Object.freeze({ CTR: 5, LW: 5, RW: 5, DEF: 6, G: 2 });
 const TEAM_DRAFT_ARCHETYPES = Object.freeze(["balanced", "win-now", "youth"]);
 const DINAMO_MINSK_TEAM_ID = "6b9a4d2c-5f18-41d4-9b65-3d71d8a4f2c0";
@@ -177,6 +177,7 @@ export class FantasyDraftService {
     const playerIndex = this.#availablePlayers.findIndex((player) => player.id === playerId);
     if (playerIndex === -1) return null;
     if (!this.#canFitPlayer(team.id, this.#availablePlayers[playerIndex])) return { rejected: true, reason: "salaryCap" };
+    if (!this.#canUsePickForRosterNeed(team.id, this.#availablePlayers[playerIndex])) return { rejected: true, reason: "positionRequirement" };
 
     const player = this.#availablePlayers.splice(playerIndex, 1)[0];
     this.#pickedByTeamId.get(team.id).push(player);
@@ -240,7 +241,7 @@ export class FantasyDraftService {
 
     let bestPlayer = null;
     let bestScore = -Infinity;
-    const candidates = this.#availablePlayers.filter((player) => this.#canFitPlayer(team.id, player));
+    const candidates = this.#availablePlayers.filter((player) => this.#canFitPlayer(team.id, player) && this.#canUsePickForRosterNeed(team.id, player));
     const scoringCandidates = this.#budgetGuard.selectCandidates({
       enabled: this.#salaryCap.enabled,
       capRub: this.#salaryCap.capRub,
@@ -299,6 +300,16 @@ export class FantasyDraftService {
   #canFitPlayer(teamId, player) {
     if (!this.#salaryCap.enabled || !teamId) return true;
     return this.#getTeamPayroll(teamId, player) <= this.#salaryCap.capRub;
+  }
+
+  #canUsePickForRosterNeed(teamId, player) {
+    const key = this.#mapPlayerPositionKey(player.identity?.primaryPosition);
+    const pickedCount = (this.#pickedByTeamId.get(teamId) || []).length;
+    const remainingPicks = Math.max(0, this.#rounds - pickedCount);
+    const goalieDeficit = this.#getPositionDeficits(this.getTeamRosterByPosition(teamId)).G;
+    if (goalieDeficit <= 0) return true;
+    if (key === "G") return true;
+    return remainingPicks > goalieDeficit;
   }
 
   #buildSalaryCapView(previewPlayer = null) {

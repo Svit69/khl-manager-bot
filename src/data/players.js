@@ -1,4 +1,4 @@
-﻿import { PlayerPosition } from "../models/PlayerPosition.js";
+import { PlayerPosition } from "../models/PlayerPosition.js";
 import { avtomobilistPlayerProfiles } from "./avtomobilistPlayers.js";
 import { admiralPlayerProfiles } from "./admiral/index.js";
 import { amurPlayerProfiles } from "./amur/index.js";
@@ -12,6 +12,7 @@ import { spartakPlayerProfiles } from "./spartakPlayers.js";
 import { sochiPlayerProfiles } from "./sochi/index.js";
 import { neftekhimikPlayerProfiles } from "./neftekhimik/index.js";
 import { dragonsPlayerProfiles } from "./dragons/index.js";
+import { goaliePlayerProfiles } from "./goalies/index.js";
 import { applyConfiguredHiddenTraits } from "./playerHiddenTraits.js";
 export const playerProfiles=[
   {
@@ -5380,7 +5381,7 @@ export const playerProfiles=[
     affiliation:{contractId:"5c000000-0000-4000-8000-000000000039"}
   }
 ];
-const allPlayerProfiles=[...playerProfiles,...admiralPlayerProfiles,...amurPlayerProfiles,...avtomobilistPlayerProfiles,...lokomotivPlayerProfiles,...ladaPlayerProfiles,...sibirPlayerProfiles,...barysPlayerProfiles,...severstalPlayerProfiles,...skaPlayerProfiles,...spartakPlayerProfiles,...sochiPlayerProfiles,...neftekhimikPlayerProfiles,...dragonsPlayerProfiles].filter(Boolean).map(applyConfiguredHiddenTraits);
+const allPlayerProfiles=[...playerProfiles,...admiralPlayerProfiles,...amurPlayerProfiles,...avtomobilistPlayerProfiles,...lokomotivPlayerProfiles,...ladaPlayerProfiles,...sibirPlayerProfiles,...barysPlayerProfiles,...severstalPlayerProfiles,...skaPlayerProfiles,...spartakPlayerProfiles,...sochiPlayerProfiles,...neftekhimikPlayerProfiles,...dragonsPlayerProfiles,...goaliePlayerProfiles].filter(Boolean).map(applyConfiguredHiddenTraits);
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>allPlayerProfiles
   .find(p=>p.teamId===teamId&&p.lineIndex===lineIndex&&p.position===position&&(roleIndex===null||p.roleIndex===roleIndex));
 export const getTeamProfiles=teamId=>allPlayerProfiles.filter(p=>p.teamId===teamId);

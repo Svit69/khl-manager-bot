@@ -115,7 +115,7 @@ export class MatchSimulator{
       const skaters=playerProfiles.filter(profile=>profile.player.identity?.primaryPosition!=="ВРТ");
       const forwards=skaters.filter(profile=>["ЛНП","ЦТР","ПНП"].includes(getProfilePosition(profile)));
       const defenders=skaters.filter(profile=>getProfilePosition(profile)==="ЗАЩ");
-      const fallback=skaters.length?skaters:playerProfiles;
+      const fallback=skaters;
       return {
         lineIndex,
         weight:Number(line.weight)||0.75,
@@ -135,8 +135,7 @@ export class MatchSimulator{
       };
     }).filter(line=>line.skaters.length>0);
 
-    const goalies=team.getRoster().filter(player=>player.identity?.primaryPosition==="ВРТ");
-    const goalie=goalies.sort((a,b)=>b.ovr-a.ovr)[0]||null;
+    const goalie=team.lines?.[4]?.players?.[0]?.identity?.primaryPosition==="ВРТ"?team.lines[4].players[0]:null;
     const goalieProfile=goalie?this.#buildMatchProfile(goalie,"ВРТ"):null;
     const attackRating=this.#weightedLineRating(lines,"offenseRating")*(coachEffect?.attackMultiplier||1);
     const defenseRating=this.#weightedLineRating(lines,"defenseRating")*(coachEffect?.defenseMultiplier||1);
@@ -938,11 +937,11 @@ export class MatchSimulator{
       physical:(attrs.physical||0)*moodModifier,
       defense:(attrs.defense||0)*moodModifier,
       skill:(attrs.skill||0)*moodModifier,
-      reflexes:(attrs.reflexes||0)*moodModifier,
+      reaction:(attrs.reaction||attrs.reflexes||0)*moodModifier,
       positioning:(attrs.positioning||0)*moodModifier,
-      glove:(attrs.glove||0)*moodModifier,
-      blocker:(attrs.blocker||0)*moodModifier,
-      reboundControl:(attrs.reboundControl||0)*moodModifier,
+      athleticism:(attrs.athleticism||attrs.glove||attrs.blocker||0)*moodModifier,
+      puckControl:(attrs.puckControl||attrs.reboundControl||0)*moodModifier,
+      mental:(attrs.mental||0)*moodModifier,
     };
   }
 
