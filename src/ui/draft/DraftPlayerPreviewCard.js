@@ -9,6 +9,7 @@ export const renderDraftPlayerPreviewCard = (player, salaryCap, context = {}) =>
   const salary = salaryCap ? formatMillions(salaryCap.selectedSalaryRub) : "—";
   const disabled = context.canChoose ? "" : "disabled";
   return `<div class="draft-player-preview-card">
+    <h3>Просмотр игрока</h3>
     <div class="draft-player-preview-media"><img src="${getPlayerPhotoUrl(player)}" alt="${player.name}" ${PHOTO_FALLBACK_ATTR}/><div><span>OVR</span><strong>${player.ovr}</strong></div></div>
     <h2>${player.name}</h2><p>${player.identity.primaryPosition} • ${calculateAge(player.identity.birthDate)} лет • ${getNationBadge(player.identity.nationality)}</p>
     <section class="draft-preview-contract"><span>Контракт</span><strong>${salary} млн ₽</strong></section>
