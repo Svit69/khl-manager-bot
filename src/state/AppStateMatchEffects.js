@@ -89,10 +89,10 @@ export const applyMatchFatigue = (team, teamSummary, referenceDate = null) => {
     const primeBonus = age >= 24 && age <= 30 ? 1.2 : age <= 20 ? -1.3 : age >= 34 ? -1.6 : age >= 31 ? -0.7 : 0;
     const enduranceBonus = ((physical - 68) * 0.11) + primeBonus;
     const baseLoad = isGoalie
-      ? 4.6 + (minutes / 60) * 6.2
+      ? 2.4 + (minutes / 60) * 3.4
       : 2.2 + Math.max(0, minutes - 8) * 0.22 + Math.max(0, minutes - 16) * 0.34 + Math.max(0, minutes - 22) * 0.42;
     const traitRecoveryFactor = hasHiddenTrait(player, HiddenPlayerTrait.IRON_LUNGS) ? 0.78 : 1;
-    const delta = Math.max(0.8, Math.min(isGoalie ? 12 : 15, baseLoad - enduranceBonus)) * FATIGUE_ACCUMULATION_FACTOR * traitRecoveryFactor;
+    const delta = Math.max(0.4, Math.min(isGoalie ? 7 : 15, baseLoad - enduranceBonus)) * FATIGUE_ACCUMULATION_FACTOR * traitRecoveryFactor;
     player.applyFatigue(delta);
   });
 };

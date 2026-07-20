@@ -36,6 +36,19 @@ const renderAction = (row) => row.isRenewalLocked
   ? `<div class="contract-player-renewed"><span>✓</span><strong>ПРОДЛЕНО</strong><small>Продлен в этом сезоне</small></div>`
   : `<button class="contract-player-action" data-action="open-negotiation" data-player-id="${row.playerId}">ПРОДЛИТЬ КОНТРАКТ</button>`;
 
+const formatSavePercentage = (value) => {
+  const safe = Number(value) || 0;
+  return safe ? safe.toFixed(3).replace(/^0/, "") : "-";
+};
+const renderSeasonStats = (row) => {
+  const stats = row.seasonStats || {};
+  if (row.position === "\u0412\u0420\u0422") {
+    return `\u0418 ${stats.games || 0} \u2022 SV% ${formatSavePercentage(stats.savePercentage)} \u2022 SV ${stats.saves || 0}`;
+  }
+  const points = Number(stats.points) || (Number(stats.goals) || 0) + (Number(stats.assists) || 0);
+  return `\u0418 ${stats.games || 0} \u2022 ${stats.goals || 0}+${stats.assists || 0}=${points}`;
+};
+
 export const renderContractPlayerCard = (row, formatStatus) => {
   const status = statusLabel(row, formatStatus);
   const name = splitName(row.displayName);
@@ -47,7 +60,7 @@ export const renderContractPlayerCard = (row, formatStatus) => {
     <div class="contract-player-main">
       <h3 title="${row.displayName}">${name.first ? `${name.first} ` : ""}${name.last}</h3>
       <div class="contract-player-bio"><b>${row.position}</b><span>${row.age} лет</span></div>
-      <div class="contract-player-details"><div><span>Текущий контракт</span><strong>${formatCurrentContractSalaryLabel(row)}</strong></div></div>
+      <div class="contract-player-details"><div><span>Текущий контракт</span><strong>${formatCurrentContractSalaryLabel(row)}</strong></div><div><span>\u0421\u0435\u0437\u043e\u043d</span><strong>${renderSeasonStats(row)}</strong></div></div>
     </div>
     <div class="contract-player-ovr"><span>OVR</span><strong>${row.ovr}</strong></div>
     <div class="contract-player-term"><span>Контракт до</span><strong>${contractLabel(row)}</strong><em>${termLabel(row)}</em></div>

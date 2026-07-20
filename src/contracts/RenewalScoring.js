@@ -9,6 +9,8 @@ const MIN_MARKET_SALARY_RUB = 500000;
 const SALARY_POSITIVE_CAP = 18;
 const SALARY_NEGATIVE_CAP = -20;
 const TOP_PLAYER_OVR_THRESHOLD = 82;
+const GOALIE_POSITION = "ВРТ";
+const DEFENDER_POSITION = "ЗАЩ";
 const FORWARD_POSITIONS = new Set(["ЛНП", "ЦТР", "ПНП"]);
 const ROLE_CAPACITY = { F: 12, D: 6, G: 2, SKATER: 12 };
 const PROJECTED_ROLE_THRESHOLDS = {
@@ -40,8 +42,8 @@ const isDomesticNationality = (nationality) => {
 const isLegioner = (player) => !isDomesticNationality(player?.identity?.nationality);
 
 const getPositionGroup = (position) => {
-  if (position === "ЗАЩ") return "D";
-  if (position === "ВРТ") return "G";
+  if (position === DEFENDER_POSITION || position === "ЗАЩ") return "D";
+  if (position === GOALIE_POSITION || position === "ВРТ") return "G";
   if (FORWARD_POSITIONS.has(position)) return "F";
   return "SKATER";
 };
@@ -345,6 +347,43 @@ const topPlayerCompetitiveOutlookScore = (player, context, reasons) => {
   return score;
 };
 
+const goaliePerformanceScore = (player, context, reasons) => {
+  const games = Number(player.seasonStats?.games) || 0;
+  if (games < MIN_GAMES_FOR_IMPACT_EVAL) {
+    reasons.push({
+      text: `Недостаточно матчей для оценки вратаря (нужно ${MIN_GAMES_FOR_IMPACT_EVAL})`,
+      value: 0,
+    });
+    return 0;
+  }
+
+  const teamGamesPlayed = Math.max(games, Number(context?.teamGamesPlayed) || games);
+  const savePercentage = Number(player.seasonStats?.savePercentage) || 0;
+  const goalsAgainstAverage = (Number(player.seasonStats?.goalsAgainst) || 0) / Math.max(1, games);
+  const qualityStartRate = (Number(player.seasonStats?.qualityStarts) || 0) / Math.max(1, games);
+  const startShare = games / Math.max(1, teamGamesPlayed);
+  let score = 0;
+
+  if (savePercentage >= 0.925) score += 8;
+  else if (savePercentage >= 0.912) score += 5;
+  else if (savePercentage >= 0.9) score += 2;
+  else if (savePercentage <= 0.875) score -= 8;
+  else if (savePercentage <= 0.89) score -= 4;
+
+  if (goalsAgainstAverage <= 2.1) score += 3;
+  else if (goalsAgainstAverage >= 3.4) score -= 4;
+  if (qualityStartRate >= 0.55) score += 3;
+  else if (qualityStartRate <= 0.25 && games >= 10) score -= 3;
+  if (startShare >= 0.65) score += 2;
+  else if (startShare <= 0.25 && games >= 8) score -= 2;
+
+  reasons.push({
+    text: `Вратарская статистика: SV% ${savePercentage ? savePercentage.toFixed(3).replace(/^0/, "") : "-"}, GAA ${roundToTenth(goalsAgainstAverage)}, стартов ${Math.round(startShare * 100)}%`,
+    value: clamp(score, -12, 12),
+  });
+  return clamp(score, -12, 12);
+};
+
 const personalPerformanceScore = (player, context, reasons) => {
   const games = player.seasonStats?.games || 0;
   if (games < MIN_GAMES_FOR_IMPACT_EVAL) {
@@ -357,6 +396,7 @@ const personalPerformanceScore = (player, context, reasons) => {
 
   const teamRoster = context?.teamRoster || [];
   const group = getPositionGroup(player.identity?.primaryPosition);
+  if (group === "G") return goaliePerformanceScore(player, context, reasons);
   const comparablePlayers = teamRoster.filter(
     (candidate) =>
       candidate.id !== player.id &&
@@ -540,6 +580,21 @@ const getRatingDemandFactor = (player) => {
   return 1;
 };
 
+const getGoalieSeasonDemandFactor = (player, context) => {
+  if (getPositionGroup(player?.identity?.primaryPosition) !== "G") return 1;
+  const games = Number(player?.seasonStats?.games) || 0;
+  const teamGamesPlayed = Math.max(games, Number(context?.teamGamesPlayed) || games);
+  if (games < 5 || teamGamesPlayed < 5) return 1;
+  const savePercentage = Number(player?.seasonStats?.savePercentage) || 0;
+  const qualityStartRate = (Number(player?.seasonStats?.qualityStarts) || 0) / Math.max(1, games);
+  const startShare = games / Math.max(1, teamGamesPlayed);
+  let factor = 1;
+  factor += clamp((savePercentage - 0.9) * 1.4, -0.08, 0.1);
+  factor += clamp((qualityStartRate - 0.42) * 0.12, -0.03, 0.04);
+  factor += clamp((startShare - 0.45) * 0.08, -0.02, 0.04);
+  return clamp(factor, 0.88, 1.16);
+};
+
 const calculateTeamAdjustedDemand = (player, team, context, marketSalary, reasons) => {
   let factor = getRatingDemandFactor(player);
   const isFreeAgent = Boolean(context?.isFreeAgent);
@@ -604,6 +659,12 @@ const calculateTeamAdjustedDemand = (player, team, context, marketSalary, reason
   if (isLegioner(player) && enoughTeamData && rank !== null && rank > 8) {
     factor *= 1.06;
     reasons.push({ text: "Легионер в слабой команде ждет чуть больше гарантий по деньгам", value: 0 });
+  }
+
+  const goalieDemandFactor = getGoalieSeasonDemandFactor(player, context);
+  if (goalieDemandFactor !== 1) {
+    factor *= goalieDemandFactor;
+    reasons.push({ text: "Сезонная статистика вратаря влияет на ожидание по зарплате", value: 0 });
   }
 
   const playoffStage = getContextPlayoffStage(context);

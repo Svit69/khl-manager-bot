@@ -1,6 +1,18 @@
 import { FreeAgentContractOfferControlPanel } from "./contract-offer/FreeAgentContractOfferControlPanel.js";
 
 const getNameFitClass = (name = "") => name.length > 28 ? "name-fit-xs" : name.length > 22 ? "name-fit-sm" : "";
+const formatSavePercentage = (value) => {
+  const safe = Number(value) || 0;
+  return safe ? safe.toFixed(3).replace(/^0/, "") : "-";
+};
+const renderSeasonStats = (row) => {
+  const stats = row.seasonStats || {};
+  if (row.position === "\u0412\u0420\u0422") {
+    return `\u0418 ${stats.games || 0} \u2022 SV% ${formatSavePercentage(stats.savePercentage)} \u2022 SV ${stats.saves || 0}`;
+  }
+  const points = Number(stats.points) || (Number(stats.goals) || 0) + (Number(stats.assists) || 0);
+  return `\u0418 ${stats.games || 0} \u2022 ${stats.goals || 0}+${stats.assists || 0}=${points}`;
+};
 
 export class FreeAgentTabRenderer {
   #contractOfferControlPanel = new FreeAgentContractOfferControlPanel();
@@ -14,7 +26,7 @@ export class FreeAgentTabRenderer {
         const negotiationPanel =
           negotiation && negotiation.playerId === row.playerId ? this.#contractOfferControlPanel.render(negotiation) : "";
 
-        return `<div class="contract-card"><div class="contract-row"><div class="contract-row-top"><span class="contract-player-name ${getNameFitClass(row.displayName)}" title="${row.displayName}">${row.displayName}</span><span class="contract-chip ${status === "НСА" ? "warning" : "ok"}">${status}</span></div><div class="contract-meta-grid"><span>Позиция: <strong>${row.position}</strong></span><span>OVR: <strong>${row.ovr}</strong></span><span>Возраст: <strong>${row.age}</strong></span><span>Свободный агент</span></div>${controls}</div>${negotiationPanel}</div>`;
+        return `<div class="contract-card"><div class="contract-row"><div class="contract-row-top"><span class="contract-player-name ${getNameFitClass(row.displayName)}" title="${row.displayName}">${row.displayName}</span><span class="contract-chip ${status === "НСА" ? "warning" : "ok"}">${status}</span></div><div class="contract-meta-grid"><span>Позиция: <strong>${row.position}</strong></span><span>OVR: <strong>${row.ovr}</strong></span><span>Возраст: <strong>${row.age}</strong></span><span>\u0421\u0435\u0437\u043e\u043d: <strong>${renderSeasonStats(row)}</strong></span><span>Свободный агент</span></div>${controls}</div>${negotiationPanel}</div>`;
       })
       .join("");
 

@@ -319,10 +319,10 @@ export class MatchSimulator{
     const goalieRating=defense.goalieProfile?.effectiveOvr||defense.goalie?.ovr||72;
     const attackEdge=(offense.attackRating-defense.defenseRating)/18;
     const depthEdge=(offense.teamRating-defense.teamRating)/26;
-    const goalieEdge=(offense.attackRating-goalieRating)/36;
+    const goalieEdge=(offense.attackRating-goalieRating)/42;
     const goalieSuppression=this.#calculateGoalieExpectedGoalSuppression(defense,{isPlayoff});
     const homeBoost=isHome?0.16:0;
-    return clamp(2.1+homeBoost+attackEdge+depthEdge+goalieEdge-goalieSuppression,0.55,5.7);
+    return clamp(2.0+homeBoost+attackEdge+depthEdge+goalieEdge-goalieSuppression,0.5,5.45);
   }
 
   #calculateGoalieExpectedGoalSuppression(defense,{isPlayoff=false}={}){
@@ -331,7 +331,7 @@ export class MatchSimulator{
     const weightedRating=sum(momentTypes.map(momentType=>
       this.#calculateGoalieMomentRating(defense,momentType,{isOvertime:false,isPlayoff})*(GOALIE_SHOT_MIX[momentType]||0)
     ));
-    return clamp((weightedRating-74)/34,-0.28,0.36);
+    return clamp((weightedRating-74)/24,-0.34,0.48);
   }
 
   #buildPenaltyEvents(teamContext,isOvertime){
@@ -802,7 +802,7 @@ export class MatchSimulator{
   #doesGoalieEraseScoringChance(goalieContext,momentType,{isOvertime=false,isPlayoff=false}={}){
     if(!goalieContext?.goalieProfile)return false;
     const momentRating=this.#calculateGoalieMomentRating(goalieContext,momentType,{isOvertime,isPlayoff});
-    const saveChance=clamp(0.055+((momentRating-74)*0.007),0.012,0.18);
+    const saveChance=clamp(0.075+((momentRating-74)*0.008),0.02,0.22);
     return Math.random()<saveChance;
   }
 

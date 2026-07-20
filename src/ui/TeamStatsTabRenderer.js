@@ -11,6 +11,18 @@ const getAverageIceTime = (row) => {
   return (Number(row?.totalIceTime) || 0) / games;
 };
 
+const formatSavePercentage = (value) => {
+  const safe = Number(value) || 0;
+  return safe ? safe.toFixed(3).replace(/^0/, "") : "-";
+};
+
+const getGoalsAgainstAverage = (row) => {
+  const games = Math.max(1, Number(row?.games) || 0);
+  return ((Number(row?.goalsAgainst) || 0) / games).toFixed(2);
+};
+
+const isGoalieRow = (row) => row?.isGoalie || row?.position === "ВРТ";
+
 const SORT_LABELS = {
   points: "очкам",
   goals: "голам",
@@ -42,6 +54,49 @@ const buildSummary = (rows) => {
 
 const getNameFitClass = (name = "") => name.length > 28 ? "name-fit-xs" : name.length > 22 ? "name-fit-sm" : "";
 
+const renderSkaterRows = (rows) => rows.length ? rows.map((row, index) => `
+  <article class="team-stats-row">
+    <div class="team-stats-player">
+      <span class="team-stats-rank">${index + 1}</span>
+      <div class="team-stats-player-copy">
+        <strong class="${getNameFitClass(row.displayName)}" title="${row.displayName}">${row.displayName}</strong>
+        <span>${row.position} • OVR ${row.ovr}</span>
+      </div>
+    </div>
+    <span class="team-stats-cell" data-label="И">${row.games || 0}</span>
+    <span class="team-stats-cell team-stats-value team-stats-value--accent" data-label="О">${row.points || 0}</span>
+    <span class="team-stats-cell" data-label="Г">${row.goals || 0}</span>
+    <span class="team-stats-cell" data-label="П">${row.assists || 0}</span>
+    <span class="team-stats-cell" data-label="ШМ">${row.penaltyMinutes || 0}</span>
+    <span class="team-stats-cell" data-label="Айс">${formatIceTime(getAverageIceTime(row))}</span>
+    <span class="team-stats-cell team-stats-mood-wrap" data-label="Настр.">
+      ${renderMoodCircle(row.mood)}
+    </span>
+  </article>
+`).join("") : `<div class="team-stats-empty">У полевых пока нет статистики.</div>`;
+
+const renderGoalieRows = (rows) => rows.length ? rows.map((row, index) => `
+  <article class="team-stats-row team-stats-row--goalie">
+    <div class="team-stats-player">
+      <span class="team-stats-rank">${index + 1}</span>
+      <div class="team-stats-player-copy">
+        <strong class="${getNameFitClass(row.displayName)}" title="${row.displayName}">${row.displayName}</strong>
+        <span>${row.position} • OVR ${row.ovr}</span>
+      </div>
+    </div>
+    <span class="team-stats-cell" data-label="И">${row.games || 0}</span>
+    <span class="team-stats-cell team-stats-value team-stats-value--accent" data-label="SV%">${formatSavePercentage(row.savePercentage)}</span>
+    <span class="team-stats-cell" data-label="SV">${row.saves || 0}</span>
+    <span class="team-stats-cell" data-label="GA">${row.goalsAgainst || 0}</span>
+    <span class="team-stats-cell" data-label="GAA">${getGoalsAgainstAverage(row)}</span>
+    <span class="team-stats-cell" data-label="SO">${row.shutouts || 0}</span>
+    <span class="team-stats-cell" data-label="QS">${row.qualityStarts || 0}</span>
+    <span class="team-stats-cell team-stats-mood-wrap" data-label="Настр.">
+      ${renderMoodCircle(row.mood)}
+    </span>
+  </article>
+`).join("") : `<div class="team-stats-empty">У вратарей пока нет статистики.</div>`;
+
 const renderTeamPicker = (teams, selectedTeamId, selectedTeam) => `
   <details class="trade-team-picker team-stats-team-picker">
     <summary>
@@ -67,6 +122,15 @@ export class TeamStatsTabRenderer {
     const sortLabel = SORT_LABELS[sortBy] || SORT_LABELS.points;
     const selectedTeam = (teams || []).find((team) => team.id === selectedTeamId) || null;
     const activeTeam = (teams || []).find((team) => team.id === activeTeamId) || null;
+    const skaterRows = safeRows.filter((row) => !isGoalieRow(row));
+    const goalieRows = safeRows
+      .filter(isGoalieRow)
+      .sort((left, right) =>
+        (right.games - left.games) ||
+        (right.savePercentage - left.savePercentage) ||
+        (right.saves - left.saves) ||
+        left.displayName.localeCompare(right.displayName, "ru"),
+      );
 
     return `
       <section class="team-stats-shell">
@@ -123,6 +187,7 @@ export class TeamStatsTabRenderer {
         ` : ""}
 
         <div class="team-stats-panel">
+          <div class="team-stats-panel-title">Полевые игроки</div>
           <div class="team-stats-table">
             <div class="team-stats-head">
               <span class="team-stats-col-player">Игрок</span>
@@ -135,26 +200,27 @@ export class TeamStatsTabRenderer {
               <span class="team-stats-col-mood">Настр.</span>
             </div>
             <div class="team-stats-body">
-              ${safeRows.length ? safeRows.map((row, index) => `
-                <article class="team-stats-row">
-                  <div class="team-stats-player">
-                    <span class="team-stats-rank">${index + 1}</span>
-                    <div class="team-stats-player-copy">
-                      <strong class="${getNameFitClass(row.displayName)}" title="${row.displayName}">${row.displayName}</strong>
-                      <span>${row.position} • OVR ${row.ovr}</span>
-                    </div>
-                  </div>
-                  <span class="team-stats-cell" data-label="И">${row.games || 0}</span>
-                  <span class="team-stats-cell team-stats-value team-stats-value--accent" data-label="О">${row.points || 0}</span>
-                  <span class="team-stats-cell" data-label="Г">${row.goals || 0}</span>
-                  <span class="team-stats-cell" data-label="П">${row.assists || 0}</span>
-                  <span class="team-stats-cell" data-label="ШМ">${row.penaltyMinutes || 0}</span>
-                  <span class="team-stats-cell" data-label="Айс">${formatIceTime(getAverageIceTime(row))}</span>
-                  <span class="team-stats-cell team-stats-mood-wrap" data-label="Настр.">
-                    ${renderMoodCircle(row.mood)}
-                  </span>
-                </article>
-              `).join("") : `<div class="team-stats-empty">У команды пока нет статистики.</div>`}
+              ${renderSkaterRows(skaterRows)}
+            </div>
+          </div>
+        </div>
+
+        <div class="team-stats-panel team-stats-panel--goalies">
+          <div class="team-stats-panel-title">Вратари</div>
+          <div class="team-stats-table">
+            <div class="team-stats-head team-stats-head--goalie">
+              <span class="team-stats-col-player">Игрок</span>
+              <span>И</span>
+              <span>SV%</span>
+              <span>SV</span>
+              <span>GA</span>
+              <span>GAA</span>
+              <span>SO</span>
+              <span>QS</span>
+              <span class="team-stats-col-mood">Настр.</span>
+            </div>
+            <div class="team-stats-body team-stats-body--goalie">
+              ${renderGoalieRows(goalieRows)}
             </div>
           </div>
         </div>

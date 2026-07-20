@@ -26,6 +26,34 @@ const getIceMinutesPerGame = (player) => {
   return ((Number(player?.seasonStats?.totalIceTime) || 0) / 60) / games;
 };
 
+const getSavePercentage = (player) =>
+  Number(player?.seasonStats?.savePercentage) || 0;
+
+const getGoalsAgainstAverage = (player) => {
+  const games = Math.max(1, Number(player?.seasonStats?.games) || 0);
+  return (Number(player?.seasonStats?.goalsAgainst) || 0) / games;
+};
+
+const getQualityStartRate = (player) => {
+  const games = Math.max(1, Number(player?.seasonStats?.games) || 0);
+  return (Number(player?.seasonStats?.qualityStarts) || 0) / games;
+};
+
+const getGoalieMarketModifier = ({ player, peers, context, progressFactor }) => {
+  const teamGamesPlayed = Math.max(1, Number(context?.teamGamesPlayed) || Number(player?.seasonStats?.games) || 1);
+  const startShare = (Number(player?.seasonStats?.games) || 0) / teamGamesPlayed;
+  const comparablePeers = peers.filter((candidate) => (candidate?.seasonStats?.games || 0) >= 5);
+  const average = (values) => (values.length ? values.reduce((total, value) => total + value, 0) / values.length : 0);
+  const peerSavePercentage = average(comparablePeers.map(getSavePercentage)) || 0.9;
+  const peerGoalsAgainstAverage = average(comparablePeers.map(getGoalsAgainstAverage)) || 2.8;
+  let premium = 0;
+  premium += clamp((getSavePercentage(player) - peerSavePercentage) * 1.7, -0.08, 0.12);
+  premium += clamp((peerGoalsAgainstAverage - getGoalsAgainstAverage(player)) * 0.025, -0.04, 0.05);
+  premium += clamp((getQualityStartRate(player) - 0.42) * 0.12, -0.03, 0.04);
+  premium += clamp((startShare - 0.45) * 0.08, -0.02, 0.04);
+  return 1 + clamp(premium * progressFactor, -0.12, 0.18);
+};
+
 const getSeasonMarketModifier = ({ player, peers, context }) => {
   const gamesPlayed = Number(player?.seasonStats?.games) || 0;
   const teamGamesPlayed = Number(context?.teamGamesPlayed) || 0;
@@ -37,6 +65,10 @@ const getSeasonMarketModifier = ({ player, peers, context }) => {
   const comparablePeers = peers.filter((candidate) => (candidate?.seasonStats?.games || 0) >= 5);
   if (!comparablePeers.length) {
     return 1;
+  }
+
+  if (getPositionMarketGroup(player.identity?.primaryPosition) === "G") {
+    return getGoalieMarketModifier({ player, peers, context, progressFactor });
   }
 
   const average = (values) => (values.length ? values.reduce((total, value) => total + value, 0) / values.length : 0);

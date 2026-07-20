@@ -700,6 +700,17 @@
   box-shadow:0 20px 34px rgba(0,0,0,.22);
   overflow:hidden;
 }
+.team-stats-panel + .team-stats-panel{
+  margin-top:16px;
+}
+.team-stats-panel-title{
+  padding:14px 16px 0;
+  color:#f6f7fc;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
 .team-stats-table{
   display:grid;
   grid-template-rows:auto minmax(0,1fr);
@@ -711,6 +722,10 @@
   grid-template-columns:minmax(220px,1.8fr) 36px 36px 36px 36px 46px 62px 44px;
   align-items:center;
   gap:10px;
+}
+.team-stats-head--goalie,
+.team-stats-row--goalie{
+  grid-template-columns:minmax(220px,1.8fr) 36px 48px 48px 44px 48px 40px 40px 44px;
 }
 .team-stats-head{
   padding:16px 16px 12px;

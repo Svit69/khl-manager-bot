@@ -1826,7 +1826,7 @@ export class AppState {
 
   #shouldAiRestPlayer(player) {
     const fatigue = Number(player?.fatigueScore) || 0;
-    if (player?.identity?.primaryPosition === "ВРТ" && fatigue >= 48) return true;
+    if (player?.identity?.primaryPosition === "ВРТ" && fatigue >= 70) return true;
     if (fatigue >= AI_ROTATION_FATIGUE_THRESHOLD) return true;
     return (Number(player?.ovr) || 0) - (Number(player?.currentOvr) || 0) >= 4;
   }

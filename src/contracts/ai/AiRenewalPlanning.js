@@ -105,6 +105,7 @@ export const scoreCandidate = (team, player, preview, plan, meta) => {
   const scarcity = estimateScarcity(team, player);
   const replaceability = estimateReplaceability(team, player);
   const recentlyAcquired = Number.isFinite(player.affiliation?.acquiredDay) && Number(player.affiliation.acquiredDay) >= 0;
+  const isGoalie = getPositionGroup(player.identity?.primaryPosition) === "G";
   let score = 0;
 
   if (meta.seasonsRemaining <= 0) score += 18;
@@ -133,6 +134,7 @@ export const scoreCandidate = (team, player, preview, plan, meta) => {
   if (meta.isYoungCore) score += 10;
   if (age <= 22 && potentialGap >= 3) score += 6;
   if (ppg >= 0.75 && meta.isCore) score += 4;
+  if (isGoalie) score += estimateGoalieContractValue(player, meta);
   if (recentlyAcquired) score -= 5;
 
   if (plan.strategy === "rebuild") {
@@ -147,6 +149,22 @@ export const scoreCandidate = (team, player, preview, plan, meta) => {
   if (plan.pointsPct < 0.4 && age >= 30 && (player.ovr || 0) < 80) score -= 6;
 
   return score;
+};
+
+const estimateGoalieContractValue = (player, meta) => {
+  const games = Number(player?.seasonStats?.games) || 0;
+  if (games < 5) return 0;
+  const teamGames = Math.max(games, Number(meta?.teamGamesPlayed) || games);
+  const savePercentage = Number(player?.seasonStats?.savePercentage) || 0;
+  const qualityStartRate = (Number(player?.seasonStats?.qualityStarts) || 0) / Math.max(1, games);
+  const startShare = games / Math.max(1, teamGames);
+  let score = 0;
+  if (savePercentage >= 0.915) score += 7;
+  else if (savePercentage >= 0.9) score += 3;
+  else if (savePercentage <= 0.885) score -= 6;
+  if (qualityStartRate >= 0.5) score += 3;
+  if (startShare >= 0.6) score += 3;
+  return clamp(score, -6, 12);
 };
 
 const estimateTwoYearValue = (player, age, potentialGap) => {
