@@ -500,8 +500,9 @@ export class AppState {
     this.#processCoachOfferDecisions();
   }
 
-  #processAiCoachChanges(forceVacancies = false) {
+  #processAiCoachChanges(forceVacancies = false, phase = "regular") {
     if (!this.#gameSettings.coachesEnabled) return;
+    if (!forceVacancies && phase !== "regular") return;
     this.#aiCoaches.process({ teams: this.#teams, coaches: this.#coaches, standings: this.getStandingsTable(), activeTeamId: this.#activeTeamId, buildOffer: (coach, team, years) => this.#buildCoachOffer(coach, team, years) })
       .filter((entry) => forceVacancies || entry.poor || !entry.oldCoach)
       .forEach((entry) => {
@@ -1717,7 +1718,7 @@ export class AppState {
     this.#runNorthAmericaInterestWarnings(this.#calendar.currentDate);
     this.#processJuniorInSeasonDevelopment();
     this.#processAiJuniorProspectSignings(day?.phase || this.#seasonState?.phase || "regular");
-    this.#processAiCoachChanges();
+    this.#processAiCoachChanges(false, day?.phase || this.#seasonState?.phase || "regular");
     this.#processCoachOfferDecisions();
     this.#processAiIncomingTradeOffers(day?.phase || this.#seasonState?.phase || "regular");
     this.#lastMatch = focusedMatches[0] || null;
