@@ -10,6 +10,7 @@ import { buildTradeSalaryCapPreview } from "../contracts/TradeSalaryCapPreview.j
 import { AiCoachService } from "../coaches/AiCoachService.js";
 import { CoachContractService } from "../coaches/CoachContractService.js";
 import { CoachDevelopmentService } from "../coaches/CoachDevelopmentService.js";
+import { CoachExitService } from "../coaches/CoachExitService.js";
 import { CoachFitService } from "../coaches/CoachFitService.js";
 import { getTeamPlayoffStage } from "../coaches/CoachPlayoffStage.js";
 import { HeadCoach } from "../models/HeadCoach.js";
@@ -143,6 +144,7 @@ export class AppState {
   #coachFit = new CoachFitService();
   #coachContracts = new CoachContractService();
   #coachDevelopment = new CoachDevelopmentService();
+  #coachExits = new CoachExitService();
   #aiCoaches = new AiCoachService();
   #development = new PlayerDevelopmentService();
   #juniors = new JuniorTeamService();
@@ -470,12 +472,27 @@ export class AppState {
     });
   }
 
+  #processCoachOffseasonDepartures(transition, seasonEnd) {
+    const archive = transition?.archive || {};
+    const teamCount = Math.max(1, this.#teams.length);
+    this.#coachExits.processOffseasonDepartures({ coaches: this.#coaches, archive, teamCount, seasonEnd }).forEach((event) => {
+      const teamName = this.#getTeamName(event.teamId);
+      const row = (archive.standings || []).find((entry) => entry.teamId === event.teamId);
+      event.coach.releaseToMarket({ seasonLabel: archive.seasonLabel, teamId: event.teamId, games: row?.gp || 0, playoffStage: event.stage });
+      const message = event.reason === "newChallenge"
+        ? `${event.coach.name} покинул ${teamName} после успешного сезона: нужен новый вызов.`
+        : `${teamName} вывел ${event.coach.name} на рынок: сезон ниже ожиданий.`;
+      this.#pushCoachNotification("Тренерский рынок", message);
+    });
+  }
+
   #processCoachOffseason(transition) {
     if (!this.#gameSettings.coachesEnabled) return;
     const seasonDate = this.#getEffectiveNegotiationDate();
     this.#coachDevelopment.applySeason(this.#coaches, this.#teams, transition?.archive || {}, seasonDate)
       .forEach((event) => this.#pushCoachNotification("Развитие тренера", `${event.coach.name}: ${event.before} → ${event.after}`));
     const seasonEnd = parseSeasonEnd(transition?.seasonState?.previousSeasonLabel || this.#calendar.seasonLabel);
+    this.#processCoachOffseasonDepartures(transition, seasonEnd);
     this.#renewSuccessfulAiCoaches(transition, seasonEnd);
     this.#coaches.filter((coach) => coach.teamId && Number(String(coach.contractUntil || "").slice(0, 4)) <= seasonEnd)
       .forEach((coach) => { const teamName = this.#getTeamName(coach.teamId); coach.releaseToMarket({ seasonLabel: transition?.archive?.seasonLabel, teamId: coach.teamId }); this.#pushCoachNotification("Тренерский рынок", `${coach.name} покинул ${teamName}: контракт завершен.`); });
