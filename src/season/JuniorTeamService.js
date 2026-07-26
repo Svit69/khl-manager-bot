@@ -442,6 +442,11 @@ export class JuniorTeamService {
     (teams || []).forEach((team) => {
       if (!team.juniorTeam) return;
       const isInitialFill = ageSpread && team.juniorPlayers.length === 0;
+      team.juniorPlayers.forEach((player) => {
+        const contract = contracts.createJuniorContract(player, team.id, seasonLabel);
+        player.affiliation.teamId = team.id;
+        player.affiliation.contractId = contract?.id || player.affiliation.contractId || null;
+      });
       while (team.juniorPlayers.length < TARGET_JUNIOR_SIZE) {
         const usedIds = new Set(team.getRoster().map((player) => player.id));
         team.juniorPlayers.forEach((player) => usedIds.add(player.id));

@@ -864,7 +864,7 @@ export class AppState {
     const eligibleMainPlayers = this.activeTeam.getRoster()
       .map((player) => {
         player.juniorSeasonAge = getJuniorSeasonAge(player, seasonLabel);
-        const hasThreeWayContract = this.#contracts.hasThreeWayContract(player.id, seasonLabel);
+        const hasThreeWayContract = this.#hasJuniorSystemContract(player.id, seasonLabel);
         const reason = getJuniorIneligibilityReason({ player, seasonLabel, hasThreeWayContract });
         return {
           player,
@@ -1221,6 +1221,10 @@ export class AppState {
     return moved;
   }
 
+  #hasJuniorSystemContract(playerId, seasonLabel) {
+    return this.#contracts.hasThreeWayContract(playerId, seasonLabel) || this.#contracts.hasThreeWayContract(playerId);
+  }
+
   activeTeamHasStartingGoalie() {
     return this.#teamHasStartingGoalie(this.activeTeam);
   }
@@ -1235,7 +1239,7 @@ export class AppState {
     if (!this.activeTeam || !playerId) return false;
     const seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
     const candidate = this.activeTeam.getRoster().find((entry) => entry?.id === playerId);
-    const hasThreeWayContract = this.#contracts.hasThreeWayContract(playerId, seasonLabel);
+    const hasThreeWayContract = this.#hasJuniorSystemContract(playerId, seasonLabel);
     if (getJuniorIneligibilityReason({ player: candidate, seasonLabel, hasThreeWayContract })) return false;
     const team = this.activeTeam;
     let player = null;
@@ -1252,6 +1256,9 @@ export class AppState {
       if (reserveIndex >= 0) player = team.reservePlayers.splice(reserveIndex, 1)[0];
     }
     if (!player || team.juniorPlayers.some((entry) => entry.id === player.id)) return false;
+    const contract = this.#contracts.createJuniorContract(player, team.id, seasonLabel);
+    player.affiliation.teamId = team.id;
+    player.affiliation.contractId = contract?.id || player.affiliation.contractId || null;
     player.expectedLineIndex = null;
     team.juniorPlayers.push(player);
     this.#refreshExpectedRoles(team);
@@ -1264,6 +1271,10 @@ export class AppState {
     const juniorIndex = team.juniorPlayers.findIndex((entry) => entry.id === playerId);
     if (juniorIndex < 0) return false;
     const [player] = team.juniorPlayers.splice(juniorIndex, 1);
+    const contract = this.#contracts.createJuniorContract(player, team.id, this.#seasonState?.seasonLabel || this.#calendar.seasonLabel);
+    player.affiliation.teamId = team.id;
+    player.affiliation.contractId = contract?.id || player.affiliation.contractId || null;
+    player.affiliation.acquiredDay = player.affiliation.acquiredDay ?? null;
     team.reservePlayers.push(player);
     player.expectedLineIndex = null;
     this.#refreshExpectedRoles(team);
