@@ -6,6 +6,7 @@ import { ContractType } from "../contracts/ContractType.js";
 import { getFallbackMarketSalaryRub } from "../contracts/FallbackMarketSalary.js";
 import { SalaryCapService } from "../contracts/SalaryCapService.js";
 import { SalaryCapComplianceService } from "../contracts/SalaryCapComplianceService.js";
+import { AiSalaryCapCompliancePlanner } from "../contracts/AiSalaryCapCompliancePlanner.js";
 import { buildTradeSalaryCapPreview } from "../contracts/TradeSalaryCapPreview.js";
 import { AiCoachService } from "../coaches/AiCoachService.js";
 import { CoachContractService } from "../coaches/CoachContractService.js";
@@ -120,6 +121,8 @@ const normalizeGameSettings = (settings = {}) => ({
   coachesEnabled: settings.coachesEnabled !== false,
   conferencesEnabled: settings.conferencesEnabled !== false,
 });
+const matchesRequireSalaryCapCompliance = (day) =>
+  Boolean(day?.matches?.length) && ["regular", "playoffs"].includes(String(day?.phase || ""));
 const toDate = (value) => {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
@@ -141,6 +144,7 @@ export class AppState {
   #contracts;
   #salaryCap = new SalaryCapService();
   #salaryCapCompliance = new SalaryCapComplianceService();
+  #aiSalaryCapCompliance = new AiSalaryCapCompliancePlanner();
   #coachFit = new CoachFitService();
   #coachContracts = new CoachContractService();
   #coachDevelopment = new CoachDevelopmentService();
@@ -1461,6 +1465,8 @@ export class AppState {
       preseasonIndex: nextIndex,
       preseasonDateIso: nextDate || this.#seasonState?.preseasonDateIso,
     };
+    this.#processAiSalaryCapCompliance();
+    this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
     this.#syncSeasonReferenceDate();
     return true;
   }
@@ -1664,6 +1670,7 @@ export class AppState {
   #simulateCalendarDay(day, focusTeamId) {
     const previousDate = this.#calendar.currentDate;
     const matches = day?.matches || [];
+    this.#ensureAiSalaryCapComplianceBeforeMatches(day);
     if (matches.length === 0) {
       this.#lastMatch = null;
       this.#restTeams(this.#teams, -10);
@@ -1858,6 +1865,12 @@ export class AppState {
     if (player?.identity?.primaryPosition === "ВРТ" && fatigue >= 70) return true;
     if (fatigue >= AI_ROTATION_FATIGUE_THRESHOLD) return true;
     return (Number(player?.ovr) || 0) - (Number(player?.currentOvr) || 0) >= 4;
+  }
+
+  #ensureAiSalaryCapComplianceBeforeMatches(day) {
+    if (!matchesRequireSalaryCapCompliance(day)) return;
+    this.#processAiSalaryCapCompliance();
+    this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
   }
 
   #findBestAiReserveIndex(reserves, slotPosition, starter) {
@@ -2328,12 +2341,35 @@ export class AppState {
   }
 
   #processAiSalaryCapCompliance() {
+    if (!this.#gameSettings.salaryCapEnabled) return;
     const seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
     const futureSeasons = [seasonLabel, formatNextSeason(seasonLabel), formatNextSeason(formatNextSeason(seasonLabel))];
     this.#teams.filter((team) => team.id !== this.#activeTeamId).forEach((team) => {
-      this.#salaryCapCompliance.pickMultiSeasonCuts(team, this.#exportContractRows(), futureSeasons, (season) => this.#getSalaryCapRub(season))
-        .forEach((playerId) => this.#releasePlayerToFreeAgency(playerId, team.id, "aiSalaryCapRelease"));
+      const rosterCuts = this.#salaryCapCompliance.pickMultiSeasonCuts(team, this.#exportContractRows(), futureSeasons, (season) => this.#getSalaryCapRub(season));
+      rosterCuts.forEach((playerId) => this.#releaseAiSalaryCapPlayer(playerId, team.id));
+      const contractCuts = this.#aiSalaryCapCompliance.pickContractPayrollCuts({
+        team,
+        contracts: this.#exportContractRows(),
+        players: this.getAllKnownPlayers(),
+        seasonLabels: futureSeasons,
+        getCapRub: (season) => this.#getSalaryCapRub(season),
+      });
+      contractCuts.forEach((playerId) => this.#releaseAiSalaryCapPlayer(playerId, team.id));
     });
+  }
+
+  #releaseAiSalaryCapPlayer(playerId, teamId) {
+    if (this.#releasePlayerToFreeAgency(playerId, teamId, "aiSalaryCapRelease")) return true;
+    const player = this.getAllKnownPlayers().find((entry) => entry.id === playerId);
+    this.#contracts.releasePlayers([playerId]);
+    if (!player) return false;
+    player.affiliation.teamId = null;
+    player.affiliation.contractId = null;
+    player.affiliation.acquiredDay = null;
+    player.expectedLineIndex = null;
+    this.#freeAgents = dedupeFreeAgents([...this.#freeAgents, player]);
+    this.#recordPlayerMovement({ player, fromTeamId: teamId, toTeamId: null, method: "aiSalaryCapRelease" });
+    return true;
   }
 
   #buildRestrictedRetentionOffer(player) {
