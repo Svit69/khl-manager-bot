@@ -1430,9 +1430,9 @@ export class AppState {
       seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
     });
     this.#recordRosterDepthMovements(depthMovements);
-    this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
+    this.#rebuildAiTeamRosters();
     this.#processAiSalaryCapCompliance();
-    this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
+    this.#rebuildAiTeamRosters();
     this.#seasonState = {
       ...this.#seasonState,
       preseasonOpen: false,
@@ -1466,7 +1466,7 @@ export class AppState {
       preseasonDateIso: nextDate || this.#seasonState?.preseasonDateIso,
     };
     this.#processAiSalaryCapCompliance();
-    this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
+    this.#rebuildAiTeamRosters();
     this.#syncSeasonReferenceDate();
     return true;
   }
@@ -1516,7 +1516,7 @@ export class AppState {
     this.#juniors.applyOffseasonDevelopment(this.#teams, this.#getEffectiveNegotiationDate(), this.#seasonState.seasonLabel);
     this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#seasonState.seasonLabel, generationSeed: this.#juniorGenerationSeed });
     this.#processAiSalaryCapCompliance();
-    this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
+    this.#rebuildAiTeamRosters();
     this.#syncSeasonReferenceDate();
     this.#syncSeasonPhase();
     return transition;
@@ -1870,7 +1870,14 @@ export class AppState {
   #ensureAiSalaryCapComplianceBeforeMatches(day) {
     if (!matchesRequireSalaryCapCompliance(day)) return;
     this.#processAiSalaryCapCompliance();
-    this.#seasonTransition.rebuildRosters(this.#teams, this.getAllPlayers());
+    this.#rebuildAiTeamRosters();
+  }
+
+  #rebuildAiTeamRosters() {
+    this.#seasonTransition.rebuildRosters(
+      this.#teams.filter((team) => team.id !== this.#activeTeamId),
+      this.getAllPlayers(),
+    );
   }
 
   #findBestAiReserveIndex(reserves, slotPosition, starter) {
