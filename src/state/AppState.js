@@ -39,6 +39,7 @@ import { ExternalRightsOfferService } from "../season/ExternalRightsOfferService
 import { ExternalRightsInterestService } from "../season/ExternalRightsInterestService.js";
 import { AiExternalRightsService } from "../season/AiExternalRightsService.js";
 import { KhlProspectDepartureService } from "../season/KhlProspectDepartureService.js";
+import { AiRosterDepthBudgetGuard } from "../season/AiRosterDepthBudgetGuard.js";
 import { JuniorTeamService } from "../season/JuniorTeamService.js";
 import { AiJuniorProspectSigningService } from "../season/AiJuniorProspectSigningService.js";
 import { JuniorLeagueService } from "../season/JuniorLeagueService.js";
@@ -163,6 +164,7 @@ export class AppState {
   #externalRightsInterest = new ExternalRightsInterestService();
   #aiExternalRights = new AiExternalRightsService();
   #prospectDepartures = new KhlProspectDepartureService();
+  #aiRosterDepthBudget = new AiRosterDepthBudgetGuard();
   #juniorLeague = new JuniorLeagueService();
   #juniorDepartures = new JuniorDepartureRiskService();
   #aiJuniorSignings = new AiJuniorProspectSigningService();
@@ -1426,6 +1428,8 @@ export class AppState {
       buildContext: (team) => this.#buildNegotiationContext(team),
       canSubmitOffer: (team, player, offer, context, mode = "freeAgent") =>
         this.#canSubmitContractOffer(team, player, offer, mode, context).allowed,
+      canSubmitDepthOffer: (team, player, offer, context, budgetContext) =>
+        this.#canSubmitAiDepthOffer(team, player, offer, context, budgetContext),
       negotiationDate: preseasonDate,
       seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
     });
@@ -1767,6 +1771,10 @@ export class AppState {
         activeTeamId: this.#activeTeamId,
         allPlayers: this.getAllPlayers(),
         buildContext: (candidateTeam) => this.#buildNegotiationContext(candidateTeam),
+        canSubmitOffer: (candidateTeam, player, offer, context) =>
+          this.#canSubmitContractOffer(candidateTeam, player, offer, "freeAgent", context).allowed,
+        canSubmitDepthOffer: (candidateTeam, player, offer, context, budgetContext) =>
+          this.#canSubmitAiDepthOffer(candidateTeam, player, offer, context, budgetContext),
         negotiationDate: this.#calendar.currentDate,
         seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
       });
@@ -2315,6 +2323,23 @@ export class AppState {
     });
   }
 
+  #canSubmitAiDepthOffer(team, player, offer, context = null, budgetContext = {}) {
+    if (!this.#gameSettings.salaryCapEnabled) return true;
+    const seasonLabel = context?.seasonLabel || this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
+    const summary = this.#buildSalaryCapSeasonSummary(team?.id, seasonLabel);
+    return this.#aiRosterDepthBudget.canSubmitDepthOffer({
+      capEnabled: true,
+      remainingCapRub: summary.remainingRub,
+      offerRub: Number(offer?.salaryRub) || 0,
+      positionTargets: budgetContext.positionTargets,
+      counts: budgetContext.counts,
+      rosterSize: budgetContext.roster?.length || team?.getRoster?.().length || 0,
+      targetSize: budgetContext.targetSize,
+      group: budgetContext.group,
+      player,
+    });
+  }
+
   #assessTradeSalaryCap(opponent, givePlayerIds, receivePlayerIds) {
     if (!this.#gameSettings.salaryCapEnabled) return { allowed: true, failures: [] };
     return this.#salaryCap.assessTrade({
@@ -2397,6 +2422,8 @@ export class AppState {
       buildContext: (team) => this.#buildNegotiationContext(team),
       canSubmitOffer: (team, player, offer, context) =>
         this.#canSubmitContractOffer(team, player, offer, "freeAgent", context).allowed,
+      canSubmitDepthOffer: (team, player, offer, context, budgetContext) =>
+        this.#canSubmitAiDepthOffer(team, player, offer, context, budgetContext),
       negotiationDate: this.#getEffectiveNegotiationDate(),
       seasonLabel,
     });
