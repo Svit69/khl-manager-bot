@@ -7,6 +7,7 @@ import { getFallbackMarketSalaryRub } from "../contracts/FallbackMarketSalary.js
 import { SalaryCapService } from "../contracts/SalaryCapService.js";
 import { SalaryCapComplianceService } from "../contracts/SalaryCapComplianceService.js";
 import { AiSalaryCapCompliancePlanner } from "../contracts/AiSalaryCapCompliancePlanner.js";
+import { AiContractBudgetPolicy } from "../contracts/AiContractBudgetPolicy.js";
 import { buildTradeSalaryCapPreview } from "../contracts/TradeSalaryCapPreview.js";
 import { AiCoachService } from "../coaches/AiCoachService.js";
 import { CoachContractService } from "../coaches/CoachContractService.js";
@@ -146,6 +147,7 @@ export class AppState {
   #salaryCap = new SalaryCapService();
   #salaryCapCompliance = new SalaryCapComplianceService();
   #aiSalaryCapCompliance = new AiSalaryCapCompliancePlanner();
+  #aiContractBudget = new AiContractBudgetPolicy();
   #coachFit = new CoachFitService();
   #coachContracts = new CoachContractService();
   #coachDevelopment = new CoachDevelopmentService();
@@ -193,7 +195,7 @@ export class AppState {
     this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#calendar.seasonLabel, generationSeed: this.#juniorGenerationSeed, ageSpread: true });
     this.#aiRenewals = new AiRenewalService(this.#contracts, {
       canSubmitOffer: (team, player, offer, context, mode) =>
-        this.#canSubmitContractOffer(team, player, offer, mode, context).allowed,
+        this.#canSubmitAiContractOffer(team, player, offer, context, mode),
     });
     this.#seasonTransition = new SeasonTransitionService(this.#contracts, this.#aiRenewals, this.#development);
     this.#trade = new TradeService({
@@ -2340,6 +2342,22 @@ export class AppState {
     });
   }
 
+  #canSubmitAiContractOffer(team, player, offer, context = null, mode = "freeAgent") {
+    const capAssessment = this.#canSubmitContractOffer(team, player, offer, mode, context);
+    if (!capAssessment.allowed) return false;
+    if (!this.#gameSettings.salaryCapEnabled) return true;
+    const seasonLabel = mode === "renewal" ? this.#getRenewalStartSeason(player) : this.#contracts.getSigningStartSeason(context);
+    const summary = this.#buildSalaryCapSeasonSummary(team?.id, seasonLabel);
+    return this.#aiContractBudget.canSubmitOffer({
+      team,
+      player,
+      offer,
+      mode,
+      capRub: summary.capRub,
+      remainingRub: summary.remainingRub,
+    });
+  }
+
   #assessTradeSalaryCap(opponent, givePlayerIds, receivePlayerIds) {
     if (!this.#gameSettings.salaryCapEnabled) return { allowed: true, failures: [] };
     return this.#salaryCap.assessTrade({
@@ -2615,7 +2633,7 @@ export class AppState {
     aiOffers.forEach((entry) => {
       const team = this.#teams.find((candidate) => candidate.id === entry.teamId);
       const player = this.getAvailableFreeAgents().find((candidate) => candidate.id === entry.playerId);
-      if (!this.#canSubmitContractOffer(team, player, entry.offer, "freeAgent", { currentDate: decisionDate, seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel }).allowed) return;
+      if (!this.#canSubmitAiContractOffer(team, player, entry.offer, { currentDate: decisionDate, seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel }, "freeAgent")) return;
       preseasonOffers = upsertCompetitiveOffer(preseasonOffers, {
         ...entry,
         decisionIndex,
@@ -2714,11 +2732,14 @@ export class AppState {
       this.#notifyUserPreseasonFreeAgentUnavailable(player, competingOffers, Number(winningOffer?.decisionIndex) || 0);
       return false;
     }
-    const capAssessment = this.#canSubmitContractOffer(team, player, winningOffer.offer, "freeAgent", {
+    const offerContext = {
       currentDate: decisionDate,
       seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
-    });
-    if (!capAssessment.allowed) {
+    };
+    const capAllowed = team.id === this.#activeTeamId
+      ? this.#canSubmitContractOffer(team, player, winningOffer.offer, "freeAgent", offerContext).allowed
+      : this.#canSubmitAiContractOffer(team, player, winningOffer.offer, offerContext, "freeAgent");
+    if (!capAllowed) {
       this.#freeAgents = dedupeFreeAgents([...this.#freeAgents, player]);
       (competingOffers || [])
         .filter((entry) => entry.teamId === this.#activeTeamId)
