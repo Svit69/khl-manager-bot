@@ -426,7 +426,7 @@ export const playerContracts=[
     playerId:"f0a1b2c3-d4e5-4f6a-8b7c-9d0e1f2a3b4d",
     teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
     season:"2026/2027",
-    salaryRub:55000000,
+    salaryRub:95000000,
     type:"one-way"
   },
   {
@@ -434,7 +434,7 @@ export const playerContracts=[
     playerId:"f0a1b2c3-d4e5-4f6a-8b7c-9d0e1f2a3b4d",
     teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
     season:"2027/2028",
-    salaryRub:55000000,
+    salaryRub:95000000,
     type:"one-way"
   },
   {
@@ -2908,6 +2908,134 @@ export const playerContracts=[
     season:"2027/2028",
     salaryRub:1000000,
     type:"three-way"
+  },
+  {
+    id:"avg-contract-chistyakov-2026",
+    playerId:"a9b0c1d2-e3f4-4a5b-6c7d-8e9f0a1b2c3d",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2026/2027",
+    salaryRub:60000000,
+    type:"one-way"
+  },
+  {
+    id:"avg-contract-lajoie-2026",
+    playerId:"e7f8a9b0-c1d2-4e3f-5a6b-7c8d9e0f1a2b",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2026/2027",
+    salaryRub:50000000,
+    type:"one-way"
+  },
+  {
+    id:"avg-contract-adamchuk-2026",
+    playerId:"39000000-0000-4000-8000-000000000001",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2026/2027",
+    salaryRub:40000000,
+    type:"one-way"
+  },
+  {
+    id:"avg-contract-adamchuk-2027",
+    playerId:"39000000-0000-4000-8000-000000000001",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2027/2028",
+    salaryRub:35000000,
+    type:"one-way"
+  },
+  {
+    id:"avg-contract-adamchuk-2028",
+    playerId:"39000000-0000-4000-8000-000000000001",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2028/2029",
+    salaryRub:30000000,
+    type:"one-way"
+  },
+  {
+    id:"avg-contract-gulyaev-2026",
+    playerId:"c7d8e9f0-a1b2-4c3d-8e4f-5a6b7c8d9e0f",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2026/2027",
+    salaryRub:5000000,
+    type:"two-way"
+  },
+  {
+    id:"avg-contract-gulyaev-2027",
+    playerId:"c7d8e9f0-a1b2-4c3d-8e4f-5a6b7c8d9e0f",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2027/2028",
+    salaryRub:30000000,
+    type:"two-way"
+  },
+  {
+    id:"avg-contract-cecconi-2026",
+    playerId:"a5b6c7d8-e9f0-4a1b-8c2d-3e4f5a6b7c8d",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2026/2027",
+    salaryRub:5000000,
+    type:"one-way"
+  },
+  {
+    id:"avg-contract-ibragimov-2026",
+    playerId:"b6c7d8e9-f0a1-4b2c-9d3e-4f5a6b7c8d9e",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2026/2027",
+    salaryRub:30000000,
+    type:"one-way"
+  },
+  {
+    id:"avg-contract-ibragimov-2027",
+    playerId:"b6c7d8e9-f0a1-4b2c-9d3e-4f5a6b7c8d9e",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2027/2028",
+    salaryRub:30000000,
+    type:"one-way"
+  },
+  {
+    id:"avg-contract-liivo-2026",
+    playerId:"a1b2c3d4-e5f6-4a7b-8c8d-9e0f1a2b3c60",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2026/2027",
+    salaryRub:70000000,
+    type:"one-way"
+  },
+  {
+    id:"avg-contract-poturalski-2026",
+    playerId:"e9f0a1b2-c3d4-4e5f-8a6b-7c8d9e0f1a2b",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2026/2027",
+    salaryRub:70000000,
+    type:"one-way"
+  },
+  {
+    id:"avg-contract-paquette-2026",
+    playerId:"39000000-0000-4000-8000-000000000014",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2026/2027",
+    salaryRub:15000000,
+    type:"one-way"
+  },
+  {
+    id:"avg-contract-ilyenko-2026",
+    playerId:"39000000-0000-4000-8000-000000000007",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2026/2027",
+    salaryRub:40000000,
+    type:"one-way"
+  },
+  {
+    id:"avg-contract-ilyenko-2027",
+    playerId:"39000000-0000-4000-8000-000000000007",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2027/2028",
+    salaryRub:40000000,
+    type:"one-way"
+  },
+  {
+    id:"avg-contract-ilyenko-2028",
+    playerId:"39000000-0000-4000-8000-000000000007",
+    teamId:"d7f7d3be-4b8d-4a5c-9d2f-1ddbd9970b4d",
+    season:"2028/2029",
+    salaryRub:40000000,
+    type:"one-way"
   },
   ...admiralPlayerContracts,
   ...amurPlayerContracts,
