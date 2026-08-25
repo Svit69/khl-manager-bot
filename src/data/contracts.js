@@ -2508,7 +2508,7 @@ export const playerContracts=[
     playerId:"4b000000-0000-4000-8000-000000000020",
     teamId:"6b9a4d2c-5f18-41d4-9b65-3d71d8a4f2c0",
     season:"2026/2027",
-    salaryRub:5000000,
+    salaryRub:32000000,
     type:"one-way"
   },
   {
