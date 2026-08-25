@@ -12,6 +12,7 @@ import { sochiPlayerContracts } from "./sochi/index.js";
 import { neftekhimikPlayerContracts } from "./neftekhimik/index.js";
 import { dragonsPlayerContracts } from "./dragons/index.js";
 import { goaliePlayerContracts } from "./goalies/index.js";
+import { additionalPlayerContracts } from "./additionalPlayers/index.js";
 import { avtomobilistContractUpdates } from "./contracts/AvtomobilistContractUpdates.js";
 import { amurContractUpdates } from "./contracts/AmurContractUpdates.js";
 import { skaContractUpdates } from "./contracts/SkaContractUpdates.js";
@@ -3057,4 +3058,5 @@ export const playerContracts=[
   ...neftekhimikPlayerContracts,
   ...dragonsPlayerContracts,
   ...goaliePlayerContracts,
+  ...additionalPlayerContracts,
 ];
