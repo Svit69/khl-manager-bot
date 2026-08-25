@@ -26,4 +26,6 @@ export const avtomobilistContractUpdates = [
   ["slepyshev", "39000000-0000-4000-8000-000000000021", "2026/2027", 20],
   ["denezhkin", "a3b4c5d6-e7f8-9a0b-1c2d-3e4f5a6b7c8d", "2026/2027", 18],
   ["denezhkin", "a3b4c5d6-e7f8-9a0b-1c2d-3e4f5a6b7c8d", "2027/2028", 18],
+  ["gushchin", "external-rights-gushchin", "2025/2026", 35],
+  ["gushchin", "external-rights-gushchin", "2026/2027", 35],
 ].map(createAvtomobilistContractRecord);

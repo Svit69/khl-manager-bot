@@ -47,4 +47,5 @@ export const transferUpdateRecordsE = [
   { playerId: "admiral-player-soshnikov", status: S.ACTIVE, to: "TRK" },
   { playerId: "lok-player-alexander-volkov", status: S.ACTIVE, to: "ADM" },
   { playerId: "external-rights-bardakov", status: S.ACTIVE, to: "SKA" },
+  { playerId: "external-rights-gushchin", status: S.ACTIVE, to: "AVT" },
 ];
