@@ -28,4 +28,5 @@ export const transferUpdateRecordsE = [
   { playerId: "sib-player-koshelev", status: S.ACTIVE, to: "SHD" },
   { playerId: "avt-add-player-yuri-pautov", status: S.FREE_AGENT },
   { playerId: "sochi-player-beaudin", status: S.REMOVED },
+  { playerId: "f3a4b5c6-d7e8-4f9a-0b1c-2d3e4f5a6b7c", status: S.ACTIVE, to: "AMR" },
 ];

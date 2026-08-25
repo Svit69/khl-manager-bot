@@ -13,6 +13,7 @@ import { neftekhimikPlayerContracts } from "./neftekhimik/index.js";
 import { dragonsPlayerContracts } from "./dragons/index.js";
 import { goaliePlayerContracts } from "./goalies/index.js";
 import { avtomobilistContractUpdates } from "./contracts/AvtomobilistContractUpdates.js";
+import { amurContractUpdates } from "./contracts/AmurContractUpdates.js";
 export const playerContracts=[
   {
     id:"c1f92a68-2f3a-4a54-bf2c-0f0f23c1e8a9",
@@ -3040,6 +3041,7 @@ export const playerContracts=[
   },
   ...admiralPlayerContracts,
   ...amurPlayerContracts,
+  ...amurContractUpdates,
   ...avtomobilistPlayerContracts,
   ...avtomobilistContractUpdates,
   ...lokomotivPlayerContracts,
