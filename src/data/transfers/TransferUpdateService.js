@@ -1,4 +1,5 @@
 import { ExternalTransferFactory } from "./ExternalTransferFactory.js";
+import { ExternalActiveTransferResolver } from "./ExternalActiveTransferResolver.js";
 import { TransferContractUpdater } from "./TransferContractUpdater.js";
 import { TransferPlayerAdjuster } from "./TransferPlayerAdjuster.js";
 import { TransferRosterMover } from "./TransferRosterMover.js";
@@ -6,10 +7,11 @@ import { TransferStatus } from "./TransferStatus.js";
 import { buildTeamIdByShortName, resolveTransferTeamId } from "./TransferTeamIds.js";
 
 export class TransferUpdateService {
-  #records;#contractUpdater;#externalFactory;#playerAdjuster;#rosterMover;
+  #records;#contractUpdater;#externalFactory;#externalResolver;#playerAdjuster;#rosterMover;
   constructor(records = []) {
     this.#records = [...records];this.#contractUpdater = new TransferContractUpdater();
-    this.#externalFactory = new ExternalTransferFactory();this.#playerAdjuster = new TransferPlayerAdjuster();
+    this.#externalFactory = new ExternalTransferFactory();this.#externalResolver = new ExternalActiveTransferResolver();
+    this.#playerAdjuster = new TransferPlayerAdjuster();
     this.#rosterMover = new TransferRosterMover();
   }
 
@@ -18,7 +20,8 @@ export class TransferUpdateService {
     this.#records.forEach((record) => this.#applyRecord({ record, teams, freeAgents, externalPlayers, contracts, teamIdByShortName }));
   }
   #applyRecord(context) {
-    const found = this.#rosterMover.findPlayer(context.teams, context.record.playerId);
+    const found = this.#rosterMover.findPlayer(context.teams, context.record.playerId) ||
+      this.#externalResolver.findAndRemoveExternalPlayer(context.record, context.externalPlayers);
     if (!found) return;
     this.#playerAdjuster.applyAdjustments(found.player, context.record);
     const targetTeamId = resolveTransferTeamId(context.teamIdByShortName, context.record.to);
@@ -29,7 +32,7 @@ export class TransferUpdateService {
   }
   #moveToActiveTeam(context, player, targetTeamId) {
     this.#rosterMover.movePlayerToTeam(context.teams, player, targetTeamId);
-    this.#contractUpdater.updateContracts(context.contracts, context.record, targetTeamId);
+    this.#contractUpdater.updateContracts(context.contracts, context.record, targetTeamId);player.affiliation.contractId = context.contracts.find((contract) => contract.playerId === player.id)?.id || player.affiliation.contractId;
   }
   #moveToFreeAgency(context, player) {
     this.#rosterMover.removePlayerFromTeams(context.teams, player.id);
