@@ -1,4 +1,12 @@
-export const rosterReportCareerUpdateRecords = [
+export const rosterReportCareerUpdateRecordsA = [
+  {"playerId":"c4d5e6f7-a8b9-4c0d-1e2f-3a4b5c6d7e8f","khlGamesPlayed":628},
+  {"playerId":"d8e9f0a1-b2c3-4d4e-9f5a-6b7c8d9e0f1a","khlGamesPlayed":739},
+  {"playerId":"b2c3d4e5-f6a7-4b8c-9d9e-0f1a2b3c4d5e","khlGamesPlayed":716},
+  {"playerId":"35000000-0000-4000-8000-000000000002","khlGamesPlayed":494},
+  {"playerId":"f7a8b9c0-d1e2-3f4a-5b6c-7d8e9f0a1b2c","khlGamesPlayed":617},
+  {"playerId":"f2a6b8c9-7d4e-4a2b-9f3c-1e2d3c4b5a6f","khlGamesPlayed":651},
+  {"playerId":"39000000-0000-4000-8000-000000000021","khlGamesPlayed":662},
+  {"playerId":"c3d4e5f6-a7b8-4c9d-8e0f-1a2b3c4d5ea0","khlGamesPlayed":786},
   {"playerId":"35000000-0000-4000-8000-000000000013","khlGamesPlayed":178},
   {"playerId":"35000000-0000-4000-8000-000000000011","khlGamesPlayed":652},
   {"playerId":"35000000-0000-4000-8000-000000000020","khlGamesPlayed":319},
@@ -29,14 +37,4 @@ export const rosterReportCareerUpdateRecords = [
   {"playerId":"amur-player-nikita-yevseyev","khlGamesPlayed":188},
   {"playerId":"amur-player-dyblenko","khlGamesPlayed":601},
   {"playerId":"amur-player-likhachyov","khlGamesPlayed":230},
-  {"playerId":"amur-player-grigori-kuzmin","khlGamesPlayed":66},
-  {"playerId":"ska-player-galenyuk","khlGamesPlayed":318},
-  {"playerId":"amur-player-artyom-shvaryov","khlGamesPlayed":128},
-  {"playerId":"amur-player-yegor-rykov","khlGamesPlayed":379},
-  {"playerId":"amur-player-urakov","khlGamesPlayed":489},
-  {"playerId":"amur-player-alexei-solovyov","khlGamesPlayed":232},
-  {"playerId":"amur-player-yegor-voronkov","khlGamesPlayed":566},
-  {"playerId":"goalie-player-alexander-trushkov","khlGamesPlayed":134},
-  {"playerId":"sib-player-ivan-klimovich","khlGamesPlayed":153},
-  {"playerId":"goalie-player-viktor-kobozev","khlGamesPlayed":17},
 ];

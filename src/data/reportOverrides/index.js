@@ -4,7 +4,8 @@ import { rosterReportContractOverridesC } from "./RosterReportContractOverridesC
 import { rosterReportContractOverridesD } from "./RosterReportContractOverridesD.js";
 import { rosterReportContractOverridesE } from "./RosterReportContractOverridesE.js";
 import { rosterReportContractOverridesF } from "./RosterReportContractOverridesF.js";
-import { rosterReportCareerUpdateRecords } from "./RosterReportCareerUpdateRecords.js";
+import { rosterReportCareerUpdateRecordsA } from "./RosterReportCareerUpdateRecordsA.js";
+import { rosterReportCareerUpdateRecordsB } from "./RosterReportCareerUpdateRecordsB.js";
 
 export const rosterReportContractOverrides = [
   ...rosterReportContractOverridesA,
@@ -15,4 +16,7 @@ export const rosterReportContractOverrides = [
   ...rosterReportContractOverridesF,
 ];
 
-export { rosterReportCareerUpdateRecords };
+export const rosterReportCareerUpdateRecords = [
+  ...rosterReportCareerUpdateRecordsA,
+  ...rosterReportCareerUpdateRecordsB,
+];
