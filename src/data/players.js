@@ -15,6 +15,7 @@ import { dragonsPlayerProfiles } from "./dragons/index.js";
 import { goaliePlayerProfiles } from "./goalies/index.js";
 import { additionalPlayerProfiles } from "./additionalPlayers/index.js";
 import { applyConfiguredHiddenTraits } from "./playerHiddenTraits.js";
+import { applyRosterReportCareerUpdates } from "./reportOverrides/RosterReportCareerUpdateApplier.js";
 export const playerProfiles=[
   {
     id:"d3c1f6c9-6a1a-4d7a-bb6c-5b8c7d5a1b22",
@@ -5382,7 +5383,7 @@ export const playerProfiles=[
     affiliation:{contractId:"5c000000-0000-4000-8000-000000000039"}
   }
 ];
-const allPlayerProfiles=[...playerProfiles,...admiralPlayerProfiles,...amurPlayerProfiles,...avtomobilistPlayerProfiles,...lokomotivPlayerProfiles,...ladaPlayerProfiles,...sibirPlayerProfiles,...barysPlayerProfiles,...severstalPlayerProfiles,...skaPlayerProfiles,...spartakPlayerProfiles,...sochiPlayerProfiles,...neftekhimikPlayerProfiles,...dragonsPlayerProfiles,...goaliePlayerProfiles,...additionalPlayerProfiles].filter(Boolean).map(applyConfiguredHiddenTraits);
+const allPlayerProfiles=[...playerProfiles,...admiralPlayerProfiles,...amurPlayerProfiles,...avtomobilistPlayerProfiles,...lokomotivPlayerProfiles,...ladaPlayerProfiles,...sibirPlayerProfiles,...barysPlayerProfiles,...severstalPlayerProfiles,...skaPlayerProfiles,...spartakPlayerProfiles,...sochiPlayerProfiles,...neftekhimikPlayerProfiles,...dragonsPlayerProfiles,...goaliePlayerProfiles,...additionalPlayerProfiles].filter(Boolean).map(applyRosterReportCareerUpdates).map(applyConfiguredHiddenTraits);
 export const findPlayerProfile=(teamId,lineIndex,position,roleIndex=null)=>allPlayerProfiles
   .find(p=>p.teamId===teamId&&p.lineIndex===lineIndex&&p.position===position&&(roleIndex===null||p.roleIndex===roleIndex));
 export const getTeamProfiles=teamId=>allPlayerProfiles.filter(p=>p.teamId===teamId);

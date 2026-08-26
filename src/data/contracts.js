@@ -16,7 +16,9 @@ import { additionalPlayerContracts } from "./additionalPlayers/index.js";
 import { avtomobilistContractUpdates } from "./contracts/AvtomobilistContractUpdates.js";
 import { amurContractUpdates } from "./contracts/AmurContractUpdates.js";
 import { skaContractUpdates } from "./contracts/SkaContractUpdates.js";
-export const playerContracts=[
+import { applyRosterReportContractOverrides } from "./reportOverrides/RosterReportContractOverrideApplier.js";
+import { rosterReportContractOverrides } from "./reportOverrides/index.js";
+const basePlayerContracts=[
   {
     id:"c1f92a68-2f3a-4a54-bf2c-0f0f23c1e8a9",
     playerId:"d3c1f6c9-6a1a-4d7a-bb6c-5b8c7d5a1b22",
@@ -3060,3 +3062,4 @@ export const playerContracts=[
   ...goaliePlayerContracts,
   ...additionalPlayerContracts,
 ];
+export const playerContracts = applyRosterReportContractOverrides(basePlayerContracts, rosterReportContractOverrides);
