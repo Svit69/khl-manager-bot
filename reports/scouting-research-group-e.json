@@ -1,0 +1,754 @@
+[
+  {
+    "name": "Павел Тютнев",
+    "team": "Сибирь",
+    "birthDate": "2002-07-25",
+    "positions": [
+      "C",
+      "LW"
+    ],
+    "nationality": "RUS",
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "team": "Сибирь",
+      "games": 23,
+      "goals": 5,
+      "assists": 1,
+      "asOf": null
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 7,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "overall": 71,
+    "potential": 75,
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "sources": [
+      "https://www.eliteprospects.com/player/581252/pavel-tyutnev",
+      "https://hcsibir.ru/team/players/"
+    ],
+    "notes": "Researched 2026-11-02. Actual regular-season source snapshot, not projected totals; exact statistical cutoff is not published. Salary is a conservative annual game estimate in million RUB, not a reported wage; overall/potential are subjective game ratings. Official team roster: 23 GP, 5 G, 6 points; assists = points minus goals. Rotation forward. Older EP career snapshot is not used for current career totals."
+  },
+  {
+    "name": "Никита Смирнов",
+    "team": "Сибирь",
+    "birthDate": "2002-09-10",
+    "positions": [
+      "D"
+    ],
+    "nationality": "RUS",
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "team": "Сибирь",
+      "games": 21,
+      "goals": 0,
+      "assists": 1,
+      "asOf": null
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 7,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "overall": 69,
+    "potential": 74,
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "sources": [
+      "https://www.eliteprospects.com/player/595475/nikita-smirnov",
+      "https://hcsibir.ru/team/players/"
+    ],
+    "notes": "Researched 2026-11-02. Actual regular-season source snapshot, not projected totals; exact statistical cutoff is not published. Salary is a conservative annual game estimate in million RUB, not a reported wage; overall/potential are subjective game ratings. Official roster: 21 GP, 0 G, 1 point. EP contract 26/27; depth defenseman."
+  },
+  {
+    "name": "Александр Мирзабалаев",
+    "team": "Сибирь",
+    "birthDate": "2002-09-27",
+    "positions": [
+      "LW"
+    ],
+    "nationality": "RUS",
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "team": "Сибирь",
+      "games": 19,
+      "goals": 3,
+      "assists": 0,
+      "asOf": null
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 6,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "overall": 70,
+    "potential": 74,
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "sources": [
+      "https://hcsibir.ru/team/players/",
+      "https://hcsibir.ru/team/players/aleksandr-mirzabalaev/",
+      "https://hcsibir.ru/media/news/aleksandr-mirzabalaev-novyy-napadayushchiy-sibiri-/",
+      "https://www.eliteprospects.com/team/1003/sibir-novosibirsk/experience/2026-2027/team"
+    ],
+    "notes": "Researched 2026-11-02. Actual regular-season source snapshot, not projected totals; exact statistical cutoff is not published. Salary is a conservative annual game estimate in million RUB, not a reported wage; overall/potential are subjective game ratings. Official roster: 19 GP, 3 G, 3 points. LW from EP experience table. Official signing announcement specifies one-year two-way contract."
+  },
+  {
+    "name": "Илья Люзенков",
+    "team": "Сибирь",
+    "birthDate": "2006-03-03",
+    "positions": [
+      "C"
+    ],
+    "nationality": "RUS",
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "team": "Сибирь",
+      "games": 15,
+      "goals": 1,
+      "assists": 2,
+      "asOf": null
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 2,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "overall": 68,
+    "potential": 77,
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "sources": [
+      "https://www.eliteprospects.com/player/828103/ilya-lyuzenkov",
+      "https://hcsibir.ru/team/players/",
+      "https://www.eliteprospects.com/transfer/2026/04/28/ilya-lyuzenkov-in-a-contract-extension-to-sibir-novosibirsk/628088"
+    ],
+    "notes": "Researched 2026-11-02. Actual regular-season source snapshot, not projected totals; exact statistical cutoff is not published. Salary is a conservative annual game estimate in million RUB, not a reported wage; overall/potential are subjective game ratings. Official roster supersedes older EP KHL snapshot. EP also has 2026/27 VHL games for Dynamo-Altay; accessible older snapshot 4 GP, 1 G, 1 A is not asserted as the current VHL total. Youth/development salary estimate."
+  },
+  {
+    "name": "Александр Кисаков",
+    "team": "Сибирь",
+    "birthDate": "2002-11-01",
+    "positions": [
+      "RW",
+      "LW"
+    ],
+    "nationality": "RUS",
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "team": "Сибирь",
+      "games": 4,
+      "goals": 0,
+      "assists": 2,
+      "asOf": null
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 7,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "overall": 69,
+    "potential": 75,
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "sources": [
+      "https://www.eliteprospects.com/player/537762/alexander-kisakov",
+      "https://hcsibir.ru/team/players/",
+      "https://www.eliteprospects.com/team/12699/chelmet-chelyabinsk/stats"
+    ],
+    "notes": "Researched 2026-11-02. Actual regular-season source snapshot, not projected totals; exact statistical cutoff is not published. Salary is a conservative annual game estimate in million RUB, not a reported wage; overall/potential are subjective game ratings. Stats are Sibir-only, not all-club KHL season totals. Joined Sibir from Traktor on 2026-10-23. Also played VHL for Chelmet; current complete multi-club totals unverified. Older EP VHL snapshot: 9 GP, 5 G, 1 A."
+  },
+  {
+    "name": "Януш Хейбатов",
+    "team": "Сибирь",
+    "birthDate": "2007-04-19",
+    "positions": [
+      "LW"
+    ],
+    "nationality": "RUS",
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "team": "Сибирь",
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "asOf": null
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 1,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "overall": 63,
+    "potential": 75,
+    "khlCareer": {
+      "games": 4,
+      "seasons": 1
+    },
+    "sources": [
+      "https://www.eliteprospects.com/player/689971/yanush-kheibatov",
+      "https://www.eliteprospects.com/team/1003/sibir-novosibirsk?tab=stats",
+      "https://hcsibir.ru/team/players/",
+      "https://www.eliteprospects.com/league/mhl/stats/2026-2027?age=u24"
+    ],
+    "notes": "Researched 2026-11-02. Actual regular-season source snapshot, not projected totals; exact statistical cutoff is not published. Salary is a conservative annual game estimate in million RUB, not a reported wage; overall/potential are subjective game ratings. EP KHL table records 4 GP despite dashes in official roster widget; dashes are not zero. Also MHL Sibirskie Snaipery snapshot: 13 GP, 6 G, 4 A. Youth salary estimate."
+  },
+  {
+    "name": "Даниил Лазутин",
+    "team": "Сибирь",
+    "birthDate": "2003-07-25",
+    "positions": [
+      "C"
+    ],
+    "nationality": "RUS",
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "team": "Сибирь",
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "asOf": null,
+      "otherLeagues": [
+        {
+          "season": "2026/27",
+          "league": "VHL",
+          "team": "Динамо-Алтай",
+          "games": null,
+          "goals": null,
+          "assists": null
+        }
+      ]
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "overall": 67,
+    "potential": 73,
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "sources": [
+      "https://hcsibir.ru/team/players/",
+      "https://hcsibir.ru/team/players/danill-lazutin/",
+      "https://hcsibir.ru/media/news/obmen-s-tsska/",
+      "https://www.eliteprospects.com/team/1003/sibir-novosibirsk?tab=stats",
+      "https://www.eliteprospects.com/team/3549/dynamo-altay-barnaul"
+    ],
+    "notes": "Researched 2026-11-02. Actual regular-season source snapshot, not projected totals; exact statistical cutoff is not published. Salary is a conservative annual game estimate in million RUB, not a reported wage; overall/potential are subjective game ratings. Official announcement: one-season two-way contract. Reassigned to Dynamo-Altay on 2026-10-27; current VHL counting stats unavailable. KHL line remains actual Sibir appearances, not a claim of current assignment."
+  },
+  {
+    "name": "Денис Габдрахманов",
+    "team": "Сибирь",
+    "birthDate": "2005-06-22",
+    "positions": [
+      "G"
+    ],
+    "nationality": "RUS",
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "team": "Сибирь",
+      "games": 1,
+      "goals": null,
+      "assists": null,
+      "asOf": null,
+      "savePct": 50,
+      "gaa": 19.05,
+      "timeOnIce": "6:18",
+      "otherLeagues": [
+        {
+          "season": "2026/27",
+          "league": "VHL",
+          "team": "Динамо-Алтай",
+          "games": null,
+          "goals": null,
+          "assists": null,
+          "savePct": null,
+          "gaa": null
+        }
+      ]
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 2,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "overall": 66,
+    "potential": 76,
+    "khlCareer": {
+      "games": 1,
+      "seasons": 1
+    },
+    "sources": [
+      "https://www.eliteprospects.com/player/797740/denis-gabdrakhmanov",
+      "https://www.eliteprospects.com/team/1003/sibir-novosibirsk?tab=stats",
+      "https://hcsibir.ru/media/news/obmen-s-rubinom/",
+      "https://www.eliteprospects.com/team/3549/dynamo-altay-barnaul"
+    ],
+    "notes": "Researched 2026-11-02. Actual regular-season source snapshot, not projected totals; exact statistical cutoff is not published. Salary is a conservative annual game estimate in million RUB, not a reported wage; overall/potential are subjective game ratings. EP actual KHL goalie row: 6:18 TOI, 2 saves, SV .500, GAA 19.05. savePct uses 0-100 units. Official roster widget shows dashes, not proof of zero appearances. Two-season two-way deal; also assigned to Dynamo-Altay, current VHL totals unverified. Tiny KHL sample does not determine rating."
+  },
+  {
+    "name": "Ярослав Беляков",
+    "team": "Сочи",
+    "birthDate": "2006-08-05",
+    "positions": [
+      "D"
+    ],
+    "nationality": "RUS",
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "team": "Сочи",
+      "games": 21,
+      "goals": 1,
+      "assists": 0,
+      "asOf": null
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 2,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "overall": 67,
+    "potential": 75,
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "sources": [
+      "https://www.eliteprospects.com/player/828235/yaroslav-belyakov",
+      "https://www.eliteprospects.com/team/17166/hk-sochi/stats/2026-2027",
+      "https://hcsochi.ru/team/",
+      "https://mhl.khl.ru/players/42361/"
+    ],
+    "notes": "Researched 2026-11-02. Actual regular-season source snapshot, not projected totals; exact statistical cutoff is not published. Salary is a conservative annual game estimate in million RUB, not a reported wage; overall/potential are subjective game ratings. Birthdate conflict resolved in favor of official club and MHL records: 2006-08-05; EP lists 2006-08-06. EP roster contract 27/28; official MHL contract field 2026 is stale. Official Sochi zero-filled stat widget not used. Youth salary estimate."
+  },
+  {
+    "name": "Артём Гурьев",
+    "team": "Сочи",
+    "birthDate": "2003-05-17",
+    "positions": [
+      "D"
+    ],
+    "nationality": "RUS",
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "team": "Сочи",
+      "games": 15,
+      "goals": 0,
+      "assists": 0,
+      "asOf": null
+    },
+    "contractUntil": null,
+    "salaryMillions": 5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "overall": 68,
+    "potential": 74,
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "sources": [
+      "https://www.eliteprospects.com/player/617884/artyom-guryev",
+      "https://www.eliteprospects.com/team/17166/hk-sochi/stats/2026-2027",
+      "https://www.eliteprospects.com/team/17166/hk-sochi",
+      "https://hcsochi.ru/team/"
+    ],
+    "notes": "Researched 2026-11-02. Actual regular-season source snapshot, not projected totals; exact statistical cutoff is not published. Salary is a conservative annual game estimate in million RUB, not a reported wage; overall/potential are subjective game ratings. Loan from CSKA announced 2026-09-08 in EP transactions. EP current roster says Loan; no verified end season, so contractUntil remains null. Injury flag on stats page; no medical inference."
+  },
+  {
+    "name": "Максим Коростелев",
+    "team": "Сочи",
+    "birthDate": "2003-08-15",
+    "positions": [
+      "RW"
+    ],
+    "nationality": "RUS",
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "team": "Сочи",
+      "games": 13,
+      "goals": 1,
+      "assists": 1,
+      "asOf": null
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "overall": 68,
+    "potential": 72,
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "sources": [
+      "https://www.eliteprospects.com/player/697965/maxim-korostelyov",
+      "https://www.eliteprospects.com/team/17166/hk-sochi/stats/2026-2027",
+      "https://www.eliteprospects.com/team/17166/hk-sochi",
+      "https://hcsochi.ru/team/"
+    ],
+    "notes": "Researched 2026-11-02. Actual regular-season source snapshot, not projected totals; exact statistical cutoff is not published. Salary is a conservative annual game estimate in million RUB, not a reported wage; overall/potential are subjective game ratings. Current EP roster contract 26/27 supersedes stale individual profile 25/26. Birthdate matches official team page. Depth winger; not Nikita Korostelyov."
+  },
+  {
+    "name": "Дмитрий Овчинников",
+    "team": "Сочи",
+    "birthDate": "2002-08-19",
+    "positions": [
+      "C",
+      "RW"
+    ],
+    "nationality": "RUS",
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "team": "Сочи",
+      "games": 9,
+      "goals": 0,
+      "assists": 1,
+      "asOf": null
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 6,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "overall": 69,
+    "potential": 74,
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "sources": [
+      "https://www.eliteprospects.com/player/534929/dmitri-ovchinnikov",
+      "https://www.eliteprospects.com/team/17166/hk-sochi/stats/2026-2027",
+      "https://hcsochi.ru/team/"
+    ],
+    "notes": "Researched 2026-11-02. Actual regular-season source snapshot, not projected totals; exact statistical cutoff is not published. Salary is a conservative annual game estimate in million RUB, not a reported wage; overall/potential are subjective game ratings. EP profile identifies the 2002-born player, not retired namesake born 1987. Current 2026/27 KHL line; older 117-game career snapshot was not assumed current."
+  },
+  {
+    "name": "Иван Ежов",
+    "team": "Сочи",
+    "birthDate": "2000-03-24",
+    "positions": [
+      "RW"
+    ],
+    "nationality": "RUS",
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "team": "Сочи",
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "asOf": null,
+      "currentTeam": null
+    },
+    "contractUntil": null,
+    "salaryMillions": 5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "overall": 66,
+    "potential": 69,
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "sources": [
+      "https://www.eliteprospects.com/player/392589/ivan-yezhov",
+      "https://www.eliteprospects.com/team/17166/hk-sochi/stats/2026-2027",
+      "https://www.eliteprospects.com/transfer/2026/10/24/ivan-yezhov-in-a-confirmed-transaction-leaving-hk-sochi/652860",
+      "https://www.khl.ru/news/2026/09/08/565464.html"
+    ],
+    "notes": "Researched 2026-11-02. Actual regular-season source snapshot, not projected totals; exact statistical cutoff is not published. Salary is a conservative annual game estimate in million RUB, not a reported wage; overall/potential are subjective game ratings. IMPORTANT: released by Sochi 2026-10-24; team preserves requested research grouping, not current employment. No verified subsequent club or active contract; contractUntil null. Stats are completed Sochi stint. Salary is a hypothetical game estimate, not an active salary."
+  },
+  {
+    "name": "Иван Рябов",
+    "team": "Спартак",
+    "birthDate": "2005-01-26",
+    "positions": [
+      "C"
+    ],
+    "nationality": "RUS",
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "team": "Спартак",
+      "games": 22,
+      "goals": 4,
+      "assists": 1,
+      "asOf": null
+    },
+    "contractUntil": "2028/29",
+    "salaryMillions": 3,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "overall": 71,
+    "potential": 78,
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "sources": [
+      "https://www.eliteprospects.com/player/779991/ivan-ryabov",
+      "https://www.eliteprospects.com/team/775/spartak-moskva/stats/2026-2027",
+      "https://spartak.ru/news/dvustoronnij-kontrakt-spartaka-s-ivanom-ryabovyim-na-tri-goda/",
+      "https://www.eliteprospects.com/team/775/spartak-moskva?tab=stats%2Fnews"
+    ],
+    "notes": "Researched 2026-11-02. Actual regular-season source snapshot, not projected totals; exact statistical cutoff is not published. Salary is a conservative annual game estimate in million RUB, not a reported wage; overall/potential are subjective game ratings. Spartak center born 2005, not Sibir winger Ivan Ryabov born 2009. Official 2026-09-09 three-year two-way renewal and current EP roster imply 2028/29, superseding stale 27/28 player profile. Development salary estimate."
+  },
+  {
+    "name": "Илья Котляров",
+    "team": "Спартак",
+    "birthDate": "2007-05-30",
+    "positions": [
+      "C"
+    ],
+    "nationality": "RUS",
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "team": "Спартак",
+      "games": 21,
+      "goals": 2,
+      "assists": 8,
+      "asOf": null
+    },
+    "contractUntil": "2028/29",
+    "salaryMillions": 2.5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "overall": 72,
+    "potential": 80,
+    "khlCareer": {
+      "games": 21,
+      "seasons": 1
+    },
+    "sources": [
+      "https://www.eliteprospects.com/player/995535/ilya-kotlyarov",
+      "https://www.eliteprospects.com/team/775/spartak-moskva/stats/2026-2027",
+      "https://spartak.ru/news/novyij-kontrakt-spartaka-s-ilyoj-kotlyarovyim-na-tri-goda/",
+      "https://spartak.ru/?id=1&lang=ru"
+    ],
+    "notes": "Researched 2026-11-02. Actual regular-season source snapshot, not projected totals; exact statistical cutoff is not published. Salary is a conservative annual game estimate in million RUB, not a reported wage; overall/potential are subjective game ratings. Official 2026-10-28 announcement: new three-year deal, mapped to seasons 2026/27-2028/29; supersedes old EP profile 27/28. KHL debut season verified by official announcement; career games equal actual season appearances. Official Nov 1 homepage corroborates 21 GP, 2 G, 8 A. Youth salary estimate."
+  },
+  {
+    "name": "Николай Дронов",
+    "team": "Спартак",
+    "birthDate": "2008-02-19",
+    "positions": [
+      "D"
+    ],
+    "nationality": "RUS",
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "team": "Спартак",
+      "games": 17,
+      "goals": 0,
+      "assists": 0,
+      "asOf": null,
+      "otherLeagues": [
+        {
+          "season": "2026/27",
+          "league": "MHL",
+          "team": "МХК Спартак",
+          "games": 4,
+          "goals": 0,
+          "assists": 1
+        }
+      ]
+    },
+    "contractUntil": "2029/30",
+    "salaryMillions": 1.5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "overall": 67,
+    "potential": 80,
+    "khlCareer": {
+      "games": 17,
+      "seasons": 1
+    },
+    "sources": [
+      "https://www.eliteprospects.com/team/775/spartak-moskva/stats/2026-2027",
+      "https://mhl.khl.ru/players/43948/",
+      "https://spartak.ru/news/novyij-kontrakt-spartaka-s-nikolaem-dronovyim-do-2030-goda/"
+    ],
+    "notes": "Researched 2026-11-02. Actual regular-season source snapshot, not projected totals; exact statistical cutoff is not published. Salary is a conservative annual game estimate in million RUB, not a reported wage; overall/potential are subjective game ratings. Official 2026-09-28 renewal explicitly runs through 2029/30; supersedes old MHL 2028 end date. Official announcement confirms KHL debut this season. Also MHL 2026/27 official snapshot 4 GP, 0 G, 1 A. Youth salary estimate."
+  },
+  {
+    "name": "Сергей Лукьянцев",
+    "team": "Спартак",
+    "birthDate": "2004-12-29",
+    "positions": [
+      "RW",
+      "C"
+    ],
+    "nationality": "RUS",
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "team": "Спартак",
+      "games": 16,
+      "goals": 2,
+      "assists": 3,
+      "asOf": null
+    },
+    "contractUntil": "2028/29",
+    "salaryMillions": 5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "overall": 70,
+    "potential": 76,
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "sources": [
+      "https://www.eliteprospects.com/transfer/2026/09/09/sergei-lukyantsev-in-a-contract-extension-to-spartak-moskva/649159",
+      "https://www.eliteprospects.com/team/775/spartak-moskva/stats/2026-2027",
+      "https://spartak.ru/news/27-igrokov-spartaka-na-per2627vyij-vyiezd-v-novom-sezone/"
+    ],
+    "notes": "Researched 2026-11-02. Actual regular-season source snapshot, not projected totals; exact statistical cutoff is not published. Salary is a conservative annual game estimate in million RUB, not a reported wage; overall/potential are subjective game ratings. EP 2026-09-09 extension explicitly until 28/29. Official travel roster corroborates Spartak affiliation. Rotation forward estimate."
+  },
+  {
+    "name": "Силантий Кожушко",
+    "team": "Спартак",
+    "birthDate": "2006-10-17",
+    "positions": [
+      "RW",
+      "LW"
+    ],
+    "nationality": "RUS",
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "team": "Спартак",
+      "games": 13,
+      "goals": 0,
+      "assists": 1,
+      "asOf": null
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 1.5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "overall": 65,
+    "potential": 74,
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "sources": [
+      "https://www.eliteprospects.com/player/618886/silanti-kozhushko",
+      "https://www.eliteprospects.com/team/775/spartak-moskva/stats/2026-2027",
+      "https://www.eliteprospects.com/transfer/2026/07/15/silanti-kozhushko-in-a-contract-extension-to-spartak-moskva/641630",
+      "https://spartak.ru/matches/902143/"
+    ],
+    "notes": "Researched 2026-11-02. Actual regular-season source snapshot, not projected totals; exact statistical cutoff is not published. Salary is a conservative annual game estimate in million RUB, not a reported wage; overall/potential are subjective game ratings. Current team stats supersede older player profile 7 GP, 0 points. One-year renewal in July 2026. Also MHL games; current complete MHL totals unverified. Youth/depth salary estimate."
+  },
+  {
+    "name": "Демид Мансуров",
+    "team": "Спартак",
+    "birthDate": "2000-08-09",
+    "positions": [
+      "C"
+    ],
+    "nationality": "RUS",
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "team": "Спартак",
+      "games": 9,
+      "goals": 0,
+      "assists": 2,
+      "asOf": null
+    },
+    "contractUntil": "2028/29",
+    "salaryMillions": 7,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "overall": 70,
+    "potential": 72,
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "sources": [
+      "https://www.eliteprospects.com/transfer/2026/07/11/demid-mansurov-in-a-contract-extension-to-spartak-moskva/640953",
+      "https://www.eliteprospects.com/team/775/spartak-moskva/stats/2026-2027",
+      "https://www.khl.ru/players/26303/",
+      "https://spartak.ru/matches/902092/"
+    ],
+    "notes": "Researched 2026-11-02. Actual regular-season source snapshot, not projected totals; exact statistical cutoff is not published. Salary is a conservative annual game estimate in million RUB, not a reported wage; overall/potential are subjective game ratings. EP July 2026 extension until 28/29 supersedes older official profile end date 2027. Official KHL profile confirms birthdate/nationality; official match sheet confirms 2026/27 Spartak appearances. Depth center estimate."
+  },
+  {
+    "name": "Даниил Соболев",
+    "team": "Спартак",
+    "birthDate": "2003-03-03",
+    "positions": [
+      "D"
+    ],
+    "nationality": "RUS",
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "team": "Спартак",
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "asOf": null
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "overall": 69,
+    "potential": 74,
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "sources": [
+      "https://www.eliteprospects.com/player/588569/daniil-sobolev",
+      "https://www.eliteprospects.com/team/775/spartak-moskva/stats/2026-2027",
+      "https://spartak.ru/news/dvustoronnij-kontrakt-spartaka-s-daniilom-sobolevyim-na-dva-goda/"
+    ],
+    "notes": "Researched 2026-11-02. Actual regular-season source snapshot, not projected totals; exact statistical cutoff is not published. Salary is a conservative annual game estimate in million RUB, not a reported wage; overall/potential are subjective game ratings. EP profile lists Khimik Voskresensk assignment, while current Spartak table confirms 3 KHL GP. VHL individual-profile snapshot 9 GP, 1 G, 2 A is older and not asserted as current. Contract 27/28."
+  }
+]

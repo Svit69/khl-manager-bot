@@ -1,0 +1,803 @@
+[
+  {
+    "name": "Глеб Бурлака",
+    "team": "Авангард",
+    "birthDate": "2007-02-20",
+    "positions": [
+      "ПНП",
+      "ЛНП"
+    ],
+    "nationality": "RU",
+    "stats": {
+      "season": "2026/2027",
+      "league": "KHL",
+      "games": 19,
+      "goals": 0,
+      "assists": 1,
+      "points": 1,
+      "penaltyMinutes": 8,
+      "plusMinus": -1,
+      "otherLeagues": []
+    },
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "contractUntil": "2026/2027",
+    "salaryMillions": 2,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 68,
+    "potential": 77,
+    "sources": [
+      "https://www.eliteprospects.com/player/836761/gleb-burlaka",
+      "https://hawk.ru/khl/stats/"
+    ],
+    "notes": {
+      "checkedOn": "2026-11-02",
+      "evidence": "EP bio: RW/LW, Russia, contract 26/27; season row 19 GP, 0+1. Official club stats has older 18 GP, 0+1.",
+      "salaryBasis": "Conservative game estimate only, million RUB per season; no verified public salary found. Not a reported contract amount.",
+      "ratingBasis": "Subjective game recommendation: youth/depth level; regular baseline 72-77, elite 81-83.",
+      "caveats": "Regular-season observed EP snapshot, not projected rows or a guaranteed complete November 2 tally. otherLeagues is non-exhaustive; empty means not captured, not zero appearances. Contract end is EP-listed unless corroborated above. Null career fields mean not independently captured. Club news article 60059 calls Burlaka 2008-born, conflicting with EP's exact 2007-02-20; exact EP profile date retained."
+    }
+  },
+  {
+    "name": "Родион Казанцев",
+    "team": "Авангард",
+    "birthDate": "2007-06-12",
+    "positions": [
+      "ЦТР"
+    ],
+    "nationality": "RU",
+    "stats": {
+      "season": "2026/2027",
+      "league": "KHL",
+      "games": 10,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 0,
+      "plusMinus": -1,
+      "otherLeagues": [
+        {
+          "league": "VHL",
+          "team": "Омские Крылья",
+          "games": 3,
+          "goals": 1,
+          "assists": 0,
+          "points": 1
+        },
+        {
+          "league": "MHL",
+          "team": "Омские Ястребы",
+          "games": 2,
+          "goals": 0,
+          "assists": 0,
+          "points": 0
+        }
+      ]
+    },
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "contractUntil": "2026/2027",
+    "salaryMillions": 1.5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 65,
+    "potential": 75,
+    "sources": [
+      "https://www.eliteprospects.com/player/689987/rodion-kazantsev",
+      "https://hawk.ru/khl/stats/"
+    ],
+    "notes": {
+      "checkedOn": "2026-11-02",
+      "evidence": "EP bio: C, Russia, contract 26/27; season row 10 GP, 0+0. Official club table is older: 9 GP.",
+      "salaryBasis": "Conservative game estimate only, million RUB per season; no verified public salary found. Not a reported contract amount.",
+      "ratingBasis": "Subjective game recommendation: youth/depth level; regular baseline 72-77, elite 81-83.",
+      "caveats": "Regular-season observed EP snapshot, not projected rows or a guaranteed complete November 2 tally. otherLeagues is non-exhaustive; empty means not captured, not zero appearances. Contract end is EP-listed unless corroborated above. Null career fields mean not independently captured."
+    }
+  },
+  {
+    "name": "Максим Тарасов",
+    "team": "Автомобилист",
+    "birthDate": "2006-05-04",
+    "positions": [
+      "ЦТР"
+    ],
+    "nationality": "RU",
+    "stats": {
+      "season": "2026/2027",
+      "league": "KHL",
+      "games": 20,
+      "goals": 5,
+      "assists": 1,
+      "points": 6,
+      "penaltyMinutes": 0,
+      "plusMinus": 10,
+      "otherLeagues": []
+    },
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "contractUntil": "2027/2028",
+    "salaryMillions": 3,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 71,
+    "potential": 79,
+    "sources": [
+      "https://www.eliteprospects.com/player/837596/maxim-tarasov",
+      "https://mhl.khl.ru/news/20087/1173553/"
+    ],
+    "notes": {
+      "checkedOn": "2026-11-02",
+      "evidence": "EP bio: C, Russia, contract 27/28; season row 20 GP, 5+1. MHL official news 2026-07-15 confirms new two-season deal.",
+      "salaryBasis": "Conservative game estimate only, million RUB per season; no verified public salary found. Not a reported contract amount.",
+      "ratingBasis": "Subjective game recommendation: youth/depth level; regular baseline 72-77, elite 81-83.",
+      "caveats": "Regular-season observed EP snapshot, not projected rows or a guaranteed complete November 2 tally. otherLeagues is non-exhaustive; empty means not captured, not zero appearances. Contract end is EP-listed unless corroborated above. Null career fields mean not independently captured."
+    }
+  },
+  {
+    "name": "Георгий Кайгородов",
+    "team": "Автомобилист",
+    "birthDate": "2007-05-09",
+    "positions": [
+      "ЗАЩ"
+    ],
+    "nationality": "RU",
+    "stats": {
+      "season": "2026/2027",
+      "league": "KHL",
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 0,
+      "plusMinus": 0,
+      "otherLeagues": [
+        {
+          "league": "VHL",
+          "team": "Горняк-УГМК",
+          "games": 13,
+          "goals": 0,
+          "assists": 2,
+          "points": 2
+        },
+        {
+          "league": "MHL",
+          "team": "Авто",
+          "games": 2,
+          "goals": 0,
+          "assists": 1,
+          "points": 1
+        }
+      ]
+    },
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "contractUntil": "2026/2027",
+    "salaryMillions": 1,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 63,
+    "potential": 75,
+    "sources": [
+      "https://www.eliteprospects.com/player/1044349/georgi-kaigorodov",
+      "https://www.khl.ru/clubs/avtomobilist/"
+    ],
+    "notes": {
+      "checkedOn": "2026-11-02",
+      "evidence": "EP bio: D, Russia, contract 26/27; KHL season row 1 GP, 0+0.",
+      "salaryBasis": "Conservative game estimate only, million RUB per season; no verified public salary found. Not a reported contract amount.",
+      "ratingBasis": "Subjective game recommendation: youth/depth level; regular baseline 72-77, elite 81-83.",
+      "caveats": "Regular-season observed EP snapshot, not projected rows or a guaranteed complete November 2 tally. otherLeagues is non-exhaustive; empty means not captured, not zero appearances. Contract end is EP-listed unless corroborated above. Null career fields mean not independently captured. Official KHL club page was checked but exposed only a static shell, not usable player evidence; profile facts come from EP."
+    }
+  },
+  {
+    "name": "Дмитрий Мухтаров",
+    "team": "Адмирал",
+    "birthDate": "2006-05-04",
+    "positions": [
+      "ПНП"
+    ],
+    "nationality": "RU",
+    "stats": {
+      "season": "2026/2027",
+      "league": "KHL",
+      "games": 17,
+      "goals": 1,
+      "assists": 2,
+      "points": 3,
+      "penaltyMinutes": 0,
+      "plusMinus": 3,
+      "otherLeagues": []
+    },
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "contractUntil": "2028/2029",
+    "salaryMillions": 2.5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 68,
+    "potential": 77,
+    "sources": [
+      "https://www.eliteprospects.com/player/882796/dmitri-mukhtarov",
+      "https://t.me/s/hcadmiralru?before=26608"
+    ],
+    "notes": {
+      "checkedOn": "2026-11-02",
+      "evidence": "EP bio/transfer: RW, Russia, born 2006-05-04, contract 28/29; season row 17 GP, 1+2. Official club channel announces three-year signing.",
+      "salaryBasis": "Conservative game estimate only, million RUB per season; no verified public salary found. Not a reported contract amount.",
+      "ratingBasis": "Subjective game recommendation: youth/depth level; regular baseline 72-77, elite 81-83.",
+      "caveats": "Regular-season observed EP snapshot, not projected rows or a guaranteed complete November 2 tally. otherLeagues is non-exhaustive; empty means not captured, not zero appearances. Contract end is EP-listed unless corroborated above. Null career fields mean not independently captured."
+    }
+  },
+  {
+    "name": "Иван Янченко",
+    "team": "Адмирал",
+    "birthDate": "2004-02-27",
+    "positions": [
+      "ЦТР"
+    ],
+    "nationality": "BY",
+    "stats": {
+      "season": "2026/2027",
+      "league": "KHL",
+      "games": 16,
+      "goals": 4,
+      "assists": 3,
+      "points": 7,
+      "penaltyMinutes": 2,
+      "plusMinus": 7,
+      "otherLeagues": []
+    },
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "contractUntil": "2026/2027",
+    "salaryMillions": 7,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 72,
+    "potential": 77,
+    "sources": [
+      "https://www.eliteprospects.com/player/619379/ivan-yanchenko",
+      "https://www.khl.ru/clubs/admiral/"
+    ],
+    "notes": {
+      "checkedOn": "2026-11-02",
+      "evidence": "EP bio: C, Belarus/Russia, contract 26/27; season row 16 GP, 4+3.",
+      "salaryBasis": "Conservative game estimate only, million RUB per season; no verified public salary found. Not a reported contract amount.",
+      "ratingBasis": "Subjective game recommendation: developing KHL regular; elite baseline 81-83.",
+      "caveats": "Regular-season observed EP snapshot, not projected rows or a guaranteed complete November 2 tally. otherLeagues is non-exhaustive; empty means not captured, not zero appearances. Contract end is EP-listed unless corroborated above. Null career fields mean not independently captured. Nationality BY is the first EP nation; EP also lists RU. Official KHL club page was checked but exposed only a static shell, not usable player evidence; profile facts come from EP."
+    }
+  },
+  {
+    "name": "Кирилл Жуков",
+    "team": "Адмирал",
+    "birthDate": "2004-08-23",
+    "positions": [
+      "ЗАЩ"
+    ],
+    "nationality": "RU",
+    "stats": {
+      "season": "2026/2027",
+      "league": "KHL",
+      "games": 14,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 0,
+      "plusMinus": -3,
+      "otherLeagues": []
+    },
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "contractUntil": "2026/2027",
+    "salaryMillions": 5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 69,
+    "potential": 75,
+    "sources": [
+      "https://www.eliteprospects.com/player/526246/kirill-zhukov",
+      "https://www.khl.ru/clubs/admiral/"
+    ],
+    "notes": {
+      "checkedOn": "2026-11-02",
+      "evidence": "EP bio: D, Russia, contract 26/27; season row 14 GP, 0+0.",
+      "salaryBasis": "Conservative game estimate only, million RUB per season; no verified public salary found. Not a reported contract amount.",
+      "ratingBasis": "Subjective game recommendation: youth/depth level; regular baseline 72-77, elite 81-83.",
+      "caveats": "Regular-season observed EP snapshot, not projected rows or a guaranteed complete November 2 tally. otherLeagues is non-exhaustive; empty means not captured, not zero appearances. Contract end is EP-listed unless corroborated above. Null career fields mean not independently captured. Official KHL club page was checked but exposed only a static shell, not usable player evidence; profile facts come from EP."
+    }
+  },
+  {
+    "name": "Максим Мусоров",
+    "team": "Адмирал",
+    "birthDate": "2001-05-29",
+    "positions": [
+      "ЛНП"
+    ],
+    "nationality": "KZ",
+    "stats": {
+      "season": "2026/2027",
+      "league": "KHL",
+      "games": 10,
+      "goals": 1,
+      "assists": 2,
+      "points": 3,
+      "penaltyMinutes": 0,
+      "plusMinus": -2,
+      "otherLeagues": []
+    },
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "contractUntil": "2026/2027",
+    "salaryMillions": 5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 70,
+    "potential": 74,
+    "sources": [
+      "https://www.eliteprospects.com/player/452036/maxim-musorov",
+      "https://www.khl.ru/clubs/admiral/"
+    ],
+    "notes": {
+      "checkedOn": "2026-11-02",
+      "evidence": "EP bio: LW, Kazakhstan, contract 26/27; season row 10 GP, 1+2.",
+      "salaryBasis": "Conservative game estimate only, million RUB per season; no verified public salary found. Not a reported contract amount.",
+      "ratingBasis": "Subjective game recommendation: youth/depth level; regular baseline 72-77, elite 81-83.",
+      "caveats": "Regular-season observed EP snapshot, not projected rows or a guaranteed complete November 2 tally. otherLeagues is non-exhaustive; empty means not captured, not zero appearances. Contract end is EP-listed unless corroborated above. Null career fields mean not independently captured. Official KHL club page was checked but exposed only a static shell, not usable player evidence; profile facts come from EP."
+    }
+  },
+  {
+    "name": "Данила Хулапов",
+    "team": "Адмирал",
+    "birthDate": "2001-01-30",
+    "positions": [
+      "ПНП"
+    ],
+    "nationality": "RU",
+    "stats": {
+      "season": "2026/2027",
+      "league": "KHL",
+      "games": 7,
+      "goals": 0,
+      "assists": 1,
+      "points": 1,
+      "penaltyMinutes": 0,
+      "plusMinus": -2,
+      "otherLeagues": []
+    },
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "contractUntil": "2026/2027",
+    "salaryMillions": 5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 68,
+    "potential": 72,
+    "sources": [
+      "https://www.eliteprospects.com/player/514655/danila-khulapov",
+      "https://www.khl.ru/clubs/admiral/"
+    ],
+    "notes": {
+      "checkedOn": "2026-11-02",
+      "evidence": "EP bio: RW, Russia, contract 26/27; season row 7 GP, 0+1.",
+      "salaryBasis": "Conservative game estimate only, million RUB per season; no verified public salary found. Not a reported contract amount.",
+      "ratingBasis": "Subjective game recommendation: youth/depth level; regular baseline 72-77, elite 81-83.",
+      "caveats": "Regular-season observed EP snapshot, not projected rows or a guaranteed complete November 2 tally. otherLeagues is non-exhaustive; empty means not captured, not zero appearances. Contract end is EP-listed unless corroborated above. Null career fields mean not independently captured. Official KHL club page was checked but exposed only a static shell, not usable player evidence; profile facts come from EP."
+    }
+  },
+  {
+    "name": "Равиль Якупов",
+    "team": "Ак Барс",
+    "birthDate": "2003-03-16",
+    "positions": [
+      "ПНП",
+      "ЦТР"
+    ],
+    "nationality": "RU",
+    "stats": {
+      "season": "2026/2027",
+      "league": "KHL",
+      "games": 21,
+      "goals": 2,
+      "assists": 2,
+      "points": 4,
+      "penaltyMinutes": 6,
+      "plusMinus": 0,
+      "otherLeagues": []
+    },
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "contractUntil": "2026/2027",
+    "salaryMillions": 5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 70,
+    "potential": 75,
+    "sources": [
+      "https://www.eliteprospects.com/player/699052/ravil-yakupov",
+      "https://www.eliteprospects.com/team/184/ak-bars-kazan"
+    ],
+    "notes": {
+      "checkedOn": "2026-11-02",
+      "evidence": "EP bio: RW/C, Russia, contract 26/27; season row 21 GP, 2+2.",
+      "salaryBasis": "Conservative game estimate only, million RUB per season; no verified public salary found. Not a reported contract amount.",
+      "ratingBasis": "Subjective game recommendation: youth/depth level; regular baseline 72-77, elite 81-83.",
+      "caveats": "Regular-season observed EP snapshot, not projected rows or a guaranteed complete November 2 tally. otherLeagues is non-exhaustive; empty means not captured, not zero appearances. Contract end is EP-listed unless corroborated above. Null career fields mean not independently captured."
+    }
+  },
+  {
+    "name": "Семён Терехов",
+    "team": "Ак Барс",
+    "birthDate": "2002-01-28",
+    "positions": [
+      "ПНП"
+    ],
+    "nationality": "RU",
+    "stats": {
+      "season": "2026/2027",
+      "league": "KHL",
+      "games": 21,
+      "goals": 5,
+      "assists": 3,
+      "points": 8,
+      "penaltyMinutes": 2,
+      "plusMinus": 7,
+      "otherLeagues": []
+    },
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "contractUntil": "2027/2028",
+    "salaryMillions": 10,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 73,
+    "potential": 77,
+    "sources": [
+      "https://www.eliteprospects.com/player/588577/semyon-terekhov",
+      "https://www.ak-bars.ru/uploads/843/programs/pdf/18fd7cd1264c27fd221c7fd60737b377.pdf"
+    ],
+    "notes": {
+      "checkedOn": "2026-11-02",
+      "evidence": "EP bio: RW, Russia, contract 27/28; season row 21 GP, 5+3. Official club program corroborates DOB; KHL preview describes one-way deal.",
+      "salaryBasis": "Conservative game estimate only, million RUB per season; no verified public salary found. Not a reported contract amount.",
+      "ratingBasis": "Subjective game recommendation: developing KHL regular; elite baseline 81-83.",
+      "caveats": "Regular-season observed EP snapshot, not projected rows or a guaranteed complete November 2 tally. otherLeagues is non-exhaustive; empty means not captured, not zero appearances. Contract end is EP-listed unless corroborated above. Null career fields mean not independently captured."
+    }
+  },
+  {
+    "name": "Максим Быков",
+    "team": "Ак Барс",
+    "birthDate": "2002-07-02",
+    "positions": [
+      "ЛНП"
+    ],
+    "nationality": "RU",
+    "stats": {
+      "season": "2026/2027",
+      "league": "KHL",
+      "games": 9,
+      "goals": 0,
+      "assists": 1,
+      "points": 1,
+      "penaltyMinutes": 2,
+      "plusMinus": 1,
+      "otherLeagues": []
+    },
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "contractUntil": "2026/2027",
+    "salaryMillions": 5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 68,
+    "potential": 73,
+    "sources": [
+      "https://www.eliteprospects.com/player/625742/maxim-bykov",
+      "https://www.eliteprospects.com/team/184/ak-bars-kazan"
+    ],
+    "notes": {
+      "checkedOn": "2026-11-02",
+      "evidence": "EP bio: LW, Russia, contract 26/27; season row 9 GP, 0+1.",
+      "salaryBasis": "Conservative game estimate only, million RUB per season; no verified public salary found. Not a reported contract amount.",
+      "ratingBasis": "Subjective game recommendation: youth/depth level; regular baseline 72-77, elite 81-83.",
+      "caveats": "Regular-season observed EP snapshot, not projected rows or a guaranteed complete November 2 tally. otherLeagues is non-exhaustive; empty means not captured, not zero appearances. Contract end is EP-listed unless corroborated above. Null career fields mean not independently captured."
+    }
+  },
+  {
+    "name": "Александр Иванов",
+    "team": "Ак Барс",
+    "birthDate": "2008-06-10",
+    "positions": [
+      "ЗАЩ"
+    ],
+    "nationality": "RU",
+    "stats": {
+      "season": "2026/2027",
+      "league": "KHL",
+      "games": 8,
+      "goals": 1,
+      "assists": 0,
+      "points": 1,
+      "penaltyMinutes": 0,
+      "plusMinus": 0,
+      "otherLeagues": [
+        {
+          "league": "VHL",
+          "team": "Барс",
+          "games": 2,
+          "goals": 1,
+          "assists": 0,
+          "points": 1
+        },
+        {
+          "league": "MHL",
+          "team": "Ирбис",
+          "games": 6,
+          "goals": 0,
+          "assists": 0,
+          "points": 0
+        }
+      ]
+    },
+    "khlCareer": {
+      "games": 15,
+      "seasons": 2
+    },
+    "contractUntil": "2027/2028",
+    "salaryMillions": 1.5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 65,
+    "potential": 78,
+    "sources": [
+      "https://www.eliteprospects.com/player/895845/alexander-ivanov",
+      "https://www.ak-bars.ru/uploads/843/programs/pdf/18fd7cd1264c27fd221c7fd60737b377.pdf"
+    ],
+    "notes": {
+      "checkedOn": "2026-11-02",
+      "evidence": "EP verified profile alias Alexander Val. Ivanov: D, Russia, born 2008-06-10, contract 27/28; KHL row 8 GP, 1+0. Official Ak Bars program independently confirms DOB and defense category. EP career regular-season KHL total: 2 seasons, 15 GP.",
+      "salaryBasis": "Conservative game estimate only, million RUB per season; no verified public salary found. Not a reported contract amount.",
+      "ratingBasis": "Subjective game recommendation: youth/depth level; regular baseline 72-77, elite 81-83.",
+      "caveats": "Regular-season observed EP snapshot, not projected rows or a guaranteed complete November 2 tally. otherLeagues is non-exhaustive; empty means not captured, not zero appearances. Contract end is EP-listed unless corroborated above. Null career fields mean not independently captured. Identity is the 2008-born Ak Bars defenseman, not another Alexander Ivanov."
+    }
+  },
+  {
+    "name": "Игорь Бардин",
+    "team": "Ак Барс",
+    "birthDate": "2005-12-23",
+    "positions": [
+      "ЗАЩ"
+    ],
+    "nationality": "RU",
+    "stats": {
+      "season": "2026/2027",
+      "league": "KHL",
+      "games": 7,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 0,
+      "plusMinus": -2,
+      "otherLeagues": []
+    },
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "contractUntil": "2027/2028",
+    "salaryMillions": 2,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 66,
+    "potential": 75,
+    "sources": [
+      "https://www.eliteprospects.com/player/780075/igor-bardin",
+      "https://www.ak-bars.ru/uploads/843/programs/pdf/18fd7cd1264c27fd221c7fd60737b377.pdf"
+    ],
+    "notes": {
+      "checkedOn": "2026-11-02",
+      "evidence": "EP bio: D, Russia, contract 27/28; season row 7 GP, 0+0. Official club program confirms DOB and defense category.",
+      "salaryBasis": "Conservative game estimate only, million RUB per season; no verified public salary found. Not a reported contract amount.",
+      "ratingBasis": "Subjective game recommendation: youth/depth level; regular baseline 72-77, elite 81-83.",
+      "caveats": "Regular-season observed EP snapshot, not projected rows or a guaranteed complete November 2 tally. otherLeagues is non-exhaustive; empty means not captured, not zero appearances. Contract end is EP-listed unless corroborated above. Null career fields mean not independently captured."
+    }
+  },
+  {
+    "name": "Константин Никитин",
+    "team": "Ак Барс",
+    "birthDate": "2008-06-07",
+    "positions": [
+      "ЗАЩ"
+    ],
+    "nationality": "RU",
+    "stats": {
+      "season": "2026/2027",
+      "league": "KHL",
+      "games": 7,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 2,
+      "plusMinus": -1,
+      "otherLeagues": [
+        {
+          "league": "VHL",
+          "team": "Барс",
+          "games": 13,
+          "goals": 2,
+          "assists": 3,
+          "points": 5
+        },
+        {
+          "league": "MHL",
+          "team": "Ирбис",
+          "games": 4,
+          "goals": 0,
+          "assists": 5,
+          "points": 5
+        }
+      ]
+    },
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "contractUntil": "2027/2028",
+    "salaryMillions": 1,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 63,
+    "potential": 76,
+    "sources": [
+      "https://www.eliteprospects.com/player/896171/konstantin-nikitin",
+      "https://www.eliteprospects.com/team/184/ak-bars-kazan"
+    ],
+    "notes": {
+      "checkedOn": "2026-11-02",
+      "evidence": "EP bio: D, Russia, born 2008-06-07, contract 27/28; KHL season row 7 GP, 0+0.",
+      "salaryBasis": "Conservative game estimate only, million RUB per season; no verified public salary found. Not a reported contract amount.",
+      "ratingBasis": "Subjective game recommendation: youth/depth level; regular baseline 72-77, elite 81-83.",
+      "caveats": "Regular-season observed EP snapshot, not projected rows or a guaranteed complete November 2 tally. otherLeagues is non-exhaustive; empty means not captured, not zero appearances. Contract end is EP-listed unless corroborated above. Null career fields mean not independently captured."
+    }
+  },
+  {
+    "name": "Андрей Дульнев",
+    "team": "Ак Барс",
+    "birthDate": "2007-01-31",
+    "positions": [
+      "ЗАЩ"
+    ],
+    "nationality": "RU",
+    "stats": {
+      "season": "2026/2027",
+      "league": "KHL",
+      "games": 6,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 0,
+      "plusMinus": 0,
+      "otherLeagues": [
+        {
+          "league": "VHL",
+          "team": "Барс",
+          "games": 2,
+          "goals": 0,
+          "assists": 0,
+          "points": 0
+        },
+        {
+          "league": "MHL",
+          "team": "Ирбис",
+          "games": 10,
+          "goals": 2,
+          "assists": 5,
+          "points": 7
+        }
+      ]
+    },
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "contractUntil": "2026/2027",
+    "salaryMillions": 1,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 62,
+    "potential": 73,
+    "sources": [
+      "https://www.eliteprospects.com/player/996493/andrei-dulnev",
+      "https://www.eliteprospects.com/team/184/ak-bars-kazan"
+    ],
+    "notes": {
+      "checkedOn": "2026-11-02",
+      "evidence": "EP bio: D, Russia, born 2007-01-31, contract 26/27; KHL season row 6 GP, 0+0.",
+      "salaryBasis": "Conservative game estimate only, million RUB per season; no verified public salary found. Not a reported contract amount.",
+      "ratingBasis": "Subjective game recommendation: youth/depth level; regular baseline 72-77, elite 81-83.",
+      "caveats": "Regular-season observed EP snapshot, not projected rows or a guaranteed complete November 2 tally. otherLeagues is non-exhaustive; empty means not captured, not zero appearances. Contract end is EP-listed unless corroborated above. Null career fields mean not independently captured."
+    }
+  },
+  {
+    "name": "Малик Саберзянов",
+    "team": "Ак Барс",
+    "birthDate": "2006-10-24",
+    "positions": [
+      "ЦТР"
+    ],
+    "nationality": "RU",
+    "stats": {
+      "season": "2026/2027",
+      "league": "KHL",
+      "games": 5,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 0,
+      "plusMinus": 0,
+      "otherLeagues": [
+        {
+          "league": "VHL",
+          "team": "Барс",
+          "games": 15,
+          "goals": 2,
+          "assists": 9,
+          "points": 11
+        },
+        {
+          "league": "MHL",
+          "team": "Ирбис",
+          "games": 1,
+          "goals": 0,
+          "assists": 2,
+          "points": 2
+        }
+      ]
+    },
+    "khlCareer": {
+      "games": null,
+      "seasons": null
+    },
+    "contractUntil": "2026/2027",
+    "salaryMillions": 2,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 67,
+    "potential": 77,
+    "sources": [
+      "https://www.eliteprospects.com/player/802661/malik-saberzyanov",
+      "https://www.ak-bars.ru/uploads/843/programs/pdf/1603c7f8fc6ccde2abbac1319e24cf0a.pdf"
+    ],
+    "notes": {
+      "checkedOn": "2026-11-02",
+      "evidence": "EP bio: C/W, Russia, contract 26/27; KHL season row 5 GP, 0+0. Official club program confirms DOB; unspecified wing side not mapped to LW/RW.",
+      "salaryBasis": "Conservative game estimate only, million RUB per season; no verified public salary found. Not a reported contract amount.",
+      "ratingBasis": "Subjective game recommendation: youth/depth level; regular baseline 72-77, elite 81-83.",
+      "caveats": "Regular-season observed EP snapshot, not projected rows or a guaranteed complete November 2 tally. otherLeagues is non-exhaustive; empty means not captured, not zero appearances. Contract end is EP-listed unless corroborated above. Null career fields mean not independently captured."
+    }
+  }
+]

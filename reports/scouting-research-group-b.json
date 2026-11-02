@@ -1,0 +1,736 @@
+[
+  {
+    "name": "Фёдор Храпов",
+    "team": "Амур",
+    "birthDate": "2005-04-24",
+    "positions": [
+      "C"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 21,
+      "goals": 2,
+      "assists": 3,
+      "stage": "regularSeason",
+      "statsThroughDate": null
+    },
+    "khlCareer": {
+      "games": 21,
+      "seasons": 1
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 3,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 70,
+    "potential": 76,
+    "sources": [
+      "https://www.eliteprospects.com/player/691464/fyodor-khrapov",
+      "https://www.eliteprospects.com/team/185/amur-khabarovsk/stats?sort=g",
+      "https://www.hcamur.ru/players/khl/"
+    ],
+    "notes": "EP bio, actual regular-season row and career totals. EP lists contract through 27/28. Salary is a conservative annual game estimate in RUB millions, not a disclosed wage. Ratings are subjective game estimates: young KHL depth center. Research checked Nov 2 2026; source tables are rolling/cached snapshots without a certified Nov 2 cutoff, so statsThroughDate is null. No full-season projections used.",
+    "researchDate": "2026-11-02"
+  },
+  {
+    "name": "Ярослав Дёминский",
+    "team": "Амур",
+    "birthDate": "2008-12-05",
+    "positions": [
+      "D"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 21,
+      "goals": 0,
+      "assists": 2,
+      "otherLeagues": [
+        {
+          "league": "MHL",
+          "team": "Амурские Тигры",
+          "games": 1,
+          "goals": 0,
+          "assists": 0
+        }
+      ],
+      "stage": "regularSeason",
+      "statsThroughDate": null
+    },
+    "khlCareer": {
+      "games": 21,
+      "seasons": 1
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 1.5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 68,
+    "potential": 78,
+    "sources": [
+      "https://www.eliteprospects.com/player/981591/yaroslav-dyominsky",
+      "https://www.hcamur.ru/players/khl/"
+    ],
+    "notes": "EP actual regular-season rows and career totals; not Projected rows. Contract end from EP. Salary is an annual RUB-million game estimate, not confirmed compensation. Ratings are subjective: 17-year-old defense prospect with early KHL exposure. Research checked Nov 2 2026; source tables are rolling/cached snapshots without a certified Nov 2 cutoff, so statsThroughDate is null. No full-season projections used.",
+    "researchDate": "2026-11-02"
+  },
+  {
+    "name": "Константин Лукин",
+    "team": "Амур",
+    "birthDate": "2001-03-26",
+    "positions": [
+      "RW"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 15,
+      "goals": 2,
+      "assists": 3,
+      "stage": "regularSeason",
+      "statsThroughDate": null
+    },
+    "khlCareer": {
+      "games": 25,
+      "seasons": 3
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 6,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 70,
+    "potential": 73,
+    "sources": [
+      "https://www.eliteprospects.com/player/517822/konstantin-lukin",
+      "https://www.eliteprospects.com/team/185/amur-khabarovsk/stats?sort=g",
+      "https://www.hcamur.ru/players/khl/"
+    ],
+    "notes": "Latest retrieved EP player/team rows agree on 15 GP, 2+3; an earlier cached player snapshot showed 14 GP, 1+3. Career regular-season total 25 GP in three seasons. Contract end from EP. Salary is an annual RUB-million game estimate for a depth winger; ratings are subjective. Research checked Nov 2 2026; source tables are rolling/cached snapshots without a certified Nov 2 cutoff, so statsThroughDate is null. No full-season projections used.",
+    "researchDate": "2026-11-02"
+  },
+  {
+    "name": "Дмитрий Костенко",
+    "team": "Амур",
+    "birthDate": "2002-09-25",
+    "positions": [
+      "D"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 11,
+      "goals": 2,
+      "assists": 0,
+      "stage": "regularSeason",
+      "statsThroughDate": null
+    },
+    "khlCareer": {
+      "games": 63,
+      "seasons": 2
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 8,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 71,
+    "potential": 75,
+    "sources": [
+      "https://www.eliteprospects.com/player/568044/dmitri-kostenko",
+      "https://www.hcamur.ru/players/khl/"
+    ],
+    "notes": "EP actual regular-season row, career totals and contract end; EP marks injured, with no independently verified medical detail. Salary is an annual RUB-million game estimate, not a public figure. Ratings are subjective: fringe KHL defenseman with development upside. Research checked Nov 2 2026; source tables are rolling/cached snapshots without a certified Nov 2 cutoff, so statsThroughDate is null. No full-season projections used.",
+    "researchDate": "2026-11-02"
+  },
+  {
+    "name": "Борис Борин",
+    "team": "Амур",
+    "birthDate": "2008-06-17",
+    "positions": [
+      "C"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 9,
+      "goals": 0,
+      "assists": 1,
+      "otherLeagues": [
+        {
+          "league": "MHL",
+          "team": "Амурские Тигры",
+          "games": 7,
+          "goals": 3,
+          "assists": 6
+        }
+      ],
+      "stage": "regularSeason",
+      "statsThroughDate": null
+    },
+    "khlCareer": {
+      "games": 9,
+      "seasons": 1
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 1,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 65,
+    "potential": 77,
+    "sources": [
+      "https://www.eliteprospects.com/player/983692/boris-borin",
+      "https://www.hcamur.ru/players/khl/"
+    ],
+    "notes": "Latest EP row and career totals show 9 KHL games; an older cached snapshot showed 8. Actual MHL totals are separate, not added to KHL. Contract end from EP. Salary is an annual RUB-million youth game estimate; ratings are subjective. Research checked Nov 2 2026; source tables are rolling/cached snapshots without a certified Nov 2 cutoff, so statsThroughDate is null. No full-season projections used.",
+    "researchDate": "2026-11-02"
+  },
+  {
+    "name": "Максим Кровяков",
+    "team": "Амур",
+    "birthDate": "2002-05-12",
+    "positions": [
+      "C"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 9,
+      "goals": 1,
+      "assists": 1,
+      "stage": "regularSeason",
+      "statsThroughDate": null
+    },
+    "khlCareer": {
+      "games": 56,
+      "seasons": 6
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 6,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 70,
+    "potential": 74,
+    "sources": [
+      "https://www.eliteprospects.com/player/595481/maxim-krovyakov",
+      "https://www.vhlru.ru/lenta/604302/",
+      "https://www.hcamur.ru/players/khl/"
+    ],
+    "notes": "Official VHL report confirms loan from Spartak to Amur; EP marks Loan. contractUntil is EP's underlying player contract through 27/28, NOT a verified Amur loan expiry; loan end is unknown. Actual regular-season career totals exclude playoffs. Salary is an annual RUB-million game estimate, with payer/loan cost allocation unknown. Ratings are subjective. Research checked Nov 2 2026; source tables are rolling/cached snapshots without a certified Nov 2 cutoff, so statsThroughDate is null. No full-season projections used.",
+    "researchDate": "2026-11-02"
+  },
+  {
+    "name": "Джастин Бэйли",
+    "team": "Барыс",
+    "birthDate": "1995-07-01",
+    "positions": [
+      "RW",
+      "LW"
+    ],
+    "nationality": [
+      "USA",
+      "CAN"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 21,
+      "goals": 12,
+      "assists": 10,
+      "stage": "regularSeason",
+      "statsThroughDate": null
+    },
+    "khlCareer": {
+      "games": 21,
+      "seasons": 1
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 60,
+    "salaryConfirmed": false,
+    "salaryStatus": "reported",
+    "salaryBonusMillions": 13,
+    "overall": 80,
+    "potential": 80,
+    "sources": [
+      "https://www.eliteprospects.com/player/116970/justin-bailey",
+      "https://www.eliteprospects.com/team/2498/barys-astana",
+      "https://www.sports.kz/news/kontrakt-novichka-baryisa-otsenili-v-436-millionov-tenge"
+    ],
+    "notes": "EP lists USA/Canada nationality, actual regular-season stats and contract end. Sports.kz, July 24 2026, relays Artur Khairullin's corrected report: RUB 60m annual base plus up to RUB 13m bonuses, superseding the earlier RUB 32m report. Financial terms are media-reported, NOT officially confirmed; bonus excluded from salaryMillions. One-season deal reportedly ends May 31 2027. Ratings are subjective: strong first KHL scoring sample, not yet established at the 81-83 elite tier. Research checked Nov 2 2026; source tables are rolling/cached snapshots without a certified Nov 2 cutoff, so statsThroughDate is null. No full-season projections used.",
+    "researchDate": "2026-11-02"
+  },
+  {
+    "name": "Дамир Бритиков",
+    "team": "Барыс",
+    "birthDate": "2007-06-23",
+    "positions": [
+      "D"
+    ],
+    "nationality": [
+      "KAZ"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 16,
+      "goals": 0,
+      "assists": 2,
+      "otherLeagues": [
+        {
+          "league": "Kazakhstan",
+          "team": "Номад",
+          "games": 1,
+          "goals": 0,
+          "assists": 0
+        },
+        {
+          "league": "MHL",
+          "team": "Снежные Барсы",
+          "games": 2,
+          "goals": 0,
+          "assists": 0
+        }
+      ],
+      "stage": "regularSeason",
+      "statsThroughDate": null
+    },
+    "khlCareer": {
+      "games": 16,
+      "seasons": 1
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 1.5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 67,
+    "potential": 75,
+    "sources": [
+      "https://www.eliteprospects.com/player/1069795/damir-britikov",
+      "https://ru.hcbarys.kz/media/news/snezhnye-barsy-zaklyuchili-kontrakty-s-ryadom-igrokov-1/"
+    ],
+    "notes": "Club announcement explicitly confirms two-season two-way contract through May 31 2028. Stats are EP actual regular-season rows, with leagues separated. Salary is an annual RUB-million youth game estimate, not disclosed pay. Ratings are subjective. Research checked Nov 2 2026; source tables are rolling/cached snapshots without a certified Nov 2 cutoff, so statsThroughDate is null. No full-season projections used.",
+    "researchDate": "2026-11-02"
+  },
+  {
+    "name": "Асанали Саркенов",
+    "team": "Барыс",
+    "birthDate": "2006-07-22",
+    "positions": [
+      "RW",
+      "LW"
+    ],
+    "nationality": [
+      "KAZ"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 7,
+      "goals": 1,
+      "assists": 1,
+      "otherLeagues": [
+        {
+          "league": "Kazakhstan",
+          "team": "Номад",
+          "games": 6,
+          "goals": 4,
+          "assists": 3
+        }
+      ],
+      "stage": "regularSeason",
+      "statsThroughDate": null
+    },
+    "khlCareer": {
+      "games": 7,
+      "seasons": 1
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 2,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 68,
+    "potential": 76,
+    "sources": [
+      "https://www.eliteprospects.com/player/951827/asanali-sarkenov",
+      "https://en.hcbarys.kz/media/news/alibek-i-sarkenov-vernulis-v-sistemu-barysa-/"
+    ],
+    "notes": "Official club announcement confirms one-season two-way deal through May 31 2027. EP actual league rows and career totals; Projected rows excluded. Salary is an annual RUB-million youth game estimate; ratings are subjective: physical young wing with limited KHL sample. Research checked Nov 2 2026; source tables are rolling/cached snapshots without a certified Nov 2 cutoff, so statsThroughDate is null. No full-season projections used.",
+    "researchDate": "2026-11-02"
+  },
+  {
+    "name": "Абзал Алибек",
+    "team": "Барыс",
+    "birthDate": "2006-03-29",
+    "positions": [
+      "F"
+    ],
+    "nationality": [
+      "KAZ"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 3,
+      "goals": 0,
+      "assists": 0,
+      "otherLeagues": [
+        {
+          "league": "Kazakhstan",
+          "team": "Номад",
+          "games": 8,
+          "goals": 4,
+          "assists": 2
+        }
+      ],
+      "stage": "regularSeason",
+      "statsThroughDate": null
+    },
+    "khlCareer": {
+      "games": 3,
+      "seasons": 1
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 1,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 63,
+    "potential": 72,
+    "sources": [
+      "https://www.eliteprospects.com/player/951817/abzal-alibek",
+      "https://en.hcbarys.kz/media/news/alibek-i-sarkenov-vernulis-v-sistemu-barysa-/"
+    ],
+    "notes": "Primary position is F as listed by EP; no unsupported center/wing specialization assigned. Official club announcement confirms two-way contract through May 31 2027. Actual league rows kept separate. Salary is an annual RUB-million youth game estimate; ratings are subjective. Research checked Nov 2 2026; source tables are rolling/cached snapshots without a certified Nov 2 cutoff, so statsThroughDate is null. No full-season projections used.",
+    "researchDate": "2026-11-02"
+  },
+  {
+    "name": "Мади Диханбек",
+    "team": "Барыс",
+    "birthDate": "2001-01-11",
+    "positions": [
+      "D"
+    ],
+    "nationality": [
+      "KAZ"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 2,
+      "goals": 0,
+      "assists": 1,
+      "stage": "regularSeason",
+      "statsThroughDate": null
+    },
+    "khlCareer": {
+      "games": 32,
+      "seasons": 2
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 68,
+    "potential": 71,
+    "sources": [
+      "https://www.eliteprospects.com/player/583665/madi-dikhanbek",
+      "https://www.eliteprospects.com/team/2498/barys-astana"
+    ],
+    "notes": "EP actual regular-season row, career totals and contract through 27/28. EP marks injured; no medical specifics inferred. Salary is a conservative annual RUB-million game estimate for a fringe defenseman, not confirmed pay. Ratings are subjective; two-game current sample is not a reliable scoring-rate forecast. Research checked Nov 2 2026; source tables are rolling/cached snapshots without a certified Nov 2 cutoff, so statsThroughDate is null. No full-season projections used.",
+    "researchDate": "2026-11-02"
+  },
+  {
+    "name": "Михаил Меликов",
+    "team": "Динамо Москва",
+    "birthDate": "2007-02-07",
+    "positions": [
+      "LW"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 24,
+      "goals": 1,
+      "assists": 3,
+      "stage": "regularSeason",
+      "statsThroughDate": null
+    },
+    "khlCareer": {
+      "games": 24,
+      "seasons": 1
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 3,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 70,
+    "potential": 79,
+    "sources": [
+      "https://www.eliteprospects.com/player/690136/mikhail-melikov",
+      "https://dynamo.ru/team?s=2026"
+    ],
+    "notes": "Latest retrieved EP player row and career totals show 24 GP, 1+3; older team-stat cache showed 20 GP, 1+2. Official club roster and EP agree on contract ending in 2027. Salary is an annual RUB-million youth game estimate; ratings are subjective: regular early exposure with limited scoring, meaningful youth upside. Research checked Nov 2 2026; source tables are rolling/cached snapshots without a certified Nov 2 cutoff, so statsThroughDate is null. No full-season projections used.",
+    "researchDate": "2026-11-02"
+  },
+  {
+    "name": "Дмитрий Зуган",
+    "team": "Динамо Москва",
+    "birthDate": "2002-11-23",
+    "positions": [
+      "C"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 9,
+      "goals": 0,
+      "assists": 0,
+      "otherLeagues": [
+        {
+          "league": "VHL",
+          "team": "Динамо Санкт-Петербург",
+          "games": 5,
+          "goals": 1,
+          "assists": 1
+        }
+      ],
+      "stage": "regularSeason",
+      "statsThroughDate": null
+    },
+    "khlCareer": {
+      "games": 10,
+      "seasons": 2
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 68,
+    "potential": 72,
+    "sources": [
+      "https://www.eliteprospects.com/player/530471/dmitri-zugan",
+      "https://dynamo.ru/player/77-zugan",
+      "https://dynamo.ru/team?s=2026"
+    ],
+    "notes": "Official club profile states expiry May 31 2028. EP latest player row gives 9 current KHL GP and career totals 10 GP in two seasons; older cached search excerpt gave 8 career GP and is superseded. EP currently labels VHL affiliate; team is requested parent-club grouping, not an assertion of present senior-roster registration. Salary is an annual RUB-million game estimate; ratings are subjective. Research checked Nov 2 2026; source tables are rolling/cached snapshots without a certified Nov 2 cutoff, so statsThroughDate is null. No full-season projections used.",
+    "researchDate": "2026-11-02"
+  },
+  {
+    "name": "Иван Казаковцев",
+    "team": "Динамо Москва",
+    "birthDate": "2005-07-12",
+    "positions": [
+      "LW"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 7,
+      "goals": 0,
+      "assists": 0,
+      "otherLeagues": [
+        {
+          "league": "VHL",
+          "team": "Динамо Санкт-Петербург",
+          "games": 9,
+          "goals": 4,
+          "assists": 6
+        }
+      ],
+      "stage": "regularSeason",
+      "statsThroughDate": null
+    },
+    "khlCareer": {
+      "games": 7,
+      "seasons": 1
+    },
+    "contractUntil": null,
+    "salaryMillions": 2,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 67,
+    "potential": 74,
+    "sources": [
+      "https://www.eliteprospects.com/player/780033/ivan-kazakovtsev",
+      "https://dynamo.ru/player/56-kazakovtsev",
+      "https://mhl.khl.ru/news/20080/1051608/"
+    ],
+    "notes": "Birth date corroborated by official club/MHL. Latest EP actual row/career totals give 7 KHL GP with game log through Nov 1; official club profile has a smaller 3-GP snapshot. EP latest profile lists 26/27 but older cache says Try-out; official expiry displays '31 May' without a year. Parent-club regular contract end therefore left null, not inferred from affiliate listing. EP currently labels VHL affiliate. Salary is an annual RUB-million youth game estimate; ratings are subjective. Research checked Nov 2 2026; source tables are rolling/cached snapshots without a certified Nov 2 cutoff, so statsThroughDate is null. No full-season projections used.",
+    "researchDate": "2026-11-02"
+  },
+  {
+    "name": "Даниил Давыдов",
+    "team": "Динамо Москва",
+    "birthDate": "2004-03-06",
+    "positions": [
+      "C",
+      "RW"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 5,
+      "goals": 1,
+      "assists": 0,
+      "otherLeagues": [
+        {
+          "league": "VHL",
+          "team": "Динамо Санкт-Петербург",
+          "games": 12,
+          "goals": 3,
+          "assists": 7
+        }
+      ],
+      "stage": "regularSeason",
+      "statsThroughDate": null
+    },
+    "khlCareer": {
+      "games": 31,
+      "seasons": 4
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 69,
+    "potential": 74,
+    "sources": [
+      "https://www.eliteprospects.com/player/699552/daniil-davydov",
+      "https://dynamo.ru/team?s=2026"
+    ],
+    "notes": "EP actual regular-season rows and career totals; playoffs excluded. Contract through 2027 corroborated by official roster. EP currently labels VHL affiliate; requested team is the parent-club grouping. Salary is an annual RUB-million rotation game estimate, not public pay. Ratings are subjective. Research checked Nov 2 2026; source tables are rolling/cached snapshots without a certified Nov 2 cutoff, so statsThroughDate is null. No full-season projections used.",
+    "researchDate": "2026-11-02"
+  },
+  {
+    "name": "Елисей Рябыкин",
+    "team": "Динамо Москва",
+    "birthDate": "2008-07-08",
+    "positions": [
+      "D"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 4,
+      "goals": 0,
+      "assists": 1,
+      "otherLeagues": [
+        {
+          "league": "VHL",
+          "team": "Динамо Санкт-Петербург",
+          "games": 3,
+          "goals": 1,
+          "assists": 2
+        },
+        {
+          "league": "MHL",
+          "team": "МХК Динамо Москва",
+          "games": 8,
+          "goals": 0,
+          "assists": 3
+        }
+      ],
+      "stage": "regularSeason",
+      "statsThroughDate": null
+    },
+    "khlCareer": {
+      "games": 4,
+      "seasons": 1
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 1,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 65,
+    "potential": 79,
+    "sources": [
+      "https://www.eliteprospects.com/player/895805/yelisei-ryabykin",
+      "https://engmhl.khl.ru/stat/leaders/",
+      "https://mhk.dynamo.ru/team"
+    ],
+    "notes": "EP latest actual rows show all three leagues; official MHL leaders corroborate 8 GP, 0+3 at youth level. Contract end from EP. Do not confuse Yelisei Ryabykin, born 2008, with forward Ivan Ryabkin. EP currently labels MHL team; parent-club grouping retained. Salary is an annual RUB-million youth game estimate; ratings are subjective, with high uncertainty in potential. Research checked Nov 2 2026; source tables are rolling/cached snapshots without a certified Nov 2 cutoff, so statsThroughDate is null. No full-season projections used.",
+    "researchDate": "2026-11-02"
+  },
+  {
+    "name": "Вадим Жеренко",
+    "team": "Динамо Москва",
+    "birthDate": "2001-03-15",
+    "positions": [
+      "G"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 0,
+      "goals": null,
+      "assists": null,
+      "savePct": null,
+      "GAA": null,
+      "otherLeagues": [
+        {
+          "league": "VHL",
+          "team": "Динамо Санкт-Петербург",
+          "games": 0,
+          "goals": null,
+          "assists": null,
+          "savePct": null,
+          "GAA": null
+        }
+      ],
+      "stage": "regularSeason",
+      "statsThroughDate": null
+    },
+    "khlCareer": {
+      "games": 0,
+      "seasons": 1
+    },
+    "contractUntil": null,
+    "contractStatus": "trial",
+    "salaryMillions": 5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "overall": 73,
+    "potential": 77,
+    "sources": [
+      "https://www.eliteprospects.com/player/450906/vadim-zherenko",
+      "https://dynamo.ru/index.php/news/232104-vadim_jerenko_zaklyuchil_kontrakt_s__moskovskim___dinamo__",
+      "https://www.khl.ru/news/2026/10/15/567177.html"
+    ],
+    "notes": "Official KHL Oct 15 announcement confirms a TRIAL contract only; user-supplied matching club announcement timed out on direct fetch. No verified regular contract expiry or trial expiry, so contractUntil remains null. EP actual 26/27 rows show 0 KHL and 0 VHL appearances; unavailable save percentage/GAA remain null, not zero. EP career table counts one registered KHL season despite zero appearances; seasons=1 follows that source convention. Annual RUB 5m salary is solely a hypothetical game-deal estimate, not trial remuneration. Ratings are subjective, based on prior professional experience, not current KHL performance. Research checked Nov 2 2026; source tables are rolling/cached snapshots without a certified Nov 2 cutoff, so statsThroughDate is null. No full-season projections used.",
+    "researchDate": "2026-11-02"
+  }
+]

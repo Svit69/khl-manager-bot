@@ -1,0 +1,789 @@
+[
+  {
+    "name": "Арсений Чухраев",
+    "team": "Динамо Минск",
+    "birthDate": "2005-11-05",
+    "positions": [
+      "C"
+    ],
+    "nationality": [
+      "BLR"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 16,
+      "goals": 1,
+      "assists": 1
+    },
+    "contractUntil": "2029/30",
+    "salaryMillions": 2,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 69,
+    "potential": 77,
+    "khlCareer": {
+      "games": 16,
+      "seasons": 1
+    },
+    "researchAsOf": "2026-11-02",
+    "sources": [
+      "https://www.eliteprospects.com/player/921295/arseni-chukhrayev",
+      "https://hcdinamo.by/team/players/arseniy-chukhraev/"
+    ],
+    "notes": "KHL debut season; official club confirms four-year deal. Centre per EP; club lists forward. Salary is a conservative annual game estimate in millions of RUB, not a publicly confirmed salary. Overall/potential are subjective game-scale estimates. Statistics and career totals are actual regular-season source snapshots accessed for 2026-11-02; source update cutoffs can lag that date. No projected, preseason or playoff figures are included."
+  },
+  {
+    "name": "Кирилл Лозовский",
+    "team": "Динамо Минск",
+    "birthDate": "2007-01-23",
+    "positions": [
+      "D"
+    ],
+    "nationality": [
+      "BLR"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 13,
+      "goals": 0,
+      "assists": 1
+    },
+    "contractUntil": "2030/31",
+    "salaryMillions": 1.5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 66,
+    "potential": 77,
+    "khlCareer": {
+      "games": 13,
+      "seasons": 1
+    },
+    "researchAsOf": "2026-11-02",
+    "sources": [
+      "https://www.eliteprospects.com/player/961473/kirill-lozovsky",
+      "https://hcdinamo.by/team/players/kirill-lozovskiy/"
+    ],
+    "notes": "Official club confirms five-year deal and KHL line; only 3:00 average KHL ice time, so not an established regular. Salary is a conservative annual game estimate in millions of RUB, not a publicly confirmed salary. Overall/potential are subjective game-scale estimates. Statistics and career totals are actual regular-season source snapshots accessed for 2026-11-02; source update cutoffs can lag that date. No projected, preseason or playoff figures are included.",
+    "additionalStats": [
+      {
+        "season": "2026/27",
+        "league": "MHL",
+        "team": "Динамо-Шинник",
+        "games": 4,
+        "goals": 0,
+        "assists": 1
+      }
+    ]
+  },
+  {
+    "name": "Максим Мальцев",
+    "team": "Динамо Минск",
+    "birthDate": "2004-09-15",
+    "positions": [
+      "C"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 6,
+      "goals": 1,
+      "assists": 0
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 2,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 68,
+    "potential": 74,
+    "khlCareer": {
+      "games": 16,
+      "seasons": 2
+    },
+    "researchAsOf": "2026-11-02",
+    "sources": [
+      "https://www.eliteprospects.com/player/708586/maxim-maltsev",
+      "https://hcdinamo.by/team/players/maksim-maltsev/"
+    ],
+    "notes": "Official club confirms one-year two-way deal. Also playing for Dinamo-Molodechno; do not confuse with older namesakes. Salary is a conservative annual game estimate in millions of RUB, not a publicly confirmed salary. Overall/potential are subjective game-scale estimates. Statistics and career totals are actual regular-season source snapshots accessed for 2026-11-02; source update cutoffs can lag that date. No projected, preseason or playoff figures are included.",
+    "additionalStats": [
+      {
+        "season": "2026/27",
+        "league": "Belarus Extraliga",
+        "team": "Динамо-Молодечно",
+        "games": 10,
+        "goals": 4,
+        "assists": 6
+      }
+    ]
+  },
+  {
+    "name": "Мирослав Михалев",
+    "team": "Динамо Минск",
+    "birthDate": "2003-06-12",
+    "positions": [
+      "RW",
+      "LW"
+    ],
+    "nationality": [
+      "BLR"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 4,
+      "goals": 0,
+      "assists": 0
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 1.5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 65,
+    "potential": 71,
+    "khlCareer": {
+      "games": 14,
+      "seasons": 6
+    },
+    "researchAsOf": "2026-11-02",
+    "sources": [
+      "https://www.eliteprospects.com/player/618503/miroslav-mikhalyov",
+      "https://hcdinamo.by/team/players/miroslav-mikhalyev/"
+    ],
+    "notes": "Official club confirms one-season deal and birth date. Its statistics widget shows an older 1-game line without a season label; use explicit EP 2026/27 line (4 games). Career seasons follows EP regular-season Years field. Salary is a conservative annual game estimate in millions of RUB, not a publicly confirmed salary. Overall/potential are subjective game-scale estimates. Statistics and career totals are actual regular-season source snapshots accessed for 2026-11-02; source update cutoffs can lag that date. No projected, preseason or playoff figures are included.",
+    "additionalStats": [
+      {
+        "season": "2026/27",
+        "league": "Belarus Extraliga",
+        "team": "Динамо-Молодечно",
+        "games": 3,
+        "goals": 0,
+        "assists": 0
+      }
+    ]
+  },
+  {
+    "name": "Тимофей Ковгореня",
+    "team": "Динамо Минск",
+    "birthDate": "2003-02-13",
+    "positions": [
+      "D",
+      "F"
+    ],
+    "nationality": [
+      "BLR"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 2,
+      "goals": 0,
+      "assists": 0
+    },
+    "contractUntil": null,
+    "salaryMillions": 3,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 67,
+    "potential": 73,
+    "khlCareer": {
+      "games": 64,
+      "seasons": 5
+    },
+    "researchAsOf": "2026-11-02",
+    "sources": [
+      "https://www.eliteprospects.com/player/532615/timofei-kovgorenya",
+      "https://hcdinamo.by/team/players/timofey-kovgorenya/"
+    ],
+    "notes": "Club lists defender; EP D/F. Contract unresolved: EP says 2026/27, official biography only confirms a September 2026 tryout, not its conversion. No assumed expiry. Career is EP regular season only; official biography's 77-game total has no regular-season scope and is not substituted. Salary is a conservative annual game estimate in millions of RUB, not a publicly confirmed salary. Overall/potential are subjective game-scale estimates. Statistics and career totals are actual regular-season source snapshots accessed for 2026-11-02; source update cutoffs can lag that date. No projected, preseason or playoff figures are included.",
+    "additionalStats": [
+      {
+        "season": "2026/27",
+        "league": "Belarus Extraliga",
+        "team": "Динамо-Молодечно",
+        "games": 7,
+        "goals": 0,
+        "assists": 3
+      }
+    ]
+  },
+  {
+    "name": "Арсен Таймазов",
+    "team": "Лада",
+    "birthDate": "2006-01-08",
+    "positions": [
+      "D"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 21,
+      "goals": 1,
+      "assists": 1
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 3,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 70,
+    "potential": 78,
+    "khlCareer": {
+      "games": 39,
+      "seasons": 2
+    },
+    "researchAsOf": "2026-11-02",
+    "sources": [
+      "https://www.eliteprospects.com/player/618882/arsen-taimazov",
+      "https://hclada.ru/lada/team/"
+    ],
+    "notes": "Birth date and contract agree between EP and indexed official roster. Stats use EP explicit actual line; indexed third-party match pages differ, so not blended. Salary is a conservative annual game estimate in millions of RUB, not a publicly confirmed salary. Overall/potential are subjective game-scale estimates. Statistics and career totals are actual regular-season source snapshots accessed for 2026-11-02; source update cutoffs can lag that date. No projected, preseason or playoff figures are included."
+  },
+  {
+    "name": "Расим Шакиров",
+    "team": "Лада",
+    "birthDate": "2002-02-10",
+    "positions": [
+      "LW"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 19,
+      "goals": 2,
+      "assists": 3
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 7,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 72,
+    "potential": 76,
+    "khlCareer": {
+      "games": 19,
+      "seasons": 1
+    },
+    "researchAsOf": "2026-11-02",
+    "sources": [
+      "https://www.eliteprospects.com/player/577246/rasim-shakirov",
+      "https://hclada.ru/lada/team/"
+    ],
+    "notes": "Official roster confirms birth date and contract through May 2028. First KHL season; regular appearances but modest production. Salary is a conservative annual game estimate in millions of RUB, not a publicly confirmed salary. Overall/potential are subjective game-scale estimates. Statistics and career totals are actual regular-season source snapshots accessed for 2026-11-02; source update cutoffs can lag that date. No projected, preseason or playoff figures are included."
+  },
+  {
+    "name": "Артём Карпов",
+    "team": "Лада",
+    "birthDate": "2005-02-20",
+    "positions": [
+      "D"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 13,
+      "goals": 1,
+      "assists": 0
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 2,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 68,
+    "potential": 76,
+    "khlCareer": {
+      "games": 15,
+      "seasons": 2
+    },
+    "researchAsOf": "2026-11-02",
+    "sources": [
+      "https://www.eliteprospects.com/player/779958/artyom-karpov",
+      "https://hclada.ru/news/lada/lada_v_overtayme_proigrala_ska/"
+    ],
+    "notes": "EP marks injured. Official club match report corroborates defensive lineup role; exact birth date and expiry from EP. Salary is a conservative annual game estimate in millions of RUB, not a publicly confirmed salary. Overall/potential are subjective game-scale estimates. Statistics and career totals are actual regular-season source snapshots accessed for 2026-11-02; source update cutoffs can lag that date. No projected, preseason or playoff figures are included."
+  },
+  {
+    "name": "Руслан Умеров",
+    "team": "Лада",
+    "birthDate": "2009-07-02",
+    "positions": [
+      "RW",
+      "LW"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 13,
+      "goals": 0,
+      "assists": 0
+    },
+    "contractUntil": "2028/29",
+    "salaryMillions": 1,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 64,
+    "potential": 79,
+    "khlCareer": {
+      "games": 13,
+      "seasons": 1
+    },
+    "researchAsOf": "2026-11-02",
+    "sources": [
+      "https://www.eliteprospects.com/player/993792/ruslan-umerov",
+      "https://hclada.ru/news/lada/lada_v_overtayme_proigrala_ska/"
+    ],
+    "notes": "17-year-old KHL debutant; no goals or assists in the actual EP league line. Club report says his apparent goal against SKA was disallowed; do not count it. Salary is a conservative annual game estimate in millions of RUB, not a publicly confirmed salary. Overall/potential are subjective game-scale estimates. Statistics and career totals are actual regular-season source snapshots accessed for 2026-11-02; source update cutoffs can lag that date. No projected, preseason or playoff figures are included.",
+    "additionalStats": [
+      {
+        "season": "2026/27",
+        "league": "Russia U18",
+        "team": "Лада U18",
+        "games": 2,
+        "goals": 3,
+        "assists": 1
+      }
+    ]
+  },
+  {
+    "name": "Остап Сафин",
+    "team": "Лада",
+    "birthDate": "1999-02-11",
+    "positions": [
+      "RW",
+      "LW"
+    ],
+    "nationality": [
+      "CZE",
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 8,
+      "goals": 0,
+      "assists": 1
+    },
+    "contractUntil": null,
+    "salaryMillions": 8,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 70,
+    "potential": 73,
+    "khlCareer": {
+      "games": 121,
+      "seasons": 4
+    },
+    "researchAsOf": "2026-11-02",
+    "sources": [
+      "https://www.eliteprospects.com/player/272770/ostap-safin",
+      "https://www.khl.ru/news/2026/10/31/567929.html",
+      "https://hclada.ru/news/lada/ostap_safin_pokidaet_ladu_/"
+    ],
+    "notes": "Team is the requested research grouping, not current employment: released by Lada on 2026-10-31 by mutual agreement; currently no verified new club or active expiry. Salary is a hypothetical game signing cost, not wages under an existing contract. Career total is EP regular season, excluding playoffs; do not substitute media totals that include playoffs. Salary is a conservative annual game estimate in millions of RUB, not a publicly confirmed salary. Overall/potential are subjective game-scale estimates. Statistics and career totals are actual regular-season source snapshots accessed for 2026-11-02; source update cutoffs can lag that date. No projected, preseason or playoff figures are included."
+  },
+  {
+    "name": "Дамир Рахимуллин",
+    "team": "Лада",
+    "birthDate": "1998-08-11",
+    "positions": [
+      "RW"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 5,
+      "goals": 0,
+      "assists": 0
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 68,
+    "potential": 70,
+    "khlCareer": {
+      "games": 94,
+      "seasons": 5
+    },
+    "researchAsOf": "2026-11-02",
+    "sources": [
+      "https://www.eliteprospects.com/player/362341/damir-rakhimullin",
+      "https://hclada.ru/news/lada/lada_v_overtayme_proigrala_ska/"
+    ],
+    "notes": "EP lists current assignment AKM Tula Region in VHL; Lada KHL line retained separately. Club report corroborates lineup appearance. Salary is a conservative annual game estimate in millions of RUB, not a publicly confirmed salary. Overall/potential are subjective game-scale estimates. Statistics and career totals are actual regular-season source snapshots accessed for 2026-11-02; source update cutoffs can lag that date. No projected, preseason or playoff figures are included.",
+    "additionalStats": [
+      {
+        "season": "2026/27",
+        "league": "VHL",
+        "team": "АКМ Тульская область",
+        "games": 14,
+        "goals": 5,
+        "assists": 5
+      }
+    ]
+  },
+  {
+    "name": "Данила Овчарик",
+    "team": "Лада",
+    "birthDate": "2004-11-01",
+    "positions": [
+      "G"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 1,
+      "goals": null,
+      "assists": null,
+      "savePct": 90.5,
+      "gaa": 2.02,
+      "timeOnIce": "59:19",
+      "saves": 19
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 2,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 66,
+    "potential": 75,
+    "khlCareer": {
+      "games": 3,
+      "seasons": 3
+    },
+    "researchAsOf": "2026-11-02",
+    "sources": [
+      "https://www.eliteprospects.com/player/707884/danila-ovcharik",
+      "https://hclada.ru/lada/team/"
+    ],
+    "notes": "Official roster confirms birth date and expiry through May 2028. EP career Years=3 and GP=3; starts/roster listings are not additional appearances. One current-season KHL appearance is too small for a stable quality judgement. Salary is a conservative annual game estimate in millions of RUB, not a publicly confirmed salary. Overall/potential are subjective game-scale estimates. Statistics and career totals are actual regular-season source snapshots accessed for 2026-11-02; source update cutoffs can lag that date. No projected, preseason or playoff figures are included."
+  },
+  {
+    "name": "Матвей Котков",
+    "team": "Локомотив",
+    "birthDate": "2008-08-27",
+    "positions": [
+      "RW",
+      "LW"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 20,
+      "goals": 5,
+      "assists": 2
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 3,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 72,
+    "potential": 82,
+    "khlCareer": {
+      "games": 20,
+      "seasons": 1
+    },
+    "researchAsOf": "2026-11-02",
+    "sources": [
+      "https://www.eliteprospects.com/player/895862/matvei-kotkov",
+      "https://www.khl.ru/news/2026/10/29/567866.html"
+    ],
+    "notes": "KHL confirms two goals against Sochi on Oct 29. Actual EP current line, not projected season totals. Young scoring regular; potential is an uncertain game assessment, not a forecast of guaranteed development. Salary is a conservative annual game estimate in millions of RUB, not a publicly confirmed salary. Overall/potential are subjective game-scale estimates. Statistics and career totals are actual regular-season source snapshots accessed for 2026-11-02; source update cutoffs can lag that date. No projected, preseason or playoff figures are included."
+  },
+  {
+    "name": "Кирилл Емельянов",
+    "team": "Локомотив",
+    "birthDate": "2007-01-08",
+    "positions": [
+      "C",
+      "LW"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 10,
+      "goals": 2,
+      "assists": 2
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 2.5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 69,
+    "potential": 80,
+    "khlCareer": {
+      "games": 10,
+      "seasons": 1
+    },
+    "researchAsOf": "2026-11-02",
+    "sources": [
+      "https://www.eliteprospects.com/player/836564/kirill-yemelyanov",
+      "https://www.khl.ru/news/2026/10/29/567866.html"
+    ],
+    "notes": "KHL confirms Oct 29 brace against Sochi. Splitting appearances between Lokomotiv and Loko; birth date, exact position and expiry from EP. Salary is a conservative annual game estimate in millions of RUB, not a publicly confirmed salary. Overall/potential are subjective game-scale estimates. Statistics and career totals are actual regular-season source snapshots accessed for 2026-11-02; source update cutoffs can lag that date. No projected, preseason or playoff figures are included.",
+    "additionalStats": [
+      {
+        "season": "2026/27",
+        "league": "MHL",
+        "team": "Локо",
+        "games": 4,
+        "goals": 0,
+        "assists": 1
+      }
+    ]
+  },
+  {
+    "name": "Яков Казанцев",
+    "team": "Локомотив",
+    "birthDate": "2009-11-28",
+    "positions": [
+      "G"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 1,
+      "goals": null,
+      "assists": null,
+      "savePct": 100,
+      "gaa": 0,
+      "timeOnIce": "3:59",
+      "saves": 3
+    },
+    "contractUntil": "2028/29",
+    "salaryMillions": 1,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 63,
+    "potential": 82,
+    "khlCareer": {
+      "games": 1,
+      "seasons": 1
+    },
+    "researchAsOf": "2026-11-02",
+    "sources": [
+      "https://www.eliteprospects.com/player/993870/yakov-kazantsev",
+      "https://www.khl.ru/news/2026/10/29/567866.html"
+    ],
+    "notes": "KHL confirms debut against Sochi. KHL sample is only 3:59 and three saves: 100% save percentage and 0.00 GAA are actual but not evidence of established KHL ability. Save percentages are expressed on the 0-100 scale, not 0-1. Salary is a conservative annual game estimate in millions of RUB, not a publicly confirmed salary. Overall/potential are subjective game-scale estimates. Statistics and career totals are actual regular-season source snapshots accessed for 2026-11-02; source update cutoffs can lag that date. No projected, preseason or playoff figures are included.",
+    "additionalStats": [
+      {
+        "season": "2026/27",
+        "league": "MHL",
+        "team": "Локо",
+        "games": 7,
+        "goals": null,
+        "assists": null,
+        "savePct": 94.5,
+        "gaa": 1.28
+      },
+      {
+        "season": "2026/27",
+        "league": "MHL",
+        "team": "Локо-76",
+        "games": 4,
+        "goals": null,
+        "assists": null,
+        "savePct": 96.4,
+        "gaa": 1.23
+      }
+    ]
+  },
+  {
+    "name": "Антон Рубин",
+    "team": "Металлург",
+    "birthDate": "2007-01-08",
+    "positions": [
+      "D"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 9,
+      "goals": 0,
+      "assists": 0
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 1.5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 66,
+    "potential": 76,
+    "khlCareer": {
+      "games": 11,
+      "seasons": 2
+    },
+    "researchAsOf": "2026-11-02",
+    "sources": [
+      "https://www.eliteprospects.com/player/1052394/anton-rubin",
+      "https://mhl.khl.ru/teams/stalnye_lisy/"
+    ],
+    "notes": "Metallurg means Magnitogorsk. Official MHL team page corroborates defender identity; birth date, contract and KHL totals from EP. Youth call-up, not an established KHL regular. Salary is a conservative annual game estimate in millions of RUB, not a publicly confirmed salary. Overall/potential are subjective game-scale estimates. Statistics and career totals are actual regular-season source snapshots accessed for 2026-11-02; source update cutoffs can lag that date. No projected, preseason or playoff figures are included.",
+    "additionalStats": [
+      {
+        "season": "2026/27",
+        "league": "MHL",
+        "team": "Стальные Лисы",
+        "games": 5,
+        "goals": 1,
+        "assists": 1
+      }
+    ]
+  },
+  {
+    "name": "Кирилл Кадышев",
+    "team": "Металлург",
+    "birthDate": "2002-03-27",
+    "positions": [
+      "RW",
+      "C"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 4,
+      "goals": 0,
+      "assists": 0
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 68,
+    "potential": 73,
+    "khlCareer": {
+      "games": 10,
+      "seasons": 3
+    },
+    "researchAsOf": "2026-11-02",
+    "sources": [
+      "https://www.eliteprospects.com/player/568979/kirill-kadyshev",
+      "https://hctraktor.org/team/players/54045/"
+    ],
+    "notes": "Metallurg Magnitogorsk; EP lists Magnitka VHL assignment. Official former-club profile corroborates identity and birth date. EP current contract is 2027/28; old MHL profile's 2026 expiry is stale. Salary is a conservative annual game estimate in millions of RUB, not a publicly confirmed salary. Overall/potential are subjective game-scale estimates. Statistics and career totals are actual regular-season source snapshots accessed for 2026-11-02; source update cutoffs can lag that date. No projected, preseason or playoff figures are included.",
+    "additionalStats": [
+      {
+        "season": "2026/27",
+        "league": "VHL",
+        "team": "Магнитка",
+        "games": 8,
+        "goals": 4,
+        "assists": 3
+      }
+    ]
+  },
+  {
+    "name": "Андрей Вохмянин",
+    "team": "Металлург",
+    "birthDate": "2007-05-17",
+    "positions": [
+      "C"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 2,
+      "goals": 0,
+      "assists": 0
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 1,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 63,
+    "potential": 74,
+    "khlCareer": {
+      "games": 2,
+      "seasons": 1
+    },
+    "researchAsOf": "2026-11-02",
+    "sources": [
+      "https://www.eliteprospects.com/player/1016950/andrei-vokhmyanin",
+      "https://metallurg-nk.ru/mhl-team/news/stalnye-lisy-kuznetskie-medvedi-2-1/"
+    ],
+    "notes": "Metallurg Magnitogorsk, not Novokuznetsk: official opponent report corroborates Stalnye Lisy affiliation. Two KHL appearances; EP lists MHL assignment. Salary is a conservative annual game estimate in millions of RUB, not a publicly confirmed salary. Overall/potential are subjective game-scale estimates. Statistics and career totals are actual regular-season source snapshots accessed for 2026-11-02; source update cutoffs can lag that date. No projected, preseason or playoff figures are included.",
+    "additionalStats": [
+      {
+        "season": "2026/27",
+        "league": "MHL",
+        "team": "Стальные Лисы",
+        "games": 14,
+        "goals": 1,
+        "assists": 4
+      }
+    ]
+  }
+]

@@ -1,0 +1,836 @@
+[
+  {
+    "name": "Севастьян Соколов",
+    "team": "Нефтехимик",
+    "birthDate": "2006-03-25",
+    "positions": [
+      "C"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 22,
+      "goals": 1,
+      "assists": 4,
+      "points": 5,
+      "stage": "regular",
+      "researchedAsOf": "2026-11-02"
+    },
+    "khlCareer": {
+      "games": 40,
+      "seasons": 2
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 3,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 71,
+    "potential": 78,
+    "sources": [
+      "https://www.eliteprospects.com/player/886762/sevastyan-sokolov",
+      "https://www.eliteprospects.com/team/196/neftekhimik-nizhnekamsk/stats/2026-2027",
+      "https://www.hcnh.ru/news/club-life/sevastyan-sokolov-v-neftekhimike-eshche-na-dva-sezona/",
+      "https://www.khl.ru/news/2026/06/22/563335.html"
+    ],
+    "notes": "Official club announcement confirms a two-season extension in May 2026. Research cutoff: 2026-11-02. Stats are accessible EP actual regular-season snapshots, excluding Projected rows and playoffs; source update lag is possible. khlCareer copies EP regular-season games and published Years, including the current season. Salary is an unverified conservative game-budget estimate in millions of RUB per season, not disclosed actual pay; lower-league pay may differ. Overall/potential are subjective game estimates on the supplied scale. Additional league rows, where included, are verified but not an exhaustive multi-league audit."
+  },
+  {
+    "name": "Виктор Андрейченко",
+    "team": "Нефтехимик",
+    "birthDate": "2004-08-28",
+    "positions": [
+      "LW"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 8,
+      "goals": 1,
+      "assists": 1,
+      "points": 2,
+      "stage": "regular",
+      "researchedAsOf": "2026-11-02"
+    },
+    "khlCareer": {
+      "games": 8,
+      "seasons": 1
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 2.5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 69,
+    "potential": 75,
+    "sources": [
+      "https://www.eliteprospects.com/player/708686/viktor-andreichenko",
+      "https://www.eliteprospects.com/team/196/neftekhimik-nizhnekamsk/stats/2026-2027",
+      "https://www.hcnh.ru/news/news-top-ten/club-life/neftekhimik-podpisal-dvukhletniy-kontrakt-s-viktorom-andreychenko/"
+    ],
+    "notes": "Official 2026-07-09 announcement confirms a two-year, two-way contract. Research cutoff: 2026-11-02. Stats are accessible EP actual regular-season snapshots, excluding Projected rows and playoffs; source update lag is possible. khlCareer copies EP regular-season games and published Years, including the current season. Salary is an unverified conservative game-budget estimate in millions of RUB per season, not disclosed actual pay; lower-league pay may differ. Overall/potential are subjective game estimates on the supplied scale. Additional league rows, where included, are verified but not an exhaustive multi-league audit."
+  },
+  {
+    "name": "Амир Гизятов",
+    "team": "Нефтехимик",
+    "birthDate": "2007-04-18",
+    "positions": [
+      "RW",
+      "LW"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "stage": "regular",
+      "researchedAsOf": "2026-11-02"
+    },
+    "khlCareer": {
+      "games": 4,
+      "seasons": 1
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 1,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 64,
+    "potential": 76,
+    "sources": [
+      "https://www.eliteprospects.com/player/886771/amir-gizyatov",
+      "https://www.eliteprospects.com/team/196/neftekhimik-nizhnekamsk/stats/2026-2027",
+      "https://mhl.khl.ru/players/42544/",
+      "https://www.khl.ru/news/2026/10/27/567804.html"
+    ],
+    "notes": "Official MHL profile confirms a three-way contract through 2027-05-31. Youth/depth evaluation. Research cutoff: 2026-11-02. Stats are accessible EP actual regular-season snapshots, excluding Projected rows and playoffs; source update lag is possible. khlCareer copies EP regular-season games and published Years, including the current season. Salary is an unverified conservative game-budget estimate in millions of RUB per season, not disclosed actual pay; lower-league pay may differ. Overall/potential are subjective game estimates on the supplied scale. Additional league rows, where included, are verified but not an exhaustive multi-league audit."
+  },
+  {
+    "name": "Владислав Романов",
+    "team": "СКА",
+    "birthDate": "2003-10-02",
+    "positions": [
+      "LW"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 13,
+      "goals": 1,
+      "assists": 3,
+      "points": 4,
+      "stage": "regular",
+      "researchedAsOf": "2026-11-02"
+    },
+    "khlCareer": {
+      "games": 30,
+      "seasons": 2
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 71,
+    "potential": 77,
+    "sources": [
+      "https://www.eliteprospects.com/player/620086/vladislav-romanov",
+      "https://www.eliteprospects.com/team/199/ska-st-petersburg/stats/2026-2027",
+      "https://www.khl.ru/news/2026/10/22/567584.html",
+      "https://vmf.ska.ru/team/roster/"
+    ],
+    "notes": "Rotation winger. Contract end from EP. Research cutoff: 2026-11-02. Stats are accessible EP actual regular-season snapshots, excluding Projected rows and playoffs; source update lag is possible. khlCareer copies EP regular-season games and published Years, including the current season. Salary is an unverified conservative game-budget estimate in millions of RUB per season, not disclosed actual pay; lower-league pay may differ. Overall/potential are subjective game estimates on the supplied scale. Additional league rows, where included, are verified but not an exhaustive multi-league audit."
+  },
+  {
+    "name": "Герман Суздорф",
+    "team": "СКА",
+    "birthDate": "2007-04-02",
+    "positions": [
+      "C"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "stage": "regular",
+      "researchedAsOf": "2026-11-02",
+      "otherLeagueStats": [
+        {
+          "season": "2026/27",
+          "league": "MHL",
+          "team": "SKA-1946 St. Petersburg",
+          "games": 13,
+          "goals": 1,
+          "assists": 6
+        }
+      ]
+    },
+    "khlCareer": {
+      "games": 4,
+      "seasons": 1
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 1.5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 65,
+    "potential": 78,
+    "sources": [
+      "https://www.eliteprospects.com/player/690140/german-suzdorf",
+      "https://www.eliteprospects.com/team/199/ska-st-petersburg/stats/2026-2027",
+      "https://www.khl.ru/news/2026/10/22/567584.html"
+    ],
+    "notes": "Youth center; separate verified MHL statistics included. Research cutoff: 2026-11-02. Stats are accessible EP actual regular-season snapshots, excluding Projected rows and playoffs; source update lag is possible. khlCareer copies EP regular-season games and published Years, including the current season. Salary is an unverified conservative game-budget estimate in millions of RUB per season, not disclosed actual pay; lower-league pay may differ. Overall/potential are subjective game estimates on the supplied scale. Additional league rows, where included, are verified but not an exhaustive multi-league audit."
+  },
+  {
+    "name": "Амир Нугманов",
+    "team": "СКА",
+    "birthDate": "2005-08-28",
+    "positions": [
+      "LW"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 3,
+      "goals": 1,
+      "assists": 0,
+      "points": 1,
+      "stage": "regular",
+      "researchedAsOf": "2026-11-02"
+    },
+    "khlCareer": {
+      "games": 15,
+      "seasons": 4
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 2,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 68,
+    "potential": 76,
+    "sources": [
+      "https://www.eliteprospects.com/player/708019/amir-nugmanov",
+      "https://www.eliteprospects.com/team/199/ska-st-petersburg/stats/2026-2027",
+      "https://www.khl.ru/news/2026/10/22/567584.html",
+      "https://mhl.khl.ru/players/41260/"
+    ],
+    "notes": "Official MHL profile confirms birth and contract through 2027-05-31. Official KHL report confirms a goal on 2026-10-22. Research cutoff: 2026-11-02. Stats are accessible EP actual regular-season snapshots, excluding Projected rows and playoffs; source update lag is possible. khlCareer copies EP regular-season games and published Years, including the current season. Salary is an unverified conservative game-budget estimate in millions of RUB per season, not disclosed actual pay; lower-league pay may differ. Overall/potential are subjective game estimates on the supplied scale. Additional league rows, where included, are verified but not an exhaustive multi-league audit."
+  },
+  {
+    "name": "Артём Вильчинский",
+    "team": "СКА",
+    "birthDate": "2006-09-16",
+    "positions": [
+      "D"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "stage": "regular",
+      "researchedAsOf": "2026-11-02",
+      "otherLeagueStats": [
+        {
+          "season": "2026/27",
+          "league": "MHL",
+          "team": "SKA-1946 St. Petersburg",
+          "games": 14,
+          "goals": 3,
+          "assists": 3
+        }
+      ]
+    },
+    "khlCareer": {
+      "games": 2,
+      "seasons": 1
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 1.5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 66,
+    "potential": 78,
+    "sources": [
+      "https://www.eliteprospects.com/player/835465/artyom-vilchinsky",
+      "https://www.eliteprospects.com/team/199/ska-st-petersburg/stats/2026-2027",
+      "https://www.khl.ru/news/2026/10/22/567584.html",
+      "https://mhl.khl.ru/players/41747/"
+    ],
+    "notes": "Official MHL profile confirms birth and two-way contract through 2028-05-31. Separate verified MHL statistics included; older search excerpt was stale. Research cutoff: 2026-11-02. Stats are accessible EP actual regular-season snapshots, excluding Projected rows and playoffs; source update lag is possible. khlCareer copies EP regular-season games and published Years, including the current season. Salary is an unverified conservative game-budget estimate in millions of RUB per season, not disclosed actual pay; lower-league pay may differ. Overall/potential are subjective game estimates on the supplied scale. Additional league rows, where included, are verified but not an exhaustive multi-league audit."
+  },
+  {
+    "name": "Максим Загребин",
+    "team": "Салават Юлаев",
+    "birthDate": "2005-08-06",
+    "positions": [
+      "C"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 22,
+      "goals": 4,
+      "assists": 7,
+      "points": 11,
+      "stage": "regular",
+      "researchedAsOf": "2026-11-02"
+    },
+    "khlCareer": {
+      "games": 22,
+      "seasons": 1
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 3,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 74,
+    "potential": 80,
+    "sources": [
+      "https://www.eliteprospects.com/player/802740/maxim-zagrebin",
+      "https://www.eliteprospects.com/team/197/salavat-yulaev-ufa/stats/2026-2027",
+      "https://hcsalavat.ru/salavat-yulaev/players/"
+    ],
+    "notes": "Emerging young regular; current scoring supports 74 overall. Salary remains a conservative young-player estimate. Research cutoff: 2026-11-02. Stats are accessible EP actual regular-season snapshots, excluding Projected rows and playoffs; source update lag is possible. khlCareer copies EP regular-season games and published Years, including the current season. Salary is an unverified conservative game-budget estimate in millions of RUB per season, not disclosed actual pay; lower-league pay may differ. Overall/potential are subjective game estimates on the supplied scale. Additional league rows, where included, are verified but not an exhaustive multi-league audit."
+  },
+  {
+    "name": "Никита Щербаков",
+    "team": "Салават Юлаев",
+    "birthDate": "2007-10-23",
+    "positions": [
+      "D"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 21,
+      "goals": 2,
+      "assists": 4,
+      "points": 6,
+      "stage": "regular",
+      "researchedAsOf": "2026-11-02"
+    },
+    "khlCareer": {
+      "games": 28,
+      "seasons": 2
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 3,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 73,
+    "potential": 82,
+    "sources": [
+      "https://www.eliteprospects.com/player/836638/nikita-shcherbakov",
+      "https://www.eliteprospects.com/team/197/salavat-yulaev-ufa/stats/2026-2027",
+      "https://hcsalavat.ru/salavat-yulaev/players/"
+    ],
+    "notes": "Young regular defenseman; EP marks injured. Contract end from EP. Research cutoff: 2026-11-02. Stats are accessible EP actual regular-season snapshots, excluding Projected rows and playoffs; source update lag is possible. khlCareer copies EP regular-season games and published Years, including the current season. Salary is an unverified conservative game-budget estimate in millions of RUB per season, not disclosed actual pay; lower-league pay may differ. Overall/potential are subjective game estimates on the supplied scale. Additional league rows, where included, are verified but not an exhaustive multi-league audit."
+  },
+  {
+    "name": "Денис Орлович-Грудков",
+    "team": "Салават Юлаев",
+    "birthDate": "1995-11-03",
+    "positions": [
+      "RW"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 19,
+      "goals": 3,
+      "assists": 2,
+      "points": 5,
+      "stage": "regular",
+      "researchedAsOf": "2026-11-02"
+    },
+    "khlCareer": {
+      "games": 54,
+      "seasons": 5
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 8,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 72,
+    "potential": 72,
+    "sources": [
+      "https://www.eliteprospects.com/player/216628/denis-orlovich-grudkov",
+      "https://www.eliteprospects.com/team/197/salavat-yulaev-ufa/stats/2026-2027",
+      "https://hcsalavat.ru/salavat-yulaev/players/"
+    ],
+    "notes": "Depth/rotation winger. Career numbers from EP regular-season totals, not older club snapshots. Research cutoff: 2026-11-02. Stats are accessible EP actual regular-season snapshots, excluding Projected rows and playoffs; source update lag is possible. khlCareer copies EP regular-season games and published Years, including the current season. Salary is an unverified conservative game-budget estimate in millions of RUB per season, not disclosed actual pay; lower-league pay may differ. Overall/potential are subjective game estimates on the supplied scale. Additional league rows, where included, are verified but not an exhaustive multi-league audit."
+  },
+  {
+    "name": "Виталий Будницкий",
+    "team": "Салават Юлаев",
+    "birthDate": "2002-05-06",
+    "positions": [
+      "D"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 4,
+      "goals": 0,
+      "assists": 1,
+      "points": 1,
+      "stage": "regular",
+      "researchedAsOf": "2026-11-02"
+    },
+    "khlCareer": {
+      "games": 5,
+      "seasons": 2
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 69,
+    "potential": 74,
+    "sources": [
+      "https://www.eliteprospects.com/player/569857/vitali-budnitsky",
+      "https://www.eliteprospects.com/team/197/salavat-yulaev-ufa/stats/2026-2027",
+      "https://hcsalavat.ru/salavat-yulaev/players/"
+    ],
+    "notes": "Fringe senior defenseman with substantial VHL experience. Contract end from EP. Research cutoff: 2026-11-02. Stats are accessible EP actual regular-season snapshots, excluding Projected rows and playoffs; source update lag is possible. khlCareer copies EP regular-season games and published Years, including the current season. Salary is an unverified conservative game-budget estimate in millions of RUB per season, not disclosed actual pay; lower-league pay may differ. Overall/potential are subjective game estimates on the supplied scale. Additional league rows, where included, are verified but not an exhaustive multi-league audit."
+  },
+  {
+    "name": "Артур Фаизов",
+    "team": "Салават Юлаев",
+    "birthDate": "2006-01-28",
+    "positions": [
+      "RW",
+      "C"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 2,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "stage": "regular",
+      "researchedAsOf": "2026-11-02"
+    },
+    "khlCareer": {
+      "games": 36,
+      "seasons": 2
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 2,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 68,
+    "potential": 77,
+    "sources": [
+      "https://www.eliteprospects.com/player/854676/artur-faizov",
+      "https://www.eliteprospects.com/team/197/salavat-yulaev-ufa/stats/2026-2027",
+      "https://hcsalavat.ru/salavat-yulaev/players/"
+    ],
+    "notes": "Young depth forward; 2 current-season KHL appearances must not be confused with 36 career games. Research cutoff: 2026-11-02. Stats are accessible EP actual regular-season snapshots, excluding Projected rows and playoffs; source update lag is possible. khlCareer copies EP regular-season games and published Years, including the current season. Salary is an unverified conservative game-budget estimate in millions of RUB per season, not disclosed actual pay; lower-league pay may differ. Overall/potential are subjective game estimates on the supplied scale. Additional league rows, where included, are verified but not an exhaustive multi-league audit."
+  },
+  {
+    "name": "Алан Шайхлисламов",
+    "team": "Салават Юлаев",
+    "birthDate": "2008-09-04",
+    "positions": [
+      "RW",
+      "LW"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 1,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "stage": "regular",
+      "researchedAsOf": "2026-11-02"
+    },
+    "khlCareer": {
+      "games": 2,
+      "seasons": 2
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 1,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 65,
+    "potential": 80,
+    "sources": [
+      "https://www.eliteprospects.com/player/896181/alan-shaikhlislamov",
+      "https://www.eliteprospects.com/team/197/salavat-yulaev-ufa/stats/2026-2027",
+      "https://hcsalavat.ru/salavat-yulaev/players/"
+    ],
+    "notes": "Youth winger. Potential is an assessment, not a guaranteed future rating. Research cutoff: 2026-11-02. Stats are accessible EP actual regular-season snapshots, excluding Projected rows and playoffs; source update lag is possible. khlCareer copies EP regular-season games and published Years, including the current season. Salary is an unverified conservative game-budget estimate in millions of RUB per season, not disclosed actual pay; lower-league pay may differ. Overall/potential are subjective game estimates on the supplied scale. Additional league rows, where included, are verified but not an exhaustive multi-league audit."
+  },
+  {
+    "name": "Семён Чуклинов",
+    "team": "Северсталь",
+    "birthDate": "2008-05-28",
+    "positions": [
+      "D"
+    ],
+    "nationality": [
+      "RUS",
+      "KAZ"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 21,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "stage": "regular",
+      "researchedAsOf": "2026-11-02"
+    },
+    "khlCareer": {
+      "games": 21,
+      "seasons": 1
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 3,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 70,
+    "potential": 80,
+    "sources": [
+      "https://www.eliteprospects.com/player/1059670/semyon-chuklinov",
+      "https://www.eliteprospects.com/team/198/severstal-cherepovets/stats",
+      "https://severstalclub.ru/news/pervaya-vyezdnaya-seriya-sezona-b6f3c60fc6/",
+      "https://mhl.khl.ru/players/44494/"
+    ],
+    "notes": "Official MHL lists Russian citizenship; EP lists Russia/Kazakhstan. Both EP nationalities retained. Official contract through 2028-05-31. Research cutoff: 2026-11-02. Stats are accessible EP actual regular-season snapshots, excluding Projected rows and playoffs; source update lag is possible. khlCareer copies EP regular-season games and published Years, including the current season. Salary is an unverified conservative game-budget estimate in millions of RUB per season, not disclosed actual pay; lower-league pay may differ. Overall/potential are subjective game estimates on the supplied scale. Additional league rows, where included, are verified but not an exhaustive multi-league audit."
+  },
+  {
+    "name": "Егор Граф",
+    "team": "Северсталь",
+    "birthDate": "2006-06-26",
+    "positions": [
+      "C"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 17,
+      "goals": 0,
+      "assists": 5,
+      "points": 5,
+      "stage": "regular",
+      "researchedAsOf": "2026-11-02"
+    },
+    "khlCareer": {
+      "games": 17,
+      "seasons": 1
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 3,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 71,
+    "potential": 79,
+    "sources": [
+      "https://www.eliteprospects.com/player/679555/yegor-graf",
+      "https://www.eliteprospects.com/team/198/severstal-cherepovets/stats",
+      "https://severstalclub.ru/news/pervaya-vyezdnaya-seriya-sezona-b6f3c60fc6/"
+    ],
+    "notes": "Young rotation center; EP marks injured. Contract end from EP. Research cutoff: 2026-11-02. Stats are accessible EP actual regular-season snapshots, excluding Projected rows and playoffs; source update lag is possible. khlCareer copies EP regular-season games and published Years, including the current season. Salary is an unverified conservative game-budget estimate in millions of RUB per season, not disclosed actual pay; lower-league pay may differ. Overall/potential are subjective game estimates on the supplied scale. Additional league rows, where included, are verified but not an exhaustive multi-league audit."
+  },
+  {
+    "name": "Всеволод Никитин",
+    "team": "Северсталь",
+    "birthDate": "2003-07-05",
+    "positions": [
+      "LW",
+      "C"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 14,
+      "goals": 1,
+      "assists": 0,
+      "points": 1,
+      "stage": "regular",
+      "researchedAsOf": "2026-11-02"
+    },
+    "khlCareer": {
+      "games": 47,
+      "seasons": 3
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 69,
+    "potential": 74,
+    "sources": [
+      "https://www.eliteprospects.com/player/699777/vsevolod-nikitin",
+      "https://www.eliteprospects.com/team/198/severstal-cherepovets/stats",
+      "https://severstalclub.ru/news/pervaya-vyezdnaya-seriya-sezona-b6f3c60fc6/"
+    ],
+    "notes": "Depth forward; limited scoring supports fringe/rotation evaluation. Research cutoff: 2026-11-02. Stats are accessible EP actual regular-season snapshots, excluding Projected rows and playoffs; source update lag is possible. khlCareer copies EP regular-season games and published Years, including the current season. Salary is an unverified conservative game-budget estimate in millions of RUB per season, not disclosed actual pay; lower-league pay may differ. Overall/potential are subjective game estimates on the supplied scale. Additional league rows, where included, are verified but not an exhaustive multi-league audit."
+  },
+  {
+    "name": "Кирилл Танков",
+    "team": "Северсталь",
+    "birthDate": "2002-03-26",
+    "positions": [
+      "C"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 11,
+      "goals": 0,
+      "assists": 1,
+      "points": 1,
+      "stage": "regular",
+      "researchedAsOf": "2026-11-02"
+    },
+    "khlCareer": {
+      "games": 62,
+      "seasons": 3
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 7,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 70,
+    "potential": 75,
+    "sources": [
+      "https://www.eliteprospects.com/player/292126/kirill-tankov",
+      "https://www.eliteprospects.com/team/198/severstal-cherepovets/stats",
+      "https://severstalclub.ru/news/pervaya-vyezdnaya-seriya-sezona-b6f3c60fc6/"
+    ],
+    "notes": "Rotation center. Contract end from EP; NHL rights are not an NHL contract or salary. Research cutoff: 2026-11-02. Stats are accessible EP actual regular-season snapshots, excluding Projected rows and playoffs; source update lag is possible. khlCareer copies EP regular-season games and published Years, including the current season. Salary is an unverified conservative game-budget estimate in millions of RUB per season, not disclosed actual pay; lower-league pay may differ. Overall/potential are subjective game estimates on the supplied scale. Additional league rows, where included, are verified but not an exhaustive multi-league audit."
+  },
+  {
+    "name": "Геннадий Чалый",
+    "team": "Северсталь",
+    "birthDate": "2005-08-22",
+    "positions": [
+      "D"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 7,
+      "goals": 1,
+      "assists": 0,
+      "points": 1,
+      "stage": "regular",
+      "researchedAsOf": "2026-11-02"
+    },
+    "khlCareer": {
+      "games": 7,
+      "seasons": 1
+    },
+    "contractUntil": "2028/29",
+    "loanUntil": "2026/27",
+    "parentTeam": "Локомотив",
+    "salaryMillions": 3,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 69,
+    "potential": 78,
+    "sources": [
+      "https://www.eliteprospects.com/player/779960/gennadi-chaly",
+      "https://www.eliteprospects.com/team/198/severstal-cherepovets/stats",
+      "https://severstalclub.ru/news/pervaya-vyezdnaya-seriya-sezona-b6f3c60fc6/",
+      "https://severstalclub.ru/news/zashchitnik-gennadiy-chalyy-popolnil-sostav-khk-severstal-na-pravakh-arendy-63609020c4/"
+    ],
+    "notes": "Official Severstal announcement confirms loan from Lokomotiv through 2026/27. contractUntil denotes the underlying EP-listed 2028/29 contract; loanUntil denotes the current club loan. EP marks injured. Research cutoff: 2026-11-02. Stats are accessible EP actual regular-season snapshots, excluding Projected rows and playoffs; source update lag is possible. khlCareer copies EP regular-season games and published Years, including the current season. Salary is an unverified conservative game-budget estimate in millions of RUB per season, not disclosed actual pay; lower-league pay may differ. Overall/potential are subjective game estimates on the supplied scale. Additional league rows, where included, are verified but not an exhaustive multi-league audit."
+  },
+  {
+    "name": "Иван Ремезовский",
+    "team": "Северсталь",
+    "birthDate": "2005-02-08",
+    "positions": [
+      "D"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 5,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "stage": "regular",
+      "researchedAsOf": "2026-11-02",
+      "otherLeagueStats": [
+        {
+          "season": "2026/27",
+          "league": "VHL",
+          "team": "HK Tambov",
+          "games": 4,
+          "goals": 1,
+          "assists": 0
+        }
+      ]
+    },
+    "khlCareer": {
+      "games": 7,
+      "seasons": 2
+    },
+    "contractUntil": "2027/28",
+    "salaryMillions": 2,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 67,
+    "potential": 76,
+    "sources": [
+      "https://www.eliteprospects.com/player/779979/ivan-remezovsky",
+      "https://www.eliteprospects.com/team/198/severstal-cherepovets/stats",
+      "https://severstalclub.ru/news/pervaya-vyezdnaya-seriya-sezona-b6f3c60fc6/"
+    ],
+    "notes": "Young depth defenseman; separate verified Tambov VHL statistics included. Research cutoff: 2026-11-02. Stats are accessible EP actual regular-season snapshots, excluding Projected rows and playoffs; source update lag is possible. khlCareer copies EP regular-season games and published Years, including the current season. Salary is an unverified conservative game-budget estimate in millions of RUB per season, not disclosed actual pay; lower-league pay may differ. Overall/potential are subjective game estimates on the supplied scale. Additional league rows, where included, are verified but not an exhaustive multi-league audit."
+  },
+  {
+    "name": "Марк Козырев",
+    "team": "Северсталь",
+    "birthDate": "2003-10-04",
+    "positions": [
+      "D"
+    ],
+    "nationality": [
+      "RUS"
+    ],
+    "stats": {
+      "season": "2026/27",
+      "league": "KHL",
+      "games": 4,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "stage": "regular",
+      "researchedAsOf": "2026-11-02",
+      "otherLeagueStats": [
+        {
+          "season": "2026/27",
+          "league": "VHL",
+          "team": "HK Tambov",
+          "games": 1,
+          "goals": 0,
+          "assists": 0
+        }
+      ]
+    },
+    "khlCareer": {
+      "games": 4,
+      "seasons": 2
+    },
+    "contractUntil": "2026/27",
+    "salaryMillions": 2.5,
+    "salaryConfirmed": false,
+    "salaryStatus": "estimated",
+    "salaryCurrency": "RUB",
+    "salaryPeriod": "season",
+    "overall": 67,
+    "potential": 72,
+    "sources": [
+      "https://www.eliteprospects.com/player/672618/mark-kozyrev",
+      "https://www.eliteprospects.com/team/198/severstal-cherepovets/stats",
+      "https://severstalclub.ru/news/pervaya-vyezdnaya-seriya-sezona-b6f3c60fc6/"
+    ],
+    "notes": "Depth defenseman; separate Tambov VHL statistics included. EP career Years=2 includes a 2025/26 KHL row with 0 GP; retained as published, not asserted as two seasons with appearances. Research cutoff: 2026-11-02. Stats are accessible EP actual regular-season snapshots, excluding Projected rows and playoffs; source update lag is possible. khlCareer copies EP regular-season games and published Years, including the current season. Salary is an unverified conservative game-budget estimate in millions of RUB per season, not disclosed actual pay; lower-league pay may differ. Overall/potential are subjective game estimates on the supplied scale. Additional league rows, where included, are verified but not an exhaustive multi-league audit."
+  }
+]

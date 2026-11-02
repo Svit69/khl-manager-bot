@@ -5,6 +5,7 @@ import { transferUpdateRecordsD } from "./TransferUpdateRecordsD.js";
 import { transferUpdateRecordsE } from "./TransferUpdateRecordsE.js";
 import { transferUpdateRecordsF } from "./TransferUpdateRecordsF.js";
 import { importedTransferRecords } from "../contractImport/transfers/index.js";
+import { rosterExpansionTransfers } from "../rosterExpansion/RosterExpansionTransfers.js";
 
 export const transferUpdateRecords = [
   ...transferUpdateRecordsA,
@@ -14,4 +15,5 @@ export const transferUpdateRecords = [
   ...transferUpdateRecordsE,
   ...transferUpdateRecordsF,
   ...importedTransferRecords,
+  ...rosterExpansionTransfers,
 ];

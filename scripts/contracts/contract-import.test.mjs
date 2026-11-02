@@ -6,7 +6,7 @@ import { Goalie } from '../../src/models/Goalie.js';
 
 const fixture = createContractImportFixture();
 test('CSV players remain unique and appear in their requested teams or markets', () => {
-  assert.equal(fixture.all.length, fixture.rows.length);
+  assert.equal(fixture.all.filter(player => !player.id.startsWith('expanded-player-')).length, fixture.rows.length);
   assert.equal(new Set(fixture.all.map(player => player.id)).size, fixture.all.length);
   for (const row of fixture.rows) {
     const player = fixture.all.find(player => row['ID игрока'] ? player.id === row['ID игрока'] : player.name === row['Игрок']);
@@ -19,7 +19,7 @@ test('CSV players remain unique and appear in their requested teams or markets',
 });
 test('every active contract matches CSV salary, type, season and destination', () => {
   const types = { 'Односторонний': 'one-way', 'Двухсторонний': 'two-way', 'Трехсторонний': 'three-way' };
-  for (const { player, team } of fixture.active) {
+  for (const { player, team } of fixture.active.filter(entry => !entry.player.id.startsWith('expanded-player-'))) {
     const row = fixture.rows.find(row => row['ID игрока'] ? row['ID игрока'] === player.id : row['Игрок'] === player.name);
     for (const season of Object.keys(row).filter(key => /^\d{4}\/\d{4}$/.test(key))) {
       const contract = fixture.contracts.find(contract => contract.playerId === player.id && contract.season === season);

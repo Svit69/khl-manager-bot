@@ -1,5 +1,6 @@
 import { teamsData } from '../teams.js';
 import { importedContractRecords } from './records/index.js';
+import { createRosterExpansionContracts } from '../rosterExpansion/RosterExpansionContracts.js';
 
 export const applyImportedContracts = (contracts) => {
   const replacements = new Set(importedContractRecords.map(record => record.playerId));
@@ -11,5 +12,5 @@ export const applyImportedContracts = (contracts) => {
     teamId: teamsData.find(team => team.shortName === record.team)?.id || null,
     season, salaryRub: Math.round(salaryMillions * 1e6), type: record.type,
   })));
-  return [...retained, ...imported];
+  return [...retained, ...imported, ...createRosterExpansionContracts()];
 };
