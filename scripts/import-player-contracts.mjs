@@ -1,0 +1,34 @@
+import { copyFile, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { resolve } from 'node:path';
+import { CsvDocumentReader } from './contracts/CsvDocumentReader.mjs';
+import { ContractImportPlanner } from './contracts/ContractImportPlanner.mjs';
+import { ImportRecordWriter } from './contracts/ImportRecordWriter.mjs';
+import { scoutingRecords } from './contracts/scouting/index.mjs';
+import { ContractCsvValidator } from './contracts/ContractCsvValidator.mjs';
+
+const input = process.argv[2];
+if (!input) throw new Error('Usage: node scripts/import-player-contracts.mjs <CSV file>');
+const reader = new CsvDocumentReader();
+const rows = reader.readRows(input);
+const baselinePath = 'reports/contract-import-baseline.csv';
+if (!existsSync(baselinePath)) await writeFile(baselinePath, execFileSync('git', ['show', 'HEAD:reports/all-player-contracts.csv']));
+const baseline = reader.readRows(baselinePath, ';');
+const seasons = new ContractCsvValidator().validateRows(rows);
+const plan = new ContractImportPlanner(baseline, seasons).createPlan(rows);
+const ids = rows.map(row => row['ID игрока']).filter(Boolean);
+if (new Set(ids).size !== ids.length) throw new Error('Duplicate player IDs in CSV');
+const writer = new ImportRecordWriter();
+await writer.writeModules('src/data/contractImport/records', 'ImportedContractRecords', 'importedContractRecords', plan.contracts);
+await writer.writeModules('src/data/contractImport/players', 'ImportedPlayerRecords', 'importedPlayerRecords', plan.players);
+await writer.writeModules('src/data/contractImport/transfers', 'ImportedTransferRecords', 'importedTransferRecords', plan.transfers);
+if (resolve(input) !== resolve('reports/contract-import-source.csv')) await copyFile(input, 'reports/contract-import-source.csv');
+const scoutingRows = plan.players.map(player => {
+  const scout = scoutingRecords.find(record => record.birthDate === player.birthDate && record.positions[0] === player.positions[0]);
+  const overall = Math.round(player.attributes.reduce((sum, value) => sum + value, 0) / 5);
+  return `| ${player.firstName} ${player.lastName} | ${player.team} | ${player.positions.join(', ')} | ${overall} | ${player.potential} | ${player.attributes.join(' / ')} | [EP](${scout.source}) | ${scout.evidence} |`;
+});
+const notes = '# Импорт контрактов и новые игроки\n\nИсточник контрактов: contract-import-source.csv. Суммы в миллионах рублей. Нулевая зарплата трактуется как отсутствие контракта на сезон. У свободных агентов контрактов КХЛ нет, включая 10 млн у Энди Андреоффа: исходное значение сохранено в CSV. Пустые сезоны удаляют старые записи. Новые контракты начинаются в указанных сезонах, зарплаты за 2025/2026 не выдумывались.\n\nПозиции, даты рождения и основание оценки проверены на Elite Prospects 2026-11-02. ОБЩ, потенциал и характеристики - игровые оценки, а не рейтинги EP. Для дебютантов оставлены нулевые начальные счетчики КХЛ. Источники иногда показывают неполные карьерные данные; ограничения отмечены в строках.\n\nХарактеристики полевых: бросок / скорость / физика / защита / скилл. Вратарей: реакция / позиционирование / атлетизм / контроль шайбы / психология.\n\n';
+await writeFile('reports/contract-import-scouting.md', notes + '| Игрок | Команда | Позиции | ОБЩ | Потенциал | Характеристики | Источник | Основание |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n' + scoutingRows.join('\n') + '\n', 'utf8');
+console.log(JSON.stringify({ rows: rows.length, contractUpdates: plan.contracts.length, transfers: plan.transfers.length, newPlayers: plan.players.length }));
