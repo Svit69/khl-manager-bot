@@ -1,7 +1,7 @@
-const CACHE_NAME="khl-manager-v179";
+const CACHE_NAME="khl-manager-v180";
 const ASSETS=[
+  "./src/state/PlayerPhotoRestoration.js",
   "./src/loans/LoanFutureBudgetPolicy.js",
-  "./src/ui/LoanRosterBadgeRenderer.js",
   "./src/loans/AiLoanCandidates.js",
   "./src/loans/AiLoanPlanner.js",
   "./src/loans/AiLoanRoles.js",
@@ -681,15 +681,16 @@ const ASSETS=[
   "./player-photo/voronkov.png",
   "./player-photo/default.png"
 ];
-self.addEventListener("install",e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS)))});
+self.addEventListener("install",e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS.filter(asset=>!asset.startsWith("./player-photo/")))))});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==CACHE_NAME).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
 self.addEventListener("fetch",e=>{
   const url=new URL(e.request.url);
-  const isFreshAsset=e.request.mode==="navigate"||url.pathname.endsWith(".html")||url.pathname.endsWith(".css")||(url.pathname.includes("/src/")&&url.pathname.endsWith(".js"));
+  const isPlayerPhoto=url.pathname.includes("/player-photo/");
+  const isFreshAsset=isPlayerPhoto||e.request.mode==="navigate"||url.pathname.endsWith(".html")||url.pathname.endsWith(".css")||(url.pathname.includes("/src/")&&url.pathname.endsWith(".js"));
   if(isFreshAsset){
-    e.respondWith(fetch(e.request).then(r=>{
+    e.respondWith(fetch(e.request,{cache:isPlayerPhoto?"no-cache":"default"}).then(r=>{
       const copy=r.clone();
-      caches.open(CACHE_NAME).then(c=>c.put(e.request,copy));
+      if(r.ok)caches.open(CACHE_NAME).then(c=>c.put(e.request,copy));
       return r;
     }).catch(()=>caches.match(e.request)));
     return;

@@ -16,7 +16,7 @@ export class TeamRosterBuilder {
       identity:{
         firstName:record.firstName,lastName:record.lastName,displayName:`${record.firstName} ${record.lastName}`,
         birthDate:record.birthDate,nationality:this.resolveNationality(record.nationality),isGoalie:false,
-        photoUrl:`./player-photo/${record.slug}.png`,primaryPosition:position,
+        photoUrl:record.photoUrl||`./player-photo/${record.slug}.png`,primaryPosition:position,
         secondaryPositions:record.secondaryPositions.map((label)=>this.resolvePosition(label)).filter(Boolean),
       },
       attributes:{shot:record.shot,speed:record.speed,physical:record.physical,defense:record.defense,skill:record.skill},

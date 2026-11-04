@@ -1,5 +1,6 @@
 import { createSkater } from "../data/playerFactory.js";
 import { normalizeHiddenTraits } from "../models/HiddenPlayerTraits.js";
+import { PlayerPhotoRestoration } from "./PlayerPhotoRestoration.js";
 
 const DEFAULT_ATTRIBUTES = Object.freeze({ shot: 65, speed: 65, physical: 65, defense: 65, skill: 65 });
 const DEFAULT_POTENTIAL = Object.freeze({ potential: 68, growthRate: 0.2, peakAge: 27, declineRate: 0.4 });
@@ -97,6 +98,7 @@ export const restorePlayerSnapshots = (players, snapshots) => {
   (players || []).forEach((player) => {
     const snapshot = snapshotById.get(player.id);
     if (!snapshot) return;
+    const databasePhotoUrl = player.identity?.photoUrl;
 
     player.applyFatigue(snapshot.fatigueScore - player.fatigueScore);
     player.applyFormDelta(snapshot.form - player.form);
@@ -110,6 +112,7 @@ export const restorePlayerSnapshots = (players, snapshots) => {
     if ("northAmericaIntent" in snapshot) player.northAmericaIntent = snapshot.northAmericaIntent ? { ...snapshot.northAmericaIntent } : null;
     if ("externalCareer" in snapshot) player.externalCareer = snapshot.externalCareer ? { ...snapshot.externalCareer } : null;
     if ("photoUrl" in snapshot) player.identity.photoUrl = snapshot.photoUrl;
+    PlayerPhotoRestoration.restoreCurrentDatabasePhoto(player, databasePhotoUrl);
     if ("teamId" in snapshot) player.affiliation.teamId = snapshot.teamId;
     if ("contractId" in snapshot) player.affiliation.contractId = snapshot.contractId;
     if ("acquiredDay" in snapshot) player.affiliation.acquiredDay = snapshot.acquiredDay;
