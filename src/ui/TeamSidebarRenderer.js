@@ -1,4 +1,5 @@
 import { OptionalCoachNavigationItem } from "./OptionalCoachNavigationItem.js";
+import { OptionalLoanNavigationItem } from "./OptionalLoanNavigationItem.js";
 import { TeamNavigationItem } from "./TeamNavigationItem.js";
 
 export class TeamSidebarRenderer {
@@ -14,6 +15,7 @@ export class TeamSidebarRenderer {
       new TeamNavigationItem("transfers", "Движение", "transfers"),
       new TeamNavigationItem("freeAgents", "Свободные агенты", "free-agents"),
       new TeamNavigationItem("trades", "Обмены", "trades"),
+      new OptionalLoanNavigationItem("loans", "Аренды", "trades"),
       new TeamNavigationItem("legacy", "История", "legacy"),
     ];
   }

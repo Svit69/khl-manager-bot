@@ -16,10 +16,12 @@ export class LoanViewBuilder {
         const approval = runtime.evaluate(player, owner, borrower, context);
         return { ...presented, canAccept: approval.eligible, message: approval.reasons.join(" "), requiresUserApproval: true };
       });
+    const candidates = context.enabled ? LoanCandidatePresenter.build(runtime, context) : [];
+    const ownerIds = new Set(candidates.map(player => player.ownerTeamId));
     return { enabled: context.enabled, capEnabled: context.capEnabled, activeTeamId: context.activeTeamId, seasonLabel: context.seasonLabel,
       endDate: `${year + 1}-05-31`, returnDate: `${year + 1}-06-01`,
-      teams: context.teams.map(team => ({ id: team.id, name: team.name, logoUrl: team.logoUrl })),
-      candidates: context.enabled ? LoanCandidatePresenter.build(runtime, context) : [], incoming: rows.filter(row => row.toTeamId === context.activeTeamId),
+      teams: context.teams.filter(team => ownerIds.has(team.id)).map(team => ({ id: team.id, name: team.name, logoUrl: team.logoUrl })),
+      candidates, incoming: rows.filter(row => row.toTeamId === context.activeTeamId),
       outgoing: rows.filter(row => row.fromTeamId === context.activeTeamId), proposals };
   }
 }

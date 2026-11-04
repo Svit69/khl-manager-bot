@@ -20,6 +20,7 @@ import { calculateAge } from "../contracts/SeasonUtils.js";
 import { adjustedOvrForPosition } from "../utils/positionFit.js";
 import { getPlayerPhotoUrl, PHOTO_FALLBACK_ATTR } from "../utils/PlayerPhoto.js";
 import { renderLoanRosterBadge } from "./LoanRosterBadgeRenderer.js";
+import { renderLoanSection } from "./LoanSectionRenderer.js";
 const FANTASY_DRAFT_ROUNDS=25;
 const NATION_FLAG_ASSET_BY_CODE=Object.freeze({
   RU:"./flags/icon-russia.png",RUS:"./flags/icon-russia.png",
@@ -300,10 +301,14 @@ export class Renderer{
       this.#matchEl.innerHTML=`<h2>Состав</h2><div class="roster-grid roster-grid-cards">${cards}</div>`;
     }
   }
-  renderContracts(rows,negotiation,restrictedRights=[],externalPlayers=[],salaryCap=null,loans=null){
+  renderContracts(rows,negotiation,restrictedRights=[],externalPlayers=[],salaryCap=null){
     const container=document.getElementById("teamTabContent");
-    if(container){container.innerHTML=this.#contractTab.render(rows,negotiation,restrictedRights,externalPlayers,salaryCap,loans);return;}
-    this.#matchEl.innerHTML=this.#contractTab.render(rows,negotiation,restrictedRights,externalPlayers,salaryCap,loans);
+    if(container){container.innerHTML=this.#contractTab.render(rows,negotiation,restrictedRights,externalPlayers,salaryCap);return;}
+    this.#matchEl.innerHTML=this.#contractTab.render(rows,negotiation,restrictedRights,externalPlayers,salaryCap);
+  }
+  renderLoans(view){
+    const container=document.getElementById("teamTabContent")||this.#matchEl;
+    container.innerHTML=renderLoanSection(view);
   }
   renderTeamStatistics(rows,sortBy="points",selectedTeamId=null,teams=[],activeTeamId=null){
     const container=document.getElementById("teamTabContent");

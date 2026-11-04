@@ -3,7 +3,9 @@ export class LoanUiController {
   view(state) {
     const view = state.getLoanView();
     const teams = view.teams || [], candidates = view.candidates || [];
-    if (!teams.some((team) => team.id === this.sourceTeamId)) this.sourceTeamId = view.activeTeamId;
+    if (!teams.some((team) => team.id === this.sourceTeamId)) {
+      this.sourceTeamId = candidates.find(player => player.destinations.some(row => row.eligible))?.ownerTeamId || teams[0]?.id || "";
+    }
     const players = candidates.filter((player) => player.ownerTeamId === this.sourceTeamId);
     if (!players.some((player) => player.playerId === this.playerId)) this.playerId = players[0]?.playerId || "";
     const player = players.find((entry) => entry.playerId === this.playerId);

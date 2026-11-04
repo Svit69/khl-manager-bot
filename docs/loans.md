@@ -21,7 +21,9 @@ https://cska-hockey.ru/upload/iblock/c35/gtnp5j7jxrr5gr1ptaks0zfpweo6ava2.pdf
 - `loansEnabled` defaults to true, including legacy saves.
 - The career settings toggle is available before selecting a club.
 - Disabling new loans never cancels an existing player's mandatory return.
-- Contracts contains owner/player/borrower selectors, terms, reasons and agreements.
+- A dedicated Loans sidebar tab contains an AI club picker, available players, selected-player terms and agreements. It is hidden when loans are disabled.
+- The market excludes the user's own club and unavailable AI players/clubs. Owner consent and source eligibility are checked before listing; borrower cap/player-role blockers remain visible in the selected terms. Submission revalidates all rules.
+- Contracts retains loan badges and renewal locks, but no longer contains the loan market.
 - AI proposals involving the user require explicit acceptance or rejection.
 - User-initiated agreements execute immediately after all consent checks pass.
 - Consent is modeled through depth and projected playing role, not random rerolls.

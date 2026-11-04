@@ -1,0 +1,47 @@
+.loan-screen{display:grid;gap:20px;padding:0;border:0;background:#05080e}
+.loan-screen *{box-sizing:border-box;letter-spacing:0}
+.loan-screen-heading{padding-bottom:16px;border-bottom:1px solid #252930}
+.loan-screen-heading h2{margin:0 0 6px;font-size:24px;color:#f6f7fc}
+.loan-screen-heading span,.loan-market-total{font-size:13px;color:#7e838c}
+.loan-market-total strong{color:#9bd841}
+.loan-market-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(240px,1fr);gap:20px}
+.loan-market,.loan-preview{min-width:0}
+.loan-market .trade-team-picker{width:100%;margin-bottom:16px}
+.loan-screen .trade-team-picker summary,.loan-screen .trade-team-menu,.loan-screen .trade-team-option{background:#090c10;border-color:#252930;border-radius:6px;box-shadow:none}
+.loan-screen .trade-team-picker-label,.loan-screen .trade-team-option small{color:#7e838c}
+.loan-screen .trade-team-picker summary::after{border-color:#9bd841}
+.loan-screen .trade-team-menu{left:0;width:100%;max-height:320px}
+.loan-screen .trade-team-option{min-height:48px;white-space:normal}
+.loan-screen .trade-team-option.active{border-color:#5221f2;background:#17102d}
+.loan-screen .trade-team-picker-current strong{font-size:16px;overflow-wrap:anywhere}
+.loan-screen .trade-panel-head{padding:0 0 12px;min-width:0}
+.loan-screen h3{font-size:14px}
+.loan-screen .trade-player-row{background:#090c10;border:1px solid #252930;border-radius:6px;min-width:0;grid-template-columns:48px minmax(0,1fr) 40px;padding:8px;gap:10px;text-align:left}
+.loan-screen .trade-player-row.selected{border-color:#5221f2;background:#17102d;box-shadow:inset 3px 0 #5221f2}
+.loan-screen .trade-player-row:hover{border-color:#5221f2;transform:none}
+.loan-screen .trade-player-name{font-size:14px;white-space:normal;overflow-wrap:anywhere}
+.loan-screen .trade-player-subtitle{font-size:11px;flex-wrap:wrap;color:#7e838c}
+.loan-screen .trade-player-subtitle span{padding:0;background:none;color:#7e838c;border-radius:0}
+.loan-screen .trade-player-photo{object-fit:contain;border-radius:4px;background:transparent;box-shadow:none}
+.loan-screen .trade-list{scrollbar-color:#9bd841 #090c10}
+.loan-screen .trade-list::-webkit-scrollbar-thumb{background:#9bd841}
+.loan-screen .trade-player-rating strong{color:#9bd841;font-size:23px}
+.loan-screen .trade-player-rating-label{color:#7e838c;font-size:11px}
+.loan-market-list{display:grid;align-content:start;gap:8px;max-height:550px;overflow-y:auto;padding:2px}
+.loan-preview{border-left:1px solid #252930;padding-left:20px}
+.loan-preview-player{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:16px;background:#090c10}
+.loan-preview-player img{width:130px;height:140px;object-fit:contain;object-position:bottom}
+.loan-preview-player>div{display:grid;gap:4px;padding-right:20px}
+.loan-preview-player strong{font-size:36px;color:#9bd841}
+.loan-preview h4{margin:14px 0 6px;font-size:18px;overflow-wrap:anywhere}
+.loan-preview p{font-size:12px;color:#7e838c;margin:0;line-height:1.6}
+.loan-preview-terms{display:grid;gap:12px;margin:20px 0}
+.loan-preview-terms>div{display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid #252930;padding-bottom:10px;font-size:12px}
+.loan-preview dt{color:#7e838c;max-width:55%;overflow-wrap:anywhere}
+.loan-preview dd{margin:0;text-align:right;overflow-wrap:anywhere}
+.loan-preview .btn{width:100%;background:#5221f2;border:1px solid #5221f2}
+.loan-preview .loan-reasons{margin-top:10px}
+.loan-screen .loan-agreement-columns{border-top:1px solid #252930}
+.loan-screen .trade-summary-empty{color:#7e838c;font-size:13px;padding:20px 0;line-height:1.6}
+@media(max-width:1100px){.loan-market-grid{grid-template-columns:minmax(0,1fr)}.loan-preview{border-left:0;border-top:1px solid #252930;padding:20px 0 0}}
+@media(max-width:600px){.loan-screen-heading{align-items:flex-start;flex-direction:column}.loan-screen .trade-team-menu{width:100%}.loan-screen .trade-player-photo{width:44px;height:54px}.loan-screen .trade-player-row{gap:6px;grid-template-columns:44px minmax(0,1fr) 36px}}

@@ -1,20 +1,17 @@
-import { loanEscape as esc, loanDate } from "./LoanUiFormatting.js";
+import { loanEscape as esc } from "./LoanUiFormatting.js";
 import { renderLoanProposalForm } from "./LoanProposalFormRenderer.js";
 import { renderLoanAgreements } from "./LoanAgreementRenderer.js";
+import { renderLoanMarket } from "./LoanMarketRenderer.js";
+
 export const renderLoanSection = (view) => {
   if (!view) return "";
-  return `<section class="loan-section" aria-labelledby="loan-section-title">
-    <header><h3 id="loan-section-title">Аренды игроков</h3><span>${esc(view.seasonLabel || "")}</span></header>
-    <ul class="loan-rules">
-      <li>До 24 лет включительно по году начала сезона; дедлайн: 25 января</li>
-      <li>До 4 входящих и 4 исходящих одновременно, в каждом направлении не более одного игрока 23-24 лет; между двумя клубами: до 2 аренд за сезон</li>
-      <li>Согласие обоих клубов и игрока; основной контракт у владельца, минимум на следующий сезон</li>
-      <li>Без платы за переход; возврат: ${view.returnDate ? loanDate(view.returnDate) : "по окончании аренды"}</li>
-      <li>Потолок: полная сезонная ставка у арендатора, без пересчёта за период; у владельца на время аренды исключается</li>
-    </ul>
+  return `<section class="loan-section loan-screen" aria-labelledby="loan-section-title">
+    <header class="loan-screen-heading"><div><h2 id="loan-section-title">Аренды</h2><span>Сезон ${esc(view.seasonLabel || "")}</span></div>
+      <div class="loan-market-total">Клубов: <strong>${view.teams?.length || 0}</strong> / Игроков: <strong>${view.candidates?.length || 0}</strong></div></header>
     ${view.message ? `<div class="loan-feedback" role="status" aria-live="polite">${esc(view.message)}</div>` : ""}
-    ${renderLoanProposalForm(view)}
-    ${renderLoanAgreements("Предложения", view.proposals, true, view.enabled !== false)}
-    <div class="loan-agreement-columns">${renderLoanAgreements("Входящие аренды", view.incoming, false, view.enabled !== false)}${renderLoanAgreements("Исходящие аренды", view.outgoing, false, view.enabled !== false)}</div>
+    ${view.enabled === false ? '<div class="trade-summary-empty">Аренды отключены в настройках карьеры.</div>' : `<div class="loan-market-grid">
+      ${renderLoanMarket(view)}${renderLoanProposalForm(view)}</div>`}
+    ${renderLoanAgreements("Входящие предложения", view.proposals, true, view.enabled !== false)}
+    <div class="loan-agreement-columns">${renderLoanAgreements("Взяты в аренду", view.incoming, false, view.enabled !== false)}${renderLoanAgreements("Отданы в аренду", view.outgoing, false, view.enabled !== false)}</div>
   </section>`;
 };

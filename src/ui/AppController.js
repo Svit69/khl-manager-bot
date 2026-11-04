@@ -57,6 +57,7 @@ export class AppController{
     document.addEventListener("dragend",event=>{this.#dragRosterSlot=null;event.target?.classList?.remove?.("is-dragging");});
   }
   #renderScreen(){
+    if(this.#activeTab==="loans"&&this.#state.gameSettings.loansEnabled===false)this.#activeTab="roster";
     this.#updateFavicon();
     const dayInfo=this.#state.activeTeam?this.#state.getVisibleCalendarDay():this.#calendar.getCurrent();
     const seasonState=this.#state.getSeasonState();
@@ -111,8 +112,7 @@ export class AppController{
           this.#buildNegotiationState(),
           this.#buildRestrictedRightsState(),
           this.#state.getExternalPlayerRows(),
-          this.#state.getSalaryCapSummary(),
-          this.#loans.view(this.#state)
+          this.#state.getSalaryCapSummary()
         );
       }else if(this.#activeTab==="coach"){
         const coachView=this.#state.getActiveTeamCoachView();
@@ -131,6 +131,8 @@ export class AppController{
         this.#renderer.renderFreeAgents(this.#state.getActiveTeamFreeAgentRows(),this.#buildNegotiationState(),this.#state.getSalaryCapSummary());
       }else if(this.#activeTab==="trades"){
         this.#renderer.renderTrades(this.#buildTradeState());
+      }else if(this.#activeTab==="loans"){
+        this.#renderer.renderLoans(this.#loans.view(this.#state));
       }else if(this.#activeTab==="transfers"){
         this.#renderer.renderTransfers(this.#state.getTeamTransferView(this.#transferTeamId||this.#state.activeTeamId));
       }else if(this.#activeTab==="legacy"){
@@ -407,6 +409,11 @@ export class AppController{
     const action=clickable?.dataset?.action;
     const teamId=clickable?.dataset?.teamId;
     if(clickable?.disabled)return;
+    if(action==="loan-select-team"||action==="loan-select-player"){
+      this.#loans.change(action==="loan-select-team"?"loan-source":"loan-player",action==="loan-select-team"?teamId:clickable.dataset.playerId);
+      this.#renderScreen();
+      return;
+    }
     if(["loan-submit","loan-accept","loan-reject","loan-terminate"].includes(action)){
       if(this.#loanBusy)return;
       this.#loanBusy=true;
