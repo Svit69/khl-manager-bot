@@ -1,4 +1,5 @@
 import { PHOTO_FALLBACK_ATTR } from "../utils/PlayerPhoto.js";
+import { loanEscape, loanDate } from "./LoanUiFormatting.js";
 
 const statusClass = (status) => status === "НСА" ? "nsa" : "osa";
 const statusLabel = (row, formatStatus) => row.freeAgentStatus || formatStatus(row.age, row.khlGamesPlayed);
@@ -32,7 +33,9 @@ const splitName = (name = "") => {
   const parts = String(name).trim().split(/\s+/).filter(Boolean);
   return { first: parts.slice(0, -1).join(" "), last: parts.at(-1) || "" };
 };
-const renderAction = (row) => row.isRenewalLocked
+const renderAction = (row) => row.loan
+  ? `<div class="contract-player-renewed loan-locked">${loanEscape(row.renewalLockReason || "Игрок находится в аренде. Основной контракт сохраняется у владельца.")}</div>`
+  : row.isRenewalLocked
   ? `<div class="contract-player-renewed"><span>✓</span><strong>ПРОДЛЕНО</strong><small>Продлен в этом сезоне</small></div>`
   : `<button class="contract-player-action" data-action="open-negotiation" data-player-id="${row.playerId}">ПРОДЛИТЬ КОНТРАКТ</button>`;
 
@@ -60,11 +63,12 @@ export const renderContractPlayerCard = (row, formatStatus) => {
     <div class="contract-player-main">
       <h3 title="${row.displayName}">${name.first ? `${name.first} ` : ""}${name.last}</h3>
       <div class="contract-player-bio"><b>${row.position}</b><span>${row.age} лет</span></div>
+      ${row.loan ? `<span class="loan-card-badge">Аренда: ${loanEscape(row.loan.ownerTeamName)}, до ${loanDate(row.loan.endDate)}</span>` : ""}
       <div class="contract-player-details"><div><span>Текущий контракт</span><strong>${formatCurrentContractSalaryLabel(row)}</strong></div><div><span>\u0421\u0435\u0437\u043e\u043d</span><strong>${renderSeasonStats(row)}</strong></div></div>
     </div>
     <div class="contract-player-ovr"><span>OVR</span><strong>${row.ovr}</strong></div>
     <div class="contract-player-term"><span>Контракт до</span><strong>${contractLabel(row)}</strong><em>${termLabel(row)}</em></div>
-    <span class="contract-player-status ${statusClass(status)}">${status}</span>
+    <span class="contract-player-status ${statusClass(status)}">${row.loan ? "АРЕНДА" : status}</span>
     ${renderAction(row)}
   </article>`;
 };

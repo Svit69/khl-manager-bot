@@ -1,6 +1,7 @@
 import { FantasyDraftService } from "../draft/FantasyDraftService.js";
 import { JuniorPhotoPool } from "../utils/JuniorPhotoPool.js";
 import { updateTeamFavicon } from "./TeamFaviconService.js";
+import { LoanUiController } from "./LoanUiController.js";
 export class AppController{
   #state;#calendar;#teams;#renderer;#userStore;#pendingTeamId=null;#activeTab="roster";
   #selectedNegotiationPlayerId=null;#offerByPlayerId=new Map();#outcomeByPlayerId=new Map();
@@ -20,7 +21,7 @@ export class AppController{
   #calendarScheduleMonthOffset=0;
   #calendarScheduleFilter="all";
   #notificationVisibleCount=6;
-  #newGameSettings={restrictedFreeAgencyEnabled:true,salaryCapEnabled:true,salaryCapBaseRub:900000000,salaryCapGrowthRub:50000000,coachesEnabled:true,conferencesEnabled:true};
+  #newGameSettings={restrictedFreeAgencyEnabled:true,salaryCapEnabled:true,salaryCapBaseRub:900000000,salaryCapGrowthRub:50000000,coachesEnabled:true,conferencesEnabled:true,loansEnabled:true};
   #capComplianceOpen=false;
   #capReleasePlayerIds=new Set();
   #seasonContractDecisionOpen=false;
@@ -39,6 +40,8 @@ export class AppController{
   #juniorPhotoErrorById=new Map();
   #juniorPhotoPool=new JuniorPhotoPool();
   #juniorPositionFilter="all";
+  #loans=new LoanUiController();
+  #loanBusy=false;
   constructor(state,calendar,teams,renderer,userStore){
     this.#state=state;this.#calendar=calendar;this.#teams=teams;this.#renderer=renderer;this.#userStore=userStore;
   }
@@ -69,7 +72,7 @@ export class AppController{
         unreadCount:this.#state.getUnreadNotificationCount(),
         unreadItems:this.#state.getUnreadNotifications(this.#notificationVisibleCount),
         totalUnread:this.#state.getUnreadNotificationTotal()
-      },this.#state.gameSettings);
+      },{...this.#state.gameSettings,loanByPlayerId:this.#state.getActiveLoanBadges()});
       if(this.#capComplianceOpen){
         this.#renderer.renderSalaryCapCompliance(this.#state.getSalaryCapComplianceView([...this.#capReleasePlayerIds]));
         this.#renderer.renderCalendar(calendarDateLabel,dayInfo,true,{
@@ -108,7 +111,8 @@ export class AppController{
           this.#buildNegotiationState(),
           this.#buildRestrictedRightsState(),
           this.#state.getExternalPlayerRows(),
-          this.#state.getSalaryCapSummary()
+          this.#state.getSalaryCapSummary(),
+          this.#loans.view(this.#state)
         );
       }else if(this.#activeTab==="coach"){
         const coachView=this.#state.getActiveTeamCoachView();
@@ -209,6 +213,7 @@ export class AppController{
   #handleChange(event){
     const changed=event.target?.closest?.("[data-action]");
     const action=changed?.dataset?.action;
+    if(this.#loans.change(action,changed?.value)){this.#renderScreen();return;}
     if(action==="trade-select-team"){
       const teamId=changed.value||"";
       this.#tradeTeamId=teamId||null;
@@ -401,6 +406,15 @@ export class AppController{
     const tab=clickable?.dataset?.tab;
     const action=clickable?.dataset?.action;
     const teamId=clickable?.dataset?.teamId;
+    if(clickable?.disabled)return;
+    if(["loan-submit","loan-accept","loan-reject","loan-terminate"].includes(action)){
+      if(this.#loanBusy)return;
+      this.#loanBusy=true;
+      clickable.disabled=true;
+      try{await this.#loans.act(action,clickable.dataset.loanId,this.#state,this.#userStore);}
+      finally{this.#loanBusy=false;this.#renderScreen();}
+      return;
+    }
     if(teamId && !action){this.#pendingTeamId=teamId;this.#renderScreen();return;}
     if(tab){
       this.#activeTab=tab;
@@ -440,6 +454,12 @@ export class AppController{
     }
     if(action==="new-game-rfa-toggle"){
       this.#newGameSettings={...this.#newGameSettings,restrictedFreeAgencyEnabled:clickable.checked};
+      this.#state.updateGameSettings(this.#newGameSettings);
+      this.#renderScreen();
+      return;
+    }
+    if(action==="new-game-loans-toggle"){
+      this.#newGameSettings={...this.#newGameSettings,loansEnabled:clickable.checked};
       this.#state.updateGameSettings(this.#newGameSettings);
       this.#renderScreen();
       return;

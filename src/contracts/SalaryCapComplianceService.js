@@ -13,10 +13,10 @@ const releaseScore = (player, salaryRub) => {
 };
 
 export class SalaryCapComplianceService {
-  buildView(team, contracts, seasonLabel, capRub, selectedIds = new Set()) {
+  buildView(team, contracts, seasonLabel, capRub, selectedIds = new Set(), protectedIds = new Set()) {
     const rows = (team?.getRoster?.() || []).map((player) => {
       const salaryRub = salaryFor(contracts, player.id, seasonLabel);
-      return { player, salaryRub, selected: selectedIds.has(player.id), score: releaseScore(player, salaryRub) };
+      return { player, salaryRub, selected: selectedIds.has(player.id) && !protectedIds.has(player.id), protected: protectedIds.has(player.id), score: releaseScore(player, salaryRub) };
     }).sort((left, right) => (right.salaryRub - left.salaryRub) || (left.player.ovr - right.player.ovr));
     const payrollRub = rows.reduce((sum, row) => sum + row.salaryRub, 0);
     const releasedRub = rows.filter((row) => row.selected).reduce((sum, row) => sum + row.salaryRub, 0);
@@ -36,10 +36,10 @@ export class SalaryCapComplianceService {
     return cuts;
   }
 
-  pickMultiSeasonCuts(team, contracts, seasonLabels, getCapRub) {
+  pickMultiSeasonCuts(team, contracts, seasonLabels, getCapRub, protectedIds = new Set()) {
     return pickMultiSeasonSalaryCapCuts({
       team, contracts, seasonLabels, getCapRub,
-      buildView: (targetTeam, rows, season, capRub, selectedIds) => this.buildView(targetTeam, rows, season, capRub, selectedIds),
+      buildView: (targetTeam, rows, season, capRub, selectedIds) => this.buildView(targetTeam, rows, season, capRub, selectedIds, protectedIds),
     });
   }
 }

@@ -1,6 +1,7 @@
 {
   "type": "module",
   "scripts": {
+    "test:loans": "node scripts/loans/run-tests.mjs",
     "check:unicode": "node scripts/check-unicode.mjs",
     "junior:photos": "node scripts/generate-junior-photos.mjs"
   }

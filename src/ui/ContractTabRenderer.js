@@ -3,15 +3,16 @@ import { renderContractFinanceHeader } from "./ContractFinanceRenderer.js";
 import { renderContractPlayerCard } from "./ContractPlayerCardRenderer.js";
 import { ContractRestrictedRightsRenderer } from "./ContractRestrictedRightsRenderer.js";
 import { RenewalContractOfferControlPanel } from "./contract-offer/RenewalContractOfferControlPanel.js";
+import { renderLoanSection } from "./LoanSectionRenderer.js";
 
 export class ContractTabRenderer {
   #contractOfferControlPanel = new RenewalContractOfferControlPanel();
   #restrictedRightsRenderer = new ContractRestrictedRightsRenderer();
 
-  render(rows, negotiation, restrictedRights = [], externalPlayers = [], salaryCap = null) {
+  render(rows, negotiation, restrictedRights = [], externalPlayers = [], salaryCap = null, loans = null) {
     const restrictedMarkup = this.#renderRestrictedRights(restrictedRights);
     const externalMarkup = this.#renderExternalPlayers(externalPlayers);
-    const capMarkup = renderContractFinanceHeader(salaryCap);
+    const capMarkup = renderContractFinanceHeader(salaryCap) + renderLoanSection(loans);
     const content = rows
       .map((row) => {
         const status = row.freeAgentStatus || this.#formatStatus(row.age, row.khlGamesPlayed);

@@ -6,14 +6,14 @@ const getPlayerScore = (player, salaryRub) => {
 };
 
 export class AiSalaryCapCompliancePlanner {
-  pickContractPayrollCuts({ team, contracts, players, seasonLabels, getCapRub }) {
+  pickContractPayrollCuts({ team, contracts, players, seasonLabels, getCapRub, protectedIds = new Set() }) {
     const playerById = new Map((players || []).map((player) => [player.id, player]));
     const rosterIds = new Set((team?.getRoster?.() || []).map((player) => player.id));
     const selectedIds = new Set();
     (seasonLabels || []).forEach((seasonLabel) => {
       const capRub = getCapRub(seasonLabel);
       let payrollRub = this.#sumPayroll(contracts, team.id, seasonLabel, selectedIds);
-      const candidates = this.#buildCutCandidates({ team, contracts, playerById, rosterIds, selectedIds, seasonLabel });
+      const candidates = this.#buildCutCandidates({ team, contracts, playerById, rosterIds, selectedIds, seasonLabel }).filter(row => !protectedIds.has(row.playerId));
       while (payrollRub > capRub && candidates.length) {
         const candidate = candidates.shift();
         if (rosterIds.has(candidate.playerId) && rosterIds.size - selectedIds.size <= 18) continue;

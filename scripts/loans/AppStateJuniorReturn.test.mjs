@@ -1,0 +1,33 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { createFixture } from "./AppStateFixture.mjs";
+test("automatic return finds a directly demoted loan player and leaves no duplicates", () => {
+  const fixture = createFixture(), saved = JSON.parse(JSON.stringify(fixture.state.exportState()));
+  saved.players.find(row => row.id === fixture.player.id).identity.birthDate = "2006-01-01";
+  saved.contracts.contracts.filter(row => row.playerId === fixture.player.id).forEach(row => { row.type = "three-way"; });
+  fixture.state.importState(saved);
+  const agreement = fixture.startLoan(), borrower = fixture.teams[1];
+  const index = borrower.reservePlayers.indexOf(fixture.player);
+  assert.notEqual(index, -1);
+  borrower.juniorPlayers.push(...borrower.reservePlayers.splice(index, 1));
+  assert.equal(borrower.getRoster().some(row => row.id === fixture.player.id), false);
+  assert.equal(fixture.state.getLoanView().outgoing.find(row => row.id === agreement.id).displayName, fixture.player.name);
+  fixture.calendar.index = Number.MAX_SAFE_INTEGER;
+  assert.ok(fixture.state.advanceToNextSeason());
+  const exported = fixture.state.exportState();
+  assert.equal(exported.loans.agreements.find(row => row.id === agreement.id).status, "returned");
+  const occurrences = teams => teams.flatMap(team => [...team.getRoster(), ...team.juniorPlayers])
+    .filter(row => row.id === fixture.player.id);
+  assert.equal(occurrences(fixture.teams).length, 1);
+  assert.equal(fixture.player.affiliation.teamId, "owner");
+  assert.equal(borrower.juniorPlayers.some(row => row.id === fixture.player.id), false);
+  assert.equal(borrower.getRoster().some(row => row.id === fixture.player.id), false);
+  assert.equal(fixture.state.getAvailableFreeAgents().some(row => row.id === fixture.player.id), false);
+  const contracts = exported.contracts.contracts.filter(row => row.playerId === fixture.player.id);
+  assert.equal(contracts.length, 2);
+  assert.ok(contracts.every(row => row.teamId === "owner"));
+  assert.equal(fixture.player.affiliation.contractId, contracts.find(row => row.season === "2027/2028").id);
+  const restored = createFixture(); restored.state.importState(JSON.parse(JSON.stringify(exported)));
+  assert.equal(occurrences(restored.teams).length, 1);
+  assert.equal(restored.state.exportState().loans.agreements.find(row => row.id === agreement.id).status, "returned");
+});

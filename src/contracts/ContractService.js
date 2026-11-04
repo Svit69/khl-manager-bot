@@ -271,6 +271,13 @@ export class ContractService {
     );
   }
 
+  reassignSeasonContract(playerId, season, teamId) {
+    const contract = this.getContractForSeason(playerId, season);
+    if (!contract || !teamId) throw new Error("CURRENT_CONTRACT_REQUIRED");
+    contract.teamId = teamId;
+    return { ...contract };
+  }
+
   ensureCurrentRosterContract(player, teamId, season) {
     if (!player?.id || !teamId || !season) return null;
     const currentContract = this.getContractForSeason(player.id, season);

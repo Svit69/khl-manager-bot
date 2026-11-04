@@ -1,0 +1,34 @@
+.loan-section{min-width:0;padding:16px 0;border-top:1px solid rgba(246,247,252,.14);border-bottom:1px solid rgba(246,247,252,.14);color:#f6f7fc}
+.loan-section header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.loan-section h3{font-size:18px;margin:0}
+.loan-section h4{font-size:14px;margin:16px 0 8px}
+.loan-section h4 span{color:#bca7ff;margin-left:6px}
+.loan-rules{display:grid;gap:6px;font-size:12px;line-height:1.5;color:#cfd3dc;margin:12px 0;padding:0;list-style:none}
+.loan-proposal-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.loan-proposal-form label{display:grid;gap:6px;min-width:0;font-size:13px;color:#cfd3dc}
+.loan-proposal-form select{width:100%;min-width:0;min-height:44px;border:1px solid rgba(246,247,252,.25);border-radius:6px;background:#090c10;color:#f6f7fc;font:inherit;padding:8px}
+.loan-terms{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:12px 24px;font-size:13px;color:#cfd3dc}
+.loan-terms strong{color:#f6f7fc;margin-left:6px}
+.loan-submit{grid-column:1/-1;display:flex;align-items:center;gap:12px}
+.loan-section .btn{min-height:44px;white-space:normal;overflow-wrap:anywhere;flex-shrink:0;border-radius:6px;color:#f6f7fc}
+.loan-reasons,.loan-row-reason{font-size:13px;color:#ffd28a;line-height:1.5}
+.loan-feedback{padding:10px 12px;margin:12px 0;border-left:3px solid #9bd841;background:rgba(155,216,65,.08);line-height:1.5;font-size:14px}
+.loan-agreement-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.loan-list,.loan-player,.loan-row-terms,.loan-row-status{min-width:0}
+.loan-row{display:grid;gap:10px;padding:12px 0;border-top:1px solid rgba(246,247,252,.12);overflow-wrap:anywhere}
+.loan-player,.loan-row-terms,.loan-row-status{display:grid;gap:4px;font-size:13px}
+.loan-player strong{font-size:15px}
+.loan-player span,.loan-row-terms,.loan-row-status span{color:#cfd3dc;line-height:1.5}
+.loan-row-actions{display:flex;gap:8px;flex-wrap:wrap}
+.loan-section button:disabled,.loan-section select:disabled{opacity:.55;cursor:not-allowed}
+.loan-section .btn.secondary{background:#090c10;border:1px solid #5221f2;color:#f6f7fc}
+.loan-section :is(button,select):focus-visible{outline:2px solid #9bd841;outline-offset:3px}
+.loan-card-badge{display:inline-block;max-width:100%;padding:3px 6px;border-radius:4px;background:rgba(155,216,65,.13);color:#b9ef72;font-size:11px;line-height:1.4;overflow-wrap:anywhere}
+.contract-player-renewed.loan-locked{min-width:0;white-space:normal;text-align:center;font-size:12px;line-height:1.4;color:#cfd3dc}
+.cap-cut-row:disabled{opacity:.65;cursor:not-allowed}
+.cap-cut-row .loan-card-badge{margin-left:6px}
+.hockey-card-loan{position:absolute;z-index:5;top:14px;left:50%;transform:translateX(-50%);display:grid;place-items:center;width:26px;height:26px;border:1px solid #9bd841;border-radius:4px;background:#090c10;color:#b9ef72;font-size:18px;line-height:1;cursor:help}
+.hockey-card-loan-tooltip{position:absolute;top:30px;left:50%;transform:translateX(-50%);width:170px;box-sizing:border-box;padding:8px;border:1px solid #9bd841;border-radius:4px;background:#090c10;color:#f6f7fc;font-size:12px;line-height:1.5;font-weight:400;white-space:normal;overflow-wrap:anywhere;visibility:hidden;opacity:0;pointer-events:none}
+.hockey-card-loan:is(:hover,:focus-visible) .hockey-card-loan-tooltip{visibility:visible;opacity:1}
+.hockey-card-loan:focus-visible{outline:2px solid #f6f7fc;outline-offset:2px}
+@media(max-width:900px){.loan-proposal-form{grid-template-columns:1fr}.loan-agreement-columns{grid-template-columns:1fr;gap:0}.loan-submit{align-items:stretch;flex-direction:column}.loan-proposal-form select{font-size:16px}}

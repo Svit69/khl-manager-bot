@@ -7,9 +7,9 @@ export class SalaryCapComplianceRenderer {
     if (!view) return "";
     const rows = (view.rows || []).map((row) => {
       const player = row.player;
-      const checked = row.selected ? " selected" : "";
-      return `<button class="cap-cut-row${checked}" data-action="cap-release-toggle" data-player-id="${player.id}">
-        <span class="cap-cut-name">${getName(player)}</span>
+      const checked = row.selected && !row.protected ? " selected" : "";
+      return `<button class="cap-cut-row${checked}" data-action="cap-release-toggle" data-player-id="${player.id}"${row.protected ? ' disabled title="Игрок в аренде: расторжение основного контракта недоступно"' : ""}>
+        <span class="cap-cut-name">${getName(player)}${row.protected ? '<span class="loan-card-badge">Аренда</span>' : ""}</span>
         <span>${player.identity?.primaryPosition || ""}</span>
         <span>OVR ${player.ovr}</span>
         <strong>${formatMillions(row.salaryRub)} млн</strong>

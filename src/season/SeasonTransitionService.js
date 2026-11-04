@@ -58,7 +58,7 @@ export class SeasonTransitionService {
     this.#development = developmentService;
   }
 
-  advanceToNextSeason({ teams, calendar, activeTeamId, standingsTable, scorerTable, allPlayers, transferLedger = [], buildContext, canSubmitOffer = null, pushNotification, releaseRightsPlayerIds = [], restrictedFreeAgencyEnabled = true }) {
+  advanceToNextSeason({ teams, calendar, activeTeamId, standingsTable, scorerTable, allPlayers, transferLedger = [], buildContext, canSubmitOffer = null, pushNotification, releaseRightsPlayerIds = [], restrictedFreeAgencyEnabled = true, returnSeasonLoans = () => {} }) {
     const currentSeasonLabel = calendar.seasonLabel;
     const nextSeasonStartYear = calendar.seasonStartYear + 1;
     const nextSeasonLabel = formatSeasonLabel(nextSeasonStartYear);
@@ -66,6 +66,7 @@ export class SeasonTransitionService {
     const preseasonDates = createPreseasonDates(nextSeasonStartYear);
     const preseasonDateIso = getPreseasonDateAt(preseasonDates, 0) || offseasonDate.toISOString().slice(0, 10);
     const archive = this.#buildArchive({ calendar, standingsTable, scorerTable, teams, activeTeamId, currentSeasonLabel, transferLedger });
+    const returnedLoans = returnSeasonLoans() || [];
 
     (allPlayers || []).forEach((player) => {
       player.career?.addGames?.(player.seasonStats?.games || 0);
@@ -222,6 +223,7 @@ export class SeasonTransitionService {
 
     return {
       archive,
+      returnedLoans,
       seasonState: {
         phase: "preseason",
         previousSeasonLabel: currentSeasonLabel,

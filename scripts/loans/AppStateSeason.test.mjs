@@ -1,0 +1,35 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { createFixture } from "./AppStateFixture.mjs";
+test("automatic season return runs before expiry, preserves player and avoids duplicates", () => {
+  const fixture = createFixture(), agreement = fixture.startLoan();
+  const before = fixture.state.exportState().contracts.contracts.filter(row => row.playerId === fixture.player.id);
+  fixture.calendar.index = Number.MAX_SAFE_INTEGER;
+  assert.equal(fixture.state.canAdvanceToNextSeason(), true);
+  const transition = fixture.state.advanceToNextSeason(); assert.ok(transition);
+  assert.equal(fixture.calendar.seasonLabel, "2027/2028");
+  const after = fixture.state.exportState();
+  assert.equal(after.loans.agreements.find(row => row.id === agreement.id).status, "returned");
+  const appearances = fixture.teams.flatMap(team => team.getRoster()).filter(row => row.id === fixture.player.id);
+  assert.equal(appearances.length, 1); assert.equal(appearances[0].affiliation.teamId, "owner");
+  assert.equal(fixture.player.affiliation.contractId, before.find(row => row.season === "2027/2028").id);
+  const contracts = after.contracts.contracts.filter(row => row.playerId === fixture.player.id);
+  assert.equal(contracts.length, before.length);
+  assert.ok(contracts.every(row => row.teamId === "owner"));
+  assert.equal(after.retiredPlayerIds.includes(fixture.player.id), false);
+  assert.equal(fixture.state.getAvailableFreeAgents().some(row => row.id === fixture.player.id), false);
+  const restored = createFixture(); restored.state.importState(JSON.parse(JSON.stringify(after)));
+  assert.equal(restored.teams.flatMap(team => team.getRoster()).filter(row => row.id === fixture.player.id).length, 1);
+  assert.equal(restored.state.exportState().loans.agreements.find(row => row.id === agreement.id).status, "returned");
+});
+test("disabling new loans does not prevent an existing loan's automatic return", () => {
+  const fixture = createFixture(), agreement = fixture.startLoan();
+  const saved = JSON.parse(JSON.stringify(fixture.state.exportState()));
+  saved.gameSettings.loansEnabled = false;
+  const restored = createFixture(); restored.state.importState(saved);
+  restored.calendar.index = Number.MAX_SAFE_INTEGER;
+  assert.ok(restored.state.advanceToNextSeason());
+  assert.equal(restored.state.gameSettings.loansEnabled, false);
+  assert.equal(restored.state.exportState().loans.agreements.find(row => row.id === agreement.id).status, "returned");
+  assert.equal(restored.teams.flatMap(team => team.getRoster()).find(row => row.id === fixture.player.id).affiliation.teamId, "owner");
+});

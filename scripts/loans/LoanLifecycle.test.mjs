@@ -1,0 +1,42 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { LoanTestFixture } from "./LoanTestFixture.mjs";
+import { LoanService } from "../../src/loans/LoanService.js";
+test("start/return preserves lines, current ID/salary, future contracts and affiliation", () => {
+  const fixture = new LoanTestFixture(), original = fixture.contractService.exportContracts();
+  const ownerLine = fixture.fromTeam.lines[0].players, borrowerLine = fixture.toTeam.lines[0].players;
+  const result = fixture.start(); assert.equal(result.ok, true);
+  assert.equal(ownerLine[0], null); assert.equal(ownerLine[1], fixture.other);
+  assert.deepEqual(borrowerLine, [null, fixture.other]);
+  assert.deepEqual(fixture.toTeam.reservePlayers, [fixture.player]);
+  assert.equal(fixture.contractService.getContractForSeason("player", "2026/2027").teamId, "borrower");
+  assert.equal(fixture.contractService.getContractForSeason("player", "2027/2028").teamId, "owner");
+  assert.equal(result.agreement.originalContractEndDate, "2028-05-31");
+  assert.equal(fixture.returnLoan(result.agreement).ok, true);
+  assert.deepEqual(fixture.contractService.exportContracts(), original);
+  assert.deepEqual(fixture.fromTeam.reservePlayers, [fixture.player]);
+  assert.equal(ownerLine[0], null); assert.equal(fixture.player.affiliation.acquiredDay, 7);
+  assert.equal(fixture.returnLoan(result.agreement).ok, false);
+});
+test("registry survives JSON; queries are defensive and due at Moscow June 1", () => {
+  const fixture = new LoanTestFixture(), { agreement } = fixture.start(), loaded = new LoanService();
+  loaded.importRegistry(JSON.parse(JSON.stringify(fixture.service.exportRegistry())));
+  const active = loaded.getActiveForPlayer("player"); active.originalContract.teamId = "tampered";
+  assert.equal(loaded.getActiveForPlayer("player").originalContract.teamId, "owner");
+  assert.equal(loaded.getDueReturns("2027-05-31T20:59:59Z").length, 0);
+  assert.equal(loaded.getDueReturns("2027-05-31T21:00:00Z")[0].id, agreement.id);
+  assert.ok(loaded.evaluate(fixture.request, fixture.context).reasons.includes("ALREADY_ON_LOAN"));
+  assert.throws(() => loaded.importRegistry([{ ...agreement, status: "unknown" }]));
+  assert.equal(loaded.getActiveForPlayer("player").id, agreement.id);
+});
+test("reserve transfer does not alter any line or other reserve entry", () => {
+  const fixture = new LoanTestFixture(), line = fixture.fromTeam.lines[0].players;
+  line[0] = null;
+  fixture.fromTeam.reservePlayers.push(fixture.other, fixture.player);
+  const result = fixture.start();
+  assert.equal(result.ok, true);
+  assert.deepEqual(line, [null, fixture.other, null]);
+  assert.deepEqual(fixture.fromTeam.reservePlayers, [fixture.other]);
+  assert.equal(fixture.returnLoan(result.agreement).ok, true);
+  assert.deepEqual(fixture.fromTeam.reservePlayers, [fixture.other, fixture.player]);
+});

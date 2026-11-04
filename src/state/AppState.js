@@ -78,6 +78,8 @@ import {
 } from "./AppStateRoster.js";
 import { getPlayerPhotoUrl } from "../utils/PlayerPhoto.js";
 import { lineupScoreForPosition } from "../utils/positionFit.js";
+import { LoanRuntime } from "../loans/LoanRuntime.js";
+import { restoreUserLineup } from "./RestoreUserLineup.js";
 
 const dedupeFreeAgents = (players = []) => {
   const uniqueById = new Map();
@@ -116,6 +118,7 @@ const normalizeTransferLedger = (items = []) =>
     .filter((entry) => entry?.id && entry?.teamId && entry?.playerId)
     .map((entry) => ({ ...entry }));
 const normalizeGameSettings = (settings = {}) => ({
+  loansEnabled: settings.loansEnabled !== false,
   restrictedFreeAgencyEnabled: settings.restrictedFreeAgencyEnabled !== false,
   salaryCapEnabled: settings.salaryCapEnabled !== false,
   salaryCapBaseRub: Math.max(500000000, Number(settings.salaryCapBaseRub) || 900000000),
@@ -183,6 +186,7 @@ export class AppState {
   #coaches;
   #coachOffers = [];
   #juniorGenerationSeed = createJuniorGenerationSeed();
+  #loans;
 
   constructor(teams, calendar, contracts, freeAgents = [], externalPlayers = [], coaches = []) {
     this.#teams = teams;
@@ -192,6 +196,7 @@ export class AppState {
     this.#externalPlayers = [...externalPlayers];
     this.#coaches = [...coaches];
     this.#contracts = new ContractService(contracts);
+    this.#loans = new LoanRuntime(() => this.#createLoanContext());
     this.#juniors.ensureJuniorDepth({ teams: this.#teams, contracts: this.#contracts, seasonLabel: this.#calendar.seasonLabel, generationSeed: this.#juniorGenerationSeed, ageSpread: true });
     this.#aiRenewals = new AiRenewalService(this.#contracts, {
       canSubmitOffer: (team, player, offer, context, mode) =>
@@ -239,6 +244,24 @@ export class AppState {
   get activeTeam() { return this.#teams.find((team) => team.id === this.#activeTeamId) || null; }
   get seasonHistory() { return [...this.#seasonHistory]; }
   get gameSettings() { return { ...this.#gameSettings }; }
+  getLoanView() { return this.#loans.view(); }
+  getActiveLoanBadges() {
+    return Object.fromEntries(this.#loans.service.exportRegistry().filter(row => row.status === "active")
+      .map(row => [row.playerId, { ownerTeamName: this.#getTeamName(row.fromTeamId), endDate: row.endDate, returnDate: `${parseSeasonEnd(row.season)}-06-01` }]));
+  }
+  submitLoanProposal(request) { return this.#loans.submit(request); }
+  resolveLoanProposal(id, accepted) { return this.#loans.resolve(id, accepted); }
+  terminateLoanAgreement(id) { return this.#loans.terminate(id); }
+  #createLoanContext() {
+    return { teams: this.#teams, activeTeamId: this.#activeTeamId, enabled: this.#gameSettings.loansEnabled,
+      seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
+      currentDate: this.#getEffectiveNegotiationDate(), currentDay: this.#calendar.currentDay,
+      careerSeed: this.#juniorGenerationSeed,
+      phase: this.#seasonState?.phase || "preseason", contractService: this.#contracts,
+      contracts: this.#exportContractRows(), capEnabled: this.#gameSettings.salaryCapEnabled,
+      capFor: season => this.#getSalaryCapRub(season), recordMovement: entry => this.#recordPlayerMovement(entry),
+      notify: notification => this.#pushNotification(notification) };
+  }
   getCoachByTeamId(teamId) { return this.#coaches.find((coach) => coach.teamId === teamId) || null; }
   getFreeCoaches() { return this.#coaches.filter((coach) => !coach.teamId).sort((left, right) => right.overall - left.overall); }
   getCoachContractOffer(coachId, factor = 1, years = 2) {
@@ -294,6 +317,7 @@ export class AppState {
       seasonLabel,
       this.#getSalaryCapRub(seasonLabel),
       selectedIds,
+      this.#loans.protectedPlayerIds(),
     );
   }
 
@@ -305,6 +329,7 @@ export class AppState {
   applySalaryCapComplianceReleases(playerIds = []) {
     if (!this.activeTeam || !this.#gameSettings.salaryCapEnabled) return false;
     const selectedIds = [...new Set(playerIds || [])];
+    if (selectedIds.some(id => this.#loans.activeAgreement(id))) return false;
     const view = this.getSalaryCapComplianceView(selectedIds);
     if (!view?.isCompliant) return false;
     selectedIds.forEach((playerId) => this.#releasePlayerToFreeAgency(playerId, this.#activeTeamId, "salaryCapRelease"));
@@ -632,7 +657,14 @@ export class AppState {
 
   getActiveTeamContractRows() {
     if (!this.activeTeam) return [];
-    const rows = this.#contracts.getTeamContractRows(this.activeTeam, this.#getEffectiveNegotiationDate());
+    const rows = this.#contracts.getTeamContractRows(this.activeTeam, this.#getEffectiveNegotiationDate()).map(row => {
+      const agreement = this.#loans.activeAgreement(row.playerId);
+      if (!agreement) return row;
+      return { ...row, loan: { ...agreement, ownerTeamName: this.#getTeamName(agreement.fromTeamId), borrowingTeamName: this.#getTeamName(agreement.toTeamId), returnDate: `${parseSeasonEnd(agreement.season)}-06-01` },
+        contracts: row.contracts.filter(contract => contract.teamId === this.#activeTeamId && contract.season === agreement.season),
+        contractEndDate: formatContractEndDate(agreement.season), isRenewalLocked: true,
+        renewalLockReason: "Игрок арендован. Основной контракт сохраняется у клуба-владельца." };
+    });
     if (this.#gameSettings.restrictedFreeAgencyEnabled) return rows;
     return rows.map((row) => ({ ...row, freeAgentStatus: "НСА" }));
   }
@@ -914,6 +946,12 @@ export class AppState {
   }
 
   evaluateTradeWithTeam(teamId, givePlayerIds, receivePlayerIds) {
+    if (this.#containsLoanPlayer([...givePlayerIds, ...receivePlayerIds])) {
+      const opponent = this.#teams.find(team => team.id === teamId);
+      if (!this.activeTeam || !opponent) return null;
+      const evaluation = this.#trade.evaluateTrade(this.activeTeam, opponent, [], []);
+      return { ...evaluation, isValid: false, decision: { accepted: false, label: "Арендованных игроков нельзя обменивать." } };
+    }
     const opponent = this.#teams.find((team) => team.id === teamId);
     return this.activeTeam && opponent
       ? this.#trade.evaluateTrade(this.activeTeam, opponent, givePlayerIds, receivePlayerIds, {
@@ -924,6 +962,7 @@ export class AppState {
   }
 
   submitTradeWithTeam(teamId, givePlayerIds, receivePlayerIds) {
+    if (this.#containsLoanPlayer([...givePlayerIds, ...receivePlayerIds])) return { accepted: false, message: "Арендованных игроков нельзя обменивать." };
     const opponent = this.#teams.find((team) => team.id === teamId);
     if (!this.activeTeam || !opponent) return null;
     const capAssessment = this.#assessTradeSalaryCap(opponent, givePlayerIds, receivePlayerIds);
@@ -1034,6 +1073,7 @@ export class AppState {
   }
 
   submitActiveTeamNegotiation(playerId, offer) {
+    if (this.#loans.activeAgreement(playerId)) return { accepted: false, message: "Основной контракт арендованного игрока нельзя продлить в принимающем клубе." };
     const player = this.#findActiveTeamPlayer(playerId);
     if (!player) return null;
     const context = this.#buildNegotiationContext(this.activeTeam);
@@ -1290,6 +1330,7 @@ export class AppState {
   }
 
   signJuniorPlayerToMain(playerId) {
+    if (this.#loans.activeAgreement(playerId)) return null;
     if (!this.activeTeam || !playerId) return null;
     const team = this.activeTeam;
     const juniorIndex = team.juniorPlayers.findIndex((entry) => entry.id === playerId);
@@ -1320,6 +1361,7 @@ export class AppState {
   }
 
   #signAiJuniorProspect(team, player, seasonLabel) {
+    if (this.#loans.activeAgreement(player.id)) return false;
     const juniorIndex = team.juniorPlayers.findIndex((entry) => entry.id === player.id);
     if (juniorIndex < 0) return false;
     const contract = this.#contracts.signJuniorToMainContract(player, team.id, seasonLabel);
@@ -1474,6 +1516,7 @@ export class AppState {
     this.#processAiSalaryCapCompliance();
     this.#rebuildAiTeamRosters();
     this.#syncSeasonReferenceDate();
+    this.#loans.tick();
     return true;
   }
 
@@ -1492,6 +1535,7 @@ export class AppState {
       pushNotification: (notification) => this.#pushNotification(notification),
       releaseRightsPlayerIds: options.releaseRightsPlayerIds || [],
       restrictedFreeAgencyEnabled: this.#gameSettings.restrictedFreeAgencyEnabled,
+      returnSeasonLoans: () => this.#loans.returnSeason(this.#calendar.seasonLabel),
     });
     transition.seasonState.externalRightsOffers = this.#gameSettings.restrictedFreeAgencyEnabled ? this.#buildTransitionExternalRightsOffers(options.externalRightsOffers || [], transition.seasonState) : [];
     this.#processExternalPlayerReturns(transition);
@@ -1511,6 +1555,10 @@ export class AppState {
     this.#seasonState.aiTradeOfferTarget = null;
     this.#transferLedger = [];
     this.#recordTransitionMovements(transition);
+    (transition.returnedLoans || []).forEach(({ agreement }) => {
+      const player = this.getAllPlayers().find(row => row.id === agreement.playerId);
+      if (player) this.#recordPlayerMovement({ player, fromTeamId: agreement.toTeamId, toTeamId: agreement.fromTeamId, method: "loanReturn" });
+    });
     this.#processCoachOffseason(transition);
     (transition.externalSignings || []).forEach((entry) => {
       this.#recordPlayerMovement({ player: entry.player, fromTeamId: null, toTeamId: entry.toTeamId, method: "externalReturn" });
@@ -1548,6 +1596,7 @@ export class AppState {
       retiredPlayerIds: [...this.#retiredPlayerIds],
       transferLedger: this.#transferLedger,
       juniorGenerationSeed: this.#juniorGenerationSeed,
+      loans: this.#loans.exportState(),
     };
   }
 
@@ -1567,6 +1616,7 @@ export class AppState {
       if (saved.calendarResults) this.#calendar.importResults(saved.calendarResults);
     }
     if (saved.contracts) this.#contracts.importContracts(saved.contracts);
+    this.#loans.importState(saved.loans);
     const savedExternalPlayers = collectSavedExternalPlayerSnapshots(saved);
     const savedExternalPlayerIds = collectSavedExternalPlayerIds(savedExternalPlayers);
     if (savedExternalPlayers.length) {
@@ -1625,6 +1675,8 @@ export class AppState {
 
     const activePlayers = excludeExternalRightsPlayersFromActivePool(basePlayers, this.#externalPlayers, this.#retiredPlayerIds);
     this.#seasonTransition.rebuildRosters(this.#teams, activePlayers);
+    restoreUserLineup({ team: this.activeTeam, snapshot: saved.rosters?.find(row => row.teamId === this.#activeTeamId),
+      players: activePlayers, refreshExpectedRoles: team => this.#refreshExpectedRoles(team) });
     this.#freeAgents = restoreSavedFreeAgentPool(saved.players, activePlayers);
     this.#clearActiveRosterExternalCareers();
     if (saved.standings) this.#standings.importSnapshot(saved.standings);
@@ -1639,6 +1691,7 @@ export class AppState {
   }
 
   applyFantasyDraft(assignmentsByTeamId) {
+    this.#loans.reset();
     this.#teams.forEach((team) => team.juniorPlayers?.splice?.(0, team.juniorPlayers.length));
     const { undraftedPlayers } = applyFantasyDraftAssignments({
       teams: this.#teams,
@@ -1686,6 +1739,7 @@ export class AppState {
       this.#runNorthAmericaInterestWarnings(this.#calendar.currentDate);
       this.#processJuniorInSeasonDevelopment();
       this.#processAiJuniorProspectSignings(day?.phase || this.#seasonState?.phase || "regular");
+      this.#loans.tick();
       this.#processAiIncomingTradeOffers(day?.phase || this.#seasonState?.phase || "regular");
       this.#syncSeasonPhase();
       return null;
@@ -1744,6 +1798,7 @@ export class AppState {
     this.#processAiJuniorProspectSignings(day?.phase || this.#seasonState?.phase || "regular");
     this.#processAiCoachChanges(false, day?.phase || this.#seasonState?.phase || "regular");
     this.#processCoachOfferDecisions();
+    this.#loans.tick();
     this.#processAiIncomingTradeOffers(day?.phase || this.#seasonState?.phase || "regular");
     this.#lastMatch = focusedMatches[0] || null;
     this.#syncSeasonPhase();
@@ -2310,6 +2365,7 @@ export class AppState {
   }
 
   #canSubmitContractOffer(team, player, offer, mode, context = null) {
+    if (this.#loans.activeAgreement(player?.id)) return { allowed: false, failures: [], message: "Игрок находится в аренде." };
     if (!this.#gameSettings.salaryCapEnabled) return { allowed: true, failures: [] };
     if (!team?.id || !player?.id || !offer) return { allowed: false, failures: [] };
     const startSeason = mode === "renewal"
@@ -2359,6 +2415,7 @@ export class AppState {
   }
 
   #assessTradeSalaryCap(opponent, givePlayerIds, receivePlayerIds) {
+    if (this.#containsLoanPlayer([...givePlayerIds, ...receivePlayerIds])) return { allowed: false, failures: [] };
     if (!this.#gameSettings.salaryCapEnabled) return { allowed: true, failures: [] };
     return this.#salaryCap.assessTrade({
       contracts: this.#exportContractRows(),
@@ -2378,6 +2435,7 @@ export class AppState {
   }
 
   #releasePlayerToFreeAgency(playerId, teamId, method) {
+    if (this.#loans.activeAgreement(playerId)) return false;
     const player = this.getAllPlayers().find((entry) => entry.id === playerId);
     if (!player || player.affiliation?.teamId !== teamId) return false;
     player.affiliation.teamId = null;
@@ -2395,7 +2453,7 @@ export class AppState {
     const seasonLabel = this.#seasonState?.seasonLabel || this.#calendar.seasonLabel;
     const futureSeasons = [seasonLabel, formatNextSeason(seasonLabel), formatNextSeason(formatNextSeason(seasonLabel))];
     this.#teams.filter((team) => team.id !== this.#activeTeamId).forEach((team) => {
-      const rosterCuts = this.#salaryCapCompliance.pickMultiSeasonCuts(team, this.#exportContractRows(), futureSeasons, (season) => this.#getSalaryCapRub(season));
+      const rosterCuts = this.#salaryCapCompliance.pickMultiSeasonCuts(team, this.#exportContractRows(), futureSeasons, (season) => this.#getSalaryCapRub(season), this.#loans.protectedPlayerIds());
       rosterCuts.forEach((playerId) => this.#releaseAiSalaryCapPlayer(playerId, team.id));
       const contractCuts = this.#aiSalaryCapCompliance.pickContractPayrollCuts({
         team,
@@ -2403,12 +2461,14 @@ export class AppState {
         players: this.getAllKnownPlayers(),
         seasonLabels: futureSeasons,
         getCapRub: (season) => this.#getSalaryCapRub(season),
+        protectedIds: this.#loans.protectedPlayerIds(),
       });
       contractCuts.forEach((playerId) => this.#releaseAiSalaryCapPlayer(playerId, team.id));
     });
   }
 
   #releaseAiSalaryCapPlayer(playerId, teamId) {
+    if (this.#loans.activeAgreement(playerId)) return false;
     if (this.#releasePlayerToFreeAgency(playerId, teamId, "aiSalaryCapRelease")) return true;
     const player = this.getAllKnownPlayers().find((entry) => entry.id === playerId);
     this.#contracts.releasePlayers([playerId]);
@@ -2454,6 +2514,10 @@ export class AppState {
     const releasedIds = new Set(payload?.releasedPlayerIds || []);
     const createdIds = new Set((payload?.createdContracts || []).map((contract) => contract.id));
     return (payload?.contracts || []).filter((contract) => !releasedIds.has(contract.playerId) || createdIds.has(contract.id));
+  }
+
+  #containsLoanPlayer(ids = []) {
+    return ids.some(id => this.#loans.activeAgreement(String(id).replace(/^player:/, "")));
   }
 
   #getPlayerSalaryForSeason(playerId, seasonLabel, contracts = this.#exportContractRows()) {

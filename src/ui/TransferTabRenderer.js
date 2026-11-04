@@ -1,4 +1,6 @@
 const METHOD_LABELS = Object.freeze({
+  loan: "Аренда",
+  loanReturn: "Возврат из аренды",
   freeAgent: "Свободный агент",
   trade: "Обмен",
   offerSheet: "ОСА",

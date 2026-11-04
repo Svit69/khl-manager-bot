@@ -38,6 +38,9 @@
   .main{grid-template-columns:1fr;min-height:100vh;padding:1px}
   .team-screen{grid-template-columns:1fr;min-height:auto;padding:0}
   .team-sidebar{
+    position:static;
+    height:auto;
+    align-self:start;
     flex-direction:column;
     align-items:stretch;
     justify-content:flex-start;
