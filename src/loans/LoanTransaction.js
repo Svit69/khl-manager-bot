@@ -14,7 +14,7 @@ export class LoanTransaction {
     catch (error) {
       rosters.forEach(([array, values]) => array.splice(0, array.length, ...values));
       Object.assign(player.affiliation, { teamId, contractId, acquiredDay });
-      contractService.importContracts(contracts);
+      contractService.importContracts(contracts, { mergeBaseContracts: false });
       return { ok: false, reasons: [error.message || "TRANSACTION_FAILED"] };
     }
   }

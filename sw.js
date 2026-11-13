@@ -1,5 +1,8 @@
-const CACHE_NAME="khl-manager-v181";
+const CACHE_NAME="khl-manager-v182";
 const ASSETS=[
+  "./src/loans/LoanReturnRecovery.js",
+  "./src/loans/LoanSeasonReturnBatch.js",
+  "./src/ui/SeasonTransitionController.js",
   "./styles/loan-market.css",
   "./src/ui/LoanMarketRenderer.js",
   "./src/ui/OptionalLoanNavigationItem.js",

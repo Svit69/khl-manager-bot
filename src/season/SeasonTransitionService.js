@@ -517,7 +517,7 @@ export class SeasonTransitionService {
         const score = (Number(player.ovr) || 0) + roleScore * 1.8 + salaryRatio * 8 + this.#stableOfferSheetNoise(player, team);
         return { team, preview, score };
       })
-      .filter((entry) => entry.preview && Number(entry.preview.willingness) >= 38)
+      .filter((entry) => entry?.preview && Number(entry.preview.willingness) >= 38)
       .sort((left, right) => right.score - left.score);
 
     const best = candidates[0] || null;

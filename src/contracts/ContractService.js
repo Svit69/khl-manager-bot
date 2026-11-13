@@ -50,7 +50,7 @@ export class ContractService {
     this.#renewalLockSeasonByPlayerId = new Map();
   }
 
-  importContracts(payload) {
+  importContracts(payload, { mergeBaseContracts = true } = {}) {
     const fullContracts = Array.isArray(payload?.contracts) ? payload.contracts : null;
     const savedContracts = Array.isArray(payload) ? payload : payload?.createdContracts || [];
     const releasedPlayerIds = Array.isArray(payload?.releasedPlayerIds) ? payload.releasedPlayerIds : [];
@@ -85,7 +85,7 @@ export class ContractService {
 
     if (fullContracts) {
       const merged = new Map(saved.map((contract) => [contract.id, contract]));
-      this.#baseContracts.forEach((contract) => {
+      if (mergeBaseContracts) this.#baseContracts.forEach((contract) => {
         if (!merged.has(contract.id) && !this.#releasedPlayerIds.has(contract.playerId)) {
           merged.set(contract.id, { ...contract });
         }
@@ -276,6 +276,14 @@ export class ContractService {
     if (!contract || !teamId) throw new Error("CURRENT_CONTRACT_REQUIRED");
     contract.teamId = teamId;
     return { ...contract };
+  }
+
+  restoreLoanSeasonContract(contract) {
+    if (!contract?.id || !contract.playerId || !contract.teamId || !contract.season)
+      throw new Error("INVALID_LOAN_CONTRACT");
+    this.#contracts = this.#contracts.filter(row => row.playerId !== contract.playerId || row.season !== contract.season);
+    this.#contracts.push({ ...contract });
+    this.#releasedPlayerIds.delete(contract.playerId);
   }
 
   ensureCurrentRosterContract(player, teamId, season) {

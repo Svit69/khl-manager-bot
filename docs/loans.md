@@ -14,6 +14,8 @@ https://cska-hockey.ru/upload/iblock/c35/gtnp5j7jxrr5gr1ptaks0zfpweo6ava2.pdf
 - Returned agreements still count toward the same-pair seasonal limit.
 - Transfers close January 25 at 23:59:59.999 Moscow time.
 - Agreements end May 31; automatic return precedes next-season contract handling.
+- Mandatory returns reconcile duplicate/detached placements and restore the recorded current-season owner contract; future contracts are not rewritten. Conflicting third-club ownership is never overridden.
+- Season returns commit as one batch: a failure restores all roster/contract/registry changes before any return notifications are recorded. Errors include player ID and the underlying reason.
 - Clubs and player must agree. No transfer fee, subloan, trade or borrower renewal.
 
 ## Game Implementation

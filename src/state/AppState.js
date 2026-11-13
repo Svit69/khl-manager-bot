@@ -257,6 +257,7 @@ export class AppState {
       seasonLabel: this.#seasonState?.seasonLabel || this.#calendar.seasonLabel,
       currentDate: this.#getEffectiveNegotiationDate(), currentDay: this.#calendar.currentDay,
       careerSeed: this.#juniorGenerationSeed,
+      getAllPlayers: () => this.getAllPlayers(),
       phase: this.#seasonState?.phase || "preseason", contractService: this.#contracts,
       contracts: this.#exportContractRows(), capEnabled: this.#gameSettings.salaryCapEnabled,
       capFor: season => this.#getSalaryCapRub(season), recordMovement: entry => this.#recordPlayerMovement(entry),

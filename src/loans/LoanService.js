@@ -22,12 +22,15 @@ export class LoanService extends LoanRegistry {
     const record = this.exportRegistry().find(row => row.id === request.agreementId);
     if (!record || record.status !== "active") return { ok: false, reasons: ["ACTIVE_AGREEMENT_REQUIRED"] };
     if (record.playerId !== request.player?.id || record.fromTeamId !== request.fromTeam?.id ||
-        record.toTeamId !== request.toTeam?.id || request.player?.affiliation?.teamId !== record.toTeamId ||
-        !LoanRosterTransfer.validate(request.player, request.toTeam, request.fromTeam)) {
+        record.toTeamId !== request.toTeam?.id || !request.player?.affiliation ||
+        (!request.reconcile && (request.player.affiliation.teamId !== record.toTeamId ||
+        !LoanRosterTransfer.validate(request.player, request.toTeam, request.fromTeam)))) {
       return { ok: false, reasons: ["INVALID_PARTICIPANTS"] };
     }
     const now = LoanCalendar.timestamp(request.currentDate);
     if (!Number.isFinite(now) || now < LoanCalendar.timestamp(record.startedAt)) return { ok: false, reasons: ["INVALID_DATE"] };
+    if (request.reconcile && now < LoanCalendar.timestamp(`${LoanCalendar.seasonYear(record.season) + 1}-06-01`))
+      return { ok: false, reasons: ["INVALID_DATE"] };
     const agreement = new LoanAgreement(record).returned(new Date(now).toISOString());
     return LoanOperations.commit(this, request, context, agreement, true);
   }

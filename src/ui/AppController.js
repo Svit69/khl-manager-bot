@@ -2,6 +2,7 @@ import { FantasyDraftService } from "../draft/FantasyDraftService.js";
 import { JuniorPhotoPool } from "../utils/JuniorPhotoPool.js";
 import { updateTeamFavicon } from "./TeamFaviconService.js";
 import { LoanUiController } from "./LoanUiController.js";
+import { SeasonTransitionController } from "./SeasonTransitionController.js";
 export class AppController{
   #state;#calendar;#teams;#renderer;#userStore;#pendingTeamId=null;#activeTab="roster";
   #selectedNegotiationPlayerId=null;#offerByPlayerId=new Map();#outcomeByPlayerId=new Map();
@@ -696,9 +697,9 @@ export class AppController{
     if(action==="season-contract-confirm"){
       const view=this.#buildSeasonContractDecisionView();
       if(view.pendingCount>0)return;
-      this.#seasonContractDecisionOpen=false;
       const externalRightsOffers=[...this.#seasonExternalOfferPlayerIds].map(playerId=>({playerId,offer:this.#offerByPlayerId.get(playerId)})).filter(entry=>entry.offer);
-      this.#state.advanceToNextSeason({releaseRightsPlayerIds:[...this.#seasonContractReleasePlayerIds],externalRightsOffers});
+      if(!SeasonTransitionController.advance(this.#state,{releaseRightsPlayerIds:[...this.#seasonContractReleasePlayerIds],externalRightsOffers}))return;
+      this.#seasonContractDecisionOpen=false;
       this.#seasonContractReleasePlayerIds.clear();
       this.#seasonContractQualifiedPlayerIds.clear();
       this.#seasonExternalOfferPlayerIds.clear();
@@ -1137,7 +1138,7 @@ export class AppController{
         this.#renderScreen();
         return;
       }
-      this.#state.advanceToNextSeason();
+      if(!SeasonTransitionController.advance(this.#state))return;
       this.#userStore.saveState(this.#state.exportState());
       this.#renderScreen();
       return;

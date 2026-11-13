@@ -3,6 +3,7 @@ import { LoanAgreement } from "./LoanAgreement.js";
 import { LoanCalendar } from "./LoanCalendar.js";
 import { LoanRosterTransfer } from "./LoanRosterTransfer.js";
 import { LoanTransaction } from "./LoanTransaction.js";
+import { LoanReturnRecovery } from "./LoanReturnRecovery.js";
 export class LoanOperations {
   static create(request, context, eligibility) {
     const { player, fromTeam, toTeam, season, currentDate } = request;
@@ -22,6 +23,7 @@ export class LoanOperations {
     const previous = service.exportRegistry();
     const result = LoanTransaction.run(request, context, () => {
       const { player, fromTeam, toTeam } = request, { contractService } = context;
+      if (returning && request.reconcile) LoanReturnRecovery.prepare(request, context, agreement);
       LoanRosterTransfer.move(player, returning ? toTeam : fromTeam, returning ? fromTeam : toTeam);
       LoanTransaction.synchronous(contractService.reassignSeasonContract(player.id, agreement.season,
         returning ? fromTeam.id : toTeam.id));
