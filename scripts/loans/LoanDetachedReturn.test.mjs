@@ -14,7 +14,7 @@ test("an old save with a loan player detached into free agents returns him witho
     roster.linePlayerIds = roster.linePlayerIds.map(line => line.map(id => id === player.id ? null : id));
   }
   fixture.state.importState(saved);
-  assert.ok(fixture.state.getAvailableFreeAgents().some(row => row.id === player.id));
+  assert.equal(fixture.state.getAvailableFreeAgents().some(row => row.id === player.id), false);
   fixture.calendar.index = Number.MAX_SAFE_INTEGER;
   assert.ok(fixture.state.advanceToNextSeason());
   assert.equal(fixture.player.affiliation.teamId, "owner");

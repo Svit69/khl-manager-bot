@@ -79,6 +79,8 @@ import {
 import { getPlayerPhotoUrl } from "../utils/PlayerPhoto.js";
 import { lineupScoreForPosition } from "../utils/positionFit.js";
 import { LoanRuntime } from "../loans/LoanRuntime.js";
+import { FreeAgentAvailability } from "./FreeAgentAvailability.js";
+import { SavedPlayerOwnership } from "./SavedPlayerOwnership.js";
 import { restoreUserLineup } from "./RestoreUserLineup.js";
 
 const dedupeFreeAgents = (players = []) => {
@@ -943,7 +945,7 @@ export class AppState {
   }
 
   getAvailableFreeAgents() {
-    return dedupeFreeAgents(this.#freeAgents);
+    return FreeAgentAvailability.select(this.#freeAgents, this.#teams, this.#retiredPlayerIds);
   }
 
   evaluateTradeWithTeam(teamId, givePlayerIds, receivePlayerIds) {
@@ -1218,7 +1220,7 @@ export class AppState {
     const result = this.#contracts.submitFreeAgentOffer(this.activeTeam, player, offer, context);
     if (result?.decision === "accept") {
       player.affiliation.acquiredDay = this.#calendar.currentDay;
-      this.activeTeam.reservePlayers.push(player);
+      if (!this.activeTeam.getRoster().some(entry => entry.id === player.id)) this.activeTeam.reservePlayers.push(player);
       this.#freeAgents = dedupeFreeAgents(this.#freeAgents.filter((entry) => entry.id !== player.id));
       this.#refreshExpectedRoles(this.activeTeam);
       this.#recordPlayerMovement({ player, fromTeamId: null, toTeamId: this.#activeTeamId, method: "freeAgent" });
@@ -1666,6 +1668,8 @@ export class AppState {
       ].map((player) => [player.id, player])).values()];
     }
     restorePlayerSnapshots(basePlayers, saved.players);
+    SavedPlayerOwnership.reconcile({ teams: this.#teams, players: basePlayers, contracts: this.#contracts,
+      seasonLabel: saved.seasonState?.seasonLabel || this.#calendar.seasonLabel, retiredIds: this.#retiredPlayerIds });
     this.#freeAgents = restoreSavedFreeAgentPool(saved.players, basePlayers);
     this.#ensureRosterContracts(saved.seasonState?.seasonLabel || this.#calendar.seasonLabel);
     this.#releaseIneligibleJuniorPlayers({ notify: false });
@@ -2470,6 +2474,8 @@ export class AppState {
 
   #releaseAiSalaryCapPlayer(playerId, teamId) {
     if (this.#loans.activeAgreement(playerId)) return false;
+    const currentOwner = this.getAllKnownPlayers().find(entry => entry.id === playerId)?.affiliation?.teamId;
+    if (currentOwner && currentOwner !== teamId) return false;
     if (this.#releasePlayerToFreeAgency(playerId, teamId, "aiSalaryCapRelease")) return true;
     const player = this.getAllKnownPlayers().find((entry) => entry.id === playerId);
     this.#contracts.releasePlayers([playerId]);

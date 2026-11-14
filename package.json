@@ -2,6 +2,7 @@
   "type": "module",
   "scripts": {
     "test:loans": "node scripts/loans/run-tests.mjs",
+    "test:free-agents": "node --test scripts/contracts/free-agent-availability.test.mjs scripts/contracts/free-agent-persistence.test.mjs scripts/contracts/mcleod-free-agent-reload.test.mjs scripts/contracts/contract-release-restoration.test.mjs",
     "check:unicode": "node scripts/check-unicode.mjs",
     "junior:photos": "node scripts/generate-junior-photos.mjs"
   }

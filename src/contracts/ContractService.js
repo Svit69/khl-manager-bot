@@ -1,6 +1,7 @@
 import { generateUuid } from "../utils/uuid.js";
 import { ContractType, contractTypeLabel } from "./ContractType.js";
 import { createContractNormalizer } from "./ContractNormalization.js";
+import { ContractReleaseRestoration } from "./ContractReleaseRestoration.js";
 import { evaluateRenewalWillingness } from "./RenewalScoring.js";
 import {
   calculateAge,
@@ -61,7 +62,9 @@ export class ContractService {
       : {};
     const saved = (fullContracts || savedContracts || []).map(normalizeContract).filter(Boolean);
 
-    this.#releasedPlayerIds = new Set(releasedPlayerIds);
+    this.#releasedPlayerIds = mergeBaseContracts
+      ? ContractReleaseRestoration.restore(releasedPlayerIds, saved, this.#baseContracts)
+      : new Set(releasedPlayerIds);
     this.#badOfferCounts = new Map(
       Object.entries(badOfferCounts)
         .map(([playerId, count]) => [playerId, Number(count) || 0])
@@ -90,7 +93,9 @@ export class ContractService {
           merged.set(contract.id, { ...contract });
         }
       });
-      this.#contracts = [...merged.values()];
+      this.#contracts = mergeBaseContracts
+        ? ContractReleaseRestoration.reconcileRows([...merged.values()], this.#baseContractIds)
+        : [...merged.values()];
       return;
     }
 
@@ -116,7 +121,7 @@ export class ContractService {
       });
     });
 
-    this.#contracts = [...merged.values()];
+    this.#contracts = ContractReleaseRestoration.reconcileRows([...merged.values()], this.#baseContractIds);
   }
 
   exportContracts() {
@@ -265,9 +270,9 @@ export class ContractService {
 
   reassignPlayerContracts(playerId, teamId) {
     if (!playerId || !teamId) return;
-    this.#releasedPlayerIds.delete(playerId);
+    const activeIds = new Set(this.getContractsForPlayer(playerId).map(row => row.id));
     this.#contracts = this.#contracts.map((contract) =>
-      contract.playerId === playerId ? { ...contract, teamId } : contract,
+      activeIds.has(contract.id) ? { ...contract, teamId } : contract,
     );
   }
 
@@ -283,7 +288,7 @@ export class ContractService {
       throw new Error("INVALID_LOAN_CONTRACT");
     this.#contracts = this.#contracts.filter(row => row.playerId !== contract.playerId || row.season !== contract.season);
     this.#contracts.push({ ...contract });
-    this.#releasedPlayerIds.delete(contract.playerId);
+    if (this.#baseContractIds.has(contract.id)) this.#releasedPlayerIds.delete(contract.playerId);
   }
 
   ensureCurrentRosterContract(player, teamId, season) {
@@ -291,7 +296,6 @@ export class ContractService {
     const currentContract = this.getContractForSeason(player.id, season);
     if (currentContract) {
       player.affiliation.contractId = currentContract.id;
-      this.#releasedPlayerIds.delete(player.id);
       return currentContract;
     }
 
@@ -308,7 +312,6 @@ export class ContractService {
     this.#contracts.push(contract);
     player.affiliation.teamId = teamId;
     player.affiliation.contractId = contract.id;
-    this.#releasedPlayerIds.delete(player.id);
     return contract;
   }
 
@@ -432,6 +435,7 @@ export class ContractService {
   }
 
   submitFreeAgentOffer(team, player, offer, context = null) {
+    if (!this.isFreeAgentSigningAvailable(player, context)) return { decision: "unavailable", reason: "Игрок уже принадлежит клубу." };
     const preview = this.getFreeAgentPreview(team, player, offer, context);
     const decision = getNegotiationDecision(preview, player);
 
@@ -444,7 +448,14 @@ export class ContractService {
     return { decision, preview, counter: buildCounterOffer(preview) };
   }
 
+  isFreeAgentSigningAvailable(player, context = null) {
+    if (!player?.id || player.affiliation?.teamId) return false;
+    const season = this.getSigningStartSeason(context);
+    return !this.getContractsForPlayer(player.id).some(row => row.teamId && parseSeasonStart(row.season) >= parseSeasonStart(season));
+  }
+
   finalizeFreeAgentSigning(team, player, offer, context = null) {
+    if (!this.isFreeAgentSigningAvailable(player, context)) throw new Error("PLAYER_ALREADY_SIGNED");
     const normalizedOffer = {
       years: clamp(Number(offer?.years) || 1, 1, 4),
       salaryRub: roundSalaryRub(offer?.salaryRub),
